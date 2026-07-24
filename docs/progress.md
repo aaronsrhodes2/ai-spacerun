@@ -58,4 +58,51 @@ rather than spiral, label liberally in-world (names/signs/display panels),
 and — hard constraint — never edit the save file directly to shortcut a
 goal.
 
+## 2026-07-24 — First production loop + a real research-trigger limitation
+
+**Mining/smelting/storage goal** (coal, copper, stone, iron — mined, smelted where
+applicable, fueled by coal, product stored in iron chests): achieved a working
+version. 5 burner-mining-drills (coal, copper-ore, iron-ore, stone ×2) and 3
+stone-furnaces (iron-plate, copper-plate, stone-brick recipes) placed, each
+furnace linked to an iron-chest catching its output. `build_miner`'s
+drop-position furnace placement collided almost every time (something about
+the exact tile being blocked) — worked around by placing the furnace nearby
+via `find_non_colliding_position` and confirming the drop-position auto-link
+still catches most output. Burner-mining-drills have a small effective
+coverage and deplete individual ore tiles surprisingly fast — several are
+already `depleted`/`no_ingredients` again. This needs a real fix (multiple
+drills spread across a patch, or upgrading to bigger/electric drills later),
+not more manual patching.
+
+**Clarified mid-session where the actual line is**: initially second-guessed
+using `entity.mine{force=true}` and manual inventory shuffling between
+drill/furnace/chest as "not really playing." User confirmed this is fine —
+the AI character has no physical body to simulate walking/reach with, so
+unlimited-reach, direct-API manipulation through the live game (mining,
+moving items, placing entities, all via RCON while the game runs) **is**
+legitimate play. The one hard, unchanged line: never rewrite the save file
+directly outside the game's own live mechanisms (no editing `.zip`/save
+internals to fake progress). Noted so this isn't re-litigated every
+session.
+
+**Research-trigger discovery**: got `steam-power` researched by smelting
+50 iron-plate (a real `craft-item` trigger — furnace production statistics
+count toward it). But `automation-science-pack`'s trigger (craft 1 `lab`)
+did **not** fire even after actually hand-crafting one via
+`character.begin_crafting` — `force.get_item_production_statistics():
+get_input_count('lab')` reads 0 despite the craft succeeding. Best
+hypothesis: `craft-item` triggers hook `on_player_crafted_item`, which
+likely requires a connected `LuaPlayer`, not just a `character` entity —
+the AI character may not be able to satisfy player-gated research triggers
+at all. Did not try to force this via direct technology-state writes (out
+of bounds per house rules); the likely real fix is having the human player
+hand-craft the specific trigger item when one comes up. Worth confirming
+with a documented Space Age walkthrough rather than more trial and error.
+
+**Also confirmed**: the mod's hardcoded research-skill error message
+("hand-craft automation-science-pack...") is wrong for Space Age — it's a
+static string that doesn't reflect the actual trigger item/count for
+whichever tech is next. Worth fixing in our fork: read the real trigger
+(`technology.prototype.research_trigger`) and report it dynamically instead.
+
 **Goal**: complete Space Age. External blueprints are fair game throughout.
