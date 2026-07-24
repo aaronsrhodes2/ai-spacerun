@@ -98,13 +98,20 @@ Update this when a new API quirk is confirmed; don't bury it only in
   (mechanically succeeded — item count went from 1→2), but
   `force.get_item_production_statistics(surface):get_input_count('lab')`
   stayed at `0` and the `automation-science-pack` tech's `research_trigger`
-  never fired. Suspected cause: these triggers hook `on_player_crafted_item`,
-  which needs a real `LuaPlayer`. **Pending confirmation** — see
-  `space-age-strategy.md` / deep-research findings once available. If
-  confirmed, the practical workaround is having the human player hand-craft
-  the specific trigger item when one comes up — not something to fake via
-  `technology.researched = true` (that crosses into faking earned progress,
-  same spirit as never editing the save file directly).
+  never fired. **Researched via deep-research (2026-07-24), still open**:
+  the official Lua API docs for `ResearchTrigger` (craft-item type) only
+  document `item`/`item_quality`/`count` fields and say nothing about
+  player-vs-character semantics; FFF-376 (the devblog introducing trigger
+  technologies) likewise doesn't address it at the API level. So there is
+  **no documented confirmation that a LuaPlayer is required, and no
+  documented workaround** — our in-game test result is suggestive but not
+  proven by any primary source found. Until this is resolved (candidates:
+  ask on the Factorio Discord/forums, or read the base game's control
+  scripts directly), the practical working assumption is: have the human
+  player hand-craft the specific trigger item when one comes up. Do **not**
+  work around it via `technology.researched = true` — that crosses into
+  faking earned progress, same spirit as never editing the save file
+  directly.
 - Distinction worth remembering: **automated production trigger-checks
   appear to work fine for the AI character's builds** (furnaces, drills,
   anything the AI's *machines* produce) — it's specifically **hand-crafting
