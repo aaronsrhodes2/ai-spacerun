@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "factorio": {
+      "command": "D:\\Aaron\\development\\AI-factorio\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "bridge.factorio.mcp_server"],
+      "cwd": "D:\\Aaron\\development\\AI-factorio"
+    }
+  }
+}
