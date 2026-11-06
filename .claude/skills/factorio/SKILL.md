@@ -10,12 +10,12 @@ The Captain plays live while giving orders from this chat, such as "find more co
 **Be more help than hindrance.** Never break what's running, block where the player is working, or leave a half-finished build without saying so.
 
 ## The rules
-- **Placed entities are free, but only once researched.** `place_entities` enforces this. Don't bypass it with `run_lua`.
-- **Anything a machine consumes must be produced by the factory:** science packs, rocket parts, intermediates. Don't spawn these.
+- **The only barriers are research progression and planet progression** (the Captain, 2026-11-06). Everything else is creative: placed entities are free once researched (`place_entities` enforces that; don't bypass it with `run_lua`), starter fuel is free, and the Captain's own player has `cheat_mode` (free crafting of anything researched), 50x hand speed, 200-tile reach and 200 extra inventory slots. Re-apply the force bonuses on a new force or surface if they don't carry.
+- **Science packs are still made by the factory.** Research only counts as progression if the chains that make the packs exist, so never spawn packs or lab contents, and don't hand-craft them in cheat mode either. Planets are reached by real rockets and platforms.
 - **Never write research state.** Queueing is fine. A trigger tech is earned by really making its item.
 - Build in unused land next to the used area unless told otherwise.
 - The Captain gave full write access to the game, mods and saves on 2026-11-06. Achievements on this save are given up.
-- Starter fuel is free, once, so a self-fuelling loop can start (`seed_starter_fuel`, the Captain's call on 2026-11-06). After that, a machine out of fuel is a supply bug to fix, not a reason to seed again.
+- Starter fuel via `seed_starter_fuel` is fine any time, but a machine out of fuel is still a supply bug to fix, not a reason to seed again.
 - Every coal-powered machine must be fed by belt, not by hand.
 - **The fuel paradox** (the Captain, 2026-11-06): only an inserter can fuel an inserter, so the head of a burner-inserter chain gets its coal by hand (`seed_starter_fuel`). Once power is up, every new inserter is electric: that is what makes full automation possible. Keep the boiler's own coal inserter a burner one, so power can restart from nothing.
 - **Biters and pollution are switched off** (the Captain, 2026-11-06, replacing an earlier wish for walls and a turret maze): `map_settings.pollution.enabled=false`, `enemy_evolution` and `enemy_expansion` off, every surface in `peaceful_mode`. Biters only fight back if attacked. Nests matter only when we go to clear them, which is when turrets, ammo and `restock_turrets` come in. Re-apply these settings if a new surface appears (planets, platforms).
