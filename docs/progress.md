@@ -3,6 +3,43 @@
 Dated entries, newest first. Milestones, dead ends, and decisions — not a
 full transcript.
 
+## 2026-11-06 — New direction: god-mode co-pilot on skippy-games
+
+The Captain now plays live on the SkippyTel server `skippy-games` and gives orders
+from the project chat. Claude acts directly on the map, with no AI character. Building
+is free but gated by research, and anything consumed must be produced. This replaces
+the July approach of a character on a locally hosted save, so the "no free items"
+reading in the README's house rules no longer applies. The operating guide is
+[.claude/skills/factorio/SKILL.md](../.claude/skills/factorio/SKILL.md), kept up to date as we learn.
+
+**Built and tested on the live map (a new game with nothing built):** a self-healing SSH
+tunnel to RCON (no server change needed: RCON was already on, just not published),
+overview, resource patches, research status, research-gated placement and removal,
+saves and chat. Testing caught `build_check_type.script` ignoring collisions, which stacked
+two chests, so placement now uses `manual`.
+
+**First order:** iron, copper, coal and stone by belt to a hub at (-20, -62), all burner machines
+fed coal by belt, with no undergrounds available. Built by the new planner. Watching it caught a design bug: a
+coal-band inserter upstream of every drop starved, and the failure spread along the band as the starter
+coal ran out. The band is now a ring. The lesson is in the skill.
+
+**Red science, same day:** smelting at the hub (11 stone furnaces, ore and coal on one two-lane belt
+each), steam power at the lake with a 110-tile coal belt, then a science block west of the hub: 6 labs,
+6 red-pack assemblers, a gear assembler sharing the copper belt's spare lane. The first lab and 10 packs
+were hand-crafted through the Captain's own character (a real player's craft fires the trigger tech).
+Automation researched 25 s after the packs went in; gun-turret, stone-wall, military, logistics and
+electric-mining-drill followed within minutes. 15 red-only techs, 525 packs in all, queued to the end.
+
+**Biters:** a nest 115 tiles east took out drills twice. The Captain first asked for walls and a turret maze,
+then changed his mind: pollution, evolution and expansion are off and every surface is in peaceful mode.
+A perimeter-and-kill-box script was written and discarded; `restock_turrets` stays for clearing nests later.
+
+**Game data:** every recipe, item, machine, tech, planet and route dumped from the live server into
+`.claude/skills/factorio/reference/`, with each science pack traced to raw materials.
+
+**Not built or not tested:** rail routing, general outposts, connecting to base lines, the research
+driver, platforms and planets. `queue_research` has not been run at all.
+
 ## 2026-07-23 — Setup complete, first actions taken
 
 **Setup (Stage 1 of the plan):**

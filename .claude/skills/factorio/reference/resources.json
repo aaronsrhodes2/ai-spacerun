@@ -1,0 +1,228 @@
+[
+{
+"category": "basic-solid",
+"infinite": false,
+"mining_seconds": 1,
+"name": "calcite",
+"products": [
+{
+"affected_by_quality": true,
+"amount": 1,
+"independent_probability": 1,
+"name": "calcite",
+"shared_probability": {
+"max": 1,
+"min": 0
+},
+"type": "item"
+}
+]
+},
+{
+"category": "basic-solid",
+"infinite": false,
+"mining_seconds": 1,
+"name": "coal",
+"products": [
+{
+"affected_by_quality": true,
+"amount": 1,
+"independent_probability": 1,
+"name": "coal",
+"shared_probability": {
+"max": 1,
+"min": 0
+},
+"type": "item"
+}
+]
+},
+{
+"category": "basic-solid",
+"infinite": false,
+"mining_seconds": 1,
+"name": "copper-ore",
+"products": [
+{
+"affected_by_quality": true,
+"amount": 1,
+"independent_probability": 1,
+"name": "copper-ore",
+"shared_probability": {
+"max": 1,
+"min": 0
+},
+"type": "item"
+}
+]
+},
+{
+"category": "basic-fluid",
+"infinite": true,
+"mining_seconds": 1,
+"name": "crude-oil",
+"products": [
+{
+"amount": 10,
+"independent_probability": 1,
+"name": "crude-oil",
+"shared_probability": {
+"max": 1,
+"min": 0
+},
+"type": "fluid"
+}
+]
+},
+{
+"category": "basic-fluid",
+"infinite": true,
+"mining_seconds": 1,
+"name": "fluorine-vent",
+"products": [
+{
+"amount": 1,
+"independent_probability": 1,
+"name": "fluorine",
+"shared_probability": {
+"max": 1,
+"min": 0
+},
+"type": "fluid"
+}
+]
+},
+{
+"category": "basic-solid",
+"infinite": false,
+"mining_seconds": 1,
+"name": "iron-ore",
+"products": [
+{
+"affected_by_quality": true,
+"amount": 1,
+"independent_probability": 1,
+"name": "iron-ore",
+"shared_probability": {
+"max": 1,
+"min": 0
+},
+"type": "item"
+}
+]
+},
+{
+"category": "basic-fluid",
+"infinite": false,
+"mining_seconds": 1,
+"name": "lithium-brine",
+"products": [
+{
+"amount": 1,
+"independent_probability": 1,
+"name": "lithium-brine",
+"shared_probability": {
+"max": 1,
+"min": 0
+},
+"type": "fluid"
+}
+]
+},
+{
+"category": "basic-solid",
+"infinite": false,
+"mining_seconds": 0.5,
+"name": "scrap",
+"products": [
+{
+"affected_by_quality": true,
+"amount": 1,
+"independent_probability": 1,
+"name": "scrap",
+"shared_probability": {
+"max": 1,
+"min": 0
+},
+"type": "item"
+}
+]
+},
+{
+"category": "basic-solid",
+"infinite": false,
+"mining_seconds": 1,
+"name": "stone",
+"products": [
+{
+"affected_by_quality": true,
+"amount": 1,
+"independent_probability": 1,
+"name": "stone",
+"shared_probability": {
+"max": 1,
+"min": 0
+},
+"type": "item"
+}
+]
+},
+{
+"category": "basic-fluid",
+"infinite": true,
+"mining_seconds": 1,
+"name": "sulfuric-acid-geyser",
+"products": [
+{
+"amount": 10,
+"independent_probability": 1,
+"name": "sulfuric-acid",
+"shared_probability": {
+"max": 1,
+"min": 0
+},
+"type": "fluid"
+}
+]
+},
+{
+"category": "hard-solid",
+"infinite": false,
+"mining_seconds": 5,
+"name": "tungsten-ore",
+"products": [
+{
+"affected_by_quality": true,
+"amount": 1,
+"independent_probability": 1,
+"name": "tungsten-ore",
+"shared_probability": {
+"max": 1,
+"min": 0
+},
+"type": "item"
+}
+]
+},
+{
+"category": "basic-solid",
+"fluid_amount": 10,
+"infinite": false,
+"mining_seconds": 2,
+"name": "uranium-ore",
+"needs_fluid": "sulfuric-acid",
+"products": [
+{
+"affected_by_quality": true,
+"amount": 1,
+"independent_probability": 1,
+"name": "uranium-ore",
+"shared_probability": {
+"max": 1,
+"min": 0
+},
+"type": "item"
+}
+]
+}
+]

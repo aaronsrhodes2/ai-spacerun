@@ -30,9 +30,12 @@ Design notes:
 
 import json
 import logging
+import re
 import threading
+from pathlib import Path
 
 from ..config import ConfigLoader
+from . import god_tools, tunnel
 from .rcon import RCONGateway
 
 try:
@@ -49,6 +52,7 @@ log = logging.getLogger(__name__)
 _cfg = ConfigLoader().get()
 _GW = RCONGateway(_cfg.rcon.host, _cfg.rcon.port, _cfg.rcon.password)
 _LOCK = threading.Lock()
+_primed_client = None
 
 mcp = FastMCP("factorio")
 
@@ -59,10 +63,18 @@ def _q(lua: str) -> str:
     Returns the printed string, or an "ERROR: ..." marker the model can read
     so a failed RCON send never looks like an empty-but-successful result.
     """
+    global _primed_client
     with _LOCK:
+        # The first /sc on a fresh connection can come back empty. Prime with a
+        # harmless command, so a real command is never sent twice to get its output.
+        if _GW._client is None or _GW._client is not _primed_client:
+            for _ in range(3):
+                if _GW.query_lua("rcon.print('ok')"):
+                    _primed_client = _GW._client
+                    break
         result = _GW.query_lua(lua)
     if result is None:
-        return "ERROR: RCON send failed (is Factorio running with RCON enabled?)"
+        return "ERROR: RCON send failed (is the VM awake and the tunnel up?)"
     return result.strip()
 
 
@@ -339,8 +351,23 @@ def set_coop(enabled: bool) -> str:
             if r.get("coop") else "SOLO (own force)")
 
 
+god_tools.register(mcp, _q)
+
+
+def _start_tunnel_if_configured() -> None:
+    """Start the SSH tunnel when bridge/.env names a remote server."""
+    env_file = Path(__file__).parent.parent / ".env"
+    text = env_file.read_text() if env_file.exists() else ""
+    m = re.search(r"^FACTORIO_SSH_TARGET=(\S+)", text, re.M)
+    if not m:
+        return
+    container = re.search(r"^FACTORIO_SSH_CONTAINER=(\S+)", text, re.M)
+    tunnel.start(m.group(1), container.group(1) if container else "factorio", _cfg.rcon.port)
+
+
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
+    _start_tunnel_if_configured()
     # Best-effort eager connect so the first tool call isn't slow; _send()
     # auto-reconnects anyway if this fails or the socket drops later.
     if _GW.connect():

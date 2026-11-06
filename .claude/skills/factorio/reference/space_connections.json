@@ -1,0 +1,56 @@
+[
+{
+"from": "aquilo",
+"length": 100000,
+"name": "aquilo-solar-system-edge",
+"to": "solar-system-edge"
+},
+{
+"from": "fulgora",
+"length": 30000,
+"name": "fulgora-aquilo",
+"to": "aquilo"
+},
+{
+"from": "gleba",
+"length": 30000,
+"name": "gleba-aquilo",
+"to": "aquilo"
+},
+{
+"from": "gleba",
+"length": 15000,
+"name": "gleba-fulgora",
+"to": "fulgora"
+},
+{
+"from": "nauvis",
+"length": 15000,
+"name": "nauvis-fulgora",
+"to": "fulgora"
+},
+{
+"from": "nauvis",
+"length": 15000,
+"name": "nauvis-gleba",
+"to": "gleba"
+},
+{
+"from": "nauvis",
+"length": 15000,
+"name": "nauvis-vulcanus",
+"to": "vulcanus"
+},
+{
+"from": "solar-system-edge",
+"length": 4000000,
+"name": "solar-system-edge-shattered-planet",
+"to": "shattered-planet"
+},
+{
+"from": "vulcanus",
+"length": 15000,
+"name": "vulcanus-gleba",
+"to": "gleba"
+}
+]

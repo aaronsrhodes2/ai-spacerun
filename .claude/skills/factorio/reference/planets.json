@@ -1,0 +1,90 @@
+[
+{
+"distance": 35,
+"hidden": false,
+"name": "aquilo",
+"solar_power": 60,
+"surface_properties": {
+"day-night-cycle": 72000,
+"gravity": 15,
+"magnetic-field": 10,
+"pressure": 300,
+"robot-energy-usage": 5,
+"solar-power": 1
+},
+"type": "planet"
+},
+{
+"distance": 25,
+"hidden": false,
+"name": "fulgora",
+"solar_power": 120,
+"surface_properties": {
+"day-night-cycle": 10800,
+"gravity": 8,
+"magnetic-field": 99,
+"pressure": 800,
+"solar-power": 20
+},
+"type": "planet"
+},
+{
+"distance": 20,
+"hidden": false,
+"name": "gleba",
+"solar_power": 200,
+"surface_properties": {
+"day-night-cycle": 36000,
+"gravity": 20,
+"magnetic-field": 25,
+"pressure": 2000,
+"solar-power": 50
+},
+"type": "planet"
+},
+{
+"distance": 15,
+"hidden": false,
+"name": "nauvis",
+"solar_power": 300,
+"surface_properties": {
+"day-night-cycle": 25200
+},
+"type": "planet"
+},
+{
+"distance": 80,
+"hidden": false,
+"name": "shattered-planet",
+"solar_power": 1,
+"type": "space-location"
+},
+{
+"distance": 50,
+"hidden": false,
+"name": "solar-system-edge",
+"solar_power": 1,
+"type": "space-location"
+},
+{
+"distance": 0,
+"hidden": true,
+"name": "space-location-unknown",
+"solar_power": 1,
+"type": "space-location"
+},
+{
+"distance": 10,
+"hidden": false,
+"name": "vulcanus",
+"solar_power": 600,
+"surface_properties": {
+"day-night-cycle": 5400,
+"gravity": 40,
+"magnetic-field": 25,
+"pressure": 4000,
+"solar-power": 400
+},
+"type": "planet"
+}
+]

@@ -1,0 +1,9432 @@
+[
+{
+"effects": [
+"recipe:advanced-metallic-asteroid-crushing",
+"recipe:advanced-carbonic-asteroid-crushing",
+"recipe:advanced-oxide-asteroid-crushing",
+"recipe:advanced-thruster-fuel",
+"recipe:advanced-thruster-oxidizer"
+],
+"essential": false,
+"hidden": false,
+"name": "advanced-asteroid-processing",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"agricultural-science-pack",
+"production-science-pack",
+"utility-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 2000
+},
+{
+"effects": [
+"recipe:advanced-circuit"
+],
+"essential": false,
+"hidden": false,
+"name": "advanced-circuit",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"plastics"
+],
+"researched_now": false,
+"unit_seconds": 15,
+"units": 200
+},
+{
+"effects": [
+"recipe:selector-combinator"
+],
+"essential": false,
+"hidden": false,
+"name": "advanced-combinators",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"chemical-science-pack",
+"circuit-network"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 50
+},
+{
+"effects": [
+"recipe:steel-furnace"
+],
+"essential": false,
+"hidden": false,
+"name": "advanced-material-processing",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"logistic-science-pack",
+"steel-processing"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 75
+},
+{
+"effects": [
+"recipe:electric-furnace"
+],
+"essential": false,
+"hidden": false,
+"name": "advanced-material-processing-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"advanced-material-processing",
+"chemical-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 250
+},
+{
+"effects": [
+"recipe:advanced-oil-processing",
+"recipe:heavy-oil-cracking",
+"recipe:light-oil-cracking",
+"recipe:solid-fuel-from-heavy-oil",
+"recipe:solid-fuel-from-light-oil"
+],
+"essential": false,
+"hidden": false,
+"name": "advanced-oil-processing",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"chemical-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 75
+},
+{
+"effects": [
+"recipe:agricultural-science-pack"
+],
+"essential": true,
+"hidden": false,
+"name": "agricultural-science-pack",
+"packs": {},
+"prerequisites": [
+"artificial-soil",
+"bacteria-cultivation",
+"bioflux-processing"
+],
+"researched_now": false,
+"trigger": {
+"count": 100,
+"item": {
+"name": "bioflux"
+},
+"type": "craft-item"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:agricultural-tower",
+"recipe:nutrients-from-spoilage"
+],
+"essential": false,
+"hidden": false,
+"name": "agriculture",
+"packs": {},
+"prerequisites": [
+"planet-discovery-gleba"
+],
+"researched_now": false,
+"trigger": {
+"entities": [
+"iron-stromatolite"
+],
+"type": "mine-entity"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:artificial-yumako-soil",
+"recipe:artificial-jellynut-soil"
+],
+"essential": false,
+"hidden": false,
+"name": "artificial-soil",
+"packs": {},
+"prerequisites": [
+"jellynut",
+"yumako"
+],
+"researched_now": false,
+"trigger": {
+"count": 500,
+"item": {
+"name": "nutrients"
+},
+"type": "craft-item"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:artillery-wagon",
+"recipe:artillery-turret",
+"recipe:artillery-shell"
+],
+"essential": false,
+"hidden": false,
+"name": "artillery",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+}
+],
+"prerequisites": [
+"metallurgic-science-pack",
+"military-4",
+"radar"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 1500
+},
+{
+"effects": [
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "artillery-shell-damage-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+}
+],
+"prerequisites": [
+"artillery"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"artillery-range"
+],
+"essential": false,
+"hidden": false,
+"name": "artillery-shell-range-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+}
+],
+"prerequisites": [
+"artillery"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"gun-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "artillery-shell-speed-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+}
+],
+"prerequisites": [
+"artillery"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"recipe:carbonic-asteroid-crushing",
+"recipe:oxide-asteroid-crushing",
+"recipe:metallic-asteroid-crushing",
+"recipe:advanced-carbonic-asteroid-crushing",
+"recipe:advanced-oxide-asteroid-crushing",
+"recipe:advanced-metallic-asteroid-crushing"
+],
+"essential": false,
+"hidden": false,
+"name": "asteroid-productivity",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"advanced-asteroid-processing"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1000
+},
+{
+"effects": [
+"recipe:metallic-asteroid-reprocessing",
+"recipe:oxide-asteroid-reprocessing",
+"recipe:carbonic-asteroid-reprocessing"
+],
+"essential": false,
+"hidden": false,
+"name": "asteroid-reprocessing",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+}
+],
+"prerequisites": [
+"metallurgic-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"recipe:atomic-bomb"
+],
+"essential": false,
+"hidden": false,
+"name": "atomic-bomb",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+}
+],
+"prerequisites": [
+"kovarex-enrichment-process",
+"military-4",
+"rocketry"
+],
+"researched_now": false,
+"unit_seconds": 45,
+"units": 5000
+},
+{
+"effects": [
+"recipe:train-stop",
+"recipe:rail-signal",
+"recipe:rail-chain-signal"
+],
+"essential": false,
+"hidden": false,
+"name": "automated-rail-transportation",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"railway"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 200
+},
+{
+"effects": [
+"recipe:assembling-machine-1",
+"recipe:long-handed-inserter"
+],
+"essential": false,
+"hidden": false,
+"name": "automation",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+}
+],
+"prerequisites": [
+"automation-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 10,
+"units": 10
+},
+{
+"effects": [
+"recipe:assembling-machine-2"
+],
+"essential": false,
+"hidden": false,
+"name": "automation-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"automation",
+"logistic-science-pack",
+"steel-processing"
+],
+"researched_now": false,
+"unit_seconds": 15,
+"units": 40
+},
+{
+"effects": [
+"recipe:assembling-machine-3"
+],
+"essential": false,
+"hidden": false,
+"name": "automation-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+}
+],
+"prerequisites": [
+"electric-engine",
+"production-science-pack",
+"speed-module"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"recipe:automation-science-pack"
+],
+"essential": true,
+"hidden": false,
+"name": "automation-science-pack",
+"packs": {},
+"prerequisites": [
+"electronics",
+"steam-power"
+],
+"researched_now": false,
+"trigger": {
+"count": 1,
+"item": {
+"name": "lab"
+},
+"type": "craft-item"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:car"
+],
+"essential": false,
+"hidden": false,
+"name": "automobilism",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"engine",
+"logistics-2"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"recipe:copper-bacteria-cultivation",
+"recipe:iron-bacteria-cultivation"
+],
+"essential": false,
+"hidden": false,
+"name": "bacteria-cultivation",
+"packs": {},
+"prerequisites": [
+"bioflux"
+],
+"researched_now": false,
+"trigger": {
+"count": 1,
+"item": {
+"name": "bioflux"
+},
+"type": "craft-item"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:battery"
+],
+"essential": false,
+"hidden": false,
+"name": "battery",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"sulfur-processing"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 150
+},
+{
+"effects": [
+"recipe:battery-equipment"
+],
+"essential": false,
+"hidden": false,
+"name": "battery-equipment",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"battery",
+"solar-panel-equipment"
+],
+"researched_now": false,
+"unit_seconds": 15,
+"units": 50
+},
+{
+"effects": [
+"recipe:battery-mk2-equipment"
+],
+"essential": false,
+"hidden": false,
+"name": "battery-mk2-equipment",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"battery-equipment",
+"power-armor",
+"utility-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"recipe:battery-mk3-equipment"
+],
+"essential": false,
+"hidden": false,
+"name": "battery-mk3-equipment",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+}
+],
+"prerequisites": [
+"battery-mk2-equipment",
+"electromagnetic-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"recipe:belt-immunity-equipment"
+],
+"essential": false,
+"hidden": false,
+"name": "belt-immunity-equipment",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"solar-panel-equipment"
+],
+"researched_now": false,
+"unit_seconds": 15,
+"units": 50
+},
+{
+"effects": [
+"recipe:big-mining-drill"
+],
+"essential": false,
+"hidden": false,
+"name": "big-mining-drill",
+"packs": {},
+"prerequisites": [
+"electric-mining-drill",
+"foundry"
+],
+"researched_now": false,
+"trigger": {
+"count": 1,
+"item": {
+"name": "foundry"
+},
+"type": "craft-item"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:biochamber",
+"recipe:nutrients-from-yumako-mash",
+"recipe:burnt-spoilage",
+"recipe:pentapod-egg"
+],
+"essential": false,
+"hidden": false,
+"name": "biochamber",
+"packs": {},
+"prerequisites": [
+"jellynut",
+"yumako"
+],
+"researched_now": false,
+"trigger": {
+"count": 10,
+"item": {
+"name": "nutrients"
+},
+"type": "craft-item"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:bioflux",
+"recipe:nutrients-from-bioflux"
+],
+"essential": false,
+"hidden": false,
+"name": "bioflux",
+"packs": {},
+"prerequisites": [
+"biochamber"
+],
+"researched_now": false,
+"trigger": {
+"count": 1,
+"item": {
+"name": "biochamber"
+},
+"type": "craft-item"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:bioplastic",
+"recipe:rocket-fuel-from-jelly",
+"recipe:biosulfur",
+"recipe:biolubricant",
+"recipe:coal-synthesis"
+],
+"essential": false,
+"hidden": false,
+"name": "bioflux-processing",
+"packs": {},
+"prerequisites": [
+"bioflux"
+],
+"researched_now": false,
+"trigger": {
+"count": 25,
+"item": {
+"name": "bioflux"
+},
+"type": "craft-item"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:biolab"
+],
+"essential": false,
+"hidden": false,
+"name": "biolab",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"biter-egg-handling",
+"production-science-pack",
+"uranium-processing",
+"utility-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1000
+},
+{
+"effects": [
+"recipe:biter-egg",
+"recipe:nutrients-from-biter-egg"
+],
+"essential": false,
+"hidden": false,
+"name": "biter-egg-handling",
+"packs": {},
+"prerequisites": [
+"captivity"
+],
+"researched_now": false,
+"trigger": {
+"type": "capture-spawner"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"train-braking-force-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "braking-force-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"chemical-science-pack",
+"railway"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"train-braking-force-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "braking-force-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"braking-force-1"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 200
+},
+{
+"effects": [
+"train-braking-force-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "braking-force-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+}
+],
+"prerequisites": [
+"braking-force-2",
+"production-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 250
+},
+{
+"effects": [
+"train-braking-force-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "braking-force-4",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+}
+],
+"prerequisites": [
+"braking-force-3"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 350
+},
+{
+"effects": [
+"train-braking-force-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "braking-force-5",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+}
+],
+"prerequisites": [
+"braking-force-4"
+],
+"researched_now": false,
+"unit_seconds": 35,
+"units": 450
+},
+{
+"effects": [
+"train-braking-force-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "braking-force-6",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"braking-force-5",
+"utility-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 45,
+"units": 550
+},
+{
+"effects": [
+"train-braking-force-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "braking-force-7",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"braking-force-6"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 650
+},
+{
+"effects": [
+"recipe:bulk-inserter",
+"bulk-inserter-capacity-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "bulk-inserter",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"advanced-circuit",
+"fast-inserter",
+"logistics-2"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 150
+},
+{
+"effects": [
+"recipe:acid-neutralisation",
+"recipe:steam-condensation",
+"recipe:simple-coal-liquefaction"
+],
+"essential": false,
+"hidden": false,
+"name": "calcite-processing",
+"packs": {},
+"prerequisites": [
+"planet-discovery-vulcanus"
+],
+"researched_now": false,
+"trigger": {
+"entities": [
+"calcite"
+],
+"type": "mine-entity"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:captive-biter-spawner"
+],
+"essential": false,
+"hidden": false,
+"name": "captive-biter-spawner",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+},
+{
+"amount": 1,
+"name": "cryogenic-science-pack"
+}
+],
+"prerequisites": [
+"biter-egg-handling",
+"cryogenic-science-pack",
+"kovarex-enrichment-process"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 3000
+},
+{
+"effects": [
+"recipe:capture-robot-rocket"
+],
+"essential": false,
+"hidden": false,
+"name": "captivity",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"agricultural-science-pack",
+"military-3",
+"rocketry"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1000
+},
+{
+"effects": [
+"recipe:carbon-fiber"
+],
+"essential": false,
+"hidden": false,
+"name": "carbon-fiber",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"agricultural-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"recipe:chemical-science-pack"
+],
+"essential": true,
+"hidden": false,
+"name": "chemical-science-pack",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"advanced-circuit",
+"sulfur-processing"
+],
+"researched_now": false,
+"unit_seconds": 10,
+"units": 75
+},
+{
+"effects": [
+"unlock-circuit-network",
+"recipe:arithmetic-combinator",
+"recipe:decider-combinator",
+"recipe:constant-combinator",
+"recipe:power-switch",
+"recipe:programmable-speaker",
+"recipe:display-panel",
+"recipe:iron-stick"
+],
+"essential": false,
+"hidden": false,
+"name": "circuit-network",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"logistic-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 15,
+"units": 100
+},
+{
+"effects": [
+"recipe:cliff-explosives",
+"cliff-deconstruction-enabled"
+],
+"essential": false,
+"hidden": false,
+"name": "cliff-explosives",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+}
+],
+"prerequisites": [
+"explosives",
+"metallurgic-science-pack",
+"military-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 500
+},
+{
+"effects": [
+"recipe:coal-liquefaction"
+],
+"essential": false,
+"hidden": false,
+"name": "coal-liquefaction",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+}
+],
+"prerequisites": [
+"metallurgic-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 500
+},
+{
+"effects": [
+"recipe:concrete",
+"recipe:hazard-concrete",
+"recipe:refined-concrete",
+"recipe:refined-hazard-concrete",
+"recipe:iron-stick"
+],
+"essential": false,
+"hidden": false,
+"name": "concrete",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"advanced-material-processing",
+"automation-2"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 250
+},
+{
+"effects": [
+"recipe:roboport",
+"recipe:passive-provider-chest",
+"recipe:storage-chest",
+"recipe:construction-robot",
+"create-ghost-on-entity-death",
+"unlock-logistic-network"
+],
+"essential": false,
+"hidden": false,
+"name": "construction-robotics",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"robotics"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"recipe:cryogenic-plant",
+"recipe:fluoroketone",
+"recipe:fluoroketone-cooling"
+],
+"essential": false,
+"hidden": false,
+"name": "cryogenic-plant",
+"packs": {},
+"prerequisites": [
+"lithium-processing"
+],
+"researched_now": false,
+"trigger": {
+"count": 1,
+"item": {
+"name": "lithium-plate"
+},
+"type": "craft-item"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:cryogenic-science-pack"
+],
+"essential": true,
+"hidden": false,
+"name": "cryogenic-science-pack",
+"packs": {},
+"prerequisites": [
+"cryogenic-plant"
+],
+"researched_now": false,
+"trigger": {
+"count": 1,
+"item": {
+"name": "cryogenic-plant"
+},
+"type": "craft-item"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:defender-capsule",
+"maximum-following-robots-count"
+],
+"essential": false,
+"hidden": false,
+"name": "defender",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+}
+],
+"prerequisites": [
+"military-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"recipe:destroyer-capsule"
+],
+"essential": false,
+"hidden": false,
+"name": "destroyer",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"distractor",
+"military-4",
+"speed-module"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 300
+},
+{
+"effects": [
+"recipe:discharge-defense-equipment"
+],
+"essential": false,
+"hidden": false,
+"name": "discharge-defense-equipment",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"laser-turret",
+"military-3",
+"power-armor",
+"solar-panel-equipment"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"recipe:distractor-capsule"
+],
+"essential": false,
+"hidden": false,
+"name": "distractor",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"defender",
+"laser",
+"military-3"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 200
+},
+{
+"effects": [
+"recipe:beacon"
+],
+"essential": false,
+"hidden": false,
+"name": "effect-transmission",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+}
+],
+"prerequisites": [
+"processing-unit",
+"production-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 75
+},
+{
+"effects": [
+"recipe:efficiency-module"
+],
+"essential": false,
+"hidden": false,
+"name": "efficiency-module",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"modules"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 50
+},
+{
+"effects": [
+"recipe:efficiency-module-2"
+],
+"essential": false,
+"hidden": false,
+"name": "efficiency-module-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+}
+],
+"prerequisites": [
+"efficiency-module",
+"space-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 200
+},
+{
+"effects": [
+"recipe:efficiency-module-3"
+],
+"essential": false,
+"hidden": false,
+"name": "efficiency-module-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"agricultural-science-pack",
+"efficiency-module-2"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 300
+},
+{
+"effects": [
+"recipe:accumulator"
+],
+"essential": false,
+"hidden": false,
+"name": "electric-energy-accumulators",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"battery",
+"electric-energy-distribution-1"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 150
+},
+{
+"effects": [
+"recipe:medium-electric-pole",
+"recipe:big-electric-pole",
+"recipe:iron-stick"
+],
+"essential": false,
+"hidden": false,
+"name": "electric-energy-distribution-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"logistic-science-pack",
+"steel-processing"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 120
+},
+{
+"effects": [
+"recipe:substation"
+],
+"essential": false,
+"hidden": false,
+"name": "electric-energy-distribution-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"chemical-science-pack",
+"electric-energy-distribution-1"
+],
+"researched_now": false,
+"unit_seconds": 45,
+"units": 100
+},
+{
+"effects": [
+"recipe:electric-engine-unit"
+],
+"essential": false,
+"hidden": false,
+"name": "electric-engine",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"lubricant"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 50
+},
+{
+"effects": [
+"recipe:electric-mining-drill"
+],
+"essential": false,
+"hidden": false,
+"name": "electric-mining-drill",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+}
+],
+"prerequisites": [
+"automation-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 10,
+"units": 25
+},
+{
+"effects": [
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "electric-weapons-damage-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"destroyer"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 250
+},
+{
+"effects": [
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "electric-weapons-damage-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+}
+],
+"prerequisites": [
+"electric-weapons-damage-1",
+"space-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"ammo-damage",
+"ammo-damage",
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "electric-weapons-damage-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+}
+],
+"prerequisites": [
+"electric-weapons-damage-2",
+"tesla-weapons"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1000
+},
+{
+"effects": [
+"ammo-damage",
+"ammo-damage",
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "electric-weapons-damage-4",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+}
+],
+"prerequisites": [
+"electric-weapons-damage-3"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 125
+},
+{
+"effects": [
+"recipe:electromagnetic-plant",
+"recipe:superconductor",
+"recipe:supercapacitor",
+"recipe:electrolyte"
+],
+"essential": false,
+"hidden": false,
+"name": "electromagnetic-plant",
+"packs": {},
+"prerequisites": [
+"holmium-processing"
+],
+"researched_now": false,
+"trigger": {
+"count": 50,
+"item": {
+"name": "holmium-plate"
+},
+"type": "craft-item"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:electromagnetic-science-pack"
+],
+"essential": true,
+"hidden": false,
+"name": "electromagnetic-science-pack",
+"packs": {},
+"prerequisites": [
+"electromagnetic-plant"
+],
+"researched_now": false,
+"trigger": {
+"count": 1,
+"item": {
+"name": "supercapacitor"
+},
+"type": "craft-item"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:copper-cable",
+"recipe:electronic-circuit",
+"recipe:lab",
+"recipe:inserter",
+"recipe:small-electric-pole"
+],
+"essential": false,
+"hidden": false,
+"name": "electronics",
+"packs": {},
+"prerequisites": {},
+"researched_now": false,
+"trigger": {
+"count": 10,
+"item": {
+"name": "copper-plate"
+},
+"type": "craft-item"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:rail-support",
+"recipe:rail-ramp",
+"rail-planner-allow-elevated-rails"
+],
+"essential": false,
+"hidden": false,
+"name": "elevated-rail",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+}
+],
+"prerequisites": [
+"concrete",
+"production-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"recipe:energy-shield-equipment"
+],
+"essential": false,
+"hidden": false,
+"name": "energy-shield-equipment",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+}
+],
+"prerequisites": [
+"military-science-pack",
+"solar-panel-equipment"
+],
+"researched_now": false,
+"unit_seconds": 15,
+"units": 150
+},
+{
+"effects": [
+"recipe:energy-shield-mk2-equipment"
+],
+"essential": false,
+"hidden": false,
+"name": "energy-shield-mk2-equipment",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+}
+],
+"prerequisites": [
+"electromagnetic-science-pack",
+"energy-shield-equipment",
+"military-4",
+"power-armor"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 750
+},
+{
+"effects": [
+"recipe:engine-unit"
+],
+"essential": false,
+"hidden": false,
+"name": "engine",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"logistic-science-pack",
+"steel-processing"
+],
+"researched_now": false,
+"unit_seconds": 15,
+"units": 100
+},
+{
+"effects": [
+"unlock-quality"
+],
+"essential": false,
+"hidden": false,
+"name": "epic-quality",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"agricultural-science-pack",
+"quality-module",
+"utility-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 5000
+},
+{
+"effects": [
+"recipe:exoskeleton-equipment"
+],
+"essential": false,
+"hidden": false,
+"name": "exoskeleton-equipment",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"electric-engine",
+"processing-unit",
+"solar-panel-equipment"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 50
+},
+{
+"effects": [
+"recipe:explosive-rocket"
+],
+"essential": false,
+"hidden": false,
+"name": "explosive-rocketry",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"military-3",
+"rocketry"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"recipe:explosives"
+],
+"essential": false,
+"hidden": false,
+"name": "explosives",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"sulfur-processing"
+],
+"researched_now": false,
+"unit_seconds": 15,
+"units": 100
+},
+{
+"effects": [
+"recipe:fast-inserter"
+],
+"essential": false,
+"hidden": false,
+"name": "fast-inserter",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+}
+],
+"prerequisites": [
+"automation-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 15,
+"units": 30
+},
+{
+"effects": [
+"recipe:fish-breeding",
+"recipe:nutrients-from-fish"
+],
+"essential": false,
+"hidden": false,
+"name": "fish-breeding",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"tree-seeding"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"recipe:fission-reactor-equipment"
+],
+"essential": false,
+"hidden": false,
+"name": "fission-reactor-equipment",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"military-science-pack",
+"nuclear-power",
+"power-armor",
+"utility-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 200
+},
+{
+"effects": [
+"recipe:flamethrower",
+"recipe:flamethrower-ammo",
+"recipe:flamethrower-turret"
+],
+"essential": false,
+"hidden": false,
+"name": "flamethrower",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+}
+],
+"prerequisites": [
+"flammables",
+"military-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 50
+},
+{
+"effects": {},
+"essential": false,
+"hidden": false,
+"name": "flammables",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"oil-processing"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 50
+},
+{
+"effects": [
+"recipe:storage-tank",
+"recipe:pump",
+"recipe:barrel",
+"recipe:water-barrel",
+"recipe:empty-water-barrel",
+"recipe:sulfuric-acid-barrel",
+"recipe:empty-sulfuric-acid-barrel",
+"recipe:crude-oil-barrel",
+"recipe:empty-crude-oil-barrel",
+"recipe:heavy-oil-barrel",
+"recipe:empty-heavy-oil-barrel",
+"recipe:light-oil-barrel",
+"recipe:empty-light-oil-barrel",
+"recipe:petroleum-gas-barrel",
+"recipe:empty-petroleum-gas-barrel",
+"recipe:lubricant-barrel",
+"recipe:empty-lubricant-barrel",
+"recipe:fluoroketone-cold-barrel",
+"recipe:empty-fluoroketone-cold-barrel",
+"recipe:fluoroketone-hot-barrel",
+"recipe:empty-fluoroketone-hot-barrel"
+],
+"essential": false,
+"hidden": false,
+"name": "fluid-handling",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"automation-2",
+"engine"
+],
+"researched_now": false,
+"unit_seconds": 15,
+"units": 50
+},
+{
+"effects": [
+"recipe:fluid-wagon"
+],
+"essential": false,
+"hidden": false,
+"name": "fluid-wagon",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"fluid-handling",
+"railway"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 200
+},
+{
+"effects": [
+"maximum-following-robots-count"
+],
+"essential": false,
+"hidden": false,
+"name": "follower-robot-count-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+}
+],
+"prerequisites": [
+"defender"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"maximum-following-robots-count"
+],
+"essential": false,
+"hidden": false,
+"name": "follower-robot-count-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+}
+],
+"prerequisites": [
+"follower-robot-count-1"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 200
+},
+{
+"effects": [
+"maximum-following-robots-count"
+],
+"essential": false,
+"hidden": false,
+"name": "follower-robot-count-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"chemical-science-pack",
+"follower-robot-count-2"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 300
+},
+{
+"effects": [
+"maximum-following-robots-count"
+],
+"essential": false,
+"hidden": false,
+"name": "follower-robot-count-4",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"destroyer",
+"follower-robot-count-3"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 400
+},
+{
+"effects": [
+"maximum-following-robots-count"
+],
+"essential": false,
+"hidden": false,
+"name": "follower-robot-count-5",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+}
+],
+"prerequisites": [
+"follower-robot-count-4",
+"production-science-pack",
+"space-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 1
+},
+{
+"effects": [
+"recipe:foundation"
+],
+"essential": false,
+"hidden": false,
+"name": "foundation",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+},
+{
+"amount": 1,
+"name": "cryogenic-science-pack"
+}
+],
+"prerequisites": [
+"cryogenic-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 2000
+},
+{
+"effects": [
+"recipe:foundry",
+"recipe:molten-iron-from-lava",
+"recipe:molten-copper-from-lava",
+"recipe:concrete-from-molten-iron",
+"recipe:casting-low-density-structure",
+"recipe:iron-ore-melting",
+"recipe:copper-ore-melting",
+"recipe:casting-iron",
+"recipe:casting-steel",
+"recipe:casting-copper",
+"recipe:casting-iron-gear-wheel",
+"recipe:casting-iron-stick",
+"recipe:casting-pipe",
+"recipe:casting-pipe-to-ground",
+"recipe:casting-copper-cable"
+],
+"essential": false,
+"hidden": false,
+"name": "foundry",
+"packs": {},
+"prerequisites": [
+"calcite-processing",
+"tungsten-carbide"
+],
+"researched_now": false,
+"trigger": {
+"count": 1,
+"item": {
+"name": "tungsten-carbide"
+},
+"type": "craft-item"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:fusion-reactor",
+"recipe:fusion-generator",
+"recipe:fusion-power-cell"
+],
+"essential": false,
+"hidden": false,
+"name": "fusion-reactor",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+},
+{
+"amount": 1,
+"name": "cryogenic-science-pack"
+}
+],
+"prerequisites": [
+"quantum-processor"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 2000
+},
+{
+"effects": [
+"recipe:fusion-reactor-equipment"
+],
+"essential": false,
+"hidden": false,
+"name": "fusion-reactor-equipment",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+},
+{
+"amount": 1,
+"name": "cryogenic-science-pack"
+}
+],
+"prerequisites": [
+"fission-reactor-equipment",
+"fusion-reactor"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1000
+},
+{
+"effects": [
+"recipe:gate"
+],
+"essential": false,
+"hidden": false,
+"name": "gate",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"military-2",
+"stone-wall"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"recipe:gun-turret"
+],
+"essential": false,
+"hidden": false,
+"name": "gun-turret",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+}
+],
+"prerequisites": [
+"automation-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 10,
+"units": 10
+},
+{
+"effects": [
+"character-health-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "health",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"agricultural-science-pack",
+"utility-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 50
+},
+{
+"effects": [
+"recipe:heating-tower",
+"recipe:heat-pipe",
+"recipe:heat-exchanger",
+"recipe:steam-turbine"
+],
+"essential": false,
+"hidden": false,
+"name": "heating-tower",
+"packs": {},
+"prerequisites": [
+"planet-discovery-gleba"
+],
+"researched_now": false,
+"trigger": {
+"entities": [
+"copper-stromatolite"
+],
+"type": "mine-entity"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:heavy-armor"
+],
+"essential": false,
+"hidden": false,
+"name": "heavy-armor",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+}
+],
+"prerequisites": [
+"military",
+"steel-processing"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 30
+},
+{
+"effects": [
+"recipe:holmium-solution",
+"recipe:holmium-plate"
+],
+"essential": false,
+"hidden": false,
+"name": "holmium-processing",
+"packs": {},
+"prerequisites": [
+"recycling"
+],
+"researched_now": false,
+"trigger": {
+"count": 1,
+"item": {
+"name": "holmium-ore"
+},
+"type": "craft-item"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"bulk-inserter-capacity-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "inserter-capacity-bonus-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"bulk-inserter"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 200
+},
+{
+"effects": [
+"inserter-stack-size-bonus",
+"bulk-inserter-capacity-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "inserter-capacity-bonus-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"inserter-capacity-bonus-1"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 250
+},
+{
+"effects": [
+"bulk-inserter-capacity-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "inserter-capacity-bonus-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"chemical-science-pack",
+"inserter-capacity-bonus-2"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 250
+},
+{
+"effects": [
+"bulk-inserter-capacity-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "inserter-capacity-bonus-4",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+}
+],
+"prerequisites": [
+"inserter-capacity-bonus-3",
+"production-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 250
+},
+{
+"effects": [
+"bulk-inserter-capacity-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "inserter-capacity-bonus-5",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+}
+],
+"prerequisites": [
+"inserter-capacity-bonus-4"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 300
+},
+{
+"effects": [
+"bulk-inserter-capacity-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "inserter-capacity-bonus-6",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+}
+],
+"prerequisites": [
+"inserter-capacity-bonus-5"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 400
+},
+{
+"effects": [
+"inserter-stack-size-bonus",
+"bulk-inserter-capacity-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "inserter-capacity-bonus-7",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"inserter-capacity-bonus-6",
+"utility-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 600
+},
+{
+"effects": [
+"recipe:jellynut-processing",
+"recipe:iron-bacteria"
+],
+"essential": false,
+"hidden": false,
+"name": "jellynut",
+"packs": {},
+"prerequisites": [
+"agriculture"
+],
+"researched_now": false,
+"trigger": {
+"entities": [
+"jellystem"
+],
+"type": "mine-entity"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:kovarex-enrichment-process",
+"recipe:nuclear-fuel"
+],
+"essential": false,
+"hidden": false,
+"name": "kovarex-enrichment-process",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+}
+],
+"prerequisites": [
+"space-science-pack",
+"uranium-processing"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 1000
+},
+{
+"effects": [
+"recipe:small-lamp"
+],
+"essential": false,
+"hidden": false,
+"name": "lamp",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+}
+],
+"prerequisites": [
+"automation-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 15,
+"units": 10
+},
+{
+"effects": [
+"recipe:land-mine"
+],
+"essential": false,
+"hidden": false,
+"name": "land-mine",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+}
+],
+"prerequisites": [
+"explosives",
+"military-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"recipe:landfill"
+],
+"essential": false,
+"hidden": false,
+"name": "landfill",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"logistic-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 50
+},
+{
+"effects": [
+"recipe:landing-pad-unloading-bay",
+"max-cargo-bay-unloading-distance"
+],
+"essential": false,
+"hidden": false,
+"name": "landing-pad-unloading-bay",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+}
+],
+"prerequisites": [
+"space-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 750
+},
+{
+"effects": {},
+"essential": false,
+"hidden": false,
+"name": "laser",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"battery",
+"chemical-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"gun-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "laser-shooting-speed-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"laser",
+"military-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 50
+},
+{
+"effects": [
+"gun-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "laser-shooting-speed-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"laser-shooting-speed-1"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"gun-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "laser-shooting-speed-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"laser-shooting-speed-2"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 200
+},
+{
+"effects": [
+"gun-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "laser-shooting-speed-4",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"laser-shooting-speed-3"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 200
+},
+{
+"effects": [
+"gun-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "laser-shooting-speed-5",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"laser-shooting-speed-4",
+"utility-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 200
+},
+{
+"effects": [
+"gun-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "laser-shooting-speed-6",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"laser-shooting-speed-5"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 350
+},
+{
+"effects": [
+"gun-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "laser-shooting-speed-7",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"laser-shooting-speed-6"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 450
+},
+{
+"effects": [
+"recipe:laser-turret"
+],
+"essential": false,
+"hidden": false,
+"name": "laser-turret",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"laser",
+"military-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 150
+},
+{
+"effects": [
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "laser-weapons-damage-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"laser",
+"military-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "laser-weapons-damage-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"laser-weapons-damage-1"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 200
+},
+{
+"effects": [
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "laser-weapons-damage-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"laser-weapons-damage-2"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 300
+},
+{
+"effects": [
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "laser-weapons-damage-4",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"laser-weapons-damage-3"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 400
+},
+{
+"effects": [
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "laser-weapons-damage-5",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"laser-weapons-damage-4",
+"utility-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "laser-weapons-damage-6",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"laser-weapons-damage-5"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 600
+},
+{
+"effects": [
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "laser-weapons-damage-7",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+}
+],
+"prerequisites": [
+"laser-weapons-damage-6",
+"space-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 7
+},
+{
+"effects": [
+"unlock-quality"
+],
+"essential": false,
+"hidden": false,
+"name": "legendary-quality",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+},
+{
+"amount": 1,
+"name": "cryogenic-science-pack"
+}
+],
+"prerequisites": [
+"cryogenic-science-pack",
+"epic-quality"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 5000
+},
+{
+"effects": [
+"recipe:lightning-collector"
+],
+"essential": false,
+"hidden": false,
+"name": "lightning-collector",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+}
+],
+"prerequisites": [
+"electromagnetic-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1000
+},
+{
+"effects": [
+"recipe:lithium",
+"recipe:lithium-plate"
+],
+"essential": false,
+"hidden": false,
+"name": "lithium-processing",
+"packs": {},
+"prerequisites": [
+"planet-discovery-aquilo"
+],
+"researched_now": false,
+"trigger": {
+"entities": [
+"lithium-iceberg-big",
+"lithium-iceberg-huge"
+],
+"type": "mine-entity"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:roboport",
+"recipe:passive-provider-chest",
+"recipe:storage-chest",
+"recipe:logistic-robot",
+"character-logistic-requests",
+"character-logistic-trash-slots",
+"unlock-logistic-network"
+],
+"essential": false,
+"hidden": false,
+"name": "logistic-robotics",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"robotics"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 250
+},
+{
+"effects": [
+"recipe:logistic-science-pack"
+],
+"essential": true,
+"hidden": false,
+"name": "logistic-science-pack",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+}
+],
+"prerequisites": [
+"automation-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 5,
+"units": 75
+},
+{
+"effects": [
+"recipe:active-provider-chest",
+"recipe:requester-chest",
+"recipe:buffer-chest",
+"vehicle-logistics"
+],
+"essential": false,
+"hidden": false,
+"name": "logistic-system",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+}
+],
+"prerequisites": [
+"space-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 500
+},
+{
+"effects": [
+"recipe:underground-belt",
+"recipe:splitter"
+],
+"essential": false,
+"hidden": false,
+"name": "logistics",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+}
+],
+"prerequisites": [
+"automation-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 15,
+"units": 20
+},
+{
+"effects": [
+"recipe:fast-transport-belt",
+"recipe:fast-underground-belt",
+"recipe:fast-splitter"
+],
+"essential": false,
+"hidden": false,
+"name": "logistics-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"logistic-science-pack",
+"logistics"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 200
+},
+{
+"effects": [
+"recipe:express-transport-belt",
+"recipe:express-underground-belt",
+"recipe:express-splitter"
+],
+"essential": false,
+"hidden": false,
+"name": "logistics-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+}
+],
+"prerequisites": [
+"lubricant",
+"production-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 15,
+"units": 300
+},
+{
+"effects": [
+"recipe:low-density-structure"
+],
+"essential": false,
+"hidden": false,
+"name": "low-density-structure",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"advanced-material-processing",
+"chemical-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 45,
+"units": 300
+},
+{
+"effects": [
+"recipe:low-density-structure",
+"recipe:casting-low-density-structure"
+],
+"essential": false,
+"hidden": false,
+"name": "low-density-structure-productivity",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+}
+],
+"prerequisites": [
+"metallurgic-science-pack",
+"production-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1000
+},
+{
+"effects": [
+"recipe:lubricant"
+],
+"essential": false,
+"hidden": false,
+"name": "lubricant",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"advanced-oil-processing"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 50
+},
+{
+"effects": [
+"recipe:mech-armor"
+],
+"essential": false,
+"hidden": false,
+"name": "mech-armor",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+}
+],
+"prerequisites": [
+"electromagnetic-science-pack",
+"power-armor-mk2"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 5000
+},
+{
+"effects": [
+"recipe:metallurgic-science-pack"
+],
+"essential": true,
+"hidden": false,
+"name": "metallurgic-science-pack",
+"packs": {},
+"prerequisites": [
+"tungsten-steel"
+],
+"researched_now": false,
+"trigger": {
+"count": 1,
+"item": {
+"name": "tungsten-plate"
+},
+"type": "craft-item"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:submachine-gun",
+"recipe:shotgun",
+"recipe:shotgun-shell"
+],
+"essential": false,
+"hidden": false,
+"name": "military",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+}
+],
+"prerequisites": [
+"automation-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 15,
+"units": 10
+},
+{
+"effects": [
+"recipe:piercing-rounds-magazine",
+"recipe:grenade"
+],
+"essential": false,
+"hidden": false,
+"name": "military-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"logistic-science-pack",
+"military",
+"steel-processing"
+],
+"researched_now": false,
+"unit_seconds": 15,
+"units": 20
+},
+{
+"effects": [
+"recipe:poison-capsule",
+"recipe:slowdown-capsule",
+"recipe:piercing-shotgun-shell"
+],
+"essential": false,
+"hidden": false,
+"name": "military-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"chemical-science-pack",
+"military-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"recipe:cluster-grenade",
+"recipe:combat-shotgun"
+],
+"essential": false,
+"hidden": false,
+"name": "military-4",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"explosives",
+"military-3",
+"utility-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 45,
+"units": 150
+},
+{
+"effects": [
+"recipe:military-science-pack"
+],
+"essential": true,
+"hidden": false,
+"name": "military-science-pack",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"military-2",
+"stone-wall"
+],
+"researched_now": false,
+"unit_seconds": 15,
+"units": 30
+},
+{
+"effects": [
+"mining-drill-productivity-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "mining-productivity-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"advanced-circuit"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 250
+},
+{
+"effects": [
+"mining-drill-productivity-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "mining-productivity-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"chemical-science-pack",
+"mining-productivity-1"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"mining-drill-productivity-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "mining-productivity-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+}
+],
+"prerequisites": [
+"mining-productivity-2",
+"production-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1
+},
+{
+"effects": [
+"recipe:modular-armor"
+],
+"essential": false,
+"hidden": false,
+"name": "modular-armor",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"advanced-circuit",
+"heavy-armor"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": {},
+"essential": false,
+"hidden": false,
+"name": "modules",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"advanced-circuit"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"recipe:night-vision-equipment"
+],
+"essential": false,
+"hidden": false,
+"name": "night-vision-equipment",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"solar-panel-equipment"
+],
+"researched_now": false,
+"unit_seconds": 15,
+"units": 50
+},
+{
+"effects": [
+"recipe:nuclear-fuel-reprocessing"
+],
+"essential": false,
+"hidden": false,
+"name": "nuclear-fuel-reprocessing",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+}
+],
+"prerequisites": [
+"nuclear-power",
+"production-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 50
+},
+{
+"effects": [
+"recipe:nuclear-reactor",
+"recipe:heat-exchanger",
+"recipe:heat-pipe",
+"recipe:steam-turbine",
+"recipe:uranium-fuel-cell"
+],
+"essential": false,
+"hidden": false,
+"name": "nuclear-power",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"uranium-processing"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 800
+},
+{
+"effects": [
+"recipe:pumpjack"
+],
+"essential": false,
+"hidden": false,
+"name": "oil-gathering",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"fluid-handling"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"recipe:oil-refinery",
+"recipe:chemical-plant",
+"recipe:basic-oil-processing",
+"recipe:solid-fuel-from-petroleum-gas"
+],
+"essential": false,
+"hidden": false,
+"name": "oil-processing",
+"packs": {},
+"prerequisites": [
+"oil-gathering"
+],
+"researched_now": false,
+"trigger": {
+"entities": [
+"crude-oil"
+],
+"type": "mine-entity"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:overgrowth-yumako-soil",
+"recipe:overgrowth-jellynut-soil"
+],
+"essential": false,
+"hidden": false,
+"name": "overgrowth-soil",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"biter-egg-handling",
+"production-science-pack",
+"utility-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 2000
+},
+{
+"effects": [
+"recipe:personal-laser-defense-equipment"
+],
+"essential": false,
+"hidden": false,
+"name": "personal-laser-defense-equipment",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"laser-turret",
+"low-density-structure",
+"military-3",
+"power-armor",
+"solar-panel-equipment"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"recipe:personal-roboport-equipment"
+],
+"essential": false,
+"hidden": false,
+"name": "personal-roboport-equipment",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"construction-robotics",
+"solar-panel-equipment"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 50
+},
+{
+"effects": [
+"recipe:personal-roboport-mk2-equipment"
+],
+"essential": false,
+"hidden": false,
+"name": "personal-roboport-mk2-equipment",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+}
+],
+"prerequisites": [
+"electromagnetic-science-pack",
+"personal-roboport-equipment",
+"utility-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 750
+},
+{
+"effects": [
+"ammo-damage",
+"turret-attack",
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "physical-projectile-damage-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+}
+],
+"prerequisites": [
+"military"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"ammo-damage",
+"turret-attack",
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "physical-projectile-damage-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"logistic-science-pack",
+"physical-projectile-damage-1"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 200
+},
+{
+"effects": [
+"ammo-damage",
+"turret-attack",
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "physical-projectile-damage-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+}
+],
+"prerequisites": [
+"military-science-pack",
+"physical-projectile-damage-2"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 300
+},
+{
+"effects": [
+"ammo-damage",
+"turret-attack",
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "physical-projectile-damage-4",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+}
+],
+"prerequisites": [
+"physical-projectile-damage-3"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 400
+},
+{
+"effects": [
+"ammo-damage",
+"turret-attack",
+"ammo-damage",
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "physical-projectile-damage-5",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"chemical-science-pack",
+"physical-projectile-damage-4"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"ammo-damage",
+"turret-attack",
+"ammo-damage",
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "physical-projectile-damage-6",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"physical-projectile-damage-5",
+"utility-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 600
+},
+{
+"effects": [
+"ammo-damage",
+"turret-attack",
+"ammo-damage",
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "physical-projectile-damage-7",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+}
+],
+"prerequisites": [
+"physical-projectile-damage-6",
+"space-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 7
+},
+{
+"effects": [
+"unlock-space-location",
+"recipe:ammoniacal-solution-separation",
+"recipe:solid-fuel-from-ammonia",
+"recipe:ammonia-rocket-fuel",
+"recipe:ice-platform"
+],
+"essential": true,
+"hidden": false,
+"name": "planet-discovery-aquilo",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+}
+],
+"prerequisites": [
+"advanced-asteroid-processing",
+"asteroid-reprocessing",
+"electromagnetic-science-pack",
+"heating-tower",
+"rocket-turret"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 3000
+},
+{
+"effects": [
+"unlock-space-location",
+"unlock-travel-to-space-platforms",
+"recipe:lightning-rod"
+],
+"essential": true,
+"hidden": false,
+"name": "planet-discovery-fulgora",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+}
+],
+"prerequisites": [
+"electric-energy-accumulators",
+"space-platform-thruster"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1000
+},
+{
+"effects": [
+"unlock-space-location",
+"unlock-travel-to-space-platforms"
+],
+"essential": true,
+"hidden": false,
+"name": "planet-discovery-gleba",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+}
+],
+"prerequisites": [
+"landfill",
+"space-platform-thruster"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1000
+},
+{
+"effects": [
+"unlock-space-location",
+"unlock-travel-to-space-platforms"
+],
+"essential": true,
+"hidden": false,
+"name": "planet-discovery-vulcanus",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+}
+],
+"prerequisites": [
+"space-platform-thruster"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1000
+},
+{
+"effects": [
+"recipe:plastic-bar",
+"recipe:bioplastic"
+],
+"essential": false,
+"hidden": false,
+"name": "plastic-bar-productivity",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"agricultural-science-pack",
+"production-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1000
+},
+{
+"effects": [
+"recipe:plastic-bar"
+],
+"essential": false,
+"hidden": false,
+"name": "plastics",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"oil-processing"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 200
+},
+{
+"effects": [
+"recipe:power-armor"
+],
+"essential": false,
+"hidden": false,
+"name": "power-armor",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"electric-engine",
+"modular-armor",
+"processing-unit"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 200
+},
+{
+"effects": [
+"recipe:power-armor-mk2"
+],
+"essential": false,
+"hidden": false,
+"name": "power-armor-mk2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"efficiency-module",
+"military-4",
+"power-armor",
+"speed-module"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 400
+},
+{
+"effects": [
+"recipe:processing-unit"
+],
+"essential": false,
+"hidden": false,
+"name": "processing-unit",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"chemical-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 300
+},
+{
+"effects": [
+"recipe:processing-unit"
+],
+"essential": false,
+"hidden": false,
+"name": "processing-unit-productivity",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+}
+],
+"prerequisites": [
+"electromagnetic-science-pack",
+"production-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1000
+},
+{
+"effects": [
+"recipe:production-science-pack"
+],
+"essential": true,
+"hidden": false,
+"name": "production-science-pack",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"advanced-material-processing-2",
+"productivity-module",
+"railway"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"recipe:productivity-module"
+],
+"essential": false,
+"hidden": false,
+"name": "productivity-module",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"modules"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 50
+},
+{
+"effects": [
+"recipe:productivity-module-2"
+],
+"essential": false,
+"hidden": false,
+"name": "productivity-module-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+}
+],
+"prerequisites": [
+"productivity-module",
+"space-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 200
+},
+{
+"effects": [
+"recipe:productivity-module-3"
+],
+"essential": false,
+"hidden": false,
+"name": "productivity-module-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"biter-egg-handling",
+"productivity-module-2"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 300
+},
+{
+"effects": [
+"unlock-space-location",
+"recipe:promethium-science-pack"
+],
+"essential": true,
+"hidden": false,
+"name": "promethium-science-pack",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+},
+{
+"amount": 1,
+"name": "cryogenic-science-pack"
+}
+],
+"prerequisites": [
+"biter-egg-handling",
+"stellar-discovery-solar-system-edge"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1000
+},
+{
+"effects": [
+"recipe:quality-module",
+"unlock-quality",
+"unlock-quality"
+],
+"essential": false,
+"hidden": false,
+"name": "quality-module",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"modules"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 500
+},
+{
+"effects": [
+"recipe:quality-module-2"
+],
+"essential": false,
+"hidden": false,
+"name": "quality-module-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+}
+],
+"prerequisites": [
+"quality-module",
+"space-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 500
+},
+{
+"effects": [
+"recipe:quality-module-3"
+],
+"essential": false,
+"hidden": false,
+"name": "quality-module-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+}
+],
+"prerequisites": [
+"electromagnetic-science-pack",
+"quality-module-2"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 2000
+},
+{
+"effects": [
+"recipe:quantum-processor"
+],
+"essential": false,
+"hidden": false,
+"name": "quantum-processor",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+},
+{
+"amount": 1,
+"name": "cryogenic-science-pack"
+}
+],
+"prerequisites": [
+"cryogenic-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"recipe:radar"
+],
+"essential": false,
+"hidden": false,
+"name": "radar",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+}
+],
+"prerequisites": [
+"automation-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 10,
+"units": 20
+},
+{
+"effects": [
+"rail-support-on-deep-oil-ocean"
+],
+"essential": false,
+"hidden": false,
+"name": "rail-support-foundations",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+}
+],
+"prerequisites": [
+"electromagnetic-science-pack",
+"elevated-rail",
+"metallurgic-science-pack",
+"utility-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 2000
+},
+{
+"effects": [
+"recipe:railgun",
+"recipe:railgun-turret",
+"recipe:railgun-ammo"
+],
+"essential": false,
+"hidden": false,
+"name": "railgun",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+},
+{
+"amount": 1,
+"name": "cryogenic-science-pack"
+}
+],
+"prerequisites": [
+"quantum-processor"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 2000
+},
+{
+"effects": [
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "railgun-damage-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"railgun"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"gun-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "railgun-shooting-speed-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+},
+{
+"amount": 1,
+"name": "cryogenic-science-pack"
+}
+],
+"prerequisites": [
+"railgun"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"recipe:rail",
+"recipe:locomotive",
+"recipe:cargo-wagon",
+"recipe:iron-stick"
+],
+"essential": false,
+"hidden": false,
+"name": "railway",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"engine",
+"logistics-2"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 75
+},
+{
+"effects": [
+"recipe:recycler",
+"recipe:scrap-recycling",
+"recipe:speed-module-recycling",
+"recipe:speed-module-2-recycling",
+"recipe:speed-module-3-recycling",
+"recipe:productivity-module-recycling",
+"recipe:productivity-module-2-recycling",
+"recipe:productivity-module-3-recycling",
+"recipe:efficiency-module-recycling",
+"recipe:efficiency-module-2-recycling",
+"recipe:efficiency-module-3-recycling",
+"recipe:bulk-inserter-recycling",
+"recipe:barrel-recycling",
+"recipe:night-vision-equipment-recycling",
+"recipe:belt-immunity-equipment-recycling",
+"recipe:energy-shield-equipment-recycling",
+"recipe:energy-shield-mk2-equipment-recycling",
+"recipe:battery-equipment-recycling",
+"recipe:battery-mk2-equipment-recycling",
+"recipe:solar-panel-equipment-recycling",
+"recipe:fission-reactor-equipment-recycling",
+"recipe:personal-laser-defense-equipment-recycling",
+"recipe:discharge-defense-equipment-recycling",
+"recipe:exoskeleton-equipment-recycling",
+"recipe:personal-roboport-equipment-recycling",
+"recipe:personal-roboport-mk2-equipment-recycling",
+"recipe:laser-turret-recycling",
+"recipe:flamethrower-turret-recycling",
+"recipe:artillery-turret-recycling",
+"recipe:gun-turret-recycling",
+"recipe:wooden-chest-recycling",
+"recipe:display-panel-recycling",
+"recipe:iron-stick-recycling",
+"recipe:stone-furnace-recycling",
+"recipe:boiler-recycling",
+"recipe:steam-engine-recycling",
+"recipe:iron-gear-wheel-recycling",
+"recipe:electronic-circuit-recycling",
+"recipe:transport-belt-recycling",
+"recipe:electric-mining-drill-recycling",
+"recipe:burner-mining-drill-recycling",
+"recipe:inserter-recycling",
+"recipe:fast-inserter-recycling",
+"recipe:long-handed-inserter-recycling",
+"recipe:burner-inserter-recycling",
+"recipe:pipe-recycling",
+"recipe:offshore-pump-recycling",
+"recipe:copper-cable-recycling",
+"recipe:small-electric-pole-recycling",
+"recipe:submachine-gun-recycling",
+"recipe:firearm-magazine-recycling",
+"recipe:light-armor-recycling",
+"recipe:radar-recycling",
+"recipe:small-lamp-recycling",
+"recipe:pipe-to-ground-recycling",
+"recipe:assembling-machine-1-recycling",
+"recipe:repair-pack-recycling",
+"recipe:lab-recycling",
+"recipe:stone-wall-recycling",
+"recipe:assembling-machine-2-recycling",
+"recipe:splitter-recycling",
+"recipe:underground-belt-recycling",
+"recipe:loader-recycling",
+"recipe:car-recycling",
+"recipe:engine-unit-recycling",
+"recipe:iron-chest-recycling",
+"recipe:big-electric-pole-recycling",
+"recipe:medium-electric-pole-recycling",
+"recipe:shotgun-recycling",
+"recipe:shotgun-shell-recycling",
+"recipe:piercing-rounds-magazine-recycling",
+"recipe:grenade-recycling",
+"recipe:steel-furnace-recycling",
+"recipe:gate-recycling",
+"recipe:heavy-armor-recycling",
+"recipe:steel-chest-recycling",
+"recipe:fast-underground-belt-recycling",
+"recipe:fast-splitter-recycling",
+"recipe:concrete-recycling",
+"recipe:hazard-concrete-recycling",
+"recipe:refined-concrete-recycling",
+"recipe:refined-hazard-concrete-recycling",
+"recipe:fast-transport-belt-recycling",
+"recipe:solar-panel-recycling",
+"recipe:rail-recycling",
+"recipe:locomotive-recycling",
+"recipe:cargo-wagon-recycling",
+"recipe:rail-signal-recycling",
+"recipe:rail-chain-signal-recycling",
+"recipe:train-stop-recycling",
+"recipe:arithmetic-combinator-recycling",
+"recipe:decider-combinator-recycling",
+"recipe:constant-combinator-recycling",
+"recipe:selector-combinator-recycling",
+"recipe:power-switch-recycling",
+"recipe:programmable-speaker-recycling",
+"recipe:poison-capsule-recycling",
+"recipe:slowdown-capsule-recycling",
+"recipe:cluster-grenade-recycling",
+"recipe:defender-capsule-recycling",
+"recipe:distractor-capsule-recycling",
+"recipe:destroyer-capsule-recycling",
+"recipe:cliff-explosives-recycling",
+"recipe:uranium-rounds-magazine-recycling",
+"recipe:rocket-recycling",
+"recipe:explosive-rocket-recycling",
+"recipe:atomic-bomb-recycling",
+"recipe:piercing-shotgun-shell-recycling",
+"recipe:cannon-shell-recycling",
+"recipe:explosive-cannon-shell-recycling",
+"recipe:uranium-cannon-shell-recycling",
+"recipe:explosive-uranium-cannon-shell-recycling",
+"recipe:artillery-shell-recycling",
+"recipe:express-transport-belt-recycling",
+"recipe:assembling-machine-3-recycling",
+"recipe:tank-recycling",
+"recipe:spidertron-recycling",
+"recipe:fluid-wagon-recycling",
+"recipe:artillery-wagon-recycling",
+"recipe:modular-armor-recycling",
+"recipe:power-armor-recycling",
+"recipe:power-armor-mk2-recycling",
+"recipe:flamethrower-recycling",
+"recipe:land-mine-recycling",
+"recipe:rocket-launcher-recycling",
+"recipe:combat-shotgun-recycling",
+"recipe:express-underground-belt-recycling",
+"recipe:fast-loader-recycling",
+"recipe:express-loader-recycling",
+"recipe:express-splitter-recycling",
+"recipe:advanced-circuit-recycling",
+"recipe:processing-unit-recycling",
+"recipe:logistic-robot-recycling",
+"recipe:construction-robot-recycling",
+"recipe:passive-provider-chest-recycling",
+"recipe:active-provider-chest-recycling",
+"recipe:storage-chest-recycling",
+"recipe:buffer-chest-recycling",
+"recipe:requester-chest-recycling",
+"recipe:rocket-silo-recycling",
+"recipe:cargo-landing-pad-recycling",
+"recipe:roboport-recycling",
+"recipe:substation-recycling",
+"recipe:accumulator-recycling",
+"recipe:electric-furnace-recycling",
+"recipe:beacon-recycling",
+"recipe:pumpjack-recycling",
+"recipe:oil-refinery-recycling",
+"recipe:electric-engine-unit-recycling",
+"recipe:flying-robot-frame-recycling",
+"recipe:battery-recycling",
+"recipe:storage-tank-recycling",
+"recipe:pump-recycling",
+"recipe:chemical-plant-recycling",
+"recipe:low-density-structure-recycling",
+"recipe:rocket-fuel-recycling",
+"recipe:nuclear-reactor-recycling",
+"recipe:centrifuge-recycling",
+"recipe:nuclear-fuel-recycling",
+"recipe:heat-exchanger-recycling",
+"recipe:heat-pipe-recycling",
+"recipe:steam-turbine-recycling",
+"recipe:rail-support-recycling",
+"recipe:rail-ramp-recycling",
+"recipe:recycler-recycling",
+"recipe:quality-module-recycling",
+"recipe:quality-module-2-recycling",
+"recipe:quality-module-3-recycling",
+"recipe:artificial-yumako-soil-recycling",
+"recipe:overgrowth-yumako-soil-recycling",
+"recipe:artificial-jellynut-soil-recycling",
+"recipe:overgrowth-jellynut-soil-recycling",
+"recipe:nutrients-recycling",
+"recipe:toolbelt-equipment-recycling",
+"recipe:battery-mk3-equipment-recycling",
+"recipe:space-platform-foundation-recycling",
+"recipe:stack-inserter-recycling",
+"recipe:rocket-turret-recycling",
+"recipe:infinity-chest-recycling",
+"recipe:infinity-pipe-recycling",
+"recipe:heat-interface-recycling",
+"recipe:space-platform-starter-pack-recycling",
+"recipe:cargo-bay-recycling",
+"recipe:landing-pad-unloading-bay-recycling",
+"recipe:asteroid-collector-recycling",
+"recipe:crusher-recycling",
+"recipe:thruster-recycling",
+"recipe:foundry-recycling",
+"recipe:turbo-transport-belt-recycling",
+"recipe:turbo-underground-belt-recycling",
+"recipe:turbo-splitter-recycling",
+"recipe:turbo-loader-recycling",
+"recipe:big-mining-drill-recycling",
+"recipe:mech-armor-recycling",
+"recipe:railgun-recycling",
+"recipe:railgun-turret-recycling",
+"recipe:railgun-ammo-recycling",
+"recipe:agricultural-tower-recycling",
+"recipe:biochamber-recycling",
+"recipe:capture-robot-rocket-recycling",
+"recipe:lightning-rod-recycling",
+"recipe:electromagnetic-plant-recycling",
+"recipe:supercapacitor-recycling",
+"recipe:lightning-collector-recycling",
+"recipe:teslagun-recycling",
+"recipe:tesla-turret-recycling",
+"recipe:tesla-ammo-recycling",
+"recipe:heating-tower-recycling",
+"recipe:cryogenic-plant-recycling",
+"recipe:quantum-processor-recycling",
+"recipe:fusion-reactor-equipment-recycling",
+"recipe:fusion-reactor-recycling",
+"recipe:fusion-generator-recycling",
+"recipe:ice-platform-recycling",
+"recipe:foundation-recycling",
+"recipe:water-barrel-recycling",
+"recipe:sulfuric-acid-barrel-recycling",
+"recipe:crude-oil-barrel-recycling",
+"recipe:heavy-oil-barrel-recycling",
+"recipe:light-oil-barrel-recycling",
+"recipe:petroleum-gas-barrel-recycling",
+"recipe:lubricant-barrel-recycling",
+"recipe:fluoroketone-cold-barrel-recycling",
+"recipe:fluoroketone-hot-barrel-recycling",
+"recipe:flamethrower-ammo-recycling",
+"recipe:blueprint-recycling",
+"recipe:blueprint-book-recycling",
+"recipe:raw-fish-recycling",
+"recipe:yumako-recycling",
+"recipe:jellynut-recycling",
+"recipe:yumako-mash-recycling",
+"recipe:jelly-recycling",
+"recipe:bioflux-recycling",
+"recipe:deconstruction-planner-recycling",
+"recipe:pistol-recycling",
+"recipe:item-unknown-recycling",
+"recipe:stone-brick-recycling",
+"recipe:wood-recycling",
+"recipe:coal-recycling",
+"recipe:stone-recycling",
+"recipe:iron-ore-recycling",
+"recipe:copper-ore-recycling",
+"recipe:iron-plate-recycling",
+"recipe:copper-plate-recycling",
+"recipe:automation-science-pack-recycling",
+"recipe:logistic-science-pack-recycling",
+"recipe:steel-plate-recycling",
+"recipe:solid-fuel-recycling",
+"recipe:landfill-recycling",
+"recipe:uranium-ore-recycling",
+"recipe:chemical-science-pack-recycling",
+"recipe:military-science-pack-recycling",
+"recipe:production-science-pack-recycling",
+"recipe:utility-science-pack-recycling",
+"recipe:space-science-pack-recycling",
+"recipe:lane-splitter-recycling",
+"recipe:coin-recycling",
+"recipe:sulfur-recycling",
+"recipe:plastic-bar-recycling",
+"recipe:explosives-recycling",
+"recipe:electric-energy-interface-recycling",
+"recipe:uranium-235-recycling",
+"recipe:uranium-238-recycling",
+"recipe:uranium-fuel-cell-recycling",
+"recipe:depleted-uranium-fuel-cell-recycling",
+"recipe:simple-entity-with-force-recycling",
+"recipe:simple-entity-with-owner-recycling",
+"recipe:infinity-cargo-wagon-recycling",
+"recipe:burner-generator-recycling",
+"recipe:linked-chest-recycling",
+"recipe:proxy-container-recycling",
+"recipe:bottomless-chest-recycling",
+"recipe:linked-belt-recycling",
+"recipe:one-way-valve-recycling",
+"recipe:overflow-valve-recycling",
+"recipe:top-up-valve-recycling",
+"recipe:empty-module-slot-recycling",
+"recipe:electric-energy-interface-equipment-recycling",
+"recipe:science-recycling",
+"recipe:metallurgic-science-pack-recycling",
+"recipe:agricultural-science-pack-recycling",
+"recipe:electromagnetic-science-pack-recycling",
+"recipe:cryogenic-science-pack-recycling",
+"recipe:promethium-science-pack-recycling",
+"recipe:metallic-asteroid-chunk-recycling",
+"recipe:carbonic-asteroid-chunk-recycling",
+"recipe:oxide-asteroid-chunk-recycling",
+"recipe:promethium-asteroid-chunk-recycling",
+"recipe:ice-recycling",
+"recipe:carbon-recycling",
+"recipe:calcite-recycling",
+"recipe:tungsten-ore-recycling",
+"recipe:tungsten-plate-recycling",
+"recipe:tungsten-carbide-recycling",
+"recipe:copper-bacteria-recycling",
+"recipe:iron-bacteria-recycling",
+"recipe:yumako-seed-recycling",
+"recipe:jellynut-seed-recycling",
+"recipe:biolab-recycling",
+"recipe:captive-biter-spawner-recycling",
+"recipe:biter-egg-recycling",
+"recipe:pentapod-egg-recycling",
+"recipe:carbon-fiber-recycling",
+"recipe:holmium-ore-recycling",
+"recipe:holmium-plate-recycling",
+"recipe:lithium-recycling",
+"recipe:lithium-plate-recycling",
+"recipe:superconductor-recycling",
+"recipe:fusion-power-cell-recycling",
+"recipe:spoilage-recycling",
+"recipe:space-platform-hub-recycling",
+"recipe:tree-seed-recycling",
+"recipe:selection-tool-recycling",
+"recipe:upgrade-planner-recycling"
+],
+"essential": false,
+"hidden": false,
+"name": "recycling",
+"packs": {},
+"prerequisites": [
+"planet-discovery-fulgora"
+],
+"researched_now": false,
+"trigger": {
+"entities": [
+"fulgoran-ruin-vault"
+],
+"type": "mine-entity"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"ammo-damage",
+"turret-attack"
+],
+"essential": false,
+"hidden": false,
+"name": "refined-flammables-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+}
+],
+"prerequisites": [
+"flamethrower"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"ammo-damage",
+"turret-attack"
+],
+"essential": false,
+"hidden": false,
+"name": "refined-flammables-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+}
+],
+"prerequisites": [
+"refined-flammables-1"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 200
+},
+{
+"effects": [
+"ammo-damage",
+"turret-attack"
+],
+"essential": false,
+"hidden": false,
+"name": "refined-flammables-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"chemical-science-pack",
+"refined-flammables-2"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 300
+},
+{
+"effects": [
+"ammo-damage",
+"turret-attack"
+],
+"essential": false,
+"hidden": false,
+"name": "refined-flammables-4",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"refined-flammables-3",
+"utility-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 400
+},
+{
+"effects": [
+"ammo-damage",
+"turret-attack"
+],
+"essential": false,
+"hidden": false,
+"name": "refined-flammables-5",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"refined-flammables-4"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"ammo-damage",
+"turret-attack"
+],
+"essential": false,
+"hidden": false,
+"name": "refined-flammables-6",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+}
+],
+"prerequisites": [
+"refined-flammables-5",
+"space-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 600
+},
+{
+"effects": [
+"ammo-damage",
+"turret-attack"
+],
+"essential": false,
+"hidden": false,
+"name": "refined-flammables-7",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"agricultural-science-pack",
+"refined-flammables-6"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 7
+},
+{
+"effects": [
+"recipe:repair-pack"
+],
+"essential": false,
+"hidden": false,
+"name": "repair-pack",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+}
+],
+"prerequisites": [
+"automation-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 10,
+"units": 25
+},
+{
+"effects": [
+"laboratory-productivity"
+],
+"essential": false,
+"hidden": false,
+"name": "research-productivity",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+},
+{
+"amount": 1,
+"name": "cryogenic-science-pack"
+},
+{
+"amount": 1,
+"name": "promethium-science-pack"
+}
+],
+"prerequisites": [
+"promethium-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 120,
+"units": 1000
+},
+{
+"effects": [
+"laboratory-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "research-speed-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"automation-2"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"laboratory-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "research-speed-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"research-speed-1"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 200
+},
+{
+"effects": [
+"laboratory-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "research-speed-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"chemical-science-pack",
+"research-speed-2"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 250
+},
+{
+"effects": [
+"laboratory-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "research-speed-4",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"research-speed-3"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 500
+},
+{
+"effects": [
+"laboratory-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "research-speed-5",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+}
+],
+"prerequisites": [
+"production-science-pack",
+"research-speed-4"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 500
+},
+{
+"effects": [
+"laboratory-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "research-speed-6",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"research-speed-5",
+"utility-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 500
+},
+{
+"effects": [
+"recipe:flying-robot-frame"
+],
+"essential": false,
+"hidden": false,
+"name": "robotics",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"battery",
+"electric-engine"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 75
+},
+{
+"effects": [
+"recipe:rocket-fuel"
+],
+"essential": false,
+"hidden": false,
+"name": "rocket-fuel",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"advanced-oil-processing",
+"flammables"
+],
+"researched_now": false,
+"unit_seconds": 45,
+"units": 300
+},
+{
+"effects": [
+"recipe:rocket-fuel",
+"recipe:rocket-fuel-from-jelly",
+"recipe:ammonia-rocket-fuel"
+],
+"essential": false,
+"hidden": false,
+"name": "rocket-fuel-productivity",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"agricultural-science-pack",
+"production-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1000
+},
+{
+"effects": [
+"recipe:rocket-part"
+],
+"essential": false,
+"hidden": false,
+"name": "rocket-part-productivity",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "cryogenic-science-pack"
+}
+],
+"prerequisites": [
+"cryogenic-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 2000
+},
+{
+"effects": [
+"recipe:rocket-silo",
+"recipe:rocket-part",
+"recipe:cargo-landing-pad",
+"unlock-space-platforms",
+"recipe:space-platform-starter-pack",
+"recipe:space-platform-foundation"
+],
+"essential": true,
+"hidden": false,
+"name": "rocket-silo",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"advanced-material-processing-2",
+"concrete",
+"logistic-robotics",
+"low-density-structure",
+"processing-unit",
+"rocket-fuel"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1000
+},
+{
+"effects": [
+"recipe:rocket-turret"
+],
+"essential": false,
+"hidden": false,
+"name": "rocket-turret",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"carbon-fiber",
+"rocketry",
+"stronger-explosives-2"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 1000
+},
+{
+"effects": [
+"recipe:rocket-launcher",
+"recipe:rocket"
+],
+"essential": false,
+"hidden": false,
+"name": "rocketry",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+}
+],
+"prerequisites": [
+"explosives",
+"flammables",
+"military-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 15,
+"units": 120
+},
+{
+"effects": [
+"recipe:scrap-recycling"
+],
+"essential": false,
+"hidden": false,
+"name": "scrap-recycling-productivity",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+}
+],
+"prerequisites": [
+"electromagnetic-science-pack",
+"production-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"recipe:solar-panel"
+],
+"essential": false,
+"hidden": false,
+"name": "solar-energy",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"logistic-science-pack",
+"steel-processing"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 250
+},
+{
+"effects": [
+"recipe:solar-panel-equipment"
+],
+"essential": false,
+"hidden": false,
+"name": "solar-panel-equipment",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"modular-armor",
+"solar-energy"
+],
+"researched_now": false,
+"unit_seconds": 15,
+"units": 100
+},
+{
+"effects": [
+"recipe:asteroid-collector",
+"recipe:crusher",
+"recipe:metallic-asteroid-crushing",
+"recipe:carbonic-asteroid-crushing",
+"recipe:oxide-asteroid-crushing",
+"recipe:cargo-bay"
+],
+"essential": false,
+"hidden": false,
+"name": "space-platform",
+"packs": {},
+"prerequisites": [
+"rocket-silo"
+],
+"researched_now": false,
+"trigger": {
+"type": "create-space-platform"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:thruster",
+"recipe:ice-melting",
+"recipe:thruster-fuel",
+"recipe:thruster-oxidizer"
+],
+"essential": false,
+"hidden": false,
+"name": "space-platform-thruster",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+}
+],
+"prerequisites": [
+"space-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"recipe:space-science-pack"
+],
+"essential": true,
+"hidden": false,
+"name": "space-science-pack",
+"packs": {},
+"prerequisites": [
+"space-platform"
+],
+"researched_now": false,
+"trigger": {
+"entity": {
+"name": "asteroid-collector"
+},
+"type": "build-entity"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:speed-module"
+],
+"essential": false,
+"hidden": false,
+"name": "speed-module",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"modules"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 50
+},
+{
+"effects": [
+"recipe:speed-module-2"
+],
+"essential": false,
+"hidden": false,
+"name": "speed-module-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+}
+],
+"prerequisites": [
+"space-science-pack",
+"speed-module"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 200
+},
+{
+"effects": [
+"recipe:speed-module-3"
+],
+"essential": false,
+"hidden": false,
+"name": "speed-module-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+}
+],
+"prerequisites": [
+"metallurgic-science-pack",
+"speed-module-2"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 2000
+},
+{
+"effects": [
+"recipe:spidertron"
+],
+"essential": false,
+"hidden": false,
+"name": "spidertron",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"exoskeleton-equipment",
+"fission-reactor-equipment",
+"military-4",
+"production-science-pack",
+"radar",
+"rocket-turret"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 2500
+},
+{
+"effects": [
+"recipe:stack-inserter",
+"belt-stack-size-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "stack-inserter",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"bulk-inserter",
+"carbon-fiber",
+"production-science-pack",
+"utility-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1000
+},
+{
+"effects": [
+"recipe:pipe",
+"recipe:pipe-to-ground",
+"recipe:offshore-pump",
+"recipe:boiler",
+"recipe:steam-engine"
+],
+"essential": false,
+"hidden": false,
+"name": "steam-power",
+"packs": {},
+"prerequisites": {},
+"researched_now": false,
+"trigger": {
+"count": 50,
+"item": {
+"name": "iron-plate"
+},
+"type": "craft-item"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"character-mining-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "steel-axe",
+"packs": {},
+"prerequisites": [
+"steel-processing"
+],
+"researched_now": false,
+"trigger": {
+"count": 50,
+"item": {
+"name": "steel-plate"
+},
+"type": "craft-item"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:steel-plate",
+"recipe:casting-steel"
+],
+"essential": false,
+"hidden": false,
+"name": "steel-plate-productivity",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+}
+],
+"prerequisites": [
+"production-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1000
+},
+{
+"effects": [
+"recipe:steel-plate",
+"recipe:steel-chest"
+],
+"essential": false,
+"hidden": false,
+"name": "steel-processing",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+}
+],
+"prerequisites": [
+"automation-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 5,
+"units": 50
+},
+{
+"effects": [
+"unlock-space-location"
+],
+"essential": true,
+"hidden": false,
+"name": "stellar-discovery-solar-system-edge",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+},
+{
+"amount": 1,
+"name": "cryogenic-science-pack"
+}
+],
+"prerequisites": [
+"fusion-reactor",
+"railgun"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1000
+},
+{
+"effects": [
+"recipe:stone-wall"
+],
+"essential": false,
+"hidden": false,
+"name": "stone-wall",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+}
+],
+"prerequisites": [
+"automation-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 10,
+"units": 10
+},
+{
+"effects": [
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "stronger-explosives-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"military-2"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"ammo-damage",
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "stronger-explosives-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+}
+],
+"prerequisites": [
+"military-science-pack",
+"stronger-explosives-1"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 200
+},
+{
+"effects": [
+"ammo-damage",
+"ammo-damage",
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "stronger-explosives-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"chemical-science-pack",
+"stronger-explosives-2"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 300
+},
+{
+"effects": [
+"ammo-damage",
+"ammo-damage",
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "stronger-explosives-4",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"stronger-explosives-3",
+"utility-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 400
+},
+{
+"effects": [
+"ammo-damage",
+"ammo-damage",
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "stronger-explosives-5",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+}
+],
+"prerequisites": [
+"space-science-pack",
+"stronger-explosives-4"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"ammo-damage",
+"ammo-damage",
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "stronger-explosives-6",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+}
+],
+"prerequisites": [
+"stronger-explosives-5"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 600
+},
+{
+"effects": [
+"ammo-damage",
+"ammo-damage",
+"ammo-damage"
+],
+"essential": false,
+"hidden": false,
+"name": "stronger-explosives-7",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"agricultural-science-pack",
+"stronger-explosives-6"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 7
+},
+{
+"effects": [
+"recipe:sulfuric-acid",
+"recipe:sulfur"
+],
+"essential": false,
+"hidden": false,
+"name": "sulfur-processing",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"oil-processing"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 150
+},
+{
+"effects": [
+"recipe:tank",
+"recipe:cannon-shell",
+"recipe:explosive-cannon-shell"
+],
+"essential": false,
+"hidden": false,
+"name": "tank",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"automobilism",
+"explosives",
+"military-3"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 250
+},
+{
+"effects": [
+"recipe:teslagun",
+"recipe:tesla-turret",
+"recipe:tesla-ammo"
+],
+"essential": false,
+"hidden": false,
+"name": "tesla-weapons",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+}
+],
+"prerequisites": [
+"electromagnetic-science-pack",
+"military-4"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1500
+},
+{
+"effects": [
+"character-inventory-slots-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "toolbelt",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"logistic-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"recipe:toolbelt-equipment"
+],
+"essential": false,
+"hidden": false,
+"name": "toolbelt-equipment",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"carbon-fiber",
+"power-armor",
+"toolbelt"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 300
+},
+{
+"effects": [
+"belt-stack-size-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "transport-belt-capacity-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"stack-inserter"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 2000
+},
+{
+"effects": [
+"belt-stack-size-bonus",
+"inserter-stack-size-bonus"
+],
+"essential": false,
+"hidden": false,
+"name": "transport-belt-capacity-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"inserter-capacity-bonus-7",
+"transport-belt-capacity-1"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 3000
+},
+{
+"effects": [
+"recipe:tree-seed"
+],
+"essential": false,
+"hidden": false,
+"name": "tree-seeding",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "agricultural-science-pack"
+}
+],
+"prerequisites": [
+"agricultural-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 50
+},
+{
+"effects": [
+"recipe:carbon",
+"recipe:tungsten-carbide"
+],
+"essential": false,
+"hidden": false,
+"name": "tungsten-carbide",
+"packs": {},
+"prerequisites": [
+"planet-discovery-vulcanus"
+],
+"researched_now": false,
+"trigger": {
+"entities": [
+"big-volcanic-rock",
+"big-volcanic-rock-hot",
+"huge-volcanic-rock",
+"huge-volcanic-rock-hot",
+"small-demolisher-corpse",
+"medium-demolisher-corpse",
+"big-demolisher-corpse"
+],
+"type": "mine-entity"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:tungsten-plate"
+],
+"essential": false,
+"hidden": false,
+"name": "tungsten-steel",
+"packs": {},
+"prerequisites": [
+"big-mining-drill"
+],
+"researched_now": false,
+"trigger": {
+"count": 1,
+"item": {
+"name": "big-mining-drill"
+},
+"type": "craft-item"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:turbo-transport-belt",
+"recipe:turbo-underground-belt",
+"recipe:turbo-splitter"
+],
+"essential": false,
+"hidden": false,
+"name": "turbo-transport-belt",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "metallurgic-science-pack"
+}
+],
+"prerequisites": [
+"logistics-3",
+"metallurgic-science-pack"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"recipe:uranium-rounds-magazine",
+"recipe:uranium-cannon-shell",
+"recipe:explosive-uranium-cannon-shell"
+],
+"essential": false,
+"hidden": false,
+"name": "uranium-ammo",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"military-4",
+"tank",
+"uranium-processing"
+],
+"researched_now": false,
+"unit_seconds": 45,
+"units": 1000
+},
+{
+"effects": [
+"mining-with-fluid"
+],
+"essential": false,
+"hidden": false,
+"name": "uranium-mining",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"chemical-science-pack",
+"concrete"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"recipe:centrifuge",
+"recipe:uranium-processing"
+],
+"essential": false,
+"hidden": false,
+"name": "uranium-processing",
+"packs": {},
+"prerequisites": [
+"uranium-mining"
+],
+"researched_now": false,
+"trigger": {
+"entities": [
+"uranium-ore"
+],
+"type": "mine-entity"
+},
+"unit_seconds": 0,
+"units": 1
+},
+{
+"effects": [
+"recipe:utility-science-pack"
+],
+"essential": true,
+"hidden": false,
+"name": "utility-science-pack",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"low-density-structure",
+"processing-unit",
+"robotics"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"gun-speed",
+"gun-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "weapon-shooting-speed-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+}
+],
+"prerequisites": [
+"military"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"gun-speed",
+"gun-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "weapon-shooting-speed-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+}
+],
+"prerequisites": [
+"logistic-science-pack",
+"weapon-shooting-speed-1"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 200
+},
+{
+"effects": [
+"gun-speed",
+"gun-speed",
+"gun-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "weapon-shooting-speed-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+}
+],
+"prerequisites": [
+"military-science-pack",
+"weapon-shooting-speed-2"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 300
+},
+{
+"effects": [
+"gun-speed",
+"gun-speed",
+"gun-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "weapon-shooting-speed-4",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+}
+],
+"prerequisites": [
+"weapon-shooting-speed-3"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 400
+},
+{
+"effects": [
+"gun-speed",
+"gun-speed",
+"gun-speed",
+"gun-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "weapon-shooting-speed-5",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"chemical-science-pack",
+"weapon-shooting-speed-4"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"gun-speed",
+"gun-speed",
+"gun-speed",
+"gun-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "weapon-shooting-speed-6",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "military-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"utility-science-pack",
+"weapon-shooting-speed-5"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 600
+},
+{
+"effects": [
+"worker-robot-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "worker-robots-speed-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"robotics"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 50
+},
+{
+"effects": [
+"worker-robot-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "worker-robots-speed-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"worker-robots-speed-1"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 100
+},
+{
+"effects": [
+"worker-robot-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "worker-robots-speed-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"utility-science-pack",
+"worker-robots-speed-2"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 150
+},
+{
+"effects": [
+"worker-robot-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "worker-robots-speed-4",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"worker-robots-speed-3"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 250
+},
+{
+"effects": [
+"worker-robot-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "worker-robots-speed-5",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"production-science-pack",
+"worker-robots-speed-4"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 500
+},
+{
+"effects": [
+"worker-robot-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "worker-robots-speed-6",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+}
+],
+"prerequisites": [
+"space-science-pack",
+"worker-robots-speed-5"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 1000
+},
+{
+"effects": [
+"worker-robot-speed"
+],
+"essential": false,
+"hidden": false,
+"name": "worker-robots-speed-7",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+},
+{
+"amount": 1,
+"name": "space-science-pack"
+},
+{
+"amount": 1,
+"name": "electromagnetic-science-pack"
+}
+],
+"prerequisites": [
+"electromagnetic-science-pack",
+"worker-robots-speed-6"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 15
+},
+{
+"effects": [
+"worker-robot-storage"
+],
+"essential": false,
+"hidden": false,
+"name": "worker-robots-storage-1",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+}
+],
+"prerequisites": [
+"robotics"
+],
+"researched_now": false,
+"unit_seconds": 30,
+"units": 200
+},
+{
+"effects": [
+"worker-robot-storage"
+],
+"essential": false,
+"hidden": false,
+"name": "worker-robots-storage-2",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+}
+],
+"prerequisites": [
+"production-science-pack",
+"worker-robots-storage-1"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 300
+},
+{
+"effects": [
+"worker-robot-storage"
+],
+"essential": false,
+"hidden": false,
+"name": "worker-robots-storage-3",
+"packs": [
+{
+"amount": 1,
+"name": "automation-science-pack"
+},
+{
+"amount": 1,
+"name": "logistic-science-pack"
+},
+{
+"amount": 1,
+"name": "chemical-science-pack"
+},
+{
+"amount": 1,
+"name": "production-science-pack"
+},
+{
+"amount": 1,
+"name": "utility-science-pack"
+}
+],
+"prerequisites": [
+"utility-science-pack",
+"worker-robots-storage-2"
+],
+"researched_now": false,
+"unit_seconds": 60,
+"units": 450
+},
+{
+"effects": [
+"recipe:yumako-processing",
+"recipe:copper-bacteria"
+],
+"essential": false,
+"hidden": false,
+"name": "yumako",
+"packs": {},
+"prerequisites": [
+"agriculture"
+],
+"researched_now": false,
+"trigger": {
+"entities": [
+"yumako-tree"
+],
+"type": "mine-entity"
+},
+"unit_seconds": 0,
+"units": 1
+}
+]
