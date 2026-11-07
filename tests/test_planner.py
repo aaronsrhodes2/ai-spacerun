@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from bridge.factorio.planner import E, N, S, W, Grid, Plan, PlanError, batches  # noqa: E402
+from bridge.factorio.planner import E, N, S, W, Grid, Plan, PlanError, batches, pipe_route, underground_run  # noqa: E402
 
 
 def make_plan(rows):
@@ -98,6 +98,50 @@ class PlacementTests(unittest.TestCase):
     def test_batches_keep_everything(self):
         self.assertEqual(sum(len(b) for b in batches(list(range(1001)))), 1001)
         self.assertEqual(max(len(b) for b in batches(list(range(1001)))), 400)
+
+
+class PipeTests(unittest.TestCase):
+    def test_underground_south_flow_orientation_and_reach(self):
+        plan = make_plan(["."] * 40)
+        plan = Plan(Grid({"x1": 0, "y1": 0, "rows": ["."] * 40}))
+        underground_run(plan, (0, 0), (0, 25))
+        ug = [e for e in plan.entities if e["name"] == "pipe-to-ground"]
+        self.assertEqual(ug[0]["direction"], N)
+        self.assertEqual(ug[1]["direction"], S)
+        ys = sorted(int(e["y"]) for e in ug)
+        self.assertEqual(ys[0], 0)
+        self.assertEqual(ys[-1], 25)
+        for first, second in zip(ys[0::2], ys[1::2]):
+            self.assertLessEqual(second - first, 10)
+
+    def test_underground_east_flow_orientation(self):
+        plan = Plan(Grid({"x1": 0, "y1": 0, "rows": ["." * 30]}))
+        underground_run(plan, (0, 0), (20, 0))
+        ug = [e for e in plan.entities if e["name"] == "pipe-to-ground"]
+        self.assertEqual((ug[0]["direction"], ug[1]["direction"]), (W, E))
+
+    def test_underground_skips_water_for_endpoints_only(self):
+        rows = ["." * 6 + "~" * 4 + "." * 20]
+        plan = Plan(Grid({"x1": 0, "y1": 0, "rows": rows}))
+        underground_run(plan, (0, 0), (29, 0))
+        for e in plan.entities:
+            self.assertNotIn(int(e["x"]), range(6, 10))
+
+    def test_underground_fails_when_no_endpoint_is_free(self):
+        rows = ["." + "~" * 12 + "."]
+        plan = Plan(Grid({"x1": 0, "y1": 0, "rows": rows}))
+        with self.assertRaises(PlanError):
+            underground_run(plan, (0, 0), (13, 0))
+
+    def test_pipe_route_goes_round_an_obstacle_and_ends_beside_target(self):
+        rows = ["......", ".EEEE.", "......"]
+        plan = Plan(Grid({"x1": 0, "y1": 0, "rows": rows}))
+        path = pipe_route(plan, (0, 1), [(5, 1)])
+        self.assertEqual(path[0], (0, 1))
+        self.assertEqual(path[-1], (5, 0) if (5, 0) in path else path[-1])
+        self.assertNotIn((2, 1), path)
+        last = path[-1]
+        self.assertEqual(abs(last[0] - 5) + abs(last[1] - 1), 1)
 
 
 if __name__ == "__main__":

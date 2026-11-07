@@ -212,3 +212,88 @@ def overlay(plan, x1, y1, x2, y2):
     for y in range(y1, y2 + 1):
         lines.append(f"{y:5d} " + "".join(marks.get((x, y), plan.grid.at(x, y)) for x in range(x1, x2 + 1)))
     return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Pipes
+# ---------------------------------------------------------------------------
+
+def pipe_route(plan, start, targets):
+    """Shortest 4-connected path of free tiles from `start` to any tile in `targets`,
+    which may be tiles already holding pipe. Returns the tiles from start to the target
+    (the target tile itself is not included). Pipes have no direction, so turns are free;
+    the cost only prefers shorter paths, and ground that needs clearing costs a little."""
+    targets = set(targets)
+    grid, taken = plan.grid, plan.taken
+
+    def free(t):
+        return t not in taken and grid.at(*t) not in _IMPASSABLE
+
+    if not free(start):
+        raise PlanError(f"pipe start {start} isn't free")
+    best = {start: 0.0}
+    came = {}
+    heap = [(0.0, start)]
+    while heap:
+        cost, cur = heapq.heappop(heap)
+        if cost > best.get(cur, float("inf")):
+            continue
+        for vx, vy in VECTORS.values():
+            nxt = (cur[0] + vx, cur[1] + vy)
+            if nxt in targets:
+                path = [cur]
+                while cur in came:
+                    cur = came[cur]
+                    path.append(cur)
+                path.reverse()
+                return path
+            if not free(nxt):
+                continue
+            ncost = cost + 1.0 + (0.5 if grid.at(*nxt) in "TR" else 0.0)
+            if ncost < best.get(nxt, float("inf")):
+                best[nxt] = ncost
+                came[nxt] = cur
+                heapq.heappush(heap, (ncost, nxt))
+    raise PlanError(f"no pipe route from {start}")
+
+
+def underground_run(plan, a, b, max_gap=10):
+    """Axis-aligned pipe from tile a to tile b (inclusive) made of underground pairs.
+    Entry directions are opposite to the flow and exits point along it (tested in game:
+    south flow = entry N(0) / exit S(8); east flow = entry W(12) / exit E(4)).
+    Entry and exit tiles must be free ground; the tiles between can be anything. A pair
+    reaches at most `max_gap` tiles. Greedy: each exit goes as far as it can, but leaves
+    a free tile for the next entry."""
+    if a[0] != b[0] and a[1] != b[1]:
+        raise PlanError(f"underground run {a} to {b} isn't axis-aligned")
+    if a == b:
+        raise PlanError("underground run of zero length")
+    step = (0 if a[0] == b[0] else (1 if b[0] > a[0] else -1),
+            0 if a[1] == b[1] else (1 if b[1] > a[1] else -1))
+    flow = direction_between(a, (a[0] + step[0], a[1] + step[1]))
+    entry_dir, exit_dir = _OPPOSITE[flow], flow
+    n = max(abs(b[0] - a[0]), abs(b[1] - a[1]))
+    tiles = [(a[0] + step[0] * i, a[1] + step[1] * i) for i in range(n + 1)]
+
+    def free(i):
+        return tiles[i] not in plan.taken and plan.grid.at(*tiles[i]) not in _IMPASSABLE
+
+    i = 0
+    while True:
+        if not free(i):
+            raise PlanError(f"no free tile for an entry at {tiles[i]}")
+        reach = min(i + max_gap, n)
+        j = None
+        for cand in range(reach, i, -1):
+            if free(cand) and (cand == n or free(cand + 1)):
+                j = cand
+                break
+        if j is None:
+            raise PlanError(f"no free exit within {max_gap} tiles of {tiles[i]}")
+        for idx, d in ((i, entry_dir), (j, exit_dir)):
+            plan._take([tiles[idx]], "pipe-to-ground")
+            plan.entities.append({"name": "pipe-to-ground", "x": tiles[idx][0] + 0.5,
+                                  "y": tiles[idx][1] + 0.5, "direction": d})
+        if j == n:
+            return
+        i = j + 1
