@@ -294,6 +294,7 @@ def register(mcp, q: Callable[[str], str]) -> None:
                 if clear and not dry then
                   local b = ep.collision_box
                   local r = math.max(math.abs(b.left_top.x), math.abs(b.left_top.y), b.right_bottom.x, b.right_bottom.y)
+                  if string.find(ep.type, 'rail', 1, true) then r = math.max(r, 4) end
                   for _, t in pairs(s.find_entities_filtered{{area={{{{spec.x-r, spec.y-r}}, {{spec.x+r, spec.y+r}}}}, type={{'tree', 'simple-entity'}}}}) do t.destroy() end
                 end
                 local check = {{name=spec.name, position=pos, direction=spec.direction or 0, force=f,

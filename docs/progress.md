@@ -44,6 +44,13 @@ without checking the previous step destroyed 1,054 red packs of stockpile.
 Oil: oil-gathering researched, big-pole line (10 poles) to the NW field at (-314,-293), seven pumpjacks
 (~117 crude/s), and the oil-processing trigger fired. Refinery unlocked.
 
+**All 46 red+green research goals complete** (plus the red-only prerequisites they needed). Oil refining is
+running (7 pumpjacks, refinery, plastic). **First train line**: coal from the 343k patch at (145,62) to the
+base, 82 rails built from a rail-geometry catalog taken from the game itself, with a loco-wagon-loco train
+loading straight from drills and refuelling itself from the coal it hauls. A coal-trunk conversion
+(five electric drills replacing the burner ring) fixed a coal shortage that had starved the plastic plant.
+Tests: 26 planner/router tests pass.
+
 **Game data:** every recipe, item, machine, tech, planet and route dumped from the live server into
 `.claude/skills/factorio/reference/`, with each science pack traced to raw materials.
 
