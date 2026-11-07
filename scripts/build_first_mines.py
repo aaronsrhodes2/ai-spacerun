@@ -76,7 +76,9 @@ def stone_row(plan, grid):
         plan.inserter(x, inserter_y, N)
         plan.drill(x, drill_y, S, "s")
     plan.line((xs[-1] + 1, out_y), (10, out_y), last_direction=W)
-    plan.route((9, out_y), W, (HUB[0], HUB[1] + 2), N)
+    # Stops two tiles short of the hub: (-20, -60) is the iron smelter's coal feed
+    # (build_smelting.py). Joining them once put stone into the iron furnaces.
+    plan.route((9, out_y), W, (HUB[0], HUB[1] + 4), N)
 
 
 def iron_row(plan, grid):

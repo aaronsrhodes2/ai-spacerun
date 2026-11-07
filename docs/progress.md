@@ -34,6 +34,16 @@ electric-mining-drill followed within minutes. 15 red-only techs, 525 packs in a
 then changed his mind: pollution, evolution and expansion are off and every surface is in peaceful mode.
 A perimeter-and-kill-box script was written and discarded; `restock_turrets` stays for clearing nests later.
 
+**Green science to ~10x, same day:** one chain made ~5 packs/min; seven AM2 chains now make ~52/min,
+fed by an electric iron field (12 drills), an electric copper field (6 drills, joined on the ore lane),
+steel furnaces everywhere, a second gear assembler with fast outputs, and a second 5.4 MW power plant
+(10 engines total, 9 MW) with an electric coal field. 27 labs. A health report (`scripts/health.py`) measures
+real per-minute rates; it found each limit in turn (gears, plates, labs). Two faults worth remembering:
+inserters left holding copper plates after a machine swap starved four chains, and a chest move I ran
+without checking the previous step destroyed 1,054 red packs of stockpile.
+Oil: oil-gathering researched, big-pole line (10 poles) to the NW field at (-314,-293), seven pumpjacks
+(~117 crude/s), and the oil-processing trigger fired. Refinery unlocked.
+
 **Game data:** every recipe, item, machine, tech, planet and route dumped from the live server into
 `.claude/skills/factorio/reference/`, with each science pack traced to raw materials.
 

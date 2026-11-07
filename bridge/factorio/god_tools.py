@@ -337,7 +337,8 @@ def register(mcp, q: Callable[[str], str]) -> None:
                         surface: str = "nauvis", dry_run: bool = False) -> str:
         """Remove our force's entities in a box, except characters. `names` is an optional
         comma-separated filter. Contents are lost, so empty valuable chests first.
-        Use dry_run to see what would go."""
+        Use dry_run to see what would go. Anything whose collision box overlaps the
+        box counts, so for one tile use its centre +-0.2, not the tile's edges."""
         name_list = [n.strip() for n in names.split(",") if n.strip()]
         return run(f"""
             local s = game.surfaces[{json.dumps(surface)}]

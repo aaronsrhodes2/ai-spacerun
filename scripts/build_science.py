@@ -1,6 +1,7 @@
 """
 Red science block, west of the hub, on the plate belts that end at x=-66.
 
+    y=-71..-69  second lab row, fed lab-to-lab by inserters at y=-68
     y=-67..-65  labs, 6 of them, inserters at y=-64 picking off the pack belt
     y=-63       pack belt, flowing west
     y=-62       pack output inserters
@@ -23,7 +24,7 @@ from _game import tools
 
 from bridge.factorio.planner import E, N, S, W, Grid, Plan, batches, overlay
 
-BOX = (-72, -70, -34, -50)
+BOX = (-95, -80, -34, -50)
 PACK_XS = [-66, -62, -58, -54, -50, -46]   # left column of each pack assembler and lab
 GEAR_X, AMMO_X = -42, -38
 AMMO_CHEST = (-37, -63)
@@ -43,15 +44,47 @@ def labs_plan(plan):
     plan.line((-45, -63), (-67, -63), last_direction=W)
 
 
+def labs2_plan(plan):
+    """A second lab row, fed lab-to-lab by inserters from the first row."""
+    for x in PACK_XS:
+        plan.machine("lab", x, -71, 3, 3)
+        plan.machine("inserter", x + 1, -68, 1, 1, direction=S)
+        pole(plan, x + 3, -68)
+
+
+WEST_XS = [-70, -74, -78]          # three more lab columns west of the first block
+
+
+def labswest_plan(plan):
+    """9 more labs in the same three-row daisy chain. The red belt (y=-63) is extended west
+    to x=-79 (chain 1's green output belt starts at x=-83; a pole stands at (-81,-63));
+    green reaches the new third-row labs from the belt at y=-77 and is passed south."""
+    plan.line((-68, -63), (-79, -63), last_direction=W)
+    for x in WEST_XS:
+        plan.machine("lab", x, -67, 3, 3)
+        plan.machine("inserter", x + 1, -64, 1, 1, direction=S)
+        plan.machine("lab", x, -71, 3, 3)
+        plan.machine("inserter", x + 1, -68, 1, 1, direction=S)
+        plan.machine("inserter", x + 2, -68, 1, 1, direction=N)
+        plan.machine("lab", x, -75, 3, 3)
+        plan.machine("inserter", x + 1, -72, 1, 1, direction=S)
+        plan.machine("inserter", x + 2, -72, 1, 1, direction=N)
+        plan.machine("inserter", x + 1, -76, 1, 1, direction=N)
+        for y in (-64, -68, -72, -76):
+            pole(plan, x + 3, y)
+    plan.machine("inserter", -79, -64, 1, 1, direction=S)      # overflow: red packs the labs don't take
+    plan.machine("iron-chest", -79, -65, 1, 1)
+
+
 def assemblers_plan(plan):
     for x in PACK_XS:
-        plan.machine("assembling-machine-1", x, -61, 3, 3, recipe="automation-science-pack")
+        plan.machine("assembling-machine-2", x, -61, 3, 3, recipe="automation-science-pack")
         plan.machine("inserter", x + 1, -58, 1, 1, direction=S)
         plan.machine("inserter", x + 1, -62, 1, 1, direction=S)
-    plan.machine("assembling-machine-1", GEAR_X, -61, 3, 3, recipe="iron-gear-wheel")
+    plan.machine("assembling-machine-2", GEAR_X, -61, 3, 3, recipe="iron-gear-wheel")
     plan.machine("long-handed-inserter", GEAR_X + 1, -58, 1, 1, direction=S)
     plan.machine("inserter", GEAR_X + 2, -58, 1, 1, direction=N)
-    plan.machine("assembling-machine-1", AMMO_X, -61, 3, 3, recipe="firearm-magazine")
+    plan.machine("assembling-machine-2", AMMO_X, -61, 3, 3, recipe="firearm-magazine")
     plan.machine("long-handed-inserter", AMMO_X + 1, -58, 1, 1, direction=S)
     plan.machine("inserter", AMMO_X + 1, -62, 1, 1, direction=S)
     plan.machine("iron-chest", *AMMO_CHEST, 1, 1)
@@ -62,7 +95,7 @@ def main():
     build = "--build" in sys.argv
     x1, y1, x2, y2 = BOX
     plan = Plan(Grid(json.loads(tools["map_grid"](x1, y1, x2, y2))))
-    {"labs": labs_plan, "assemblers": assemblers_plan}[stage](plan)
+    {"labs": labs_plan, "labs2": labs2_plan, "labswest": labswest_plan, "assemblers": assemblers_plan}[stage](plan)
     counts = {}
     for e in plan.entities:
         counts[e["name"]] = counts.get(e["name"], 0) + 1
