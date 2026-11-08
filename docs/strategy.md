@@ -222,3 +222,14 @@ designs onto the west side (virtual trunk kv = real 7 - kv; west gives land on t
 (rows -114/-113/-105 are taken by the military taps on the east side, and PM needs EC/AC from rows at -88/-80 so it must sit south of them).
 Free bands: east -72, -64; west: -136, -128, -104 and, using the m<k rule, shared bands -72/-64. Needed: IS (east, give T4), PM (east, give T6 east),
 RAIL (west, give T6 west), EF (west, give T3 west), PUR (taps T3|EF and T6|PM+rails). Stone is arriving on trunk 4's west lane (scripts/build_stone_belt.py).
+
+## Purple science running (2026-11-08) - solved on the same bus, no second bus needed
+scripts/solve_rows.py is an offline solver that tries every (side, band) placement against the built entities; its answer was applied by
+scripts/build_purple.py: iron stick (east y0=-136, give T4 east), rail (west y0=-135, give T6 west lane), productivity module (east -72, give T6 east),
+electric furnace (west, y0=-84 after scripts/fix_ef_row.py: the first choice -85 put a tap splitter on the AC give target at (72,-80)),
+purple pack (east y0=-64, taps T6 + T5, output flows east and joins the pack belt at (130,-64)). Cable row grew to 5 machines (EC was starved of cable).
+Pack sorting at the ports: filtered splitters on the y=-37 line at x=-318 (production-science-pack -> feeder (-319,-38), port 3) and x=-325
+(utility-science-pack -> feeder (-326,-38), port 2); everything else (military) continues to port 1.
+Measured: purple pack machine working, 2 packs made in the first minutes; rails, modules, circuits flowing; steel is the likely limiter.
+The AC pickup inserter at trunk 0's end was removed (it starved the furnace and module rows); the chest keeps 612 AC.
+Yellow (utility): not built (needs acid, lubricant, batteries, electric engines, flying robot frames, processing units, LDS).
