@@ -238,3 +238,11 @@ Yellow (utility): not built (needs acid, lubricant, batteries, electric engines,
 scripts/build_steel2.py: four more electric steel furnaces on the iron unload belt (x 53..67, y -153..-151), steel belt y=-149 into the x=69 steel belt;
 total steel about 0.875/s. The Captain is rebuilding the oil site himself (old refineries, plastic/acid plants and the plastic chest were marked for
 deconstruction), so yellow waits for his plastic, acid and lubricant outputs; the plastic belt to trunk 2 starts at the old chest (-146.5,-120.5).
+
+## Automatic locomotive fuel (2026-11-08)
+The Captain reported trains halting for lack of coal (hand-fuelled locomotives). scripts/build_train_fuel.py puts a burner inserter + steel chest of
+coal (575 each, taken from coal already in storage chests) on the south side of the rail at the iron load stop (x=-168 and -147, y=-408) and the
+copper load stop (x=168 and 185, y=-292), one per locomotive position; burner inserters fuel themselves, so no power. The trains swap ends at the dead
+ends, so both locomotives are at the load stop every trip. About 3 coal per round trip: 575 coal lasts a very long time, but the chests need
+topping up eventually (a coal belt would remove that). Not yet verified with a train in place; check inserter drop_target when a train is loading.
+Research: the queue now holds only techs that use the packs that exist (purple/yellow techs stall the labs); labs went from 0 to about 34 working.
