@@ -15,7 +15,9 @@ from _game import tools
 
 from bridge.factorio.planner import batches
 
-X0, Y0, CELLS = -148, -36, 12
+import os
+X0 = int(os.environ.get('SOLAR_X0', -148))
+Y0, CELLS = -36, 12
 
 
 def entities():
@@ -31,8 +33,9 @@ def entities():
         ents.append({"name": "accumulator", "x": X0 + 2 * i + 1.0, "y": ya + 1.0, "direction": 0})
     for a in range(0, CELLS, 2):
         ents.append({"name": "medium-electric-pole", "x": X0 + 4 * a + 3.5, "y": ya + 2.5})
-    for y in (-51.5, -43.5, -37.5):
-        ents.append({"name": "medium-electric-pole", "x": -121.5, "y": y})
+    if X0 == -148:
+        for y in (-51.5, -43.5, -37.5):
+            ents.append({"name": "medium-electric-pole", "x": -121.5, "y": y})
     return ents
 
 
@@ -44,7 +47,7 @@ def main():
         counts[e["name"]] = counts.get(e["name"], 0) + 1
     print(counts)
     if build:
-        n = tools["run_lua"]("local n=0 for _,e in pairs(game.surfaces.nauvis.find_entities_filtered{area={{-150,-38},{-98,16}},type='simple-entity'}) do e.destroy() n=n+1 end rcon.print(n)")
+        n = tools["run_lua"]("local n=0 for _,e in pairs(game.surfaces.nauvis.find_entities_filtered{area={{%d,-38},{%d,16}}" % (X0 - 2, X0 + 50) + ",type='simple-entity'}) do e.destroy() n=n+1 end rcon.print(n)")
         print("rocks removed:", n)
     for part in batches(ents):
         r = json.loads(tools["place_entities"](json.dumps(part), dry_run=not build))

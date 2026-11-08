@@ -161,3 +161,18 @@ Every remaining patch is north of the base, so the bus now flows SOUTH and is su
 - scripts/build_bus2.py rebuilt it with the military taps. Tested: coal put on the feed (plus real train coal) reached
   all three grenade machines (20 coal each) through the riser, trunk 7 and the tap.
 - Still empty: trunks 0, 1, 5. Next: depots feed their north heads (x=72, 75, 87 at y=-139).
+
+## Iron depot (2026-11-07) - built and running
+scripts/build_iron_depot.py (stages rails, extend, mine, furnaces, stops, unload, train).
+- Patch (-219,-433): 16 electric drills in two belts, collector x=-207, 12 electric furnaces (about 7.5 plates/s,
+  measured), plate belt y=-412 (hops under the load stop by underground), 12 fast inserters load two wagons.
+- One shuttle train (locomotive, 2 cargo wagons, locomotive; each loco hand-fuelled with 150 coal): stop
+  "Iron Depot Load" at (-171,-411), "Iron Depot Unload" at (19,-159). Track is one line, 265 pieces, dead end
+  at each end (cliffs on the way were removed). Wait conditions: full or 60 s idle at load; empty or 10 s idle at unload.
+- Unload: 12 fast inserters on the south side onto a belt at y=-155 that runs east to x=75 and south into the head of
+  trunk 1 (iron on one lane). Tested end to end: train loaded 1136 plates, travelled, unloaded; 300+ plates reached
+  trunk 1 and the three grenade machines hold iron and are working.
+- Power: big poles (-242,-333) to the depot (4), medium poles (91.5,-137.5) west to the unload station (8). A second
+  solar field (X0=-196, 288 panels total) was added because the depot pushed the grid into low power.
+- Locomotive fuel is not automatic: refuel the two locomotives by hand (about 3 coal per round trip).
+- Missing for military science: copper on trunk 1's other lane, steel on trunk 0, stone brick on trunk 5.
