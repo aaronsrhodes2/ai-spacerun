@@ -44,3 +44,34 @@ plants stay at the refinery (-150,-115) with a train or belt link.
 ## Decision needed
 Clear-cut scope for the central base, and whether to start with the copper depot (train copper
 plates in) or the iron depot (more plates; the base's current iron is the constraint).
+
+---
+## Update 2026-11-07 (evening): the train circuit
+
+The Captain's order of loading is **water, coal, iron, copper, oil, stone, uranium**, on a circuit of
+trains whose cars are mobile storage and balancing. Everything visible is to be mined.
+
+### What "everything visible" costs (from scripts/survey.py, snapshots/survey.json)
+29,045 ore tiles in 41 patches (iron 8,855, copper 7,580, coal 6,043, stone 5,657, uranium 910),
+7 oil fields (70 wells) and 25 lakes, with 431 enemy spawners scattered between them.
+Covering every tile means about 2,400 electric drills: 218 MW, about 120 boilers, 1,200 ore/s.
+That is far more than the base could use, so coverage is sized to a **target rate per resource**,
+and the cap on drills is the power plant.
+
+### Two layers
+1. **Long haul**: one shuttle train per patch group (the coal line 1 pattern, already proven),
+   loading drill-to-wagon at the patch, unloading at the depot district.
+2. **The circuit**: a short, compact loop round a cleared depot district next to the base. Mixed
+   trains (fluid wagons for water and oil, cargo wagons for the rest, in the Captain's order)
+   pass the seven loading stops in order, then the base's unloading stops. Adding a train adds
+   capacity; cars buffer between supply and demand.
+
+### Power is the real limit
+Steam is 9 MW now. Remote drills need power too: local solar (solar-energy is researched) or the
+coal cars fuelling burner drills. Nuclear waits on uranium, which is 580+ tiles away.
+
+### Build order proposed
+1. Re-clear and lay out the depot district and its circuit.
+2. Water (pumps on the south lake, fluid wagons). 3. Coal: line 1 delivers to the depot.
+4. Iron (near patch first, then remote). 5. Copper. 6. Oil (crude by fluid wagon from the NW field).
+7. Stone. 8. Uranium. Nests near a patch are destroyed before building there.
