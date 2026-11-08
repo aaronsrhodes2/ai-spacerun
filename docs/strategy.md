@@ -75,3 +75,21 @@ coal cars fuelling burner drills. Nuclear waits on uranium, which is 580+ tiles 
 2. Water (pumps on the south lake, fluid wagons). 3. Coal: line 1 delivers to the depot.
 4. Iron (near patch first, then remote). 5. Copper. 6. Oil (crude by fluid wagon from the NW field).
 7. Stone. 8. Uranium. Nests near a patch are destroyed before building there.
+
+### Revision (the Captain, same evening): ONE loop, extended outward
+Supersedes the "two layers" idea above. There is a single closed, one-way railway. Trains with
+mixed cars (fluid wagons for water and oil, cargo wagons for the rest, in loading order) circle
+it and each stop loads only its own cars. To add a patch, the loop is extended outward so it
+runs through the new patch: one segment is replaced by a longer path that passes the patch and
+rejoins. No spur lines and no separate shuttles.
+
+What that implies:
+- **One-way track, so one locomotive per train** is enough (no reversing) and signals keep trains apart.
+  Needs rail signals/chain signals (both researched) at every stop and junction.
+- **Refuelling** happens at one stop on the loop (coal from the coal wagon into the locomotive).
+- **A stop per resource, in order**: water, coal, iron, copper, oil, stone, uranium; several stops of the
+  same resource can sit side by side when a resource has more than one patch on the loop.
+- **Extending the loop is a router job**: pick the segment to replace, route out to the patch
+  (corners are the four-curve turn), run through it so drills load straight into the wagons, route back.
+- **Loop v1** covers the patches near the base (water, coal, iron, copper, stone are all within about
+  200 tiles); oil and uranium are 370-580+ tiles out and come later, by extension.
