@@ -209,3 +209,8 @@ scripts/build_stone_depot.py (stages steel, mine, furnaces, belt, power).
   wagons). Assigned: port 1 military (belt built: scripts/build_pack_to_ports.py, along y=-37), port 2 yellow, port 3 purple.
 - Still to build: purple (production) rows (productivity module, electric furnace, rails, science) and yellow (utility) rows
   (batteries and acid, electric engines and lubricant, flying robot frame, processing units, LDS).
+
+## Blue circuits (2026-11-08)
+Advanced circuit row now 6 machines (about 45/min at full feed, plastic permitting) at y0=-80 putting AC on trunk 0's east lane.
+Pickup: a fast inserter filtered to advanced-circuit takes them off trunk 0's last tile (72,-46) into a steel chest at (74.5,-45.5).
+The oval loop (my unused rails) was removed to free the west side of the bus for mirrored rows.
