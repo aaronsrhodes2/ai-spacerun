@@ -187,3 +187,14 @@ opposite the iron (iron west, copper east). Power: 7 big poles from (93,-143) pl
 Tested: train loaded 985 plates, ran, unloaded; trunk 1 now holds a full lane of each metal.
 Military state: grenades running (full output), magazines full, piercing rounds hold copper and magazines and wait for
 steel; walls wait for stone brick. Locomotives (iron and copper trains) are hand-fuelled.
+
+## Steel and stone brick (2026-11-07) - built, military science pack is producing
+scripts/build_stone_depot.py (stages steel, mine, furnaces, belt, power).
+- Steel: 3 electric furnaces west of the iron feeder belt (x=75, y -154..-140); inserters take iron plates off the feeder
+  and steel goes down a belt at x=69 into the head of trunk 0 (about 0.375 steel/s). A chain pole was moved to
+  (70.5,-143.5) to make room.
+- Stone: 12 electric drills at the (95,-424) patch, 6 electric furnaces (brick), plain belt (265 tiles) down x=79 to
+  trunk 5's head, hopping under the copper unload belt. Power: 4 big poles from the copper depot. No train, no fuel.
+- Result (measured): all five military machine types run; 23 military science packs made in about 3 minutes from the
+  first brick (about 11/min, walls and steel limit it). Packs pile up on the output belt at y=-126 (x 116..); nothing
+  carries them away yet.
