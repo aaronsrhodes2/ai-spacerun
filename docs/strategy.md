@@ -139,3 +139,16 @@ What that implies:
   from the south at each trunk's x; they must cross the coal feed on y=-56 with an underground.
 - Free ore near the base is small (iron strip, copper block, coal/stone edges); full supply needs the loop's
   depots (smelt at the patch, plates by train to a stop at the trunks' south end).
+
+## Military science plant (2026-11-07)
+Built in the east base: bridge/factorio/military.py, scripts/build_military.py, 281 entities, all powered, no
+missing inserter links. Layout around the shared belt Y_S=-120 (see the module docstring):
+- sets row (2 sets of firearm magazine -> piercing rounds, direct inserter), grenade row (3, flipped so it
+  shares the O belt on the opposite lane), wall row (1), science row (4 machines, about 36 packs/min at full feed).
+- Bus inputs (taps): trunk 0 = iron|copper lanes, trunk 1 = steel|brick lanes, trunk 4 = coal, trunk 5 = stone brick.
+  Lanes are filled at the supply end (side-load each item onto its own lane); inserters take what they need.
+- Status: every machine is idle with item_ingredient_shortage because the trunks are empty (coal on trunk 4
+  waits for the coal train). Packs leave on the belt at y=-126 flowing east from x=116; nothing carries them
+  to the Captain's research line yet.
+- Needed to run: plates, steel and stone brick on trunks 0, 1 and 5 (loop depots), coal flowing, and a pack belt or
+  train stop for the output.

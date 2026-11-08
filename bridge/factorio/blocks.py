@@ -59,8 +59,21 @@ def _put(name, x, y, direction=0, w=1, h=1, recipe=None):
     return e
 
 
-def assembler_row(x, y, recipe, n, inputs=("", ""), output="", machine=AM2, name=None):
-    """n machines making `recipe`. inputs = (item on belt A, item on belt B), output = item on O."""
+def flipped(entities, y0):
+    """Mirror an 8-row block top-to-bottom within rows y0..y0+7 (inserters swap N/S)."""
+    out = []
+    for e in entities:
+        e = dict(e)
+        e["y"] = 2 * y0 + ROW_HEIGHT - e["y"]
+        if "inserter" in e["name"]:
+            e["direction"] = {N: S, S: N}.get(e["direction"], e["direction"])
+        out.append(e)
+    return out
+
+
+def assembler_row(x, y, recipe, n, inputs=("", ""), output="", machine=AM2, name=None, flip=False):
+    """n machines making `recipe`. inputs = (item on belt A, item on belt B), output = item on O.
+    flip=True mirrors the row top-to-bottom (O at the bottom, A and B above): rows can then share an O belt."""
     ya, yb, yo = y + 6, y + 7, y
     ents = []
     for dx in range(3 * n):
@@ -76,6 +89,10 @@ def assembler_row(x, y, recipe, n, inputs=("", ""), output="", machine=AM2, name
         ents.append(_put("small-electric-pole", x0 + 2, y + 1))
     ports = [Port("A", x, ya, "in", inputs[0]), Port("B", x, yb, "in", inputs[1]),
              Port("O", x, yo, "out", output)]
+    if flip:
+        ents = flipped(ents, y)
+        for p in ports:
+            p.y = 2 * y + ROW_HEIGHT - 1 - p.y
     return Block(name or f"{recipe}-row", x, y, 3 * n, ROW_HEIGHT, ents, ports)
 
 
