@@ -233,3 +233,8 @@ Pack sorting at the ports: filtered splitters on the y=-37 line at x=-318 (produ
 Measured: purple pack machine working, 2 packs made in the first minutes; rails, modules, circuits flowing; steel is the likely limiter.
 The AC pickup inserter at trunk 0's end was removed (it starved the furnace and module rows); the chest keeps 612 AC.
 Yellow (utility): not built (needs acid, lubricant, batteries, electric engines, flying robot frames, processing units, LDS).
+
+## Steel x2 and the oil rebuild (2026-11-08)
+scripts/build_steel2.py: four more electric steel furnaces on the iron unload belt (x 53..67, y -153..-151), steel belt y=-149 into the x=69 steel belt;
+total steel about 0.875/s. The Captain is rebuilding the oil site himself (old refineries, plastic/acid plants and the plastic chest were marked for
+deconstruction), so yellow waits for his plastic, acid and lubricant outputs; the plastic belt to trunk 2 starts at the old chest (-146.5,-120.5).
