@@ -129,3 +129,13 @@ What that implies:
   row (copper on belt B, iron inside the machine). Test row removed; plain trunks laid, empty.
 - Nothing supplies the trunks yet: plates must come in from the south end (y=-62) from the loop or from
   the existing smelters.
+
+## Bus supply (2026-11-07)
+- Coal: scripts/build_bus_supply.py coal. A west-facing splitter at (66,-63) on the coal belt sends half
+  down x=65 to y=-56, east under the x=68 coal belt, then north up x=84 into the head of trunk 4. Tested with
+  32 coal put on the x=68 belt: some went west as before, 6 reached trunk 4. When trunk 4 fills, the splitter
+  sends everything west again. Real coal arrives with the coal train (it was still loading at the patch).
+- Iron, copper, steel, plastic, stone brick, sulfur: not supplied. Trunks 0-3 and 5-7 are empty. Feeds come
+  from the south at each trunk's x; they must cross the coal feed on y=-56 with an underground.
+- Free ore near the base is small (iron strip, copper block, coal/stone edges); full supply needs the loop's
+  depots (smelt at the patch, plates by train to a stop at the trunks' south end).
