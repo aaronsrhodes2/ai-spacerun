@@ -93,3 +93,15 @@ What that implies:
   (corners are the four-curve turn), run through it so drills load straight into the wagons, route back.
 - **Loop v1** covers the patches near the base (water, coal, iron, copper, stone are all within about
   200 tiles); oil and uranium are 370-580+ tiles out and come later, by extension.
+
+## Loop v1 status (2026-11-07)
+- Track skeleton built by scripts/build_loop.py rails: 124 pieces, closed (0 open ends), in free
+  ground: side B y=-117 (x -70..51, over the free iron strip), side A y=-143, west turn x=-83.
+- Finding: the central base and every near patch are covered by running mines, belts and the blue
+  science block (belts run west at y=-90, -78, -56 across any west-side route), so a loop through the
+  patches means rebuilding those mines. Free ore only: copper x -73..-52 y -100..-91, iron
+  x -39..-23 y -106..-93 plus a strip at y -120..-115, coal x 17..37 y -66..-47, stone x 10..20 y -48..-44.
+- Rail rules found: east/west-heading ends sit on odd y, north/south on odd x for these turns;
+  a 90-degree four-curve turn is about 13 tiles each way, so the oval is at least ~26 tiles tall.
+- Next: signals, iron stop with drills into wagons, locomotive+wagons, schedule, then the verifier
+  (every inserter/belt/pole link checked after each build) and standard block interfaces.
