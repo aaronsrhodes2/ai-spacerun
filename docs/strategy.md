@@ -105,3 +105,15 @@ What that implies:
   a 90-degree four-curve turn is about 13 tiles each way, so the oval is at least ~26 tiles tall.
 - Next: signals, iron stop with drills into wagons, locomotive+wagons, schedule, then the verifier
   (every inserter/belt/pole link checked after each build) and standard block interfaces.
+
+## East base (2026-11-07, the Captain: "clear a new larger area ... standardized blueprints")
+- Area x 80..180, y -140..-60 (150x80 tiles at survey, ore/water free), cleared of 349 trees and 5 rocks;
+  save `before-east-base` taken first.
+- Standard blocks: bridge/factorio/blocks.py. A block = entities + declared ports. Every belt flows east, so
+  blocks chain by abutting (west-face ports = previous block's east-face ports). `assembler_row` is the first
+  block (n assemblers of one recipe: belts A and B in, belt O out, inserters, poles). `check_ports` reads the
+  game and confirms each port tile holds an east-flowing belt; scripts/verify.py checks links and power.
+- Tested in game with a 3-machine firearm-magazine row: 45 entities placed, ports OK, no missing inserter
+  links; verifier flagged the unpowered machines until a grid link exists (so a power port is next).
+- Next: power port (pole line from the grid), bus lanes entering from the loop, then rows for military,
+  production (purple) and utility (yellow) science feeding the Captain's research train near the crash site.
