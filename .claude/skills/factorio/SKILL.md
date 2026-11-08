@@ -159,3 +159,10 @@ When one of these gets built, move it to the tools table and note what was teste
 - Research driver: what's blocking the next tech, then build it.
 - Space platforms and other planets. Surfaces need a real arrival first (not yet tested).
 - `factory_problems` has only run on an empty map, so check its output against a real factory.
+
+## Verifier (run after every build)
+`.venv/Scripts/python.exe scripts/verify.py x1 y1 x2 y2` (default: blue block) lists inserters with no pickup or
+drop target, electric machines on no network or with no_power, and belt dead ends, plus a status count per machine
+type. Exit code 1 on hard problems (belt dead ends are information: lane ends are normal). Tested: it flags a lone
+inserter in empty ground. Burner furnaces are not counted as unpowered.
+Next: standard blocks with declared input/output ports, checked by this verifier at their edges.
