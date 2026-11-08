@@ -54,5 +54,26 @@ class GiveTests(unittest.TestCase):
         bus.tiles(ents)
 
 
+
+
+class MirrorTests(unittest.TestCase):
+    def test_virtual_trunk_maps_to_real_trunk(self):
+        from bridge.factorio import westbus
+        for kv in range(bus.TRUNKS):
+            self.assertEqual(165 - bus.trunk_x(kv), bus.trunk_x(westbus.real_k(kv)))
+
+    def test_mirrored_belt_and_directions(self):
+        from bridge.factorio import westbus
+        e = westbus.mirror_entity({"name": "transport-belt", "x": 100.5, "y": -90.5, "direction": 4})
+        self.assertEqual((e["x"], e["direction"]), (65.5, 12))
+
+    def test_mirrored_splitter_covers_real_trunk_and_west_gap_tile(self):
+        from bridge.factorio import westbus
+        spl = [e for e in bus.trunk_entities([(3, -90)]) if e["name"] == "splitter"][0]
+        m = westbus.mirror_entity(spl)
+        real_trunk_x = bus.trunk_x(westbus.real_k(3))
+        self.assertEqual(m["x"], real_trunk_x)           # centre between real_trunk_x - 1 and real_trunk_x
+
+
 if __name__ == "__main__":
     unittest.main()

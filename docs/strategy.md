@@ -214,3 +214,11 @@ scripts/build_stone_depot.py (stages steel, mine, furnaces, belt, power).
 Advanced circuit row now 6 machines (about 45/min at full feed, plastic permitting) at y0=-80 putting AC on trunk 0's east lane.
 Pickup: a fast inserter filtered to advanced-circuit takes them off trunk 0's last tile (72,-46) into a steel chest at (74.5,-45.5).
 The oval loop (my unused rails) was removed to free the west side of the bus for mirrored rows.
+
+## Row-ordering constraint found while planning purple (2026-11-08)
+Trunks flow south, so a row can only use items given by rows NORTH of it. Rows also share the bus gap tiles by row: an east tap from trunk k and a
+west (mirrored) tap from trunk m can share a row only if m < k (their lines then diverge); same for gives. bridge/factorio/westbus.py mirrors east-side
+designs onto the west side (virtual trunk kv = real 7 - kv; west gives land on the west lane). scripts/build_purple.py is a WIP plan that fails its dry run
+(rows -114/-113/-105 are taken by the military taps on the east side, and PM needs EC/AC from rows at -88/-80 so it must sit south of them).
+Free bands: east -72, -64; west: -136, -128, -104 and, using the m<k rule, shared bands -72/-64. Needed: IS (east, give T4), PM (east, give T6 east),
+RAIL (west, give T6 west), EF (west, give T3 west), PUR (taps T3|EF and T6|PM+rails). Stone is arriving on trunk 4's west lane (scripts/build_stone_belt.py).
