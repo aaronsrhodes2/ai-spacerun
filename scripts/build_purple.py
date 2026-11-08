@@ -21,37 +21,38 @@ from bridge.factorio.blocks import assembler_row
 from bridge.factorio.planner import batches
 
 X = 98
-EAST = [  # recipe, n, y0, A trunk, B trunk or None, give trunk
-    ("iron-stick", 1, -72, 1, None, 4),
-    ("productivity-module", 1, -64, 2, 0, 6),
+EAST = [  # recipe, n, y0, A trunk, B trunk or None, give trunk (None: output flows away from the bus)
+    ("iron-stick", 1, -136, 1, None, 4),
+    ("productivity-module", 1, -72, 2, 0, 6),
+    ("production-science-pack", 2, -64, 6, 5, None),
 ]
-WEST = [  # recipe, n, y0, virtual A, virtual B, virtual give (None: output flows away from the bus)
-    ("rail", 2, -128, 7, 3, 0),
-    ("electric-furnace", 1, -120, 7, 2, 1),
-    ("production-science-pack", 2, -112, 1, 0, None),
+WEST = [  # recipe, n, y0, virtual A, virtual B, virtual give
+    ("rail", 2, -135, 7, 3, 1),
+    ("electric-furnace", 1, -85, 7, 2, 2),
 ]
 
 
 def plan():
     east, west, e_taps, w_taps = [], [], [], []
     for recipe, n, y0, ka, kb, kg in EAST:
-        east += assembler_row(X, y0, recipe, n, o_west=True).entities
+        east += assembler_row(X, y0, recipe, n, o_west=kg is not None).entities
         e_taps.append((ka, y0 + 6))
         if kb is not None:
             e_taps.append((kb, y0 + 7))
-        east += bus.give(kg, y0, X - 1)
+        if kg is not None:
+            east += bus.give(kg, y0, X - 1)
     for recipe, n, y0, ka, kb, kg in WEST:
-        west += assembler_row(X, y0, recipe, n, o_west=kg is not None).entities
+        west += assembler_row(X, y0, recipe, n, o_west=True).entities
         w_taps.append((ka, y0 + 6))
         w_taps.append((kb, y0 + 7))
-        if kg is not None:
-            west += bus.give(kg, y0, X - 1)
+        west += bus.give(kg, y0, X - 1)
     east += [e for k, y in e_taps for e in bus.tap(k, y, X)]
     west += [e for k, y in w_taps for e in bus.tap(k, y, X)]
     e_split = [e for e in bus.trunk_entities(e_taps) if e["name"] == "splitter"]
     w_split = [e for e in bus.trunk_entities(w_taps) if e["name"] == "splitter"]
     # west spine poles (mirror of the east spine) and a link pole to the grid
-    w_poles = [{"name": "medium-electric-pole", "x": 68.5, "y": -132.5 + 8 * k, "direction": 0} for k in range(0, 4)]
+    w_poles = [{"name": "medium-electric-pole", "x": 68.5, "y": y, "direction": 0}
+               for y in (-132.5, -124.5, -116.5, -108.5, -100.5, -92.5, -86.5, -81.5)]
     link = [{"name": "medium-electric-pole", "x": 69.5, "y": -138.5, "direction": 0}]
     return east, e_taps, e_split, westbus.mirror(west), w_taps, westbus.mirror(w_split), w_poles + link
 
