@@ -10,9 +10,9 @@ Military science plant for the east base (rows on the north-flowing bus).
           y Y_S+9..Y_S+16  wall row (stone brick -> stone wall), its O belt runs east then north to Y_S+1
           y Y_S-6..Y_S+1   science row, machines north of A=Y_S, B=Y_S+1, packs out on Y_S-6
 
-Taps (bus trunk -> row belt), lower trunk first for normal rows:
-    sets row  A = trunk 0 (iron|copper lanes), B = trunk 1 (steel|brick lanes)
-    grenades  A = trunk 4 (coal), B = trunk 0 (iron)         [flipped: A index > B index]
+Taps (bus trunk -> row belt); normal rows take B from the lower trunk, flipped rows A from the lower:
+    sets row  A = trunk 1 (iron|copper lanes), B = trunk 0 (steel)
+    grenades  A = trunk 1 (iron), B = trunk 7 (coal)          [flipped]
     walls     A = trunk 5 (stone brick)
 """
 from . import bus
@@ -68,9 +68,9 @@ def plant():
     for yy in range(Y_S + 8, Y_S + 1, -1):
         ents.append({"name": "transport-belt", "x": x_v + 0.5, "y": yy + 0.5, "direction": N})
     ents.append(_belt(x_v, Y_S + 1))                               # turns east onto the science row's belt B
-    taps = [(0, Y_S + 6), (1, Y_S + 7),                            # sets row A, B
-            (4, Y_S - 6), (0, Y_S - 7),                            # grenade row A, B
-            (5, Y_S + 9 + 6)]                                      # wall row A
+    taps = [(1, Y_S + 6), (0, Y_S + 7),                            # sets row A (iron|copper), B (steel)
+            (1, Y_S - 6), (7, Y_S - 7),                            # grenade row A (iron), B (coal)
+            (5, Y_S + 9 + 6)]                                      # wall row A (stone brick)
     return ents, taps
 
 

@@ -9,35 +9,32 @@ from bridge.factorio import bus  # noqa: E402
 
 class BusTests(unittest.TestCase):
     def test_tap_and_trunk_do_not_overlap(self):
-        taps = [(0, -100), (3, -99)]
-        ents = bus.trunk_entities(taps) + bus.tap(0, -100, 98) + bus.tap(3, -99, 98)
+        taps = [(1, -100), (0, -99)]
+        ents = bus.trunk_entities(taps) + bus.tap(1, -100, 98) + bus.tap(0, -99, 98)
         bus.tiles(ents)
 
     def test_branch_reaches_the_row_edge_flowing_east(self):
         b = bus.tap(1, -100, 98)
         self.assertTrue(all(e["direction"] == 4 for e in b))
-        last = b[-1]
-        self.assertEqual(int(last["x"]), 97)
+        self.assertEqual(int(b[-1]["x"]), 97)
 
-    def test_undergrounds_pair_and_cross_each_trunk_once(self):
+    def test_undergrounds_pair_and_cross_each_trunk_and_the_riser(self):
         b = bus.tap(2, -100, 98)
         ins = [e for e in b if e.get("params", {}).get("type") == "input"]
         outs = [e for e in b if e.get("params", {}).get("type") == "output"]
         self.assertEqual(len(ins), len(outs))
-        self.assertEqual(len(ins), bus.TRUNKS - 1 - 2)
+        self.assertEqual(len(ins), bus.TRUNKS - 1 - 2 + 1)         # later trunks plus the riser
         for i, o in zip(ins, outs):
-            self.assertEqual(o["x"] - i["x"], 2)          # one trunk between them
-            self.assertEqual(int(i["x"] + 1 - 0.5) % 1, 0)
+            self.assertEqual(o["x"] - i["x"], 2)
 
-    def test_underground_never_sits_on_a_trunk(self):
-        trunks = {bus.trunk_x(k) for k in range(bus.TRUNKS)}
-        for e in bus.tap(0, -100, 98):
-            self.assertNotIn(int(e["x"]), trunks - {bus.trunk_x(0) + 0} if e["name"] != "transport-belt" else set())
+    def test_coal_riser_reaches_trunk_seven(self):
+        ents = bus.trunk_entities()
+        tiles = bus.tiles(ents)
+        self.assertIn((bus.RISER_X, -100), tiles)
+        self.assertIn((bus.trunk_x(7), -141), tiles)
 
-    def test_row_pair_a_before_b(self):
-        # A from trunk 1 (splitter row y+1=-93), B from trunk 4 (row -92): no shared tiles
-        ents = bus.trunk_entities([(1, -94), (4, -93)]) + bus.tap(1, -94, 98) + bus.tap(4, -93, 98)
-        bus.tiles(ents)
+    def test_splitter_rows(self):
+        self.assertEqual(bus.splitter_tile(1, -100), (75, -101))
 
 
 if __name__ == "__main__":

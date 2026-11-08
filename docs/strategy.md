@@ -152,3 +152,12 @@ missing inserter links. Layout around the shared belt Y_S=-120 (see the module d
   to the Captain's research line yet.
 - Needed to run: plates, steel and stone brick on trunks 0, 1 and 5 (loop depots), coal flowing, and a pack belt or
   train stop for the output.
+
+## Bus flipped south (2026-11-07)
+Every remaining patch is north of the base, so the bus now flows SOUTH and is supplied at its north end (y=-139).
+- Trunks (x=72+3k): 0 steel, 1 iron|copper (one per lane), 5 stone brick, 7 coal; 2-4 and 6 spare.
+- Coal riser at x=96 runs north from the coal feed (y=-56), turns west at y=-141 and drops into trunk 7. Taps cross it
+  by underground like a trunk. Order rule: normal rows take B from a lower trunk than A; flipped rows take A lower.
+- scripts/build_bus2.py rebuilt it with the military taps. Tested: coal put on the feed (plus real train coal) reached
+  all three grenade machines (20 coal each) through the riser, trunk 7 and the tap.
+- Still empty: trunks 0, 1, 5. Next: depots feed their north heads (x=72, 75, 87 at y=-139).
