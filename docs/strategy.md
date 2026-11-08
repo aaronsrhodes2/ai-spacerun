@@ -117,3 +117,15 @@ What that implies:
   links; verifier flagged the unpowered machines until a grid link exists (so a power port is next).
 - Next: power port (pole line from the grid), bus lanes entering from the loop, then rows for military,
   production (purple) and utility (yellow) science feeding the Captain's research train near the crash site.
+
+## East base power and bus (2026-11-07)
+- Power: big poles (70.5,-58.9) and (94,-60) from the grid pole at (62,-59), then a medium-pole spine at
+  x=97.5, y=-132.5 to -60.5 every 8. All on network 1.
+- Bus: bridge/factorio/bus.py. Eight north-flowing trunks at x=72,75,...,93 (y -62 to -139), meant as
+  iron, copper, steel, plastic, coal, stone brick, sulfur, spare (TRUNK_ITEMS). Rows start at x=98.
+  `tap(k, y, 98)` splits trunk k and runs a branch east under the other trunks to the row's belt;
+  a row's belt A uses a lower-numbered trunk than its belt B.
+- Tested in game: a 2-machine row with taps on trunks 0 and 1; a plate put on each trunk arrived at the
+  row (copper on belt B, iron inside the machine). Test row removed; plain trunks laid, empty.
+- Nothing supplies the trunks yet: plates must come in from the south end (y=-62) from the loop or from
+  the existing smelters.
