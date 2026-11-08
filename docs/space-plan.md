@@ -37,3 +37,8 @@ Goal (the Captain): keep going until the factory produces space science packs.
 5. Place the rocket silo, feed parts by belts, launch the starter pack; platform comes alive.
 6. Platform kit launches (thrusters, collectors, crushers); build the first asteroid collector -> `space-science-pack` fires.
 7. Space science pack production on the platform (ice + iron + carbon).
+
+## Oil survey (2026-11-08)
+Fields (distance from the Captain's new oil complex at about (-260,-270)): current (-314,-292) 7 wells, now 752% total yield (was 1197%, depleting), 14 nests within 120;
+best new: (-702,-403) 15 wells 3205% total, no nests within 120, 462 tiles; then (-932,-160) 6 wells 1347%; (52,351) 7 wells 1615% with 7 nests; (383,-684) 14 wells 3466%
+and (573,-353) 11 wells 2807% (both far east, no nests). Copper depot expansion was dropped: the Captain is already building on that patch.
