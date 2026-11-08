@@ -176,3 +176,14 @@ scripts/build_iron_depot.py (stages rails, extend, mine, furnaces, stops, unload
   solar field (X0=-196, 288 panels total) was added because the depot pushed the grid into low power.
 - Locomotive fuel is not automatic: refuel the two locomotives by hand (about 3 coal per round trip).
 - Missing for military science: copper on trunk 1's other lane, steel on trunk 0, stone brick on trunk 5.
+
+## Copper depot (2026-11-07) - built and running
+scripts/build_copper_depot.py (stages rails, mine, furnaces, stops, unload, power, train). Same pattern as iron, at the
+(128,-329) patch: 16 drills (x 112..127), collector x=129, 12 electric furnaces (about 7 plates/s), plate belt hopping
+under the load stop (Copper Depot Load, (165,-295)). Track 126 pieces: dead end (162,-293) east to x=195, south to
+y=-149, west to a dead end at x=84; stop Copper Depot Unload at (87,-151). Unload: 12 fast inserters at y=-148 onto a
+belt at y=-147 flowing west; its last tile side-loads the x=75 feeder from the east, so copper takes the lane
+opposite the iron (iron west, copper east). Power: 7 big poles from (93,-143) plus 3 mediums linking mine to furnaces.
+Tested: train loaded 985 plates, ran, unloaded; trunk 1 now holds a full lane of each metal.
+Military state: grenades running (full output), magazines full, piercing rounds hold copper and magazines and wait for
+steel; walls wait for stone brick. Locomotives (iron and copper trains) are hand-fuelled.
