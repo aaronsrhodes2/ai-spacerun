@@ -160,3 +160,11 @@ whichever tech is next. Worth fixing in our fork: read the real trigger
 (`technology.prototype.research_trigger`) and report it dynamically instead.
 
 **Goal**: complete Space Age. External blueprints are fair game throughout.
+
+## Power (2026-11-07)
+- Found a brownout death spiral: 4 of 5 boilers out of fuel, coal drills low_power, 8 of 10 engines without steam.
+  Restarted the boilers with seed_starter_fuel, then added solar so the grid no longer depends on the coal drills.
+- Solar farm (scripts/build_solar.py): 144 panels (8.6 MW peak, ~6 MW average), 24 accumulators, 45 medium
+  poles, x -148..-101 y -36..11, linked at (-121.5,-51.5). All panels on network 1; low_power cleared.
+- Still true: steam is 9 MW max and its coal comes from the electric coal fields; night output is steam plus
+  the accumulators only. Next power steps: more accumulators/panels, then a coal-independent steam feed.
