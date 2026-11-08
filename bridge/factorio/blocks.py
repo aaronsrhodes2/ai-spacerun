@@ -71,7 +71,7 @@ def flipped(entities, y0):
     return out
 
 
-def assembler_row(x, y, recipe, n, inputs=("", ""), output="", machine=AM2, name=None, flip=False):
+def assembler_row(x, y, recipe, n, inputs=("", ""), output="", machine=AM2, name=None, flip=False, o_west=False):
     """n machines making `recipe`. inputs = (item on belt A, item on belt B), output = item on O.
     flip=True mirrors the row top-to-bottom (O at the bottom, A and B above): rows can then share an O belt."""
     ya, yb, yo = y + 6, y + 7, y
@@ -89,6 +89,10 @@ def assembler_row(x, y, recipe, n, inputs=("", ""), output="", machine=AM2, name
         ents.append(_put("small-electric-pole", x0 + 2, y + 1))
     ports = [Port("A", x, ya, "in", inputs[0]), Port("B", x, yb, "in", inputs[1]),
              Port("O", x, yo, "out", output)]
+    if o_west:                                   # output belt flows toward the bus instead of away from it
+        for e in ents:
+            if e["name"] == "transport-belt" and int(e["y"] - 0.5) == y:
+                e["direction"] = 12
     if flip:
         ents = flipped(ents, y)
         for p in ports:

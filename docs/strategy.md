@@ -198,3 +198,14 @@ scripts/build_stone_depot.py (stages steel, mine, furnaces, belt, power).
 - Result (measured): all five military machine types run; 23 military science packs made in about 3 minutes from the
   first brick (about 11/min, walls and steel limit it). Packs pile up on the output belt at y=-126 (x 116..); nothing
   carries them away yet.
+
+## Electronics rows and science ports (2026-11-08)
+- scripts/build_electronics.py: rows at y0=-96 (copper cable, 2 machines), -88 (electronic circuit, 2), -80 (advanced circuit, 3). Output belts
+  flow WEST and bus.give puts each product on a trunk's east lane: cable -> trunk 3, EC -> trunk 2 (plastic is on the west lane), AC -> trunk 0
+  (steel on the west lane). Lane facts measured: steel T0 west, plastic T2 west, copper T1 east/iron west, brick T5 east, coal T7 east.
+- Plastic reaches trunk 2 by a 230-tile belt from the refinery chest (scripts/build_plastic_belt.py).
+- Requester/buffer/active-provider chests are NOT researched (logistic-system), so no bot mall yet.
+- The Captain built three input ports at the Sandro station (feeder belts at x=-333, -326, -319, heads at y=-39, bulk-inserter chests onto the
+  wagons). Assigned: port 1 military (belt built: scripts/build_pack_to_ports.py, along y=-37), port 2 yellow, port 3 purple.
+- Still to build: purple (production) rows (productivity module, electric furnace, rails, science) and yellow (utility) rows
+  (batteries and acid, electric engines and lubricant, flying robot frame, processing units, LDS).

@@ -37,5 +37,22 @@ class BusTests(unittest.TestCase):
         self.assertEqual(bus.splitter_tile(1, -100), (75, -101))
 
 
+class GiveTests(unittest.TestCase):
+    def test_give_ends_on_the_east_side_of_the_trunk_flowing_west(self):
+        g = bus.give(3, -90, 97)
+        self.assertEqual(int(g[-1]["x"]), bus.trunk_x(3) + 1)
+        self.assertTrue(all(e["direction"] == 12 for e in g))
+
+    def test_give_hops_riser_and_each_later_trunk(self):
+        g = bus.give(0, -90, 97)
+        ins = [e for e in g if e.get("params", {}).get("type") == "input"]
+        self.assertEqual(len(ins), bus.TRUNKS - 1 + 1)          # trunks 7..1 plus the riser
+
+    def test_give_does_not_overlap_taps_or_trunks(self):
+        taps = [(2, -90), (1, -89)]
+        ents = bus.trunk_entities(taps) + bus.tap(2, -90, 98) + bus.tap(1, -89, 98) + bus.give(3, -96, 97)
+        bus.tiles(ents)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -77,6 +77,30 @@ def tap(k, y, x_end):
     return ents
 
 
+def _ug_w(x, y, kind):
+    return {"name": "underground-belt", "x": x + 0.5, "y": y + 0.5, "direction": W, "params": {"type": kind}}
+
+
+def give(k, y, x_from):
+    """Branch flowing WEST along row y from tile x_from to trunk k, side-loading it from the east, so the items take
+    the east (line 1) lane. Crosses the riser and trunks TRUNKS-1..k+1 by underground. Used by rows whose output
+    belt flows west and which put their product back on the bus."""
+    ents = []
+    x = x_from
+    for jx in [RISER_X] + [trunk_x(j) for j in range(TRUNKS - 1, k, -1)]:
+        # belts up to the entrance tile (jx + 1), entrance, exit at jx - 1
+        while x > jx + 1:
+            ents.append(_belt(x, y, W))
+            x -= 1
+        ents.append(_ug_w(jx + 1, y, "input"))
+        ents.append(_ug_w(jx - 1, y, "output"))
+        x = jx - 2
+    while x > trunk_x(k):
+        ents.append(_belt(x, y, W))
+        x -= 1
+    return ents
+
+
 def tiles(entities):
     out = {}
     for e in entities:
