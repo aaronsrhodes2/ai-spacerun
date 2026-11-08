@@ -246,3 +246,9 @@ copper load stop (x=168 and 185, y=-292), one per locomotive position; burner in
 ends, so both locomotives are at the load stop every trip. About 3 coal per round trip: 575 coal lasts a very long time, but the chests need
 topping up eventually (a coal belt would remove that). Not yet verified with a train in place; check inserter drop_target when a train is loading.
 Research: the queue now holds only techs that use the packs that exist (purple/yellow techs stall the labs); labs went from 0 to about 34 working.
+
+## Purple supply fix (2026-11-08)
+Root cause of the starved circuit and purple rows: the iron depot (and its 4 big poles) was an isolated electric network. Its link to the main grid went through
+poles at the old oil site that were deconstructed when the Captain rebuilt oil, so all 12 depot furnaces and the drills were no_power and the iron train
+left with 0 plates. Fixed with two big poles at (-236,-317) and (-221,-299) joining (-242,-333) to the main grid pole at (-208,-283) (depot furnaces working again).
+Also: iron and copper trains now leave the depot when full or after 2 minutes (was full or 60 s idle), for a steadier supply.
