@@ -274,3 +274,8 @@ existing ore belt x=-20; the idle coal belt x=-19 stays). All 12 working. script
 (y -59..-57) was removed (its 1,100-plate outputs showed it was surplus), the 2 coal-feeder burner inserters at x=-50 were removed and 350 coal purged from the ore belts so both lanes carry ore.
 0 steel/stone furnaces and 0 burner mining drills left. Burners left: 4 train-refuel burner inserters (on purpose), 2 others, 12 locomotives, 4 idle boilers in the nuclear plant.
 The 6 copper drills at y=-91.5 are blocked: they drop on the old coal belt y=-90 (flows west, full) - a candidate to redirect to the ore belt for more copper.
+
+## Yellow fluids (2026-11-08)
+- `scripts/build_yellow_fluids.py` pipes sulfuric acid and lubricant to the yellow block with two pipe-to-ground trunks: acid from the existing acid line at (-234.5,-127.5), lubricant from the existing line at (-242.5,-131.5). Acid runs on tile row -128, drops under the E-W rail at x=-216, runs row -122, jogs to row -123 at x=-150; lubricant on row -124. Branches go south into the machines' NORTH fluid inputs (the machines face north): PU (21,-115), battery plant (28,-119), electric engine unit (33,-115).
+- Battery is a chemistry recipe: the "battery" machine at (29.5,-116.5) is a chemical plant, not an assembling-machine-2 (its inserter moved to x=29; fluid box 1 is the west input tile).
+- Verified: acid and lubricant reach the machines; the battery plant works. PU / EEU / FRF / yellow pack starve for electronic circuits, because copper (7 plates/s made = used) caps the bus. Labs (50) all report missing packs: worker-robots-storage-2 needs yellow.
