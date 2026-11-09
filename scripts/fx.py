@@ -118,6 +118,7 @@ CATS = {
     "belts": ["transport-belt", "fast-transport-belt", "underground-belt", "fast-underground-belt", "splitter", "fast-splitter"],
     "inserters": ["inserter", "burner-inserter"],
     "chests": ["wooden-chest", "iron-chest"],
+    "storage": ["wooden-chest", "iron-chest", "steel-chest"],
     "machines": ["assembling-machine-1", "assembling-machine-2"],
     "poles": ["small-electric-pole"],
     "furnaces": ["stone-furnace", "steel-furnace"],
@@ -148,7 +149,7 @@ rcon.print(helpers.table_to_json({{mappings=used,upgradable_entities=n}}))
         if a.modules:
             fill_modules(a, area)
         return
-    every = a.all or not any([a.belts, a.inserters, a.chests, a.machines, a.poles, a.furnaces, a.bulk, a.modules])
+    every = a.all or not any([a.belts, a.inserters, a.chests, a.machines, a.poles, a.furnaces, a.bulk, a.modules, a.storage])
     cats = {k: (every and k != "furnaces" or getattr(a, k)) for k in CATS}
     names = [n for k, v in CATS.items() if cats[k] for n in v]
     if a.bulk:
@@ -159,6 +160,7 @@ rcon.print(helpers.table_to_json({{mappings=used,upgradable_entities=n}}))
 local s={surf(a)} local A={a_box(area)} local apply={'true' if a.apply else 'false'} local f=game.forces.player
 local MAP={{['transport-belt']='fast-transport-belt',['fast-transport-belt']='express-transport-belt',['underground-belt']='fast-underground-belt',['fast-underground-belt']='express-underground-belt',['splitter']='fast-splitter',['fast-splitter']='express-splitter',['inserter']='fast-inserter',['burner-inserter']='inserter',['wooden-chest']='iron-chest',['iron-chest']='steel-chest',['assembling-machine-1']='assembling-machine-2',['assembling-machine-2']='assembling-machine-3',['small-electric-pole']='medium-electric-pole',['stone-furnace']='steel-furnace',['steel-furnace']='electric-furnace'}}
 if {str(bool(a.bulk)).lower()} then MAP['fast-inserter']='bulk-inserter' end
+if {str(bool(a.storage)).lower()} then MAP['wooden-chest']='storage-chest' MAP['iron-chest']='storage-chest' MAP['steel-chest']='storage-chest' end
 local function enabled(n) local r=f.recipes[n] return r and r.enabled end
 local function target(n) local t=MAP[n] local best=nil while t and enabled(t) do best=t t=MAP[t] end return best end
 local want={{{",".join("['%s']=1" % n for n in names)}}}
@@ -190,24 +192,39 @@ def fill_modules(a, area):
     kind = a.modules
     src = ""
     if a.from_chest:
-        src = ("local c=s.find_entities_filtered{name={'steel-chest','iron-chest','wooden-chest','passive-provider-chest','storage-chest','buffer-chest','requester-chest'},"
+        src = ("local c=s.find_entities_filtered{name={'steel-chest','iron-chest','wooden-chest','storage-chest','passive-provider-chest','buffer-chest','requester-chest'},"
                "position={%s,%s},radius=1.5}[1] if c then src=c.get_inventory(defines.inventory.chest) end" % tuple(a.from_chest))
     elif a.from_hub:
         src = "for _,sf in pairs(game.surfaces) do if sf.platform and sf.platform.hub then src=sf.platform.hub.get_inventory(defines.inventory.hub_main) break end end"
+    pick = (f"local best='{a.module_name}' if not (f.recipes[best] and f.recipes[best].enabled) then rcon.print(helpers.table_to_json({{error=best..' is not researched'}})) return end"
+            if a.module_name else
+            "local best=nil for _,k in pairs({3,2,1}) do local n=(k==1) and (kind..'-module') or (kind..'-module-'..k) local r=f.recipes[n] if r and r.enabled and (not src or src.get_item_count(n)>0) then best=n break end end "
+            "if not best then rcon.print(helpers.table_to_json({error='no '..kind..' module is researched'..(src and ' / none in the source' or '')})) return end")
+    budget = a.budget_mw if a.budget_mw is not None else -1
     code = f"""
 local s={surf(a)} local A={a_box(area)} local apply={'true' if a.apply else 'false'} local f=game.forces.player local kind='{kind}'
 local src=nil
 {src}
-local best=nil for _,k in pairs({{3,2,1}}) do local n=(k==1) and (kind..'-module') or (kind..'-module-'..k) local r=f.recipes[n] if r and r.enabled and (not src or src.get_item_count(n)>0) then best=n break end end
-if not best then rcon.print(helpers.table_to_json({{error='no '..kind..' module is researched'..(src and ' / none in the source' or '')}})) return end
-local need,filled,machines=0,0,0
-for _,e in pairs(s.find_entities_filtered{{area=A,force='player',type={{'assembling-machine','furnace','lab','mining-drill'}}}}) do
+{pick}
+local spawn={'true' if a.spawn else 'false'}
+local mod=prototypes.item[best] local per=(mod.module_effects and mod.module_effects.consumption or 0)
+local budget={budget}*1e6 local used=0
+local need,filled,machines,skipped=0,0,0,0
+local order={{'lab','assembling-machine','furnace','mining-drill'}}
+for _,ty in pairs(order) do
+for _,e in pairs(s.find_entities_filtered{{area=A,force='player',type=ty}}) do
   local mi=e.get_module_inventory()
   if mi and #mi>0 then local empty=mi.count_empty_stacks()
     if empty>0 then machines=machines+1 need=need+empty
-      if apply and src then local have=src.get_item_count(best) local take=math.min(empty,have)
-        if take>0 then local got=src.remove{{name=best,count=take}} local ins=mi.insert{{name=best,count=got}} filled=filled+ins if ins<got then src.insert{{name=best,count=got-ins}} end end end end end end
-rcon.print(helpers.table_to_json({{module=best,machines_with_empty_slots=machines,slots_empty=need,inserted=filled,source=src and 'found' or 'none'}}))
+      local base=e.prototype.get_max_energy_usage and e.prototype.get_max_energy_usage(e.quality) or 0
+      local cost=base*per*empty*60
+      if budget>=0 and used+cost>budget then skipped=skipped+empty
+      else used=used+cost
+        if apply then
+          if spawn then filled=filled+mi.insert{{name=best,count=empty}}
+          elseif src then local have=src.get_item_count(best) local take=math.min(empty,have)
+            if take>0 then local got=src.remove{{name=best,count=take}} local ins=mi.insert{{name=best,count=got}} filled=filled+ins if ins<got then src.insert{{name=best,count=got-ins}} end end end end end end end end end
+rcon.print(helpers.table_to_json({{module=best,machines_with_empty_slots=machines,slots_empty=need,inserted=filled,left_for_budget=skipped,estimated_extra_mw=used/1e6,source=spawn and 'spawned' or (src and 'found' or 'none')}}))
 """
     res = jlua(code)
     if res.get("error"):
@@ -215,7 +232,7 @@ rcon.print(helpers.table_to_json({{module=best,machines_with_empty_slots=machine
         return
     print(("MODULES" if a.apply else "MODULES DRY RUN"), json.dumps(res))
     if a.apply and res.get("source") == "none":
-        print("  no source given: pass --from-chest X Y or --from-hub (modules must be factory-made, never spawned)")
+        print("  no source given: pass --from-chest X Y, --from-hub or --spawn")
 
 
 # --------------------------------------------------------------------------------------------- bottlenecks
@@ -602,8 +619,11 @@ def main():
         p.add_argument("--" + f, action="store_true")
     p.set_defaults(fn=cmd_clear)
     p = sub.add_parser("upgrade"); common(p)
-    for f in ("belts", "inserters", "chests", "machines", "poles", "furnaces", "bulk", "all", "planner"):
+    for f in ("belts", "inserters", "chests", "machines", "poles", "furnaces", "bulk", "all", "planner", "storage"):
         p.add_argument("--" + f, action="store_true")
+    p.add_argument("--module-name", help="exact module item, e.g. speed-module-2")
+    p.add_argument("--spawn", action="store_true", help="modules appear from nowhere (Captain's order); without it they are taken from --from-chest / --from-hub")
+    p.add_argument("--budget-mw", type=float, help="stop filling when the estimated extra power demand would exceed this")
     p.add_argument("--modules", choices=["speed", "productivity", "efficiency"])
     p.add_argument("--from-chest", nargs=2, type=float, metavar=("X", "Y"))
     p.add_argument("--from-hub", action="store_true")
