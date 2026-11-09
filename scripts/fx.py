@@ -555,6 +555,8 @@ def cmd_mine(a):
     for k in range(0, 4):                                         # corner turns toward the output, then 3 belts leave
         wx, wy = _to_world(out, last, cv + k)
         ents.append({"name": a.belt, "x": wx, "y": wy, "direction": OUT_DIR[out]})
+    if getattr(a, "plan_only", False):
+        return ents, {"out": out, "last": last, "cv": cv, "bonus": data["bonus"]}
     dropped, other = 0, []
     for _ in range(3):
         res = json.loads(tools["place_entities"](json.dumps(ents), dry_run=True))
