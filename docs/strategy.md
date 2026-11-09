@@ -266,3 +266,11 @@ scripts/upgrade_burner_drills.py: the three rows of burner drills (copper y=-87,
 in each gap (drop tiles unchanged), and the 23 burner inserters that fuelled them were removed. Notes: stone row has 2 drills (the third would have mined coal too and
 contaminated the belt); items lying on the ground block can_place, so clear them first. All new drills are on the main grid and working; no low_power machines.
 Remaining burners: 23 steel furnaces (old smelters), 13 burner inserters (4 train-fuel on purpose), 12 locomotives, 4 idle boilers in the nuclear plant.
+
+## Old smelters now electric (2026-11-08)
+scripts/build_smelter_iron.py: iron column (x -26..-19, y -100..-65) is 12 electric furnaces (plate belt moved west to x=-26, out inserters x=-25, in inserters x=-21 from the
+existing ore belt x=-20; the idle coal belt x=-19 stays). All 12 working. scripts/build_smelter_copper.py: copper column (x -35..-29, y -84..-65) is 6 electric furnaces
+(plate belt to x=-35, joins (-34,-64)); measured 1.78 copper plates/s, limited by ore on the y=-86 belt (not by furnaces, max 3.75/s). The 5-furnace burner row below
+(y -59..-57) was removed (its 1,100-plate outputs showed it was surplus), the 2 coal-feeder burner inserters at x=-50 were removed and 350 coal purged from the ore belts so both lanes carry ore.
+0 steel/stone furnaces and 0 burner mining drills left. Burners left: 4 train-refuel burner inserters (on purpose), 2 others, 12 locomotives, 4 idle boilers in the nuclear plant.
+The 6 copper drills at y=-91.5 are blocked: they drop on the old coal belt y=-90 (flows west, full) - a candidate to redirect to the ore belt for more copper.
