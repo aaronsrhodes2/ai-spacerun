@@ -64,3 +64,13 @@ Short belts inside a compact factory area stay belts; any belt that carries good
 ## Not started, needs your word
 - The copper outpost (north patch) is built but partly: 684 of 739 pieces placed, 55 blocked by roboport kits and rails in its footprint. Under this plan it is a supplier (plates into passive provider chests), so I would finish it and then add the base-side requester hub, not extend belts.
 - No belt has been removed. Phase 0 and the pilot are the next steps if you approve.
+
+
+## Done so far (2026-11-09)
+- **Train fueling by drone:** every loco feeder chest (Coal2 x2, science front, copper depot, iron depot x2, Callie) and the four belt tiles at the iron and copper unload stops are now requester chests asking for rocket fuel (40-60 each). Measured: empty requesters filled in under a minute from the provider chest at (-253.5,-127.5), which the train unload keeps full. The 330-tile fuel belt was removed (121 pieces; the original belt tile at the unload splitter restored).
+- **Copper plate outpost** (north patch, x -60..-16, y -544..-417): 71 drills, 54 furnaces, 54 plate chests, powered through new substations; made 3,700+ plates in the first minutes of game time.
+- **Iron plate outpost** (south-west patch, x -492..-324, y 260..318): 137 drills, 72 furnaces, 72 plate chests (about 45 ore/s through one express belt; half the drills idle by design until a second smelter line is added).
+- **Base hubs:** 6 copper-plate requester chests with fast inserters onto the copper unload belt (x 83.5..88.5, y -144.5) and 4 iron-plate requester chests onto the iron feeder belt (x 69.5..72.5, y -156.5), 1,200 plates each. The iron hub filled to 900+ plates in a minute; the copper hub empties into the belt as fast as it fills.
+- Gotcha: dropping 11,000 uncharged robots into new roboports made demand spike to about 200 MW for a minute (machines went low_power until they were charged). Next time add robots in batches.
+- Gotcha: `build_roboport_grid.py --revealed` makes the revealed map grow (roboports chart their surroundings), so each run finds new cells. Run it only on purpose.
+- Next: pack delivery to the labs by drone (the pilot), plastic/sulfur from the oil site, stone and brick, more outposts (iron (-723,-317), copper (317,233), (732,97), (-902,-345)).

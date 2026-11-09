@@ -538,6 +538,8 @@ def cmd_mine(a):
             wx, wy = _to_world(out, col + 3.5, v + 0.5)
             ents.append({"name": a.belt, "x": wx, "y": wy, "direction": OUT_DIR[out]})
             v += 1
+        wx, wy = _to_world(out, col + 2.5, v0 - 0.5)                     # a pole above the first drill pair (the gap rows only reach the pair below)
+        ents.append({"name": a.pole, "x": wx, "y": wy})
         pv = v0 + 6
         while pv <= v1:
             wx, wy = _to_world(out, col + 2.5, pv + 0.5)
