@@ -1,4 +1,4 @@
-# Replacing conveyor belts with drone logistics chests (plan, 2026-11-09)
+# Replacing LONG conveyor belts with trains or drone logistics chests (plan, 2026-11-09, scope set by the Captain)
 
 ## Where we are
 - One logistic network covers the whole revealed map: 721 roboports, 36,050 construction and 36,600 logistic robots (50 of each per roboport, group "Nauvis Land").
@@ -6,6 +6,24 @@
 - Belts today: 7,359 fast + 2,604 yellow + 292 express belt tiles, 618 undergrounds, 93 splitters. About 4,400 iron plates, 3,600 copper plates, 3,400 plastic, 5,600 coal, 3,200 stone sit on belts right now.
 - Inserters: 687 fast, 164 bulk, 151 long-handed, 155 basic.
 - Every belt bug we fixed this week (iron on the copper lane, plastic or sulfur on the circuit lane, EC and AC tapped upstream of where they are made, lane-limited iron) comes from belts. A requester chest asks for an item by name, so none of those can happen.
+
+## Scope (the Captain, 2026-11-09)
+Short belts inside a compact factory area stay belts; any belt that carries goods over a long distance becomes a train (bulk) or a drone chest pair (mixed or moderate flow). Rule of thumb: a connected belt network that spans 100 tiles or more is a candidate; the east bus trunks (about 100 tiles, one tight block) stay as belts for now.
+
+## The long lines found today (connected belt networks spanning 60+ tiles; 35 in all, the 20 longest)
+| Line (span, pieces) | Carries | Becomes |
+|---|---|---|
+| x -326..-22, y -63..-55 (304, 321) | iron plate | drone: provider chests at the old smelters, requesters at consumers |
+| x -345..-84, y -137..-63 (261, 362) and x -79..47, y -137 (125, 126) | plastic, sulfur (oil site to bus) | drone (provider at the oil site, requester at the bus head) |
+| x -341..-81, y -55..-50 (260, 266); x -348..-210 (138); x -210..-83 (127) | red/green science packs | drone straight to the lab chests (no pack belt, no pack train leg) |
+| x -217..22, y -37..-25 (238, 251); x -333..-219, y -41..-37 (114); x 73..131 (101) | military and purple packs | drone straight to the labs |
+| x -136..-10, y -213..-138 (126, 202) | space science (pad to labs) | drone |
+| x 80..100, y -399..-148 (251, 272) and x 82, y -398..-148 (250, 251) | stone and stone brick (stone depot to bus) | drone or train (bulk) |
+| x -208..37 (244, 374), x -242..-17 (225, 239) | coal, copper ore (old base) | coal stays train/belt near boilers, ore by train or in place |
+| x -209..-34 (175, 205), x -326..-216 (110, 111) | copper plate, gears | drone |
+| x 17..38, y -64..49 (112, 174) and x 91..111, y -147..-46 (101, 217) | coal | train from Coal2, short local belts |
+| the 330-tile rocket fuel line | rocket fuel | drone (requester chests at the loco feeders) |
+| the 700-tile yellow/military pack route | packs | drone |
 
 ## What drones are good and bad at
 - Good: long distance (the 330-tile fuel line, the plastic line, plates from outposts), many different items to many places (the bus), low-to-medium flow, anything a lane bug can hit.
@@ -20,13 +38,15 @@
 4. **Science:** packs go provider chest -> requester chest at the labs; no more pack belt or train for them.
 5. **What stays a belt:** drill -> furnace ore lines inside a mine or depot, and furnace -> output chest hops.
 
-## Phases (each reversible: save first, convert one block, measure, only then remove belts)
+## Phases, long lines first (each reversible: save first, run both in parallel, measure, only then remove the belt)
 0. **Survey** (`fx.py logistics survey AREA`, to build): groups belts into lines, reads what each carries and how fast (production statistics and belt samples), lists which machines it feeds, and ranks lines by flow. Output: the conversion list, easiest first.
-1. **Pilot: the yellow block.** It has 5 machine types fed by 5 taps, is already starved or jammed in odd ways, and its feeders are all low flow. Replace its S1/S2/N1/N2 belts and sorters with requester chests. Gate: yellow output equals or beats the belt version for an hour of game time, and the bottleneck report shows zero new findings.
-2. **Bus consumers:** convert the east bus consumers row by row (EC, cable, AC, military, purple). Producers go to provider chests. Gate after each row: same output, UPS within 5 percent.
-3. **Long lines:** plastic line, rocket-fuel line, science pack routes, iron/copper plates from outposts to the bus heads. This is where drones win most. Remove each belt line only after its replacement has run clean.
-4. **Retire the bus trunks:** when no tap remains, remove the trunks, splitters and filter sorters. Then run `fx.py compact` on the freed area to reclaim ground.
-5. **Old base (west):** last, since it is the oldest and densest.
+1. **Pilot: science pack delivery to the labs** (the longest belts, low flow, one clear consumer: the labs). Provider chests at every pack assembler or port, requester chests beside the labs, labs fed by inserters from the chests. Gate: lab pack stock and research rate equal or better over an hour of game time, and the old pack belts and train leg can be removed.
+1b. **Optional second pilot: the yellow block** (short belts, but starved in odd ways). It has 5 machine types fed by 5 taps, is already starved or jammed in odd ways, and its feeders are all low flow. Replace its S1/S2/N1/N2 belts and sorters with requester chests. Gate: yellow output equals or beats the belt version for an hour of game time, and the bottleneck report shows zero new findings.
+2. **Oil site to bus:** plastic and sulfur (261 + 125 tiles) and the fuel line (330). Provider chests at the oil site, requester hub at the bus head feeding the trunk heads over a few tiles of belt.
+2b. **East bus consumers** only where a feeder is long or jam-prone; the compact bus itself stays belts.
+3. **Plates and ore:** the 304-tile iron belt, copper plate and gear lines, stone and brick, plates from the new outposts (chests already). Bulk hauls that are one item in volume stay on trains.
+4. **Retire what is replaced:** remove each long line only when nothing still picks from or drops onto it; then reclaim ground with `fx.py compact`.
+5. **Old base (west):** its long runs convert in the order above; the dense core stays belts.
 
 ## Tooling to build (in order)
 1. `fx.py logistics survey AREA` (belt lines, flows, consumers).
