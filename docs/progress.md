@@ -168,3 +168,11 @@ whichever tech is next. Worth fixing in our fork: read the real trigger
   poles, x -148..-101 y -36..11, linked at (-121.5,-51.5). All panels on network 1; low_power cleared.
 - Still true: steam is 9 MW max and its coal comes from the electric coal fields; night output is steam plus
   the accumulators only. Next power steps: more accumulators/panels, then a coal-independent steam feed.
+
+## Skippy Speed mod (2026-11-08)
+mods/skippy-speed (source) and mods/skippy-speed_0.1.0.zip (packaged, stored/uncompressed, folder skippy-speed_0.1.0/): script-only mod, factorio_version must be "2.1" (2.0 is
+rejected by 2.1.24). Top-left button bar (-, label, +, 1x) and hotkeys Shift+PageUp / Shift+PageDown / Shift+Home; steps 0.25 0.5 1 2 3 5 10 20; admins only.
+Test-loaded in a throwaway map inside the server container (data + control loaded, no errors); GUI handlers are not exercised until a player joins.
+Copied into /srv/games/data/factorio/mods/ on skippy-games; takes effect on the next server restart (clients download it on join).
+Server disk was 100% full (30 GB, 26 GB of unused game-server Docker images in /var/lib/containerd); apt cache and old journal logs freed about 230 MB, leaving about 90 MB.
+Do not scp to that VM while the disk is full: scp "succeeds" with corrupted files (use base64 over ssh and compare md5).

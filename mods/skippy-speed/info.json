@@ -1,0 +1,8 @@
+{
+  "name": "skippy-speed",
+  "version": "0.1.0",
+  "title": "Skippy Speed",
+  "author": "Skippy",
+  "factorio_version": "2.1",
+  "description": "Change game speed from a small button bar (top left) or with Shift+PageUp / Shift+PageDown / Shift+Home. Admins only."
+}
