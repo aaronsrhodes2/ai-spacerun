@@ -2,8 +2,8 @@
 """
 fx - cheap, scripted Factorio helpers for the AI co-pilot (one RCON round trip per step, no screenshots, no hand-built Lua).
 
-    fx.py clear       AREA [--trees --rocks --cliffs --biters --decoratives --fish --items --corpses | --all] [--apply]
-    fx.py upgrade     AREA [--belts --inserters --chests --machines --poles --furnaces --bulk | --all]
+    fx.py clear       AREA [--trees --rocks --cliffs --biters --decoratives --fish --items --corpses | --all | --planner] [--apply]
+    fx.py upgrade     AREA [--belts --inserters --chests --machines --poles --furnaces --bulk | --all | --planner]
                            [--modules speed|productivity|efficiency --from-chest X Y | --from-hub] [--apply]
     fx.py bottlenecks [AREA] [--json] [--top N]
     fx.py compact     AREA [--keep N] [--apply]
@@ -57,9 +57,42 @@ def surf(a):
     return "game.surfaces['%s']" % a.surface
 
 
+
+COVERAGE = """
+local s=%(surf)s local A=%(box)s local n=0 local bots=0 local ex={}
+local cx,cy=(A[1][1]+A[2][1])/2,(A[1][2]+A[2][2])/2
+for _,r in pairs(s.find_entities_filtered{type='roboport',force='player'}) do
+  local cell=r.logistic_cell local rad=cell and cell.construction_radius or 0
+  local dx=math.max(A[1][1]-r.position.x,0,r.position.x-A[2][1]) local dy=math.max(A[1][2]-r.position.y,0,r.position.y-A[2][2])
+  if dx*dx+dy*dy<=rad*rad then n=n+1 local net=r.logistic_network if net then bots=math.max(bots,net.all_construction_robots) end end
+end
+rcon.print(helpers.table_to_json({roboports=n,construction_robots=bots}))
+"""
+
+
+def coverage_note(a, area):
+    cov = jlua(COVERAGE % {"surf": surf(a), "box": a_box(area)})
+    if not cov["roboports"]:
+        return "NO roboport covers this area: marks would sit until a roboport is built nearby (use the direct mode instead)"
+    return f"{cov['roboports']} roboport(s) reach the area, up to {cov['construction_robots']} construction robots will do the work"
+
 # --------------------------------------------------------------------------------------------- clear
 def cmd_clear(a):
     area = area_of(a)
+    if a.planner:
+        code = f"""
+local s={surf(a)} local A={a_box(area)} local apply={'true' if a.apply else 'false'} local f=game.forces.player
+local inv=game.create_inventory(1) local st=inv[1] st.set_stack{{name='deconstruction-planner'}} st.trees_and_rocks_only=true
+local before=#s.find_entities_filtered{{area=A,type={{'tree','simple-entity'}},to_be_deconstructed=false}}
+if apply then s.deconstruct_area{{area=A,force=f,item=st}} end
+local marked=#s.find_entities_filtered{{area=A,to_be_deconstructed=true}} inv.destroy()
+rcon.print(helpers.table_to_json({{candidates=before,marked=marked}}))
+"""
+        res = jlua(code)
+        print(("MARKED" if a.apply else "DRY RUN (add --apply)"), f"deconstruction planner (trees and rocks only), area {area}:", json.dumps(res))
+        print("  " + coverage_note(a, area))
+        print("  bots pick the marked trees/rocks up (wood, stone and coal go into the logistic network). Biters and decoratives are not planner jobs: use the direct mode for those.")
+        return
     every = a.all or not any([a.trees, a.rocks, a.cliffs, a.biters, a.decoratives, a.fish, a.items, a.corpses])
     want = {k: (every or getattr(a, k)) for k in ("trees", "rocks", "cliffs", "biters", "decoratives", "fish", "items", "corpses")}
     code = f"""
@@ -92,6 +125,28 @@ CATS = {
 
 def cmd_upgrade(a):
     area = area_of(a)
+    if a.planner:
+        code = f"""
+local s={surf(a)} local A={a_box(area)} local apply={'true' if a.apply else 'false'} local f=game.forces.player
+local MAP={{{{'transport-belt','fast-transport-belt'}},{{'fast-transport-belt','express-transport-belt'}},{{'underground-belt','fast-underground-belt'}},{{'fast-underground-belt','express-underground-belt'}},{{'splitter','fast-splitter'}},{{'fast-splitter','express-splitter'}},{{'inserter','fast-inserter'}},{{'wooden-chest','iron-chest'}},{{'iron-chest','steel-chest'}},{{'assembling-machine-1','assembling-machine-2'}},{{'assembling-machine-2','assembling-machine-3'}},{{'small-electric-pole','medium-electric-pole'}}}}
+local function enabled(n) local r=f.recipes[n] return r and r.enabled end
+local by={{}} for _,m in pairs(MAP) do by[m[1]]=m[2] end
+local inv=game.create_inventory(1) local st=inv[1] st.set_stack{{name='upgrade-planner'}} local slot=0 local used={{}}
+for from,_ in pairs(by) do local t=by[from] local best=nil while t and enabled(t) do best=t t=by[t] end
+  if best and slot<24 then slot=slot+1 st.set_mapper(slot,'from',{{type='entity',name=from}}) st.set_mapper(slot,'to',{{type='entity',name=best}}) used[#used+1]=from..'->'..best end end
+local n=0 for _,e in pairs(s.find_entities_filtered{{area=A,force='player'}}) do if by[e.name] then n=n+1 end end
+if apply then s.upgrade_area{{area=A,force=f,item=st}} end
+inv.destroy()
+rcon.print(helpers.table_to_json({{mappings=used,upgradable_entities=n}}))
+"""
+        res = jlua(code)
+        print(("MARKED for upgrade" if a.apply else "DRY RUN (add --apply)"), f"upgrade planner, area {area}: {res['upgradable_entities']} entities can go up a tier")
+        print("  mappings:", ", ".join(res["mappings"]))
+        print("  " + coverage_note(a, area))
+        print("  bots do the swaps and use items from the logistic network (a real cost, unlike the direct mode). Modules are not part of an upgrade planner: use --modules.")
+        if a.modules:
+            fill_modules(a, area)
+        return
     every = a.all or not any([a.belts, a.inserters, a.chests, a.machines, a.poles, a.furnaces, a.bulk, a.modules])
     cats = {k: (every and k != "furnaces" or getattr(a, k)) for k in CATS}
     names = [n for k, v in CATS.items() if cats[k] for n in v]
@@ -405,11 +460,11 @@ def main():
         p.add_argument("--apply", action="store_true")
 
     p = sub.add_parser("clear"); common(p)
-    for f in ("trees", "rocks", "cliffs", "biters", "decoratives", "fish", "items", "corpses", "all"):
+    for f in ("trees", "rocks", "cliffs", "biters", "decoratives", "fish", "items", "corpses", "all", "planner"):
         p.add_argument("--" + f, action="store_true")
     p.set_defaults(fn=cmd_clear)
     p = sub.add_parser("upgrade"); common(p)
-    for f in ("belts", "inserters", "chests", "machines", "poles", "furnaces", "bulk", "all"):
+    for f in ("belts", "inserters", "chests", "machines", "poles", "furnaces", "bulk", "all", "planner"):
         p.add_argument("--" + f, action="store_true")
     p.add_argument("--modules", choices=["speed", "productivity", "efficiency"])
     p.add_argument("--from-chest", nargs=2, type=float, metavar=("X", "Y"))
