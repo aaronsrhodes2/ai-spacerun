@@ -66,6 +66,15 @@ SNAP = (
 )
 
 
+REPAIR = (
+    "local p=game.surfaces['platform-1'] if not p then return end local SN=defines.entity_status local short=0 local n=0 "
+    "for _,e in pairs(p.find_entities_filtered{force='player',type='assembling-machine'}) do local r=e.get_recipe() if r and r.name=='space-science-pack' then n=n+1 if e.status==SN.item_ingredient_shortage then short=short+1 end end end "
+    "if n>0 and short==n then local removed=0 for _,e in pairs(p.find_entities_filtered{type={'transport-belt','underground-belt','splitter'},area={{-12,-5},{-6,-2}}}) do if math.floor(e.position.x)~=-13 then "
+    "for i=1,e.get_max_transport_line_index() do local l=e.get_transport_line(i) for _,c in pairs(l.get_contents()) do if c.name:find('asteroid%-chunk') then removed=removed+l.remove_item{name=c.name,count=c.count} end end end end end "
+    "rcon.print('platform ice jam: removed '..removed..' chunks') else rcon.print('platform ok') end"
+)
+
+
 def log(msg, LOG=None):
     LOG = LOG or sys.argv[4]
     line = time.strftime("%Y-%m-%d %H:%M:%S ") + msg
@@ -83,7 +92,8 @@ def main():
             c.run("rcon.print('x')")
             queue = c.run(TOPUP)
             snap = c.run(SNAP)
-            log(snap + " | queue " + queue)
+            fix = c.run(REPAIR)
+            log(snap + " | queue " + queue + " | " + fix)
         except Exception as exc:  # noqa: BLE001 - keep going whatever happens
             log("error: " + repr(exc))
         time.sleep(CYCLE)
