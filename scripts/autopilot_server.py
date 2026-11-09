@@ -10,7 +10,8 @@ import struct
 import sys
 import time
 
-CYCLE = 180
+import os
+CYCLE = int(os.environ.get("AUTOPILOT_CYCLE", "180"))
 PRIORITY = ["space-platform-thruster", "planet-discovery-vulcanus", "planet-discovery-fulgora", "planet-discovery-gleba",
             "logistic-system", "landing-pad-unloading-bay"]
 

@@ -295,3 +295,9 @@ The 6 copper drills at y=-91.5 are blocked: they drop on the old coal belt y=-90
   Existing depot feeders (copper depot back loco at (168,-293), iron depot both) got 300 rocket fuel + coal each; Callie Arnadottir chest got 100 rocket fuel.
 - Facts: inserters reach a locomotive only if their drop point (1.2 tiles from the inserter) lies inside its 1.2-wide collision box, so a loco must sit on a straight track; `LuaEntity.bounding_box` of a loco is NOT rotated (use orientation). `drop_target` reads nil for a moment right after create_entity. Rocket fuel only enters an empty fuel slot (locomotives have 3), so a loco full of coal burns it down first.
 - Rocket fuel burn: 600 kW per moving loco = 1 rocket fuel per ~167 s moving; 300 per chest is many hours. Restock when a chest drops under ~50.
+
+## Speed, power link, AM3 upgrades (2026-11-09)
+- The server sustains game.speed 9 (540 UPS; 10 gives 563/600). Set with `game.speed=9` over RCON (mod skippy-speed has buttons). At 9x the one-minute production statistics are per game minute, so real-time rates are 9x what the log shows.
+- Coal2 Patch drills had no power: their pole network (big poles at (75,45),(102,47),(130,50)) was cut off from the base grid. Added big poles at (68,-23), (69,4), (72,34); network merged. Zero entities report no_power now.
+- Upgraded to assembling-machine-3 (fast_replace keeps recipe/modules) all science-chain machines: chemical, advanced/electronic circuit, processing unit, LDS, logistic/automation/military/production/utility packs, rail, engine units, grenade, etc. (73 machines). Power stayed fine (turbines were at 10 of ~60 MW).
+- autopilot_local.py (60 s cycle via AUTOPILOT_CYCLE=60): priority queue = next-planet techs first, then cheapest techs whose packs exist; log in docs/autopilot.log.
