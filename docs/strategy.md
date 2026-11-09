@@ -306,3 +306,8 @@ The 6 copper drills at y=-91.5 are blocked: they drop on the old coal belt y=-90
 - Cause of thin iron on the bus: trunk lanes were yellow belts (7.5 items/s per lane), and iron enters trunk 1 by side-loading onto ONE lane. Iron belt at the unload was full while trunk 1's iron lane was sparse downstream.
 - Upgraded every transport-belt (2022), underground-belt (340) and splitter (33) in x 15..135, y -165..-40 to fast tier with fast_replace (items kept). Splitter filters and priorities (6 filtered ones: plastic, steel, plastic, iron, EC, AC sorters) were saved and restored.
 - Remaining limits: depot output (iron and copper trains, no rail signals so no second train), and ore/furnace counts at the depots.
+
+## Whole-factory robot coverage (2026-11-09)
+- scripts/build_roboport_grid.py: 102 new roboports (each with 3 solar panels, 2 accumulators, a medium pole) on a 48-tile grid over every cell that holds a player entity, plus 1 bridge; 117 roboports, one logistic network (400 construction and 950 logistic robots from the old west and oil-site networks merged into it). New roboports show low_power until their 100 MJ buffer fills from the solar panels.
+- Not done yet: more robots (the factory has no robot production line), and replacing the long belts (plastic, fuel, packs) by requester/passive provider chests with bots.
+- fx.py mine: simple mining-patch layout; tested on the unused iron patch at (-464,284): 56 drills, every drill's drop point has a belt, one pole network, output belt end checked; the test build was removed.

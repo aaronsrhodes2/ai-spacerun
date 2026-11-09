@@ -7,6 +7,7 @@ fx - cheap, scripted Factorio helpers for the AI co-pilot (one RCON round trip p
                            [--modules speed|productivity|efficiency --from-chest X Y | --from-hub] [--apply]
     fx.py bottlenecks [AREA] [--json] [--top N]
     fx.py compact     AREA [--keep N] [--apply]
+    fx.py mine        AREA --resource ORE [--out N|E|S|W] [--belt NAME] [--min-tiles N] [--apply]
 
 AREA is `--area X1 Y1 X2 Y2` (tiles, inclusive) or `--around X Y R`. Surface defaults to nauvis (`--surface NAME`).
 Everything except `bottlenecks` is a dry run unless `--apply` is given, and prints what it would do. See .claude/skills/factorio/SKILL.md.
@@ -449,6 +450,139 @@ rcon.print(helpers.table_to_json(bad))
         print("  ", pr)
 
 
+# --------------------------------------------------------------------------------------------- mine
+RES_LUA = """
+local s=%(surf)s local A=%(box)s local o={}
+for _,e in pairs(s.find_entities_filtered{area=A,type='resource'}) do
+  o[#o+1]={math.floor(e.position.x),math.floor(e.position.y),e.name,e.amount} end
+rcon.print(helpers.table_to_json({tiles=o,bonus=game.forces.player.mining_drill_productivity_bonus}))
+"""
+
+OUT_DIR = {"S": 8, "N": 0, "E": 4, "W": 12}
+
+
+def _to_world(out, u, v):
+    """Local frame: belts flow toward +v, belt columns spread along u. out = N/E/S/W."""
+    return {"S": (u, v), "N": (u, -v), "E": (v, u), "W": (-v, u)}[out]
+
+
+def _inv(out, x, y):
+    return {"S": (x, y), "N": (x, -y), "E": (y, x), "W": (y, -x)}[out]
+
+
+def _dir_of(out, du, dv):
+    x, y = _to_world(out, du, dv)
+    return {(0, -1): 0, (1, 0): 4, (0, 1): 8, (-1, 0): 12}[(x, y)]
+
+
+def _floor(v):
+    return int(v // 1)
+
+
+def cmd_mine(a):
+    area = area_of(a)
+    data = jlua(RES_LUA % {"surf": surf(a), "box": a_box(area)})
+    tiles, foreign = {}, set()
+    for x, y, name, amount in data["tiles"]:
+        if name == a.resource:
+            tiles[(x, y)] = amount
+        else:
+            foreign.add((x, y))
+    if not tiles:
+        raise SystemExit(f"no {a.resource} in the area (found: {sorted({t[2] for t in data['tiles']}) or 'nothing'})")
+    out = a.out.upper()
+    pts = [_inv(out, x + 0.5, y + 0.5) for (x, y) in tiles]
+    umin, umax = _floor(min(p[0] for p in pts)) - 4, _floor(max(p[0] for p in pts)) + 4
+    vmin, vmax = _floor(min(p[1] for p in pts)) - 4, _floor(max(p[1] for p in pts)) + 4
+
+    def mining_tiles(cu, cv):
+        wx, wy = _to_world(out, cu, cv)
+        x0, y0 = _floor(wx - 2.5 + 1e-6), _floor(wy - 2.5 + 1e-6)
+        return [(x0 + i, y0 + j) for i in range(5) for j in range(5)]
+
+    best = None
+    for ou in range(7):
+        for ov in range(7):
+            drills = []
+            u = umin + ((ou - umin) % 7)
+            while u <= umax:
+                v = vmin + ((ov - vmin) % 7)
+                while v <= vmax:
+                    for dv in (0, 3):                                    # two drills, then a one-tile gap row (pole)
+                        for cu_off, face in ((1.5, 1), (5.5, -1)):
+                            cu, cv = u + cu_off, v + dv + 1.5
+                            mt = mining_tiles(cu, cv)
+                            n_ore = sum(1 for t in mt if t in tiles)
+                            if n_ore >= a.min_tiles and (a.allow_mixed or not any(t in foreign for t in mt)):
+                                drills.append((cu, cv, face, sum(tiles.get(t, 0) for t in mt), u))
+                    v += 7
+                u += 7
+            score = sum(d[3] for d in drills)
+            if best is None or score > best[0]:
+                best = (score, drills)
+    drills = best[1]
+    if not drills:
+        raise SystemExit("no drill position fits (lower --min-tiles, or use --allow-mixed)")
+    cols = {}
+    for cu, cv, face, ore, col in drills:
+        cols.setdefault(col, []).append(cv)
+    ents = []
+    for cu, cv, face, ore, col in drills:
+        wx, wy = _to_world(out, cu, cv)
+        ents.append({"name": a.drill, "x": wx, "y": wy, "direction": _dir_of(out, face, 0)})
+    v_end = max(max(v) for v in cols.values()) + 1.5            # local v where the last drill ends
+    for col, vs in cols.items():
+        v0, v1 = min(vs) - 1.5, max(vs) + 1.5
+        v = v0
+        while v < v_end + 2:
+            wx, wy = _to_world(out, col + 3.5, v + 0.5)
+            ents.append({"name": a.belt, "x": wx, "y": wy, "direction": OUT_DIR[out]})
+            v += 1
+        pv = v0 + 6
+        while pv <= v1:
+            wx, wy = _to_world(out, col + 2.5, pv + 0.5)
+            ents.append({"name": a.pole, "x": wx, "y": wy})
+            pv += 7
+    ucols = sorted(cols)
+    cv = v_end + 2 + 0.5                                         # collector row (local v)
+    last = ucols[-1] + 3.5 + 2
+    flow = {"S": 4, "N": 4, "E": 8, "W": 8}[out]                  # +u in world terms
+    u = ucols[0] + 3.5
+    while u < last:
+        wx, wy = _to_world(out, u, cv)
+        ents.append({"name": a.belt, "x": wx, "y": wy, "direction": flow})
+        u += 1
+    for k in range(0, 4):                                         # corner turns toward the output, then 3 belts leave
+        wx, wy = _to_world(out, last, cv + k)
+        ents.append({"name": a.belt, "x": wx, "y": wy, "direction": OUT_DIR[out]})
+    dropped, other = 0, []
+    for _ in range(3):
+        res = json.loads(tools["place_entities"](json.dumps(ents), dry_run=True))
+        fails = res.get("failed") or []
+        bad = {f["i"] for f in fails if ents[f["i"]]["name"] == a.drill}
+        other = [f for f in fails if ents[f["i"]]["name"] != a.drill]
+        if not bad:
+            break
+        ents = [e for i, e in enumerate(ents) if i not in bad]
+        dropped += len(bad)
+    n_dr = sum(1 for e in ents if e["name"] == a.drill)
+    rate = n_dr * 0.5 * (1 + data["bonus"])
+    ox, oy = _to_world(out, last, cv + 3)
+    print(f"layout: {n_dr} {a.drill}s on {a.resource} in {len(cols)} belt column(s), {sum(1 for e in ents if e['name'] == a.belt)} belts, "
+          f"{sum(1 for e in ents if e['name'] == a.pole)} poles; about {rate:.1f} ore/s (mining productivity +{data['bonus']:.0%}); {dropped} drill spots dropped (blocked ground)")
+    print(f"output: the belt ends at ({_floor(ox)},{_floor(oy)}) flowing {out}; connect your belt there. The pole chain is NOT joined to the power grid: link it.")
+    if other:
+        print(f"  blocked non-drill pieces: {len(other)} (e.g. {other[0]['name']} at {other[0]['x']},{other[0]['y']}: {other[0]['why']})")
+    if not a.apply:
+        print("DRY RUN (add --apply to build)")
+        return
+    from bridge.factorio.planner import batches
+    print(tools["save_game"]("before-mine"))
+    for part in batches(ents):
+        r = json.loads(tools["place_entities"](json.dumps(part)))
+        print("placed", r.get("placed"), "failed", len(r.get("failed") or []))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -478,6 +612,15 @@ def main():
     p = sub.add_parser("compact"); common(p)
     p.add_argument("--keep", type=int, default=1, help="empty tiles to keep in every gap (default 1)")
     p.set_defaults(fn=cmd_compact)
+    p = sub.add_parser("mine"); common(p)
+    p.add_argument("--resource", required=True, help="iron-ore, copper-ore, coal, stone, uranium-ore ...")
+    p.add_argument("--out", default="S", choices=["N", "E", "S", "W", "n", "e", "s", "w"], help="direction the output belt leaves in")
+    p.add_argument("--drill", default="electric-mining-drill")
+    p.add_argument("--belt", default="transport-belt")
+    p.add_argument("--pole", default="medium-electric-pole")
+    p.add_argument("--min-tiles", type=int, default=6, help="ore tiles a drill's 5x5 area must cover (default 6)")
+    p.add_argument("--allow-mixed", action="store_true", help="let drills sit where another ore is in reach")
+    p.set_defaults(fn=cmd_mine)
     a = ap.parse_args()
     a.fn(a)
 
