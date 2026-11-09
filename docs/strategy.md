@@ -252,3 +252,11 @@ Root cause of the starved circuit and purple rows: the iron depot (and its 4 big
 poles at the old oil site that were deconstructed when the Captain rebuilt oil, so all 12 depot furnaces and the drills were no_power and the iron train
 left with 0 plates. Fixed with two big poles at (-236,-317) and (-221,-299) joining (-242,-333) to the main grid pole at (-208,-283) (depot furnaces working again).
 Also: iron and copper trains now leave the depot when full or after 2 minutes (was full or 60 s idle), for a steadier supply.
+
+## Coal boilers retired (2026-11-08)
+Measured at night: whole base about 13 MW (turbines 11-13 MW, old steam engines about 2 MW, solar 0, accumulators full); reactor 1 sits at 999 C with 6 fuel cells,
+so it has headroom (reactor 40 MW max, turbines 64 MW). Removed the 5 coal boilers, 10 steam engines and 5 burner restart inserters of the two old plants
+((30..47,19..49)); no low_power machines afterwards, turbines now carry about 12.9 MW. Left in place: the 4 boilers at x=-288, y -85..-76 (nuclear plant,
+coal=0, full of steam; they sit in the water/steam plumbing so I did not touch them) and the belts/coal fields that fed the old plants (now idle).
+Risk to remember: with the boilers gone the base depends on the reactor's fuel cells (uranium processing) plus 288 solar panels and 48 accumulators.
+Remaining burners: 23 steel furnaces (old smelters), 23 burner mining drills, 36 burner inserters (old mines/smelters), 4 train-fuel burner inserters (intended), 12 locomotives.
