@@ -216,14 +216,14 @@ def phase_verify():
 
 def phase_remove():
     ok, unc, wrong = phase_verify()
-    if not ok:
-        print("verify is not clean: not removing anything (islands with their own solar are listed above; check them)")
-        if "--force" not in sys.argv:
-            return
+    keep = [(x, y) for x, y in unc] + [(x, y) for x, y, _ in wrong]
+    if keep:
+        print(f"{len(keep)} machines are not covered by a substation: poles within 14 tiles of them stay (hybrid)")
     base = jl(STATUS_LUA)
     print("baseline", base)
     print(tools["save_game"]("before-pole-removal"))
-    removed = jl("local s=game.surfaces.nauvis local o={} for _,e in pairs(s.find_entities_filtered{type='electric-pole',force='player'}) do if e.name~='substation' then o[#o+1]={e.name,e.position.x,e.position.y} end end rcon.print(helpers.table_to_json(o))")
+    keep_txt = ",".join("{%d,%d}" % k for k in keep)
+    removed = jl("local s=game.surfaces.nauvis local keep={%s} local o={} for _,e in pairs(s.find_entities_filtered{type='electric-pole',force='player'}) do if e.name~='substation' then local near=false for _,k in pairs(keep) do if math.abs(e.position.x-k[1])<=14 and math.abs(e.position.y-k[2])<=14 then near=true break end end if not near then o[#o+1]={e.name,e.position.x,e.position.y} end end end rcon.print(helpers.table_to_json(o))" % keep_txt)
     REMOVED.write_text(json.dumps(removed))
     print(f"{len(removed)} poles recorded in {REMOVED.name}")
     for i in range(0, len(removed), 300):
@@ -233,7 +233,19 @@ def phase_remove():
     after = jl(STATUS_LUA)
     print("after", after)
     if after["no_power"] > base["no_power"]:
-        print("MORE unpowered machines than before: run with --restore to put the poles back, then investigate")
+        print("MORE unpowered machines than before: use --restore-near or --restore")
+
+
+def phase_restore_near():
+    """Put back the removed poles that sit within 12 tiles of a machine that is now unpowered."""
+    removed = json.loads(REMOVED.read_text())
+    spec = ";".join(f"{n}|{x}|{y}" for n, x, y in removed)
+    out = ""
+    for i in range(0, len(removed), 400):
+        part = removed[i:i + 400]
+        spec = ";".join(f"{n}|{x}|{y}" for n, x, y in part)
+        out = tools["run_lua"]("local s=game.surfaces.nauvis local bad={} for _,e in pairs(s.find_entities_filtered{force='player'}) do if e.status==defines.entity_status.no_power then bad[#bad+1]={e.position.x,e.position.y} end end local n=0 for item in string.gmatch('%s','[^;]+') do local f={} for v in string.gmatch(item,'[^|]+') do f[#f+1]=v end local x,y=tonumber(f[2]),tonumber(f[3]) for _,b in pairs(bad) do if math.abs(b[1]-x)<=12 and math.abs(b[2]-y)<=12 then if s.create_entity{name=f[1],position={x,y},force='player'} then n=n+1 end break end end end rcon.print('restored '..n..' near '..#bad..' unpowered')" % spec)
+        print(out)
 
 
 def phase_restore():
@@ -253,6 +265,8 @@ def main():
         phase_verify()
     elif "--remove" in a:
         phase_remove()
+    elif "--restore-near" in a:
+        phase_restore_near()
     elif "--restore" in a:
         phase_restore()
     else:
