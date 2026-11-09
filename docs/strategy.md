@@ -285,3 +285,13 @@ The 6 copper drills at y=-91.5 are blocked: they drop on the old coal belt y=-90
 - Cause: the iron feeder turned into trunk 1 at (75,-155) as a CURVE, so iron filled BOTH lanes. Copper only side-loads (at y=-147) onto the east lane L1 in gaps, and L1 was a jammed column of iron from y=-154 to -94 that no consumer drained. Copper never reached the cable row taps.
 - Fix: dummy south-flowing belt at (75,-156) so the iron feed side-loads onto the west lane only; removed the 242 jammed iron plates from L1 (y -154..-90). Rule: when two items share a trunk, each must enter by side-loading onto its own lane; never let a curve carry a two-lane feed into a shared trunk.
 - Detection idea for the bottleneck tooling: for every trunk, sample each lane at ~8 points along it; a lane holding an item not in its design list (or a stationary compressed lane whose head item has no consumer downstream) is contamination.
+
+## Train fuel: rocket fuel for all trains (2026-11-09)
+- Cause of the copper train running dry: at the depot stop its rear locomotive sits on a curve at (188.5,-290.9), so the second burner-inserter feeder at (185.5,-291.5) never reached it; the front feeder's chest (168.5,-290.5) was also empty.
+- Fix: feeders (steel chest + burner inserter, seeded with 1 rocket fuel) beside each locomotive at the stop where the train waits longest, stocked with 300 rocket fuel (moved from the idle 960-stacks at the oil site; the factory makes it):
+  copper train at Copper Depot Unload: locos stop at (90,-149) and (111,-149); chests at (90.5,-151.5) and (111.5,-151.5), inserters on y=-150.5 facing north.
+  Coal2 train at Coal2 Patch: locos (145,52) and (145,66); inserters (146.5,52.5)/(146.5,66.5) facing east, chests at x=147.5.
+  Science train front loco at Travis Christian: loco (23,-5); inserter (21.5,-7.5) facing west, chest (20.5,-7.5). (Its back loco is fed from a belt by a fast inserter at (25,44).)
+  Existing depot feeders (copper depot back loco at (168,-293), iron depot both) got 300 rocket fuel + coal each; Callie Arnadottir chest got 100 rocket fuel.
+- Facts: inserters reach a locomotive only if their drop point (1.2 tiles from the inserter) lies inside its 1.2-wide collision box, so a loco must sit on a straight track; `LuaEntity.bounding_box` of a loco is NOT rotated (use orientation). `drop_target` reads nil for a moment right after create_entity. Rocket fuel only enters an empty fuel slot (locomotives have 3), so a loco full of coal burns it down first.
+- Rocket fuel burn: 600 kW per moving loco = 1 rocket fuel per ~167 s moving; 300 per chest is many hours. Restock when a chest drops under ~50.
