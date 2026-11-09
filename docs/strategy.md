@@ -301,3 +301,8 @@ The 6 copper drills at y=-91.5 are blocked: they drop on the old coal belt y=-90
 - Coal2 Patch drills had no power: their pole network (big poles at (75,45),(102,47),(130,50)) was cut off from the base grid. Added big poles at (68,-23), (69,4), (72,34); network merged. Zero entities report no_power now.
 - Upgraded to assembling-machine-3 (fast_replace keeps recipe/modules) all science-chain machines: chemical, advanced/electronic circuit, processing unit, LDS, logistic/automation/military/production/utility packs, rail, engine units, grenade, etc. (73 machines). Power stayed fine (turbines were at 10 of ~60 MW).
 - autopilot_local.py (60 s cycle via AUTOPILOT_CYCLE=60): priority queue = next-planet techs first, then cheapest techs whose packs exist; log in docs/autopilot.log.
+
+## Fast belts on the east bus (2026-11-09)
+- Cause of thin iron on the bus: trunk lanes were yellow belts (7.5 items/s per lane), and iron enters trunk 1 by side-loading onto ONE lane. Iron belt at the unload was full while trunk 1's iron lane was sparse downstream.
+- Upgraded every transport-belt (2022), underground-belt (340) and splitter (33) in x 15..135, y -165..-40 to fast tier with fast_replace (items kept). Splitter filters and priorities (6 filtered ones: plastic, steel, plastic, iron, EC, AC sorters) were saved and restored.
+- Remaining limits: depot output (iron and copper trains, no rail signals so no second train), and ore/furnace counts at the depots.

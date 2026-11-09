@@ -44,12 +44,12 @@ class Rcon:
 
 
 TOPUP = (
-    "local f=game.forces.player local seven={['automation-science-pack']=1,['logistic-science-pack']=1,['military-science-pack']=1,"
+    "local f=game.forces.player local s=game.surfaces.nauvis local seven={['automation-science-pack']=1,['logistic-science-pack']=1,['military-science-pack']=1,"
     "['chemical-science-pack']=1,['production-science-pack']=1,['utility-science-pack']=1,['space-science-pack']=1} "
-    "local pri={%s} "
-    "local rows={} for name,t in pairs(f.technologies) do if t.enabled and not t.researched and t.research_unit_count>0 and t.prototype.max_level<1000000 then "
+    "local stock={} for _,l in pairs(s.find_entities_filtered{type='lab'}) do local inv=l.get_inventory(defines.inventory.lab_input) for p,_ in pairs(seven) do stock[p]=(stock[p] or 0)+inv.get_item_count(p) end end "
+    "local pri={%s} local rows={} for name,t in pairs(f.technologies) do if t.enabled and not t.researched and t.research_unit_count>0 and t.prototype.max_level<1000000 then "
     "local ready=true for _,p in pairs(t.prerequisites) do if not p.researched then ready=false end end local ok=true local pen=0 "
-    "for _,i in pairs(t.research_unit_ingredients) do if not seven[i.name] then ok=false end if i.name=='utility-science-pack' then pen=pen+100000 end if i.name=='military-science-pack' then pen=pen+50000 end end "
+    "for _,i in pairs(t.research_unit_ingredients) do if not seven[i.name] then ok=false end if (stock[i.name] or 0)<30 then pen=pen+1000000 end end "
     "if ready and ok then local score=t.research_unit_count+pen for k,n in pairs(pri) do if n==name then score=k-1000000 end end rows[#rows+1]={name=name,score=score} end end end "
     "table.sort(rows,function(a,b) return a.score<b.score end) local q={} for _,r in pairs(rows) do q[#q+1]=r.name end "
     "pcall(function() f.research_queue=q end) local o={} for i,r in pairs(f.research_queue) do o[#o+1]=r.name end rcon.print(table.concat(o,','))"
