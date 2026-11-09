@@ -1,0 +1,9 @@
+{
+  "name": "skippy-quality",
+  "version": "0.1.0",
+  "title": "Skippy Quality: modules make legendary",
+  "author": "Skippy",
+  "factorio_version": "2.1",
+  "dependencies": ["base", "quality"],
+  "description": "Any machine with a quality module turns everything it produces into legendary quality. No grinding through the tiers. Put a quality module only in the machines whose product you want legendary."
+}
