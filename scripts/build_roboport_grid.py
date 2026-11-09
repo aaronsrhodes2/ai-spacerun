@@ -8,7 +8,7 @@ Afterwards it checks that all roboports share one network and bridges any gap wi
 
 Kit (R = roboport centre, integers): roboport 4x4 at R; medium pole (R.x+2.5, R.y+0.5); solar panels at (R.x+4.5, R.y-2.5/+0.5/+3.5);
 accumulators at (R.x, R.y-3) and (R.x+2, R.y-3).
-Usage: scripts/build_roboport_grid.py [--build]
+Usage: scripts/build_roboport_grid.py [--revealed] [--build]   (--revealed = every charted 48x48 cell that is mostly land, not only cells with our entities)
 """
 import json
 import sys
@@ -41,7 +41,14 @@ rcon.print('null')
 """
 
 CELLS_LUA = """
-local s=game.surfaces.nauvis local cells={} for _,e in pairs(s.find_entities_filtered{force='player'}) do if e.type~='roboport' then
+local s=game.surfaces.nauvis local f=game.forces.player local cells={}
+local function land(x,y) local t=s.get_tile(x,y) return not t.collides_with('player') end
+local function mostly_land(cx,cy) local n=0 for _,dx in pairs({-18,0,18}) do for _,dy in pairs({-18,0,18}) do if land(cx+dx,cy+dy) then n=n+1 end end end return n>=2 end
+if %(everything)s then
+  for c in s.get_chunks() do if f.is_chunk_charted(s,c) then local x,y=c.x*32+16,c.y*32+16 local ix,iy=math.floor(x/48),math.floor(y/48)
+    if mostly_land(ix*48+24,iy*48+24) then cells[ix..','..iy]={ix,iy} end end end
+end
+for _,e in pairs(s.find_entities_filtered{force='player'}) do if e.type~='roboport' then
   local ix,iy=math.floor(e.position.x/48),math.floor(e.position.y/48) cells[ix..','..iy]={ix,iy} end end
 local o={} for _,c in pairs(cells) do o[#o+1]=c end
 local rp={} for _,r in pairs(s.find_entities_filtered{type='roboport',force='player'}) do rp[#rp+1]={r.position.x,r.position.y} end
@@ -65,7 +72,7 @@ def place(cx, cy, build, radius=14):
 
 def main():
     build = "--build" in sys.argv
-    data = json.loads(tools["run_lua"](CELLS_LUA))
+    data = json.loads(tools["run_lua"](CELLS_LUA % {"everything": "true" if "--revealed" in sys.argv else "false"}))
     existing = data["roboports"]
     todo = []
     for ix, iy in data["cells"]:
