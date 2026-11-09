@@ -260,3 +260,9 @@ so it has headroom (reactor 40 MW max, turbines 64 MW). Removed the 5 coal boile
 coal=0, full of steam; they sit in the water/steam plumbing so I did not touch them) and the belts/coal fields that fed the old plants (now idle).
 Risk to remember: with the boilers gone the base depends on the reactor's fuel cells (uranium processing) plus 288 solar panels and 48 accumulators.
 Remaining burners: 23 steel furnaces (old smelters), 23 burner mining drills, 36 burner inserters (old mines/smelters), 4 train-fuel burner inserters (intended), 12 locomotives.
+
+## Burner mining drills replaced (2026-11-08)
+scripts/upgrade_burner_drills.py: the three rows of burner drills (copper y=-87, iron y=-105, stone y=-51; 23 drills) are now electric drills at pitch 4 with a medium pole
+in each gap (drop tiles unchanged), and the 23 burner inserters that fuelled them were removed. Notes: stone row has 2 drills (the third would have mined coal too and
+contaminated the belt); items lying on the ground block can_place, so clear them first. All new drills are on the main grid and working; no low_power machines.
+Remaining burners: 23 steel furnaces (old smelters), 13 burner inserters (4 train-fuel on purpose), 12 locomotives, 4 idle boilers in the nuclear plant.
