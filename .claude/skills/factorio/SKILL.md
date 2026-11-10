@@ -229,6 +229,25 @@ Verified on the live server unless marked otherwise.
   - Before the next flight: every turret armed and the ammo belts full (they hold several hundred magazines); depart only then. Still open: more furnaces per assembler, physical damage research, the reactor loop.
   - An inserter whose drop tile is empty space throws the item overboard. `entity.rotate()` on one underground belt flips the pair. Wires: `a.get_wire_connector(defines.wire_connector_id.circuit_red, true).connect_to(b...)`.
   - An inserter's `direction` is the side it picks up from. `find_entity('inserter', pos)` missed a legendary inserter; use `find_entities_filtered{position=, type=}`. `get_recipe()` on a ghost only for `ghost_type=='assembling-machine'`.
+  - **Platform 4 was lost on 2026-11-10** (flown with unarmed turrets after a foundation trim; ship and cargo gone, no restore). Rules since: `shuttle_trial.py` refuses to launch unless every turret
+    holds 8+ magazines, the hub stock, water, propellant and reactor temperature pass, and it saves `before-flight-p<N>` first. Never fly an untested change; test parked.
+  - **Second design, three ships (2026-11-10): platform 5 "Fulgora Shuttle" (`platform-3`), 6 "Gleba Shuttle" (`platform-4`), 7 "Vulcanus Shuttle" (`platform-5`).** Create with
+    `force.create_space_platform{name=,planet='nauvis',starter_pack='space-platform-starter-pack'}` then `p.apply_starter_pack()`; build with `scripts/build_shuttle2.py --surface <s> --apply`
+    (281 entities, 1040 tiles), then `scripts/configure_shuttle2.py --surface <s> --platform <i>` BEFORE stocking the hub, `scripts/shuttle2_status.py` for a readout,
+    `scripts/shuttle2_wait.py` to log refill rates. Layout and coordinates are in the build script's comments. Everything hangs off the hub's 32 perimeter tiles; no shared belt loop.
+    Rare quality: `force.is_quality_unlocked` says epic and legendary are NOT researched (the old shuttle's legendary machines slipped past the gate; `place_entities` does not check quality).
+  - Facts found building it: inserters cannot use cargo bays (only the hub). The hub has 59 slots and an asteroid chunk does not stack, so hub limits are tiny (3 chunks a kind).
+    A collector needs foundation under its back two rows and empty space on its front row and three rows ahead. Thrusters cannot touch each other; a two-tile gap carries one fluid to both neighbours.
+    Thruster ports: fuel west-top and east-middle, oxidizer east-top and west-middle. Chemical plant: inputs on the side it faces, outputs opposite. Hub: `get_or_create_control_behavior().read_contents=true`.
+    Reactor: `read_temperature=true`, `temperature_signal`; the fuel inserter runs below 600 C. A furnace input from the hub must be filtered to ore or it smelts the hub's plates into steel.
+    **`place_entities` stacks a second copy on an identical entity on a platform** (not belts), and the stacked pipes then stop connecting even after the copies are destroyed: the build script now
+    skips what stands; if it happens, destroy everything but the hub and rebuild. Reactor needs water and water needs power: four solar panels start the ship cold.
+  - Start-up stock moved from the Nauvis logistic network (factory-made): 200 uranium fuel cells and iron plates for the first magazines per ship. Ice cannot enter (the melter is fed by the crusher only).
+  - **Refill parked at Nauvis (measured 2026-11-10):** three collectors on the north-west corner gave about 200 water a minute per ship (2 oxide chunks a minute; Nauvis spawns metallic 0.0125,
+    carbonic 0.0083, oxide 0.0042). Three more on the north-east corner (belt west along y=-12, under the ammunition belt and the heat exchanger, into the head of the chunk belt; 281 entities,
+    1040 tiles) doubled it to about 400 a minute. The reserve wire reads one of the two water tanks, so the plants start at 10,000 water in all, then take every drop: about 1,400 fuel and
+    1,400 oxidizer a minute while water sits at 10,000, and water only climbs again once the propellant tanks are full. So the launch guard asks for 15,000 water, not 40,000.
+    Magazines from the ship's own ore: about 29 a minute. Oxide is scarcer at the other planets (0.0004 to 0.0006 chunks, plus medium asteroids the turrets break up).
   - `e.status` names: 29 no_input_fluid, 30 fluid_ingredient_shortage, 31 item_ingredient_shortage, 32 full_output, 36 waiting_for_source_items, 43 thrust_not_required, 57 no_ammo.
 
 ## Not built yet
@@ -240,7 +259,7 @@ When one of these gets built, move it to the tools table and note what was teste
 - Connecting to existing base lines, plus defense. Pollution from these drills will reach biters eventually.
 - Blueprint-string import.
 - Research driver: what's blocking the next tech, then build it.
-- Other planets: nothing built on Fulgora, Vulcanus or Gleba. Surfaces need a real arrival first (not yet tested). The shuttle carries no cargo yet and its reactor loop has no water.
+- Other planets: nothing built on Fulgora, Vulcanus or Gleba. Surfaces need a real arrival first (not yet tested). The three shuttles carry no cargo yet (no cargo bays; the hub is full of the ship's own stock) and have no speed cap on the thrusters (effectivity 0.51 at full flow).
 - `factory_problems` has only run on an empty map, so check its output against a real factory.
 
 ## Verifier (run after every build)
