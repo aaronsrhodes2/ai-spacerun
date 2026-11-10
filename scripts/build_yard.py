@@ -21,6 +21,7 @@ WAGONS = (212, 219, 226, 233)            # wagon centres for a westbound train w
 YARD_Y = -121
 BELT_Y = -117.5
 LANE_X = 198.5
+STOP_NAME = "Bus Copper Unload"
 
 
 def lay(start, heading_d, target, apply, name):
@@ -39,6 +40,7 @@ def lay(start, heading_d, target, apply, name):
 
 def yard(apply):
     end = lay((200, YARD_Y, 4), 4, 250, apply, "yard rail")
+    clear_yard(apply)
     ents = []
     for c in WAGONS:
         for k in (-2.5, -1.5, -0.5, 0.5, 1.5, 2.5):
@@ -62,21 +64,40 @@ def yard(apply):
             return
     if apply:
         import build_outpost as bo
-        bo.connect_power((190, -128, 255, -50))
+        bo.connect_power((190, int(YARD_Y) - 8, 255, int(YARD_Y) + 70))
         import build_coal_line as bc
         stop = bc.find_stop(203, YARD_Y, "W", True)
-        print(fx.lua("for _,e in pairs(game.surfaces.nauvis.find_entities_filtered{name='train-stop',position={%s,%s},radius=1.5}) do e.backer_name='Bus Copper Unload' end rcon.print('named')" % (stop["x"], stop["y"])))
+        print(fx.lua("for _,e in pairs(game.surfaces.nauvis.find_entities_filtered{name='train-stop',position={%s,%s},radius=1.5}) do e.backer_name='%s' end rcon.print('named')" % (stop["x"], stop["y"], STOP_NAME)))
 
 
-def stub(apply):
-    return lay((329, 114, 0), 0, 70, apply, "outpost stub")
+def clear_yard(apply):
+    if apply:
+        print(fx.lua("local s=game.surfaces.nauvis local n=0 for _,e in pairs(s.find_entities_filtered{area={{196,%d},{254,%d}}}) do if e.force.name~='player' and (e.type=='tree' or e.type=='simple-entity' or e.type=='cliff') then e.destroy() n=n+1 elseif e.force.name=='player' and (e.name=='solar-panel' or e.name=='accumulator' or e.name=='roboport' or e.name=='substation') then e.destroy() n=n+1 end end rcon.print('yard ground cleared '..n)" % (YARD_Y - 4, YARD_Y + 8)))
+
+
+def stub(apply, spec=(329, 114, 70)):
+    return lay((spec[0], spec[1], 0), 0, spec[2], apply, "outpost stub")
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("what", choices=["yard", "stub"])
     ap.add_argument("--apply", action="store_true")
+    ap.add_argument("--y", type=int, help="unload rail line (odd), default -121")
+    ap.add_argument("--lane", type=float, help="bus lane x (tile centre), default 198.5")
+    ap.add_argument("--name", help="unload stop name")
+    ap.add_argument("--stub", nargs=3, type=int, help="x y_dead_end y_target for the outpost stub")
     a = ap.parse_args()
+    if a.y is not None:
+        YARD_Y = a.y
+        BELT_Y = a.y + 3.5
+    if a.lane is not None:
+        LANE_X = a.lane
+    if a.name:
+        STOP_NAME = a.name
     if a.apply:
         print(tools["save_game"]("before-" + a.what))
-    {"yard": yard, "stub": stub}[a.what](a.apply)
+    if a.what == "stub":
+        stub(a.apply, tuple(a.stub) if a.stub else (329, 114, 70))
+    else:
+        yard(a.apply)

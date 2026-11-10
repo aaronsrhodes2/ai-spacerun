@@ -43,3 +43,14 @@ and collect everything into one great main bus where future production grows.
   `build_substation_grid.py --restore-near` and a roboport pass; the bus has one lane (copper) and no consumers yet.
 - Next, by the plan above: second smelter lines and chest-to-belt/train versions of the two drone outposts, iron outposts (-464,284) shipped by train, new patches (732,97), (-723,-317), (693,488), then stone, coal and oil,
   signals and fuel feeders, and the rest of the bus lanes.
+
+### 2026-11-09 (later): Iron A and Copper B added, each with its own yard track and bus lane
+- Iron A: iron patch (693,488), 138 drills, 72 furnaces (about 45 plates/s, half the ore capacity: a second smelter line would use the rest), load stop "Iron A Load" (717,339), 423-piece track north and west
+  to the yard track y=-133, stop "Bus Iron Unload" (203,-135), belt lane x=196.5. Copper B: copper patch (732,97), 102 drills, 72 furnaces, stop "Copper B Load" (749,-45), 271-piece track to the yard track y=-145,
+  "Bus Copper B Unload", lane x=194.5. One train each (2 locomotives, 4 wagons, 150 coal each). Everything paved (outposts and yards). Saves before-iron-a, before-copper-b, before-yard, before-stub.
+- Each outpost has its own unload track so no two trains share a track (no signals yet). Lanes are separate for now; they get merged with splitters when the bus is built out.
+- Station fix: when the belt column lands the rail on an even line, the build adds a one-tile jog in the belt before the station (build_train_outpost.py picks it). Poles beside the output belts sit at du=7.
+- Biter nests: both new outposts had nests within 30 tiles (about 150 enemies at Copper B, 49+63 at Iron A); I destroyed the enemy pieces in the outpost boxes and along the track. More nests stand east of (850,240).
+  No turrets are built; expect expansion attacks later (pollution reaches them), so defences or periodic clearing are open items.
+- The autopilot's SILO_GUARD now guards all three outposts' furnaces and drills (off below 20 percent accumulators, on above 50 percent). At the last check the accumulators were at 3 percent, so all three
+  outposts and the new silos stand paused: Copper A's train had already loaded 9,816 plates, Iron A 2,636, Copper B 88.

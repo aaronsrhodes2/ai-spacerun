@@ -49,7 +49,7 @@ def layout(out, last, cv, n_furn):
             ox, oy = fx._to_world(out, last + side * 5, vc)
             add({"name": "fast-inserter", "x": ox, "y": oy, "direction": fx._dir_of(out, -side, 0)})
         if k % 2 == 0:
-            for du in (-6, -1, 6):
+            for du in (-7, -1, 7):
                 px, py = fx._to_world(out, last + du, v0 + 3 * k)
                 add({"name": "medium-electric-pole", "x": px, "y": py})
     v_s = v0 + 3 * per_side
@@ -78,8 +78,8 @@ def station(out, last, v_first, side, name_prefix=""):
     if round(along) % 2 == 0:                             # rail pieces sit on odd coordinates: slide the whole station one tile along
         v_first += 1
         v_stop += 1
-    for v in range(int(v_first), int(v_first + 36)):
-        wx, wy = fx._to_world(out, last, v + 0.5)
+    for k in range(36):
+        wx, wy = fx._to_world(out, last, v_first + k)
         ents.append({"name": EXPRESS, "x": wx, "y": wy, "direction": belt_dir})
     for (n, off) in STATION_CARS:
         if n != "cargo-wagon":
@@ -88,10 +88,10 @@ def station(out, last, v_first, side, name_prefix=""):
         for k in (-2.5, -1.5, -0.5, 0.5, 1.5, 2.5):
             wx, wy = fx._to_world(out, last + side * 1, c + k)
             ents.append({"name": "fast-inserter", "x": wx, "y": wy, "direction": fx._dir_of(out, -side, 0)})
-    for v in range(int(v_first), int(v_first + 36), 6):
-        wx, wy = fx._to_world(out, last - side * 1, v + 0.5)
+    for k in range(0, 36, 6):
+        wx, wy = fx._to_world(out, last - side * 1, v_first + k)
         ents.append({"name": "medium-electric-pole", "x": wx, "y": wy})
-    return ents, {"v_stop": v_stop, "rail_u": last + side * 2.5}
+    return ents, {"v_stop": v_stop, "rail_u": last + side * 2.5, "v_first": v_first}
 
 
 def place(ents, label):
@@ -119,9 +119,32 @@ def main():
     mine_ents, meta = fx.cmd_mine(ns)
     out, last, cv = meta["out"], meta["last"], meta["cv"]
     sm, info = layout(out, last, cv, a.furnaces)
-    st, sinfo = station(out, last, info["v_m"] + 4, a.side)
-    ents = mine_ents + sm + st
-    rx, ry = fx._to_world(out, sinfo["rail_u"], sinfo["v_stop"])
+    shift = 0
+    for sh in (0, 1):                                   # a one-tile jog in the belt just before the station if the rail would land on an even line
+        st, sinfo = station(out, last + sh, info["v_m"] + 5, -1)
+        rx, ry = fx._to_world(out, sinfo["rail_u"], sinfo["v_stop"])
+        across = rx if out in "NS" else ry
+        if round(across) % 2 == 1:
+            shift = sh
+            break
+    last2 = last + shift
+    conn = []
+    v = info["v_m"] + 1
+    while v < info["v_m"] + 2.01:
+        wx, wy = fx._to_world(out, last, v)
+        conn.append({"name": EXPRESS, "x": wx, "y": wy, "direction": fx.OUT_DIR[out]})
+        v += 1
+    wx, wy = fx._to_world(out, last, info["v_m"] + 3)
+    conn.append({"name": EXPRESS, "x": wx, "y": wy, "direction": fx.OUT_DIR[out] if not shift else fx._dir_of(out, 1, 0)})
+    if shift:
+        wx, wy = fx._to_world(out, last2, info["v_m"] + 3)
+        conn.append({"name": EXPRESS, "x": wx, "y": wy, "direction": fx.OUT_DIR[out]})
+    v = info["v_m"] + 4
+    while v < sinfo["v_first"] - 0.01:
+        wx, wy = fx._to_world(out, last2, v)
+        conn.append({"name": EXPRESS, "x": wx, "y": wy, "direction": fx.OUT_DIR[out]})
+        v += 1
+    ents = mine_ents + sm + conn + st
     print(f"{a.name}: {sum(1 for e in mine_ents if e['name'] == 'electric-mining-drill')} drills, {a.furnaces} furnaces; stop rail at ({rx}, {ry}); rail line parity "
           f"{'OK' if (rx % 2 == 1 if out in 'NS' else ry % 2 == 1) else 'WRONG (use --side with the other sign)'}")
     xs = [e["x"] for e in ents]
