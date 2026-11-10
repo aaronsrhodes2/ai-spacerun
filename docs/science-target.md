@@ -102,6 +102,18 @@ Still limiting:
 6. The overflow chests on the chemical belt can fill (1,403, 1,255 and 481 items so far); the belt blocks again if they do.
 7. The one-lane collector fix is not in `fx.py mine`, at Coal A or at the copper outposts. Four lattice roboports were removed at Coal A and the grid script has not been re-run there.
 
+## Bottleneck hunt (2026-11-10, later; the Captain asked "blue circuits?")
+- **Processing units are not a limit:** 17,000 in stock, 50 to 76 made and about 35 used per minute. Twelve machines at (-213 to -169,-118), about 90 per minute at best.
+- **Advanced circuits were:** all 15 drone cells ran flat out (225 per minute) with the network in deficit; chemical packs, productivity modules, electric furnaces and four processing unit machines waited on them.
+  Built 20 more cells (`build_cells.py --kind ac`): "Science Cell 1: Advanced Circuit (west)" at (-145,-244) and "(east)" at (-5,-233). Made went to 426 per minute and the stock turned positive.
+- Requests raised to cover the flight: Feed: Copper Cable copper 200 to 800, Feed: Pipe iron 150 to 600, Feed: Steel iron 100 to 400, Feed: Processing Unit advanced circuit 10 to 40, Feed: Advanced Circuit 40/40/80 to 200/200/400, Feed: Processing Unit electronic circuit 100 to 600 (7 of 12 machines were waiting on them; one machine uses 150 per minute).
+- **Next limit: electronic circuits.** With 35 advanced circuit cells running they are used faster than made (1,628 against 1,900 per minute, 10,700 in stock). More circuit and cable cells are the next build.
+- The old chemical pack line (8 machines) is belt-fed and still gets no advanced circuits; it needs a feed chest from the network.
+- **Utility packs are capped by machine count:** 5 machines make about 53 per minute, and robot frames (6 machines, 21 per minute, 27 in stock) allow no more. 200 per minute would take about 19 utility machines, 18 frame machines,
+  9 electric engine machines, 8 battery plants and 133 processing units per minute (18 machines).
+- **Belt-fed lines starve of iron while the robot network holds thousands of plates:** grenades, sulfuric acid at (-236 to -216,-239), pipes and circuits on y -60. The belts need more feed chests or more smelting.
+- **Research:** every Nauvis technology is done; what is left is the endless upgrades and the trigger technologies of the other planets. Packs are no longer what holds the game back; landing on a planet is.
+
 ## Order
 1. Make the existing base a true 1 per second cell: utility 1 to 4 machines, production 2 to 6, iron supply from 46 to 112 per second (two more iron outposts), then measure all seven at 1.0.
 2. Write the cell as one script (inputs: a cleared box, a rail stop for iron, copper, stone, a pipe or train for plastic or gas) and build cell 2 with it next to its own ore.
