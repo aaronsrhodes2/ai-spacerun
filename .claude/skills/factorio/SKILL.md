@@ -195,6 +195,25 @@ Verified on the live server unless marked otherwise.
 - **Size a drone request for the flight time.** A request of 100 iron plates starved the circuit cells because the iron chests are about 500 tiles away; 600 fixed it. A slot changed in one chest of a group changes the whole group.
 - **A mixed belt blocks when one cargo has no taker.** The chemical belt (y -62.5 and -63.5 at x -345) filled with plastic and engines, so advanced circuits could not get on. A filtered bulk inserter into a red chest at the end
   of each lane (map tag "Chemical Belt Plastic Overflow") lets the surplus leave by drone. It blocks again if those chests fill.
+- **Space platforms** (first worked on 2026-11-10, platform 4 "Inner Planets Shuttle", surface `platform-3`, `scripts/build_shuttle.py`, watch a flight with `scripts/shuttle_watch.py`):
+  - `game.forces.player.platforms[i]` gives name, `surface`, `hub`, `state`, `paused`, `speed`, `distance` (0 to 1 along `space_connection`), `space_location`, `schedule`, `weight`. A schedule is
+    `{current=1, records={{station='fulgora', wait_conditions={{type='time', ticks=1800, compare_type='and'}}}, ...}}`; set it and `paused=false` to fly.
+  - `place_entities` works with `surface="platform-3"`. `params` go to `create_entity`, so `{"quality":"legendary"}` places legendary. For a dry run that really checks tiles and collisions pass `clear_trees=False`.
+    Placing over a ghost replaces the ghost.
+  - **A platform has one global electric network** (`surface.has_global_electric_network`). Poles are not needed and nothing can be kept unpowered by leaving it outside a supply area.
+    Adding solar panels powered the fuel inserters of the Captain's cold reactor and started it.
+  - The four inner routes (Nauvis to Vulcanus, Gleba, Fulgora; Gleba to Fulgora) are 15000 long and carry only medium asteroids (400 hp, 89% laser resistance, 10% physical), so gun turrets, not lasers.
+  - Chunks are scarce in orbit: the ammunition line made about 60 magazines while parked, and only fills up in flight.
+  - **First test flight, Nauvis to Fulgora, 2026-11-10: arrived, but not flight-worthy.** With 6 of 13 turrets armed at departure and one ammunition line (two legendary furnaces, 0.78 magazines a second,
+    the furnaces are the limit: a legendary crusher makes 25 ore a second, a furnace smelts 1.56) the turrets ran dry at 60% of the route; asteroids destroyed about 570 foundation tiles and 66 entities
+    (all four collectors at one point), and the thrusters ran out of oxidizer so it crawled the last 40% at 10 km/s. `scripts/shuttle_repair.py` rebuilt the ghosts as they appeared (`ghost.revive()`,
+    tile ghosts first, several passes). Fixes made after: the four underground belts on the fuel block's return line (x 36.5, y 1.5 to 7.5) pointed north into the belts feeding them, so returned chunks
+    jammed the fuel crushers; rotated, they now run south to the overboard inserter at (36.5,8.5), and fuel and oxidizer refilled to about 10,000 each. Second ammunition line (`scripts/build_shuttle_ammo2.py`)
+    north-west of the north collector belt. Two circuit-wired overboard inserters at (51.5,-6.5) and (51.5,-5.5) throw chunks into space only when their belt tile holds more than two of one kind.
+  - Before the next flight: every turret armed and the ammo belts full (they hold several hundred magazines); depart only then. Still open: more furnaces per assembler, physical damage research, the reactor loop.
+  - An inserter whose drop tile is empty space throws the item overboard. `entity.rotate()` on one underground belt flips the pair. Wires: `a.get_wire_connector(defines.wire_connector_id.circuit_red, true).connect_to(b...)`.
+  - An inserter's `direction` is the side it picks up from. `find_entity('inserter', pos)` missed a legendary inserter; use `find_entities_filtered{position=, type=}`. `get_recipe()` on a ghost only for `ghost_type=='assembling-machine'`.
+  - `e.status` names: 29 no_input_fluid, 30 fluid_ingredient_shortage, 31 item_ingredient_shortage, 32 full_output, 36 waiting_for_source_items, 43 thrust_not_required, 57 no_ammo.
 
 ## Not built yet
 When one of these gets built, move it to the tools table and note what was tested.
@@ -205,7 +224,7 @@ When one of these gets built, move it to the tools table and note what was teste
 - Connecting to existing base lines, plus defense. Pollution from these drills will reach biters eventually.
 - Blueprint-string import.
 - Research driver: what's blocking the next tech, then build it.
-- Space platforms and other planets. Surfaces need a real arrival first (not yet tested).
+- Other planets: nothing built on Fulgora, Vulcanus or Gleba. Surfaces need a real arrival first (not yet tested). The shuttle carries no cargo yet and its reactor loop has no water.
 - `factory_problems` has only run on an empty map, so check its output against a real factory.
 
 ## Verifier (run after every build)
