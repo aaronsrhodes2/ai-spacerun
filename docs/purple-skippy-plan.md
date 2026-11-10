@@ -57,7 +57,7 @@ Name of the skill: `factorio-nauvis-plus-white` (friendly build mode only, see t
 
 | goal | what done looks like | achievable? | main risk |
 |---|---|---|---|
-| 1. Finish Nauvis for maximum science | all seven packs made at the same rate, labs never short, power and fuel never stall, every build named (docs/naming-sop.md) | Yes. It is ordinary work with the tools that exist. Several sessions. | "Maximum" has no end; fix a target (for example 10 of each pack per second) so the goal can be closed. |
+| 1. Finish Nauvis for maximum science | all seven packs made at the same rate, labs never short, power and fuel never stall, every build named (docs/naming-sop.md) | Yes. It is ordinary work with the tools that exist. Several sessions. | Target set by the Captain: docs/science-target.md (equal packs, 10 per second first, a replicable cell). |
 | 2. Skills for purple Skippy | every runbook step has a script, a dry run, a verify check and a rollback; no step marked `gap` | Yes, but it is the largest piece. The gaps are listed above: science-rates, discover, crash-site exclusion, signals, fluid unload, uranium with acid, nuclear builders, the platform builder. | The scripts were written against this one map. Positions, lanes and yard rows are still constants in places and must become registry lookups. |
 | 3. Purple Skippy solves a blank world with the skill | a fresh map on the server reaches white science with only short prompts from the runbook, no help from Claude or the Captain | Partly, and not on the first try. Expect it to pass the early steps and stall where a script meets something the map did differently. | Three things, below. |
 
