@@ -353,3 +353,7 @@ The 6 copper drills at y=-91.5 are blocked: they drop on the old coal belt y=-90
   resumes above 60 percent (`SILO_GUARD`). Demand was 130 MW at dusk against about 64 MW of turbines, so nuclear matters.
 - Still short: processing units (needs electronic circuit, advanced circuit and sulfuric acid; acid plants are the row at y=-238.5, x -235..-215). Utility science pack
   also competes for PU and LDS, and the labs have had no utility pack since about 16:11 (the pack train is waiting; utility assembler at (25,-113) is starved).
+- Circuit cells (build_cells.py kinds cable, ec, ac) at x -202.. , y -160..-134: 8 copper cable, 5 electronic circuit and 5 advanced circuit assembler 3, each with a requester chest in and a red chest out;
+  substations in the gaps. Processing unit block (`build_pu_block.py`): 4 assembler 3 at (-212.5..-200.5,-117.5), acid from the line's surface pipe at (-215.5,-121.5)
+  through a new pipe at (-215.5,-120.5), requester chests for electronic and advanced circuits, red output chests; roboport re-added at (-206,-124) and a substation at (-207,-112).
+  Saves: before-cells, before-pu-block. Target: +0.5 processing unit/s, +0.75 LDS/s. Check the real rates after an hour of game time.

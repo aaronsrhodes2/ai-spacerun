@@ -19,6 +19,9 @@ from bridge.factorio.planner import batches
 
 KINDS = {
     "steel": {"machine": "electric-furnace", "recipe": None, "req": [("iron-plate", 100)]},
+    "cable": {"machine": "assembling-machine-3", "recipe": "copper-cable", "req": [("copper-plate", 200)]},
+    "ec": {"machine": "assembling-machine-3", "recipe": "electronic-circuit", "req": [("copper-cable", 300), ("iron-plate", 100)]},
+    "ac": {"machine": "assembling-machine-3", "recipe": "advanced-circuit", "req": [("electronic-circuit", 40), ("plastic-bar", 40), ("copper-cable", 80)]},
     "lds": {"machine": "assembling-machine-3", "recipe": "low-density-structure",
             "req": [("copper-plate", 200), ("steel-plate", 20), ("plastic-bar", 50)]},
 }
