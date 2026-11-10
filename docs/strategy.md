@@ -357,3 +357,7 @@ The 6 copper drills at y=-91.5 are blocked: they drop on the old coal belt y=-90
   substations in the gaps. Processing unit block (`build_pu_block.py`): 4 assembler 3 at (-212.5..-200.5,-117.5), acid from the line's surface pipe at (-215.5,-121.5)
   through a new pipe at (-215.5,-120.5), requester chests for electronic and advanced circuits, red output chests; roboport re-added at (-206,-124) and a substation at (-207,-112).
   Saves: before-cells, before-pu-block. Target: +0.5 processing unit/s, +0.75 LDS/s. Check the real rates after an hour of game time.
+- Result (game tick 25.71M): processing units 0.52/s (was 0.25), LDS 1.02/s (was 0.27), steel 3.1/s; all 4 silos hold a full rocket (50 platform foundations = 1,000,000 weight, the rocket limit)
+  at status rocket_ready. They do not launch on their own: with `send_to_orbit_automatically` a rocket only goes when a platform in orbit asks for its contents, so the shuttle the Captain
+  is building is now the limit, not rocket production. Cargo requests are the 100-foundation placeholders; change them on each silo's south requester chests. Gotchas: a cargo inserter's
+  drop_target reads "rocket-silo" but the items do go to the rocket (`defines.inventory.rocket_silo_rocket`); `silo.active` is read only, use `disabled_by_script`.
