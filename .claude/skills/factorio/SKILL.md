@@ -248,6 +248,10 @@ Verified on the live server unless marked otherwise.
     1040 tiles) doubled it to about 400 a minute. The reserve wire reads one of the two water tanks, so the plants start at 10,000 water in all, then take every drop: about 1,400 fuel and
     1,400 oxidizer a minute while water sits at 10,000, and water only climbs again once the propellant tanks are full. So the launch guard asks for 15,000 water, not 40,000.
     Magazines from the ship's own ore: about 29 a minute. Oxide is scarcer at the other planets (0.0004 to 0.0006 chunks, plus medium asteroids the turrets break up).
+  - **Round trips flown 2026-11-10, all three ships, full thrust:** Nauvis to Fulgora, Gleba and Vulcanus and back, each leg about 60 s at 250 to 300 km/s. Outbound burns about 30,500 fuel
+    and 31,100 oxidizer, the return about 19,500 each, so one fill (80,000 each, about 1 h parked at Nauvis) covers a round trip with 30,000 left. Water rose in flight (22,500 to 24,000),
+    a round trip costs about 500 magazines net (hub 2,000 to about 1,480; refill about 29 a minute parked). Damage over six legs: 29 tiles and 4 entities on ship 1 (one turret lost and rebuilt on its return), 1 tile on ship 2,
+    none on ship 3; `shuttle_trial.py` revives the ghosts (free rebuild, friendly build mode). The thresholds in the guard (15,000 water, 40,000 propellant, 1,500 magazines) cover one leg.
   - `e.status` names: 29 no_input_fluid, 30 fluid_ingredient_shortage, 31 item_ingredient_shortage, 32 full_output, 36 waiting_for_source_items, 43 thrust_not_required, 57 no_ammo.
 
 ## Not built yet
