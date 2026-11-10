@@ -113,6 +113,7 @@ def main():
     ap.add_argument("--pad", type=int, default=60)
     ap.add_argument("--min-run", type=int, default=8)
     ap.add_argument("--apply", action="store_true")
+    ap.add_argument("--resume", action="store_true", help="re-run after a stopped placement: pieces that already exist are skipped")
     a = ap.parse_args()
     sx, sy, sh = int(a.start[0]), int(a.start[1]), a.start[2]
     gx, gy, gh = int(a.goal[0]), int(a.goal[1]), a.goal[2]
@@ -166,8 +167,10 @@ def main():
     ents = [rails.entity(p) for p in pieces]
     for part in batches(ents):
         r = json.loads(tools["place_entities"](json.dumps(part)))
-        if r.get("failed"):
+        if r.get("failed") and not a.resume:
             raise SystemExit(f"rail placement stopped: {json.dumps(r)[:1500]}")
+        if r.get("failed"):
+            print("skipped (already there or blocked):", len(r["failed"]))
     print("rail line laid:", len(ents), "pieces")
 
 

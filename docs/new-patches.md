@@ -36,3 +36,12 @@ iron: (858,-746) 285 tiles, (-578,754) 1,178, (-508,-1063) 1,606 | copper: (-373
 2. oil (384,-684): pumpjacks on 14 wells, pipes to a tank, pump onto fluid wagons at a load stop, an unload stop at the bus head pumping into tanks. New templates needed (fluid station); the biggest piece
 3. uranium (-317,794): drills plus acid supply; also needs the fluid train
 Each outpost adds power: drills 90 kW each, so 40 drills is 3.6 MW.
+
+## Oil A built (2026-11-09): the (384,-684) field by fluid train
+- `scripts/build_oil_train.py` (the original `build_oil.py` is the first oil site's builder, untouched): 14 pumpjacks on every well (about 3,200 percent yield in all, roughly 320 crude/s), 163 pipes routed by BFS to a header
+  beside the load stop, 3 pumps pushing into 3 fluid wagons, power joined to the grid. Stop "Oil A Load" at (363,-655) (rail x=361, the train arrives heading north).
+- 249-piece track west and south to a new yard track at y=-169: "Bus Oil Unload" (203,-171); three pumps move crude from the wagons into two 25k storage tanks at (229.5,-163.5) and (233.5,-165.5), joined by a pipe at (231.5,-164.5).
+  Nothing consumes it yet: the tanks fill and the train waits (inactivity 900 ticks), so the oil lane to the refineries is the next piece.
+- Train: 2 locomotives and 3 fluid wagons (75,000 crude per trip), 150 coal in each locomotive. When last checked the wagons held 35,559 crude and 13 of 14 jacks worked (the 14th overlapped another jack's footprint; I turned it east and gave it two pipes).
+- All nest pieces and units in x 250..460, y -700..-100 (132 enemies, plus 28 nest pieces) were destroyed to lay the track. The Stone A and oil lines run through the same corridor.
+- Not done: uranium (needs acid), the other ore patches, signals, fuel feeders, defences. `rail_plan.py --resume` re-places a route; to finish a stopped line after the A* start is blocked, `rails.route` with the printed legs works (used here).
