@@ -369,3 +369,11 @@ The 6 copper drills at y=-91.5 are blocked: they drop on the old coal belt y=-90
 - `scripts/pave.py` (save: before-paving): refined concrete over every chunk with 25+ player entities plus one-chunk gaps between them, 198 chunks, 193,856 tiles in about 10 s.
   Skipped: water, tiles already concrete or stone path, and tiles with ore on them (drills keep working). Outposts (fewer than 25 entities per chunk) and the paths between zones are not paved:
   use `--min 10` for more, or `--tile concrete`. Tiles are placed free, like entities.
+
+## Foundation ramp (2026-11-09, the Captain: "10x foundation production and add storage")
+- Baseline: 1 foundation assembler, about 2 per minute (0.033/s). After the earlier cells: 0.155/s over ten minutes, steel was the limit (5.4/s made and all used, stock 0; three of four foundation assemblers waiting for steel).
+- Added 28 drone-fed steel furnaces (two columns of 14 at x -174..-157, y -186..-144, `build_cells.py --kind steel`), substations, and roboports at (-161,-190), (-182,-161), (-150,-160), (-171,-136) so every chest is on
+  the network. Steel capacity is now 64 furnaces here (8.0/s) against 2.0/s used by LDS, leaving about 6/s for foundations: about 0.3 foundations/s, roughly 9 to 10 times the original (4 assemblers can do 0.5/s).
+- Storage: each foundation assembler's output now runs through two more bulk inserter + red provider chest stages (x -174.5..-171.5), so each holds up to three chests of 4,800 foundations (14,400, 57,600 in all) and offers them to the network.
+  Red chests only, no yellow storage chests (see the chest rules).
+- Iron for steel (5 plates per steel, about 30/s at full rate) comes from the network stock (277k) and the outposts; the outposts stand paused until the accumulators recover (power staging).
