@@ -2,6 +2,11 @@
 
 Status: framework only (2026-11-09). Nothing here was run as a package; every command wraps a script that already ran in the Captain's game, except the ones marked `gap`.
 
+## Scope: this is friendly build mode only (the Captain, 2026-11-09)
+Everything here relies on god-mode build rights: entities and tiles are placed free once researched, nests are removed directly, nothing is hand-crafted, nothing is paid for out of the factory, and achievements on this save are given up.
+So the pack solves the Captain's game, not a normal Space Age run, which he still considers a hard win. A normal run would also need: building costs paid from the factory (bots or hand building from stock), a real defence against biters and evolution,
+pollution management, mall production of every building, and survival on hostile planets (demolishers on Vulcanus, Aquilo's cold and power). None of that is scripted; do not describe this pack as a way to beat Space Age.
+
 ## How a local model uses it
 1. `python skippy-pack/nauvis.py next` prints the next step, its exact command, how to verify it, and whether it exists.
 2. Run the command as a dry run (no `--apply`). Read the JSON. If it is clean, run it with `--apply` (the script saves the game first and says the save name).

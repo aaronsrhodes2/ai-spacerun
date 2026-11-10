@@ -2,6 +2,10 @@
 
 Asked 2026-11-09 by the Captain. Framework only, nothing executed: see `skippy-pack/` (manifest.json, milestones.json, nauvis.py, skills/).
 
+## Scope note (the Captain, 2026-11-09)
+This only solves friendly build mode (free placement once researched, direct enemy removal, no building costs, no hand crafting). A normal Space Age win is a different and harder problem: paid-for building, real defence and evolution, pollution, a mall for every part,
+and hostile planets. The pack should never be described as solving that. If you later want a normal-mode track, it needs its own scripts: a mall and bot build queue instead of `place_entities`, turret and wall generators, and a threat model.
+
 ## Is it possible?
 Yes for most of it, with one design rule: the model never writes geometry. It picks a step from a runbook, a patch from a registry, runs a script as a dry run, reads a small JSON verdict, applies, verifies, and records. Every script already saves the game and defaults to a dry run.
 That is what makes it feasible for a local model: prompts are "which script next and with what arguments", not "design a smelter". Where a script is missing the runbook says `gap` and the agent stops and asks.
