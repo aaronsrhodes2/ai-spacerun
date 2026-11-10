@@ -364,3 +364,8 @@ The 6 copper drills at y=-91.5 are blocked: they drop on the old coal belt y=-90
 - Foundations kept as the rocket cargo (the Captain, 2026-11-09). Foundation = 20 steel plate + 20 copper cable, 10 s. Built (build_cells.py kinds steel, foundation) at x -202..-172, y -198..-162:
   24 more steel furnaces (two columns of 12) and 4 foundation assembler 3 (0.5/s at most), substations in the gaps, roboport at (-190,-203). Steel is the limit: each foundation is 20 steel,
   a full rocket is 50 foundations (1,000 steel), and steel was 3.2/s. Expect steel about 6/s once the new furnaces fill, so roughly 0.15 to 0.2 foundations/s, about one rocket's worth every 4 to 6 minutes.
+
+## Paving (2026-11-09, the Captain: "pave the way so we aren't walking on dirt")
+- `scripts/pave.py` (save: before-paving): refined concrete over every chunk with 25+ player entities plus one-chunk gaps between them, 198 chunks, 193,856 tiles in about 10 s.
+  Skipped: water, tiles already concrete or stone path, and tiles with ore on them (drills keep working). Outposts (fewer than 25 entities per chunk) and the paths between zones are not paved:
+  use `--min 10` for more, or `--tile concrete`. Tiles are placed free, like entities.
