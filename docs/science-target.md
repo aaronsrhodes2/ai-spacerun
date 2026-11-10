@@ -73,6 +73,9 @@ What still stands between this base and 1 per second of each:
   (33 in all, a 330 MW ceiling). Turbines (93) and water were never the limit. Two reactors also had their spent-cell slot full. That plant is left as it is.
 - **Nuclear Units 1 to 8** (`scripts/build_nuclear_unit.py`, block (-694,-306)-(-522,-192) north-west of the lake, map tags "Nuclear Unit N", pumps at "Nuclear Water Intake"): each unit is 4 reactors in a square
   (bonus 2, 120 MW each), 48 exchangers, 96 turbines: 480 MW in 82 by 26 tiles. Eight units are 32 reactors, 3.84 GW. Fuel comes by drone (group "Feed: Uranium Fuel Cell", 10 cells per reactor), spent cells go to red chests.
+- 2026-11-10, on the Captain's order "rebuild them to the new design": Nuclear Units 9 and 10 stand west of the block at (-782,-250)-(-694,-192), and the old plant's 9 reactors, 108 heat pipes, 33 exchangers, 87 turbines
+  and 9 steam tanks are removed (58 fuel cells and 237 spent cells from the reactors went into Unit 9's red chest). Ten units, 40 reactors, 4.8 GW, five offshore pumps. Left at the old site: its water pipes and pumps,
+  the fuel chests and inserters, the three fuel cell assemblers and the centrifuges.
 - Uranium budget (one-hour averages): U-238 73.6 made and 52.9 used per minute, so about 20 per minute spare; 32 reactors burn 9.6 cells (18 U-238) per minute. The stock was 7,200 cells and 54,838 U-238. That is why the count stops at eight.
 - Not proven: the far exchangers at full load. With demand near 0.5 GW the units idle; during warm-up the trunk lost about 150 degrees over its 35 tiles. If a far exchanger drops below 500 degrees under real load, shorten the wings.
 - Reactors burn fuel whether or not power is wanted. A circuit rule (insert fuel only when steam is low) would save uranium; not built.
