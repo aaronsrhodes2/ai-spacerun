@@ -43,13 +43,14 @@ KINDS = {
     "engine": {"machine": "assembling-machine-3", "recipe": "engine-unit", "bar": 3,
                "req": [("steel-plate", 40), ("iron-gear-wheel", 40), ("pipe", 80)]},
     "gear": {"machine": "assembling-machine-3", "recipe": "iron-gear-wheel", "bar": 6, "req": [("iron-plate", 400)]},
+    "pipe": {"machine": "assembling-machine-3", "recipe": "pipe", "bar": 3, "req": [("iron-plate", 400)]},
 }
 # logistic group for the requests of each kind (docs/naming-sop.md)
 GROUPS = {"steel": "Feed: Steel", "cable": "Feed: Copper Cable", "ec": "Feed: Electronic Circuit", "ac": "Feed: Advanced Circuit",
           "foundation": "Feed: Platform Foundation", "lds": "Feed: Low Density Structure", "utility": "Feed: Utility Science Pack",
           "production": "Feed: Production Science Pack", "frame": "Feed: Robot Frame (science cell)", "efurnace": "Feed: Electric Furnace",
           "prodmod": "Feed: Productivity Module", "rail": "Feed: Rail (science cell)", "stick": "Feed: Iron Stick", "brick": "Feed: Stone Brick",
-          "engine": "Feed: Engine (science cell)", "gear": "Feed: Iron Gear Wheel"}
+          "engine": "Feed: Engine (science cell)", "gear": "Feed: Iron Gear Wheel", "pipe": "Feed: Pipe"}
 
 
 def plan(kind, x0, y0, n):

@@ -80,6 +80,28 @@ What still stands between this base and 1 per second of each:
 - Not proven: the far exchangers at full load. With demand near 0.5 GW the units idle; during warm-up the trunk lost about 150 degrees over its 35 tiles. If a far exchanger drops below 500 degrees under real load, shorten the wings.
 - Reactors burn fuel whether or not power is wanted. A circuit rule (insert fuel only when steam is low) would save uranium; not built.
 
+## Ramp-up (2026-11-10, order "continue to ramp up production")
+Built or changed:
+- Labs: the utility lane of the lab belt fixed, and four direct feeds (requester chest and bulk inserter into a lab; map tag "Lab Feed", group "Lab Feed: Science Packs", six packs). Labs working went from 6 to 14 of 50 up to 45 of 50.
+- Iron: the collectors at Iron A and the west iron outpost filled one belt lane only; every second feeder now goes under the collector by underground belt and loads the other lane. Furnace rows went from about half to all working.
+- "Science Cell 1: Pipe" at (-94,-177) for the engine cells (kind `pipe` in `scripts/build_cells.py`).
+- Coal A, a drone outpost at (-639,-340): 106 drills, 16 red chests (`scripts/build_drone_mine.py`). "Plastic Coal Feed" requesters at (-207.5,-245.5 to -247.5), group "Belt Feed: Coal".
+- Electronic circuit cells: iron request raised from 100 to 600 (the flight is about 500 tiles). Circuits made went from 1,058 to 3,436 per minute.
+- "Chemical Belt Plastic Overflow" at (-345,-62): three filtered inserters lift surplus plastic and engines off the old chemical belt into red chests, so advanced circuits get on it again. Chemical packs went from 0 to 32 per minute.
+
+Measured after (per minute, made / used): iron plate 6,660 / 6,689; copper plate 3,861 / 3,624; steel 518 / 522; coal 1,666 / 567; plastic 1,125 / 717; electronic circuit 3,436 / 1,692; advanced circuit 225 / 198; processing unit 50 / 35.
+Packs made: automation 89, logistic 40, military 0, chemical 32, production 0, utility 50, space 0. The labs now use about 200 of each per minute, so research runs on the stores:
+automation 47,976, logistic 47,980, military 35,390, chemical 42,350, production 12,376, space 61,329, and utility only 1,578 (about ten minutes of stock above what is made).
+
+Still limiting:
+1. Utility packs: 50 made against 200 wanted, and the store is nearly gone. Research will fall back to the utility rate (about a quarter) unless more utility cells are built. Next build.
+2. Iron plate: everything made is used (6,660 per minute, 111 per second). The iron lane of the bus is empty at the grenade machines (99.5 to 105.5,-122.5), so military packs are not made. More iron outposts come first.
+3. Advanced circuits: 225 per minute and the network is in deficit; 5 of 8 chemical machines still wait for them.
+4. The pack machines themselves are sized for about 1.5 per second at best; the labs can now use 3.3 per second.
+5. Five labs in the middle of the east block still lack automation packs (no free tile for a direct feed).
+6. The overflow chests on the chemical belt can fill (1,403, 1,255 and 481 items so far); the belt blocks again if they do.
+7. The one-lane collector fix is not in `fx.py mine`, at Coal A or at the copper outposts. Four lattice roboports were removed at Coal A and the grid script has not been re-run there.
+
 ## Order
 1. Make the existing base a true 1 per second cell: utility 1 to 4 machines, production 2 to 6, iron supply from 46 to 112 per second (two more iron outposts), then measure all seven at 1.0.
 2. Write the cell as one script (inputs: a cleared box, a rail stop for iron, copper, stone, a pipe or train for plastic or gas) and build cell 2 with it next to its own ore.

@@ -181,6 +181,20 @@ Verified on the live server unless marked otherwise.
 - Drone-fed cells far from their supply cost power: roboports drew 236 MW of a 265 MW grid (2026-11-09). Read the roboport line of the electric statistics before adding drone-fed load, and put cells next to their yard.
 - A requester chest pulls from every red provider in the network, including the lab-side and station chests, so a requester feeding a belt that ends in a provider chest makes a loop. Feed the last belt directly.
 - Underground belt pairing has no `neighbours` key in 2.1; walk upstream along the direction to find the input end.
+- **Belt lanes (2026-11-10).** An inserter drops on the far lane of the belt in front of it; a belt that side-loads onto another fills only the lane on the side it comes from. One express lane is 22.5 per second.
+  `fx.py mine` side-loads every drill column onto the collector from the same side, so the collector carries one lane (22.5/s, not 45/s). Fix on an existing outpost: every second feeder goes under the collector by underground belt
+  and side-loads from the other side (done at Iron A and the west iron outpost; furnace rows went from about half to all working). Not yet fixed in `fx.py mine` itself, at Coal A or at the copper outposts.
+- The y axis points south: smaller y is north, and a belt with direction 0 flows toward smaller y.
+- `get_transport_line` only exists on belt-type entities; on a lab it raises "Entity is not transport-belt-connectable". Check `e.type` first.
+- Requests of a chest can also be read as `c.get_logistic_point(defines.logistic_member_index.logistic_container).filters` (name, count).
+- **Raw ore by drone:** `scripts/build_drone_mine.py --area X1 Y1 X2 Y2 --resource coal --out E --name "Coal A" [--chests 16] [--apply]` lays the `fx.py mine` pattern and ends the collector in a spur with a bulk inserter and a red chest
+  on each side of every tile. The whole map is one robot network ("Nauvis Main"), so a requester chest anywhere can ask for the ore. Meant for cargo used raw (coal, stone). First use: Coal A at (-639,-340).
+- **Labs fed lab to lab starve at the far end** when two packs share one entry inserter (automation and military through one fast inserter at (7.5,33.5)). A requester chest and bulk inserter straight into a lab at the far end
+  of the chain fixes it without touching the chain (map tag "Lab Feed", group "Lab Feed: Science Packs": chests at y 53.5 and at (8.5,46.5) ask for six packs). The tile south of the first lab column is water.
+  Result: 45 of 50 labs working, up from 6 to 14. An inserter feeding a lab that needs nothing shows status 36, which is not a fault.
+- **Size a drone request for the flight time.** A request of 100 iron plates starved the circuit cells because the iron chests are about 500 tiles away; 600 fixed it. A slot changed in one chest of a group changes the whole group.
+- **A mixed belt blocks when one cargo has no taker.** The chemical belt (y -62.5 and -63.5 at x -345) filled with plastic and engines, so advanced circuits could not get on. A filtered bulk inserter into a red chest at the end
+  of each lane (map tag "Chemical Belt Plastic Overflow") lets the surplus leave by drone. It blocks again if those chests fill.
 
 ## Not built yet
 When one of these gets built, move it to the tools table and note what was tested.
