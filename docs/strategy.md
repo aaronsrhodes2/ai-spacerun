@@ -377,3 +377,9 @@ The 6 copper drills at y=-91.5 are blocked: they drop on the old coal belt y=-90
 - Storage: each foundation assembler's output now runs through two more bulk inserter + red provider chest stages (x -174.5..-171.5), so each holds up to three chests of 4,800 foundations (14,400, 57,600 in all) and offers them to the network.
   Red chests only, no yellow storage chests (see the chest rules).
 - Iron for steel (5 plates per steel, about 30/s at full rate) comes from the network stock (277k) and the outposts; the outposts stand paused until the accumulators recover (power staging).
+
+## Blue circuits (processing units) scale-up (2026-11-09)
+- Finding: 4 PU assemblers made 0.42 PU/s against 1.19/s used; they were short of electronic circuits (5 EC assemblers, 12.5/s at best, 11.4/s made, stock -7). Power was fine.
+- Built: PU block extended by 8 assemblers (`build_pu_block.py --extend 8`, same acid row, x -196.5..-168.5, y -117.5; now 12 PU, 1.5/s possible), and a circuit block at x -136..-104, y -190..-139 (`build_cells.py`): 16 cable, 10 electronic circuit, 10 advanced circuit assembler 3
+  (EC 15 machines 37/s, AC 15 machines 3.1/s, cable 24 machines 120/s in all), substations and four roboports. Saves: before-pu-extend. All chests on the network, no power faults at build time.
+- A full 12 PU needs 30 EC/s, 3 AC/s, 7.5 acid/s and about 55 copper plate/s and 40 iron/s overall; the drones are filling the new requester chests first (36 assemblers were waiting for deliveries minutes after placement).

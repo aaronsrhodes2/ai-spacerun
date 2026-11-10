@@ -19,13 +19,16 @@ TAP_X = -215.5
 TAP_FROM = -121.5
 
 
+EXTEND = False
+
+
 def plan():
     ents = []
-    x = TAP_X
+    x = CXS[0] - 2 if EXTEND else TAP_X
     while x <= CXS[-1] + 1:
         ents.append({"name": "pipe", "x": x, "y": PIPE_Y})
         x += 1
-    y = TAP_FROM + 1
+    y = TAP_FROM + 1 if not EXTEND else PIPE_Y
     while y < PIPE_Y:
         ents.append({"name": "pipe", "x": TAP_X, "y": y})
         y += 1
@@ -37,16 +40,22 @@ def plan():
             {"name": "bulk-inserter", "x": cx + 1, "y": CY + 2, "direction": 0},
             {"name": "passive-provider-chest", "x": cx + 1, "y": CY + 3},
         ]
-    ents.append({"name": "substation", "x": -197, "y": -116})
+    if EXTEND:
+        for cx in CXS[1::2]:
+            ents.append({"name": "substation", "x": cx - 2, "y": CY + 5})
+    else:
+        ents.append({"name": "substation", "x": -197, "y": -116})
     return ents
 
 
 def clear_box():
+    x1 = (CXS[0] - 3) if EXTEND else -217
+    x2 = CXS[-1] + 6 if EXTEND else -195
     return fx.lua(
-        "local s=game.surfaces.nauvis local f=game.forces.player local A={{-217,-122},{-195,-112}} local t,g=0,{} "
+        "local s=game.surfaces.nauvis local f=game.forces.player local A={{%d,-121},{%d,-111}} local t,g=0,{} "
         "for _,e in pairs(s.find_entities_filtered{area=A,type={'tree','cliff','simple-entity','item-entity','corpse','fish'}}) do if e.force.name~='player' then e.destroy() t=t+1 end end "
         "for _,e in pairs(s.find_entities_filtered{area=A,force=f}) do local n=e.name if n=='substation' or n=='roboport' or n=='solar-panel' or n=='accumulator' or n=='medium-electric-pole' or n=='small-electric-pole' then g[n]=(g[n] or 0)+1 e.destroy() end end "
-        "local o={} for k,v in pairs(g) do o[#o+1]=k..'='..v end rcon.print('cleared '..t..' natural pieces, removed '..table.concat(o,', '))")
+        "local o={} for k,v in pairs(g) do o[#o+1]=k..'='..v end rcon.print('cleared '..t..' natural pieces, removed '..table.concat(o,', '))" % (x1, x2))
 
 
 def configure():
@@ -61,9 +70,14 @@ def configure():
 
 
 def main():
+    global CXS, EXTEND
     ap = argparse.ArgumentParser()
     ap.add_argument("--apply", action="store_true")
+    ap.add_argument("--extend", type=int, default=0, help="add this many more assemblers east of the existing four (same acid row)")
     a = ap.parse_args()
+    if a.extend:
+        EXTEND = True
+        CXS = [-196.5 + 4 * k for k in range(a.extend)]
     ents = plan()
     if not a.apply:
         res = json.loads(tools["place_entities"](json.dumps(ents), dry_run=True))
