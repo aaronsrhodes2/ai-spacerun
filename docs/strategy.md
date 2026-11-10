@@ -335,3 +335,5 @@ The 6 copper drills at y=-91.5 are blocked: they drop on the old coal belt y=-90
 - Why storage chests exist at all: items a player trashes are carried by robots to the nearest storage chest. A small trash yard of 4 empty storage chests,
   with no inserter or machine near them, is at (-273.5..-270.5, -105.5). Add more yards near wherever the player works, never beside a machine.
 - Rule: never convert working chests to storage chests; only the trash yards are storage chests.
+- Five more trash yards (4 empty storage chests each, row along +x): (44.5,-143.5) bus head, (2.5,15.5) science block, (-341.5,-33.5) old base west,
+  (-241.5,-211.5) oil/pad area, (-33.5,-37.5) middle. Plus the first at (-273.5,-105.5).
