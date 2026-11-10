@@ -118,10 +118,14 @@ def main():
                                belt=EXPRESS, pole="medium-electric-pole", min_tiles=6, allow_mixed=False, plan_only=True, apply=False)
     mine_ents, meta = fx.cmd_mine(ns)
     out, last, cv = meta["out"], meta["last"], meta["cv"]
-    sm, info = layout(out, last, cv, a.furnaces)
+    if a.furnaces > 0:
+        sm, info = layout(out, last, cv, a.furnaces)
+    else:                                               # raw ore: the collector's exit belt (v = cv .. cv+3) runs straight to the station
+        sm, info = [], {"v_m": cv + 3, "last": last, "v0": cv + 4}
     shift = 0
+    side = -1 if out in "NE" else 1                     # the stop stands on the right-hand side of the arriving train, so the rail goes on that side of the belt
     for sh in (0, 1):                                   # a one-tile jog in the belt just before the station if the rail would land on an even line
-        st, sinfo = station(out, last + sh, info["v_m"] + 5, -1)
+        st, sinfo = station(out, last + sh, info["v_m"] + 5, side)
         rx, ry = fx._to_world(out, sinfo["rail_u"], sinfo["v_stop"])
         across = rx if out in "NS" else ry
         if round(across) % 2 == 1:
@@ -135,7 +139,7 @@ def main():
         conn.append({"name": EXPRESS, "x": wx, "y": wy, "direction": fx.OUT_DIR[out]})
         v += 1
     wx, wy = fx._to_world(out, last, info["v_m"] + 3)
-    conn.append({"name": EXPRESS, "x": wx, "y": wy, "direction": fx.OUT_DIR[out] if not shift else fx._dir_of(out, 1, 0)})
+    conn.append({"name": EXPRESS, "x": wx, "y": wy, "direction": fx.OUT_DIR[out] if not shift else fx._dir_of(out, side, 0) if side == 1 else fx._dir_of(out, 1, 0)})
     if shift:
         wx, wy = fx._to_world(out, last2, info["v_m"] + 3)
         conn.append({"name": EXPRESS, "x": wx, "y": wy, "direction": fx.OUT_DIR[out]})

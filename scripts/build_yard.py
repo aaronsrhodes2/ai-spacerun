@@ -75,8 +75,9 @@ def clear_yard(apply):
         print(fx.lua("local s=game.surfaces.nauvis local n=0 for _,e in pairs(s.find_entities_filtered{area={{196,%d},{254,%d}}}) do if e.force.name~='player' and (e.type=='tree' or e.type=='simple-entity' or e.type=='cliff') then e.destroy() n=n+1 elseif e.force.name=='player' and (e.name=='solar-panel' or e.name=='accumulator' or e.name=='roboport' or e.name=='substation') then e.destroy() n=n+1 end end rcon.print('yard ground cleared '..n)" % (YARD_Y - 4, YARD_Y + 8)))
 
 
-def stub(apply, spec=(329, 114, 70)):
-    return lay((spec[0], spec[1], 0), 0, spec[2], apply, "outpost stub")
+def stub(apply, spec=(329, 114, 70), heading="N"):
+    d = {"N": 0, "S": 8}[heading]
+    return lay((spec[0], spec[1], d), d, spec[2], apply, "outpost stub")
 
 
 if __name__ == "__main__":
@@ -87,6 +88,7 @@ if __name__ == "__main__":
     ap.add_argument("--lane", type=float, help="bus lane x (tile centre), default 198.5")
     ap.add_argument("--name", help="unload stop name")
     ap.add_argument("--stub", nargs=3, type=int, help="x y_dead_end y_target for the outpost stub")
+    ap.add_argument("--dir", default="N", choices=["N", "S"], help="stub heading away from the dead end")
     a = ap.parse_args()
     if a.y is not None:
         YARD_Y = a.y
@@ -98,6 +100,6 @@ if __name__ == "__main__":
     if a.apply:
         print(tools["save_game"]("before-" + a.what))
     if a.what == "stub":
-        stub(a.apply, tuple(a.stub) if a.stub else (329, 114, 70))
+        stub(a.apply, tuple(a.stub) if a.stub else (329, 114, 70), a.dir)
     else:
         yard(a.apply)
