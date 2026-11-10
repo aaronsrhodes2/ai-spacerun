@@ -74,3 +74,7 @@ Short belts inside a compact factory area stay belts; any belt that carries good
 - Gotcha: dropping 11,000 uncharged robots into new roboports made demand spike to about 200 MW for a minute (machines went low_power until they were charged). Next time add robots in batches.
 - Gotcha: `build_roboport_grid.py --revealed` makes the revealed map grow (roboports chart their surroundings), so each run finds new cells. Run it only on purpose.
 - Next: pack delivery to the labs by drone (the pilot), plastic/sulfur from the oil site, stone and brick, more outposts (iron (-723,-317), copper (317,233), (732,97), (-902,-345)).
+
+## Update 2026-11-09: tooling built
+`fx.py logistics survey|convert|retire` now exist (scripts/logistics.py, see the factorio skill). Tried once: the rail assembler pair converted cleanly (4 requesters, 2 providers, provider chests filled with rails), but their stone and
+iron-stick inputs have no provider in the network, so they wait. Not yet tested: retire with --apply, undergrounds and splitters (skipped by convert), whole-chunk conversions.
