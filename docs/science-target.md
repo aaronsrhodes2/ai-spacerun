@@ -66,6 +66,17 @@ What still stands between this base and 1 per second of each:
 3. Steel about 13/s of furnace capacity now (16 cell furnaces plus the old ones) but starved of iron; bricks 6 furnaces; plastic 10 plants, 9 working, 406 to 650/min against about 1,000 needed.
 4. The old belt-fed chemical line lacks advanced circuits and the military line lacks grenades; hidden today by their stores.
 
+## Power (2026-11-09, later): no longer the limit
+- **Solar Field South**: `scripts/build_solar_field.py` put 4,198 panels in (-128,128)-(96,320) and 3,336 accumulators in (96,128)-(320,192). Totals 7,875 panels (about 472 MW at noon) and about 8,030 accumulators.
+  Just before dawn the accumulators stood at 100 percent with no machine on low power.
+- **Why the Captain's nuclear plant gave so little:** its 9 reactors stand in threes, 6 tiles apart and one tile out of line, so not one has a neighbour bonus (40 MW each, 360 MW in all), and each trio has only 11 heat exchangers
+  (33 in all, a 330 MW ceiling). Turbines (93) and water were never the limit. Two reactors also had their spent-cell slot full. That plant is left as it is.
+- **Nuclear Units 1 to 8** (`scripts/build_nuclear_unit.py`, block (-694,-306)-(-522,-192) north-west of the lake, map tags "Nuclear Unit N", pumps at "Nuclear Water Intake"): each unit is 4 reactors in a square
+  (bonus 2, 120 MW each), 48 exchangers, 96 turbines: 480 MW in 82 by 26 tiles. Eight units are 32 reactors, 3.84 GW. Fuel comes by drone (group "Feed: Uranium Fuel Cell", 10 cells per reactor), spent cells go to red chests.
+- Uranium budget (one-hour averages): U-238 73.6 made and 52.9 used per minute, so about 20 per minute spare; 32 reactors burn 9.6 cells (18 U-238) per minute. The stock was 7,200 cells and 54,838 U-238. That is why the count stops at eight.
+- Not proven: the far exchangers at full load. With demand near 0.5 GW the units idle; during warm-up the trunk lost about 150 degrees over its 35 tiles. If a far exchanger drops below 500 degrees under real load, shorten the wings.
+- Reactors burn fuel whether or not power is wanted. A circuit rule (insert fuel only when steam is low) would save uranium; not built.
+
 ## Order
 1. Make the existing base a true 1 per second cell: utility 1 to 4 machines, production 2 to 6, iron supply from 46 to 112 per second (two more iron outposts), then measure all seven at 1.0.
 2. Write the cell as one script (inputs: a cleared box, a rail stop for iron, copper, stone, a pipe or train for plastic or gas) and build cell 2 with it next to its own ore.
