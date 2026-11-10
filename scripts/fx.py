@@ -118,7 +118,6 @@ CATS = {
     "belts": ["transport-belt", "fast-transport-belt", "underground-belt", "fast-underground-belt", "splitter", "fast-splitter"],
     "inserters": ["inserter", "burner-inserter"],
     "chests": ["wooden-chest", "iron-chest"],
-    "storage": ["wooden-chest", "iron-chest", "steel-chest"],
     "machines": ["assembling-machine-1", "assembling-machine-2"],
     "poles": ["small-electric-pole"],
     "furnaces": ["stone-furnace", "steel-furnace"],
@@ -149,7 +148,7 @@ rcon.print(helpers.table_to_json({{mappings=used,upgradable_entities=n}}))
         if a.modules:
             fill_modules(a, area)
         return
-    every = a.all or not any([a.belts, a.inserters, a.chests, a.machines, a.poles, a.furnaces, a.bulk, a.modules, a.storage])
+    every = a.all or not any([a.belts, a.inserters, a.chests, a.machines, a.poles, a.furnaces, a.bulk, a.modules])
     cats = {k: (every and k != "furnaces" or getattr(a, k)) for k in CATS}
     names = [n for k, v in CATS.items() if cats[k] for n in v]
     if a.bulk:
@@ -160,7 +159,6 @@ rcon.print(helpers.table_to_json({{mappings=used,upgradable_entities=n}}))
 local s={surf(a)} local A={a_box(area)} local apply={'true' if a.apply else 'false'} local f=game.forces.player
 local MAP={{['transport-belt']='fast-transport-belt',['fast-transport-belt']='express-transport-belt',['underground-belt']='fast-underground-belt',['fast-underground-belt']='express-underground-belt',['splitter']='fast-splitter',['fast-splitter']='express-splitter',['inserter']='fast-inserter',['burner-inserter']='inserter',['wooden-chest']='iron-chest',['iron-chest']='steel-chest',['assembling-machine-1']='assembling-machine-2',['assembling-machine-2']='assembling-machine-3',['small-electric-pole']='medium-electric-pole',['stone-furnace']='steel-furnace',['steel-furnace']='electric-furnace'}}
 if {str(bool(a.bulk)).lower()} then MAP['fast-inserter']='bulk-inserter' end
-if {str(bool(a.storage)).lower()} then MAP['wooden-chest']='storage-chest' MAP['iron-chest']='storage-chest' MAP['steel-chest']='storage-chest' end
 local function enabled(n) local r=f.recipes[n] return r and r.enabled end
 local function target(n) local t=MAP[n] local best=nil while t and enabled(t) do best=t t=MAP[t] end return best end
 local want={{{",".join("['%s']=1" % n for n in names)}}}
@@ -619,7 +617,7 @@ def main():
         p.add_argument("--" + f, action="store_true")
     p.set_defaults(fn=cmd_clear)
     p = sub.add_parser("upgrade"); common(p)
-    for f in ("belts", "inserters", "chests", "machines", "poles", "furnaces", "bulk", "all", "planner", "storage"):
+    for f in ("belts", "inserters", "chests", "machines", "poles", "furnaces", "bulk", "all", "planner"):
         p.add_argument("--" + f, action="store_true")
     p.add_argument("--module-name", help="exact module item, e.g. speed-module-2")
     p.add_argument("--spawn", action="store_true", help="modules appear from nowhere (Captain's order); without it they are taken from --from-chest / --from-hub")

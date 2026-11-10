@@ -325,3 +325,13 @@ The 6 copper drills at y=-91.5 are blocked: they drop on the old coal belt y=-90
 - Applied with `fx.py upgrade --belts --machines --storage` in x slices: 7,299 fast + 2,604 yellow belts, 516 + 22 undergrounds, 92 splitters now express (all 16 filtered splitters kept their filters); 65 assembler 2 -> 3; 81 steel + 1 iron chest -> storage chests (103 storage chests now, none of wood/iron/steel left). Save: before-express-upgrade.
 - Speed module 2 fill NOT applied: 2,288 empty slots on 858 machines (1,242 in electric mining drills, 434 in furnaces, 260 in assembler 3, 117 chemical plant, 108 assembler 2, 100 labs, 27 refineries) would add about 207 MW of demand (module +60% energy each) against 11 turbines (about 64 MW) plus 3,033 solar panels (about 180 MW at noon, 0 at night) with demand already near 100 MW. Use `fx.py upgrade --modules speed --module-name speed-module-2 --spawn --budget-mw N --apply` once the nuclear plant can carry it.
 - Inserters (2026-11-09): 154 basic and 13 burner inserters -> fast inserters (save before-inserter-upgrade). Now only fast (991), bulk (171, left as they were) and long-handed (158, left as they were) remain. 7 poles added at the far end of the iron outpost smelter where 4 inserters had no power.
+
+## Storage chests reverted to steel (2026-11-09)
+- Mistake: `fx.py upgrade --storage` turned 82 steel/iron chests into storage chests. A storage chest is part of the logistic network, so robots dumped
+  deconstruction leftovers into it and every buffer chest looked like free network stock. The `--storage` option is removed from fx.py.
+- Fix (`scripts/revert_storage_chests.py`, save `before-storage-revert`): all 103 storage chests are steel chests again (fast replace, inserters untouched).
+  A chest with an inserter on it kept its main item (science pack buffers, plate stock, uranium ore and so on); everything else, about 18,400 items
+  (old belts, inserters, machines, wood, plastic, sulfur), was moved into 10 plain steel chests near (-226, -264), outside the network. Nothing was destroyed.
+- Why storage chests exist at all: items a player trashes are carried by robots to the nearest storage chest. A small trash yard of 4 empty storage chests,
+  with no inserter or machine near them, is at (-273.5..-270.5, -105.5). Add more yards near wherever the player works, never beside a machine.
+- Rule: never convert working chests to storage chests; only the trash yards are storage chests.
