@@ -339,3 +339,17 @@ The 6 copper drills at y=-91.5 are blocked: they drop on the old coal belt y=-90
   (-241.5,-211.5) oil/pad area, (-33.5,-37.5) middle. Plus the first at (-273.5,-105.5).
 - Steel chests to red (2026-11-09, the Captain): 77 steel chests became passive provider chests (fast replace, contents and inserters kept). Only the 10 stash chests near (-226,-264) stay steel.
   Provider chests attract no robot dumping (that was the storage chest problem), so their stock (science packs, plates, uranium) is now offered to any requester that asks.
+
+## Rocket silos x4 and drone-fed parts cells (2026-11-09, the Captain: "increase rocket production and launch pads")
+- Finding: silo 1 (-228.5,-227.5) had a finished rocket with empty cargo, waiting to launch; rocket parts were not its limit, cargo was. Part supply
+  (processing unit 0.25/s, low density structure 0.27/s) is below what even one silo draws at full speed (0.33/s each).
+- Built `scripts/build_silos.py`: 3 new silos at (-270.5,-195.5), (-251.5,-195.5), (-232.5,-195.5). Each has 3 fast inserters from 3 requester chests on the
+  north (processing unit, LDS, rocket fuel, 40 each) and 3 bulk inserters from 3 requester chests on the south loading the rocket (first asks for 100 space
+  platform foundations, the other two are empty for the Captain to set). All silos launch automatically (`send_to_orbit_automatically`). Substations at each corner;
+  one roboport at (-223.5,-204.5) covers the third silo. Save: before-silos.
+- Built `scripts/build_cells.py`: requester chest -> bulk inserter -> machine -> bulk inserter -> passive provider chest, stacked 3 tiles apart. 12 steel furnaces at
+  x -238.. (iron plate in, steel out) and 9 LDS assemblers at x -248.. (copper, steel, plastic in), y -178..-142, substations at (-240,-175/-160/-146). Save: before-cells.
+- Power: 4 silos draw about 30 MW each when crafting. The autopilot now pauses the 3 new silos (`disabled_by_script`) when accumulators fall below 30 percent and
+  resumes above 60 percent (`SILO_GUARD`). Demand was 130 MW at dusk against about 64 MW of turbines, so nuclear matters.
+- Still short: processing units (needs electronic circuit, advanced circuit and sulfuric acid; acid plants are the row at y=-238.5, x -235..-215). Utility science pack
+  also competes for PU and LDS, and the labs have had no utility pack since about 16:11 (the pack train is waiting; utility assembler at (25,-113) is starved).

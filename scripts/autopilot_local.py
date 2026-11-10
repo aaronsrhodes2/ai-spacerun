@@ -20,7 +20,8 @@ def main():
             queue = tools["run_lua"](ap.TOPUP.replace("rcon.print", "rcon.print"))
             snap = tools["run_lua"](ap.SNAP)
             fix = tools["run_lua"](ap.REPAIR)
-            ap.log(snap + " | queue " + queue + " | " + fix, LOG)
+            guard = tools["run_lua"](ap.SILO_GUARD)
+            ap.log(snap + " | queue " + queue + " | " + fix + " | " + guard, LOG)
         except Exception as exc:  # noqa: BLE001
             ap.log("error: " + repr(exc), LOG)
         time.sleep(ap.CYCLE)

@@ -75,6 +75,14 @@ REPAIR = (
 )
 
 
+SILO_GUARD = (
+    "local s=game.surfaces.nauvis local f=game.forces.player local a,c=0,0 for _,e in pairs(s.find_entities_filtered{name='accumulator',force=f}) do a=a+e.energy c=c+e.electric_buffer_size end "
+    "local frac=c>0 and a/c or 1 local act=nil local n=0 for _,e in pairs(s.find_entities_filtered{name='rocket-silo',force=f}) do if math.abs(e.position.y+195.5)<1 then n=n+1 "
+    "if frac<0.3 then e.disabled_by_script=true elseif frac>0.6 then e.disabled_by_script=false end act=not e.disabled_by_script end end "
+    "rcon.print(string.format('accumulators %.0f%% new silos %d %s',frac*100,n,act==nil and '-' or (act and 'on' or 'PAUSED')))"
+)
+
+
 def log(msg, LOG=None):
     LOG = LOG or sys.argv[4]
     line = time.strftime("%Y-%m-%d %H:%M:%S ") + msg
@@ -93,7 +101,7 @@ def main():
             queue = c.run(TOPUP)
             snap = c.run(SNAP)
             fix = c.run(REPAIR)
-            log(snap + " | queue " + queue + " | " + fix)
+            log(snap + " | queue " + queue + " | " + fix + " | " + c.run(SILO_GUARD))
         except Exception as exc:  # noqa: BLE001 - keep going whatever happens
             log("error: " + repr(exc))
         time.sleep(CYCLE)
