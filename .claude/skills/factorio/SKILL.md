@@ -218,6 +218,14 @@ Verified on the live server unless marked otherwise.
     and the heat exchanger. Do NOT put a pipe on (23,4) or (24,4): that one carries thruster fuel. The thruster-oxidizer and thruster-fuel plants are red-wired to the water tank at (27.5,2.5) and run only
     while it reads more than 5,000 water, so the reactor's reserve fills first. Checked: the exchanger made steam and all five turbines ran on it. Not checked: a full reserve, since oxide chunks are
     rare in Nauvis orbit and the tanks were at zero. `entity.fluidbox` is gone in 2.1; use `get_fluid_contents()`, `fluids_count` and `get_fluid_segment_id(i)` (same id = same pipe network).
+  - **Two measured legs, 2026-11-10 (`scripts/shuttle_trial.py --to <planet>` flies one leg, rebuilds damage and prints a row every 5 s plus a summary).** Nauvis to Fulgora: 71 s at 210 to 227 km/s,
+    87 tiles and 6 entities rebuilt, 160 magazines made, water +1,780, fuel 40,974 and oxidizer 40,961 burned. Fulgora to Nauvis: 81 s, 698 tiles and 69 entities rebuilt, water +1,761, fuel 32,079
+    and oxidizer 32,069 burned. Asteroids are heavy only in the half of the route near Fulgora; there the front row empties in about 20 s (about 10 magazines a second needed, 1.56 made).
+    A leg burns the propellant of 8,500 to 11,000 water and collects under 2,000, so at full throttle the shuttle is neither safe nor self-sufficient on ice. Read in game: thruster effectivity is
+    0.51 at full flow and 1.0 at minimum flow, so the fix is a speed cap: a circuit-controlled pump on each thruster feed line (the platform has no pumps; the feed pipes are the Captain's, ask first).
+    Mistake to avoid: cutting ammo belt 1 at (8.5,-21.5) to hold stock at the front starved the three west turrets and caused the 698-tile leg. The stock sits downstream of the front row, so the west
+    flank only refills after the front row is full. A belt at (4.5,-22.5) makes the turn at (4.5,-21.5) a side-load. Parked 20 minutes at Fulgora, water rose from 2,274 to 14,443.
+    `entity.neighbours` is gone in 2.1: use `belt_neighbours` and `underground_belt_neighbour`. `entity.active` reads false on belts, pipes and poles; it means nothing there.
   - Before the next flight: every turret armed and the ammo belts full (they hold several hundred magazines); depart only then. Still open: more furnaces per assembler, physical damage research, the reactor loop.
   - An inserter whose drop tile is empty space throws the item overboard. `entity.rotate()` on one underground belt flips the pair. Wires: `a.get_wire_connector(defines.wire_connector_id.circuit_red, true).connect_to(b...)`.
   - An inserter's `direction` is the side it picks up from. `find_entity('inserter', pos)` missed a legendary inserter; use `find_entities_filtered{position=, type=}`. `get_recipe()` on a ghost only for `ghost_type=='assembling-machine'`.
