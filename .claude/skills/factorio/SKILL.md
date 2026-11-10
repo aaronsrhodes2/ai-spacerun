@@ -177,3 +177,10 @@ drop target, electric machines on no network or with no_power, and belt dead end
 type. Exit code 1 on hard problems (belt dead ends are information: lane ends are normal). Tested: it flags a lone
 inserter in empty ground. Burner furnaces are not counted as unpowered.
 Next: standard blocks with declared input/output ports, checked by this verifier at their edges.
+
+## Chest rules (the Captain, 2026-11-09)
+- **Yellow storage chest:** only where no inserter draws from it. It is where robots drop trashed items, so trash yards only. Never convert working chests to it (it pulled in junk and polluted the network on 2026-11-09).
+- **Steel chest:** no drone interaction; a plain local buffer. Anything with an inserter on it that must stay out of the network.
+- **Red passive provider:** the end of a production line; offers its contents to requesters.
+- **Blue requester:** the start of a line; set the request to what the consumer needs (about 60 s of work), never "stock it full".
+- **Buffer chest:** both asks like a requester and offers like a provider (below passive providers in priority). Use only for a local stock of a scarce item that many requesters share; otherwise skip it.
