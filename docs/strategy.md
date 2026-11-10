@@ -361,3 +361,6 @@ The 6 copper drills at y=-91.5 are blocked: they drop on the old coal belt y=-90
   at status rocket_ready. They do not launch on their own: with `send_to_orbit_automatically` a rocket only goes when a platform in orbit asks for its contents, so the shuttle the Captain
   is building is now the limit, not rocket production. Cargo requests are the 100-foundation placeholders; change them on each silo's south requester chests. Gotchas: a cargo inserter's
   drop_target reads "rocket-silo" but the items do go to the rocket (`defines.inventory.rocket_silo_rocket`); `silo.active` is read only, use `disabled_by_script`.
+- Foundations kept as the rocket cargo (the Captain, 2026-11-09). Foundation = 20 steel plate + 20 copper cable, 10 s. Built (build_cells.py kinds steel, foundation) at x -202..-172, y -198..-162:
+  24 more steel furnaces (two columns of 12) and 4 foundation assembler 3 (0.5/s at most), substations in the gaps, roboport at (-190,-203). Steel is the limit: each foundation is 20 steel,
+  a full rocket is 50 foundations (1,000 steel), and steel was 3.2/s. Expect steel about 6/s once the new furnaces fill, so roughly 0.15 to 0.2 foundations/s, about one rocket's worth every 4 to 6 minutes.

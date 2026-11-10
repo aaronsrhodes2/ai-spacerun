@@ -22,6 +22,7 @@ KINDS = {
     "cable": {"machine": "assembling-machine-3", "recipe": "copper-cable", "req": [("copper-plate", 200)]},
     "ec": {"machine": "assembling-machine-3", "recipe": "electronic-circuit", "req": [("copper-cable", 300), ("iron-plate", 100)]},
     "ac": {"machine": "assembling-machine-3", "recipe": "advanced-circuit", "req": [("electronic-circuit", 40), ("plastic-bar", 40), ("copper-cable", 80)]},
+    "foundation": {"machine": "assembling-machine-3", "recipe": "space-platform-foundation", "req": [("steel-plate", 100), ("copper-cable", 100)]},
     "lds": {"machine": "assembling-machine-3", "recipe": "low-density-structure",
             "req": [("copper-plate", 200), ("steel-plate", 20), ("plastic-bar", 50)]},
 }
