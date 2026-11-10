@@ -44,6 +44,11 @@ and collect everything into one great main bus where future production grows.
 - Next, by the plan above: second smelter lines and chest-to-belt/train versions of the two drone outposts, iron outposts (-464,284) shipped by train, new patches (732,97), (-723,-317), (693,488), then stone, coal and oil,
   signals and fuel feeders, and the rest of the bus lanes.
 
+### Correction (2026-11-09, found while building science cell 1): the bus yards never unloaded
+The yards described below had their inserters two tiles from the rail, one tile short of the wagons, so no plate ever left a train there; "loading plates when last checked" was the only check made.
+All four rows (y -121, -133, -145, -157) now have 24 bulk inserters on the tile next to the rail and 24 red provider chests behind them, plus a roboport at (222,-112). Verified by chest contents after train visits.
+The express belts beside the rows and the bus lanes south of them are still there and carry nothing.
+
 ### 2026-11-09 (later): Iron A and Copper B added, each with its own yard track and bus lane
 - Iron A: iron patch (693,488), 138 drills, 72 furnaces (about 45 plates/s, half the ore capacity: a second smelter line would use the rest), load stop "Iron A Load" (717,339), 423-piece track north and west
   to the yard track y=-133, stop "Bus Iron Unload" (203,-135), belt lane x=196.5. Copper B: copper patch (732,97), 102 drills, 72 furnaces, stop "Copper B Load" (749,-45), 271-piece track to the yard track y=-145,

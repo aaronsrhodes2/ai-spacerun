@@ -166,6 +166,19 @@ Verified on the live server unless marked otherwise.
 - Items on a belt: `e.get_transport_line(i).get_contents()` and `.remove_item{}`; `network.insert{}` puts items into network storage, `network.remove_item{}` takes them out (the allowed way to move factory-made fuel).
 - A locomotive with all three fuel slots holding another fuel never accepts the feeder's fuel. Empty the slots when changing the fuel standard.
 
+- 2.1 has no `LuaEntity.fluidbox`. Read fluids with `e.get_fluid_contents()`.
+- Storage tank ports: a tank at (cx,cy) facing north connects at (cx-1,cy-2), (cx-2,cy-1), (cx+1,cy+2), (cx+2,cy+1); facing east at (cx+1,cy-2), (cx+2,cy-1), (cx-1,cy+2), (cx-2,cy+1). The tile straight west of the centre is not a port.
+- A pipeline longer than 320 tiles needs a pump. A horizontal pump at (X, y+0.5), X an integer, covers tiles X-1 and X; direction 12 pumps west. A pipe-to-ground pair can sit 10 tiles apart; `direction` is the side of the open end.
+- An assembling machine 3 with a fluid recipe placed by `place_entities` keeps direction 0; set `e.direction` afterwards so the fluid port faces the pipe.
+- Status numbers seen: 1 working, 18 no ingredients, 30 fluid shortage, 31 item shortage, 32 full output, 38 waiting for space, 60 no power, 61 disabled by circuit. Compare against `defines.entity_status`, do not hard-code.
+- Unloading a wagon: the inserter must stand on the tile next to the rail (rail centre y, inserter y+1.5). One tile further and it never finds the wagon; `inserter.pickup_target` is nil with a train at the stop. Wagon centres for a loco-4 wagons-loco train whose front loco stands 3 tiles past the stop are stop x +10, +17, +24, +31; six inserters per wagon at centre -2.5..+2.5.
+- A build is not verified until the cargo moved: read the chest or belt after a train has called.
+
+- A `place_entities` dry run reports trees as "blocked at this position". `build_cells.py --apply` clears natural pieces first, so a dry-run failure on a machine tile may only be a tree: look at the tile before skipping the site.
+- Drone-fed cells far from their supply cost power: roboports drew 236 MW of a 265 MW grid (2026-11-09). Read the roboport line of the electric statistics before adding drone-fed load, and put cells next to their yard.
+- A requester chest pulls from every red provider in the network, including the lab-side and station chests, so a requester feeding a belt that ends in a provider chest makes a loop. Feed the last belt directly.
+- Underground belt pairing has no `neighbours` key in 2.1; walk upstream along the direction to find the input end.
+
 ## Not built yet
 When one of these gets built, move it to the tools table and note what was tested.
 - **More train lines**: only coal line 1 exists. Next: iron, copper and stone outposts and the `10 patches each` target (the generated map has fewer; chunks must be generated outward first). Needs: a generic outpost generator, signals once two trains share track, a real hub (belts into the existing smelters, or new smelters), and a second coal source before patch 1 runs dry.

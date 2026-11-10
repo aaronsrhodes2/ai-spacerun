@@ -37,6 +37,35 @@ Machines per cell at the rates measured above: 4 automation, 5 logistic, 4 milit
 Labs: 50 labs took about 1.2 packs per second, so 10 per second needs about 400 labs at this speed, or fewer with speed beacons.
 Space: platform-1 can make 4.2 per second; 10 per second needs about 29 machines and the asteroid collection to feed them (measure collectors first, docs/space-factory-plan.md).
 
+## Cell 1 build log (2026-11-09): not at 1 per second yet
+Built (drone-fed cells from `scripts/build_cells.py`, band y -198..-168 north of the base, map tags "Science Cell 1: ..."):
+utility 1 to 5 machines, production 2 to 6, plus robot frames, engines, electric engines, low density structures, rails, sticks, electric furnaces, productivity modules,
+16 steel furnaces, 6 brick furnaces, 2 gear machines, 7 electronic circuit and 11 copper cable machines. `scripts/build_crude_trunk.py`: an underground crude trunk from the Oil A tanks to the refinery (9 refineries now work).
+Found and fixed on the way:
+- The four bus-head yards had never unloaded a plate (inserters one tile short of the wagons). Now bulk inserters next to the rail into red provider chests; Stone A joined to the main electric network.
+- The labs had no utility packs at all: the old utility machine's output chest sits directly on the start of its belt with nothing to move packs across, and no chest asked for them.
+  Two requester chests of mine now feed the lab belt directly at (18.5,28.5) utility and (18.5,35.5) production (tag "Lab Belt Feed"). Research moved again (atomic-bomb 37% to 40% in a few minutes, 20 of 50 labs working).
+
+Last measurement, per minute, taken at dawn with the grid short of power (so these are low readings, not capacity):
+| pack | made | used |
+|---|---|---|
+| automation | 4 | 48 |
+| logistic | 18 | 48 |
+| military | 0 | 50 |
+| chemical | 0 | 52 |
+| production | 36 | 0 |
+| utility | 30 | 53 |
+| space | 0 | 53 |
+
+The first four and space make little because their stores are full (37,000 to 65,000 each); utility is the pack that limits research (0.5/s made against 0.9/s wanted by 20 labs).
+
+What still stands between this base and 1 per second of each:
+1. **Power, first.** Demand is at the limit: six reactors with no neighbour bonus give about 240 MW, solar 0 to 180 MW, and the roboports alone drew 236 MW. 669 machines were on low power and the accumulators at 3% before dawn,
+   so the power guard pauses the outposts and iron falls further. Drone-fed cells 300 tiles from the unload yard are what make the roboports this hungry. A cell must stand next to its own yard (lesson for the cell script).
+2. Iron: 35 to 70 plates/s arriving against 112 needed; the two extra iron outposts are not built.
+3. Steel about 13/s of furnace capacity now (16 cell furnaces plus the old ones) but starved of iron; bricks 6 furnaces; plastic 10 plants, 9 working, 406 to 650/min against about 1,000 needed.
+4. The old belt-fed chemical line lacks advanced circuits and the military line lacks grenades; hidden today by their stores.
+
 ## Order
 1. Make the existing base a true 1 per second cell: utility 1 to 4 machines, production 2 to 6, iron supply from 46 to 112 per second (two more iron outposts), then measure all seven at 1.0.
 2. Write the cell as one script (inputs: a cleared box, a rail stop for iron, copper, stone, a pipe or train for plastic or gas) and build cell 2 with it next to its own ore.
