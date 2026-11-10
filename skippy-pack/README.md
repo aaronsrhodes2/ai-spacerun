@@ -25,6 +25,7 @@ The model never writes Lua or coordinates. Geometry lives in the scripts; the mo
 - A permission or classifier denial is reported, never worked around. No scheduled tasks or services on the Captain's machines.
 - Placed entities and tiles are free but only once researched; machine inputs must be produced by the factory; never write research state (queueing is fine).
 - Chest rules: yellow storage only in trash yards, red at the end of a line, blue at the start, steel inert.
+- Name everything you build (skills/naming.md, docs/naming-sop.md).
 - Never touch the crash site (about (-5,-6)). Never remove what you did not build without asking.
 - Power first: a build that adds load runs behind the power guard (autopilot) and is paused when accumulators run low.
 

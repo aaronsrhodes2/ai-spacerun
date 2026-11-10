@@ -51,3 +51,27 @@ That is what makes it feasible for a local model: prompts are "which script next
 ## First planet after this
 **Vulcanus.** `planet-discovery-vulcanus` is already researched (Gleba and Fulgora too; Aquilo is open). Vulcanus has fixed, unspoiling resources (lava and calcite, tungsten, big ore patches), so it suits scripts and a local agent best, it gives metallurgic science (needed for asteroid reprocessing) and the foundry, and the surface is static between visits.
 Its risks are demolishers (they attack mining outposts, so the first pack needs defence) and heat/power bootstrapping. **Fulgora** second (scrap recycling and electromagnetic science; lightning protection). **Gleba** last for an agent: spoilage and living resources need timing logic that is hard to script safely. Aquilo needs everything else.
+
+## The three-goal plan (the Captain, 2026-11-09): how achievable is it?
+Name of the skill: `factorio-nauvis-plus-white` (friendly build mode only, see the scope note).
+
+| goal | what done looks like | achievable? | main risk |
+|---|---|---|---|
+| 1. Finish Nauvis for maximum science | all seven packs made at the same rate, labs never short, power and fuel never stall, every build named (docs/naming-sop.md) | Yes. It is ordinary work with the tools that exist. Several sessions. | "Maximum" has no end; fix a target (for example 10 of each pack per second) so the goal can be closed. |
+| 2. Skills for purple Skippy | every runbook step has a script, a dry run, a verify check and a rollback; no step marked `gap` | Yes, but it is the largest piece. The gaps are listed above: science-rates, discover, crash-site exclusion, signals, fluid unload, uranium with acid, nuclear builders, the platform builder. | The scripts were written against this one map. Positions, lanes and yard rows are still constants in places and must become registry lookups. |
+| 3. Purple Skippy solves a blank world with the skill | a fresh map on the server reaches white science with only short prompts from the runbook, no help from Claude or the Captain | Partly, and not on the first try. Expect it to pass the early steps and stall where a script meets something the map did differently. | Three things, below. |
+
+### What makes goal 3 hard
+1. **The pack starts in the middle.** Every script assumes a base that already has robots, a rail yard and a bus. A blank map needs a bootstrap chapter (first drills, furnaces, power, red and green science, the first labs) that has never been written, and the research gate means early builds can only use early entities.
+2. **A local model has to read a verdict and choose correctly every time.** One wrong choice in a run of a few hundred steps ends the run. The design rule (the model never writes geometry, only picks a step and reads a small JSON result) is what makes this possible at all; the verify and rollback checks must be strict enough that a wrong step is caught and undone by the script, not by the model.
+3. **Time.** Research takes game hours whatever the agent does. A test run is days of server time unless the game speed is raised, and the VM costs money while it runs.
+
+### How to run the test (goal 3), when goals 1 and 2 are far enough
+- A second Factorio container on skippy-games with its own save, port and RCON port (SkippyTel `games/docker-compose.yml`), so the Captain's world is never touched. No cloud session; purple Skippy runs on skippy-pc and talks to it over the same tunnel with a different port.
+- Stage A (cheap, do this first): give purple Skippy a **copy of the current save** and ask for one step at a time ("add a copper outpost"). This tests the skill and the model without the bootstrap problem.
+- Stage B: a blank map with the bootstrap chapter, game speed raised, a step budget and a log of every prompt, command and verdict. Score: how far down the runbook it gets before the first human correction.
+- Stage C: repeat on a second seed. One success on one seed proves little.
+- Needs the Captain's yes: the second container (disk on the VM is tight), the running cost, and registering purple Skippy with the allowlist (only the manifest's `run` lines).
+
+### Order
+Goal 1 and goal 2 feed each other: each thing done by hand for goal 1 is written as a script for goal 2 at the same time, then goal 3 stage A can start before goal 1 is finished.

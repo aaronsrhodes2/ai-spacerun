@@ -107,7 +107,7 @@ def patch_stage(build):
     stop = find_stop(PATCH_RAIL[0], PATCH_RAIL[1], "S", build)
     print("patch stop at", stop["x"], stop["y"])
     if build:
-        lua(f"for _, e in pairs(game.surfaces.nauvis.find_entities_filtered{{name='train-stop', position={{{stop['x']}, {stop['y']}}}, radius=1.5}}) do e.backer_name = 'Coal2 Patch' end rcon.print('named')")
+        lua(f"for _, e in pairs(game.surfaces.nauvis.find_entities_filtered{{name='train-stop', position={{{stop['x']}, {stop['y']}}}, radius=1.5}}) do e.backer_name = 'Coal Depot Load' end rcon.print('named')")
 
 
 def hub_stage(build):
@@ -135,7 +135,7 @@ def hub_stage(build):
     stop = find_stop(HUB_RAIL[0], HUB_RAIL[1], "N", build)
     print("hub stop at", stop["x"], stop["y"])
     if build:
-        lua(f"for _, e in pairs(game.surfaces.nauvis.find_entities_filtered{{name='train-stop', position={{{stop['x']}, {stop['y']}}}, radius=1.5}}) do e.backer_name = 'Coal2 Hub' end rcon.print('named')")
+        lua(f"for _, e in pairs(game.surfaces.nauvis.find_entities_filtered{{name='train-stop', position={{{stop['x']}, {stop['y']}}}, radius=1.5}}) do e.backer_name = 'Coal Depot Unload' end rcon.print('named')")
 
 
 def train_stage(build):
@@ -153,8 +153,8 @@ def train_stage(build):
         for _, l in pairs(locos) do l.get_fuel_inventory().insert{name='coal', count=10} end
         local t = locos[1].train
         t.schedule = {current = 1, records = {
-          {station = 'Coal2 Patch', wait_conditions = {{type = 'full', compare_type = 'and'}}},
-          {station = 'Coal2 Hub', wait_conditions = {{type = 'empty', compare_type = 'or'}, {type = 'inactivity', compare_type = 'or', ticks = 600}}}}}
+          {station = 'Coal Depot Load', wait_conditions = {{type = 'full', compare_type = 'and'}}},
+          {station = 'Coal Depot Unload', wait_conditions = {{type = 'empty', compare_type = 'or'}, {type = 'inactivity', compare_type = 'or', ticks = 600}}}}}
         t.manual_mode = false
         rcon.print(#t.carriages .. ' carriages, ' .. #locos .. ' locomotives')
     """))

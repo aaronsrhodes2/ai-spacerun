@@ -21,7 +21,7 @@ WAGONS = (212, 219, 226, 233)            # wagon centres for a westbound train w
 YARD_Y = -121
 BELT_Y = -117.5
 LANE_X = 198.5
-STOP_NAME = "Bus Copper Unload"
+STOP_NAME = "Copper A Unload"
 
 
 def lay(start, heading_d, target, apply, name):

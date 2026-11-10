@@ -159,6 +159,13 @@ Verified on the live server unless marked otherwise.
 - **Hard prerequisites can be red-only.** `modular-armor` needs `heavy-armor`, `weapon-shooting-speed-2` needs `weapon-shooting-speed-1`: both red-only, and six red+green techs stalled behind them. When a goal list stops advancing, check `missing_prereq` of what's pending.
 - Big poles reach 32 tiles but a big-to-small link is limited to the small pole's 7.5; medium poles reach 9 (so 9.06 fails). Use `find_non_colliding_position` for poles in unknown terrain.
 
+- Names (docs/naming-sop.md is the rule): `LuaLogisticNetwork.custom_name`, `force.platforms[i].name`, `train.group` and `stop.backer_name` are writable. Renaming a stop does not rewrite schedules. Writing `train.schedule` drops the train's group; set the group after.
+- Chest requests: `e.get_logistic_point(defines.logistic_member_index.logistic_container).sections`; `sec.group = 'name'` (a new name keeps the filters, an existing name takes the group's), `sec.set_slot(i,{value={type='item',name=..,quality='normal'},min=N})`. A circuit-driven section throws; check `sec.is_manual`.
+- Circuit wires: `a.get_wire_connector(defines.wire_connector_id.circuit_red,true).connect_to(b.get_wire_connector(defines.wire_connector_id.circuit_red,true))`; condition through `get_or_create_control_behavior()` (`circuit_enable_disable`, `circuit_condition`).
+- No `LuaEntity.fluidbox` in 2.1: use `get_fluid_contents()`. Storage tank ports: direction 4 tank at (cx,cy) connects at (cx+1,cy-2), (cx+2,cy-1), (cx-1,cy+2), (cx-2,cy+1); direction 0 at (cx-1,cy-2), (cx-2,cy-1), (cx+1,cy+2), (cx+2,cy+1).
+- Items on a belt: `e.get_transport_line(i).get_contents()` and `.remove_item{}`; `network.insert{}` puts items into network storage, `network.remove_item{}` takes them out (the allowed way to move factory-made fuel).
+- A locomotive with all three fuel slots holding another fuel never accepts the feeder's fuel. Empty the slots when changing the fuel standard.
+
 ## Not built yet
 When one of these gets built, move it to the tools table and note what was tested.
 - **More train lines**: only coal line 1 exists. Next: iron, copper and stone outposts and the `10 patches each` target (the generated map has fewer; chunks must be generated outward first). Needs: a generic outpost generator, signals once two trains share track, a real hub (belts into the existing smelters, or new smelters), and a second coal source before patch 1 runs dry.
