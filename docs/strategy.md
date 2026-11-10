@@ -337,3 +337,5 @@ The 6 copper drills at y=-91.5 are blocked: they drop on the old coal belt y=-90
 - Rule: never convert working chests to storage chests; only the trash yards are storage chests.
 - Five more trash yards (4 empty storage chests each, row along +x): (44.5,-143.5) bus head, (2.5,15.5) science block, (-341.5,-33.5) old base west,
   (-241.5,-211.5) oil/pad area, (-33.5,-37.5) middle. Plus the first at (-273.5,-105.5).
+- Steel chests to red (2026-11-09, the Captain): 77 steel chests became passive provider chests (fast replace, contents and inserters kept). Only the 10 stash chests near (-226,-264) stay steel.
+  Provider chests attract no robot dumping (that was the storage chest problem), so their stock (science packs, plates, uranium) is now offered to any requester that asks.
