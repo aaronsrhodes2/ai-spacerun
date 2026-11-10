@@ -76,9 +76,10 @@ REPAIR = (
 
 
 SILO_GUARD = (
-    "local s=game.surfaces.nauvis local f=game.forces.player local a,c=0,0 for _,e in pairs(s.find_entities_filtered{name='accumulator',force=f}) do a=a+e.energy c=c+e.electric_buffer_size end "
+    "local OUTPOSTS={{{296,71},{341,252}}} local s=game.surfaces.nauvis local f=game.forces.player local a,c=0,0 for _,e in pairs(s.find_entities_filtered{name='accumulator',force=f}) do a=a+e.energy c=c+e.electric_buffer_size end "
     "local frac=c>0 and a/c or 1 local act=nil local n=0 for _,e in pairs(s.find_entities_filtered{name='rocket-silo',force=f}) do if math.abs(e.position.y+195.5)<1 then n=n+1 "
     "if frac<0.3 then e.disabled_by_script=true elseif frac>0.6 then e.disabled_by_script=false end act=not e.disabled_by_script end end "
+    "for _,b in pairs(OUTPOSTS) do for _,e in pairs(s.find_entities_filtered{area=b,force=f,type={'furnace','mining-drill'}}) do if frac<0.2 then e.disabled_by_script=true elseif frac>0.5 then e.disabled_by_script=false end end end "
     "rcon.print(string.format('accumulators %.0f%% new silos %d %s',frac*100,n,act==nil and '-' or (act and 'on' or 'PAUSED')))"
 )
 

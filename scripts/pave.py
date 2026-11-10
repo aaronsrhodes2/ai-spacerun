@@ -5,7 +5,7 @@ A chunk (32x32) is paved when it holds at least --min player entities, or when i
 Within a paved chunk every walkable land tile is replaced except: tiles already concrete, refined concrete or stone path, water, and tiles
 with an ore/resource entity on them (drills keep working, and the patch stays visible). Tiles are placed free, like entities.
 
-Usage: scripts/pave.py [--min 25] [--tile refined-concrete] [--apply]
+Usage: scripts/pave.py [--min 25] [--box X1 Y1 X2 Y2] [--tile refined-concrete] [--apply]
 """
 import argparse
 import json
@@ -29,9 +29,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--min", type=int, default=25)
     ap.add_argument("--tile", default="refined-concrete")
+    ap.add_argument("--box", nargs=4, type=int, help="pave exactly the chunks that touch this tile box x1 y1 x2 y2 (instead of the busy-chunk rule)")
     ap.add_argument("--apply", action="store_true")
     a = ap.parse_args()
-    chunks = fx.jlua(CHUNKS % a.min)
+    if a.box:
+        chunks = [[cx, cy] for cx in range(a.box[0] // 32, a.box[2] // 32 + 1) for cy in range(a.box[1] // 32, a.box[3] // 32 + 1)]
+    else:
+        chunks = fx.jlua(CHUNKS % a.min)
     print(f"{len(chunks)} chunks to pave (about {len(chunks) * 1024} tiles before skips)")
     total = skipped = 0
     for i in range(0, len(chunks), 4):

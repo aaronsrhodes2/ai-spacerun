@@ -28,3 +28,18 @@ and collect everything into one great main bus where future production grows.
 - Power: build everything and let the autopilot stage it by headroom, or build only what current power supports.
 - Bus site: the east block above, or somewhere else.
 - Pilot first (iron, one train), or build all outposts and rails in one sweep.
+
+## Progress log
+### 2026-11-09: pilot copper outpost "Copper A" built end to end (the Captain chose power staging, east bus block, everything in one sweep)
+- Tools: `scripts/rail_plan.py` (A* over the 2-tile rail grid with a minimum straight run, grid substations/roboports/solar treated as removable at a cost, then `bridge/factorio/rails.route` for the pieces),
+  `scripts/build_train_outpost.py` (drills + electric furnaces, output belts merged lane by lane onto one express belt, 24-inserter load station), `scripts/build_yard.py` (bus-head unload yard and rail stubs),
+  `scripts/pave.py --box`. Saves: before-copper-a, before-yard, before-stub, before-rail-line.
+- Copper A: 60 drills, 62 electric furnaces on the (317,233) patch, about 39 plates/s, loading a 4-wagon train (16,000 plates) at "Copper A Load" (327,111). A 108-piece track runs north and west to
+  "Bus Copper Unload" (203,-123) at the head of the east bus, where 24 inserters put plates on an express belt that runs west and then south as the first bus lane (x=198.5, 60 tiles). One train with a
+  coal-fuelled locomotive at each end shuttles; it was loading plates when last checked. Outpost and yard are paved.
+- Power staging: the autopilot's guard (SILO_GUARD) now also switches off Copper A's furnaces and drills when the accumulators fall below 20 percent and back on above 50 percent, besides pausing the 3 new silos
+  below 30 percent. At night the accumulators were already at 4 percent, so both are paused until the sun is up: nuclear is what lets this run through the night.
+- Known gaps: no signals on the line (one train only), no fuel feeder at the new stops (150 coal in each locomotive), grid substations and roboports were removed along the track and yard, restore with
+  `build_substation_grid.py --restore-near` and a roboport pass; the bus has one lane (copper) and no consumers yet.
+- Next, by the plan above: second smelter lines and chest-to-belt/train versions of the two drone outposts, iron outposts (-464,284) shipped by train, new patches (732,97), (-723,-317), (693,488), then stone, coal and oil,
+  signals and fuel feeders, and the rest of the bus lanes.
