@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "note": "After <tech> is researched, run <actions> (names from manifest.json). have says whether the actions exist; gap says what is still to write. Tech names were checked against the running game on 2026-11-09.",
+  "milestones": [
+    {"tech": "railway", "state": "done", "actions": ["discover", "train-outpost", "yard-lane", "rail-line"], "have": true},
+    {"tech": "fluid-wagon", "state": "done", "actions": ["fluid-train-oil"], "have": true, "gap": "fluid unload yard script, uranium acid train"},
+    {"tech": "logistic-system", "state": "done", "actions": ["roboport-grid", "cells", "logistics-convert"], "have": true},
+    {"tech": "electric-energy-distribution-2", "state": "done", "actions": ["roboport-grid"], "have": true, "note": "substation grid"},
+    {"tech": "nuclear-power", "state": "done", "actions": ["nuclear-plant"], "have": false, "gap": "reactor and turbine block builder (the Captain builds this by hand today)"},
+    {"tech": "uranium-processing", "state": "done", "actions": ["uranium-outpost"], "have": false, "gap": "acid-fed uranium mine and expansion of the processing centre"},
+    {"tech": "kovarex-enrichment-process", "state": "done", "actions": ["breeder-loop"], "have": false, "gap": "centrifuge loop builder balancing U-235 and U-238"},
+    {"tech": "nuclear-fuel-reprocessing", "state": "done", "actions": ["reprocessing-block"], "have": false, "gap": "depleted fuel cell reprocessing"},
+    {"tech": "rocket-silo", "state": "done", "actions": ["silos", "cells", "pu-block"], "have": true},
+    {"tech": "quality-module", "state": "done", "actions": ["upgrade"], "have": true, "note": "enabling the quality mod on the client is manual"},
+    {"tech": "space-platform", "state": "done", "actions": ["space-platform"], "have": false, "gap": "see docs/space-factory-plan.md"},
+    {"tech": "planet-discovery-vulcanus", "state": "done", "actions": ["first-planet"], "have": false, "gap": "planet bootstrap pack"},
+    {"tech": "speed-module-3", "state": "open", "actions": ["upgrade"], "have": true, "note": "re-run the module fill with the new module, inside the power budget"},
+    {"tech": "productivity-module-3", "state": "open", "actions": ["upgrade"], "have": true},
+    {"tech": "mining-productivity-3", "state": "open", "actions": ["audit"], "have": true, "note": "ore rate rises: re-check furnace counts at every outpost"},
+    {"tech": "worker-robots-speed-6", "state": "open", "actions": ["audit"], "have": true},
+    {"tech": "advanced-asteroid-processing", "state": "open", "actions": ["space-platform"], "have": false, "note": "tier 2 asteroid recipes: copper ore, sulfur, calcite"},
+    {"tech": "asteroid-reprocessing", "state": "open", "actions": ["space-platform"], "have": false},
+    {"tech": "research-productivity", "state": "open", "actions": ["science-rates"], "have": false},
+    {"tech": "planet-discovery-aquilo", "state": "open", "actions": ["second-planet-chain"], "have": false}
+  ]
+}
