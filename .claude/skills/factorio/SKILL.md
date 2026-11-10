@@ -213,6 +213,11 @@ Verified on the live server unless marked otherwise.
   - **Return flight, Fulgora to Nauvis, same day: about 90 seconds at 210 km/s** with full tanks (135,000 each), 13 of 13 turrets armed and 507 magazines on the belts. Much better, still not clean:
     355 tiles and 23 entities destroyed and rebuilt by the repair loop, and it arrived with 6 of 13 turrets armed while 186 magazines sat on the belts, so the fault is now distribution
     (some turrets are not reached fast enough), not production. Next: find which turrets ran dry and feed them directly, and consider capping speed, since asteroids arrive faster at 210 km/s.
+  - **Reactor water loop (the Captain, 2026-11-10: the shuttle melts ice and stores water for nuclear power; no solar conversion, no barrels).** A water line runs along row y=4 as three underground
+    pipe pairs (x -5 to 5, 6 to 16, 17 to 21, under the oxidizer and fuel tanks and the belt at x=20) from the four water tanks (62,500 each) at (22.5,1.5..4.5) to the Captain's inlet stub at (-5.5,3.5)
+    and the heat exchanger. Do NOT put a pipe on (23,4) or (24,4): that one carries thruster fuel. The thruster-oxidizer and thruster-fuel plants are red-wired to the water tank at (27.5,2.5) and run only
+    while it reads more than 5,000 water, so the reactor's reserve fills first. Checked: the exchanger made steam and all five turbines ran on it. Not checked: a full reserve, since oxide chunks are
+    rare in Nauvis orbit and the tanks were at zero. `entity.fluidbox` is gone in 2.1; use `get_fluid_contents()`, `fluids_count` and `get_fluid_segment_id(i)` (same id = same pipe network).
   - Before the next flight: every turret armed and the ammo belts full (they hold several hundred magazines); depart only then. Still open: more furnaces per assembler, physical damage research, the reactor loop.
   - An inserter whose drop tile is empty space throws the item overboard. `entity.rotate()` on one underground belt flips the pair. Wires: `a.get_wire_connector(defines.wire_connector_id.circuit_red, true).connect_to(b...)`.
   - An inserter's `direction` is the side it picks up from. `find_entity('inserter', pos)` missed a legendary inserter; use `find_entities_filtered{position=, type=}`. `get_recipe()` on a ghost only for `ghost_type=='assembling-machine'`.
