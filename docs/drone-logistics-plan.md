@@ -78,3 +78,7 @@ Short belts inside a compact factory area stay belts; any belt that carries good
 ## Update 2026-11-09: tooling built
 `fx.py logistics survey|convert|retire` now exist (scripts/logistics.py, see the factorio skill). Tried once: the rail assembler pair converted cleanly (4 requesters, 2 providers, provider chests filled with rails), but their stone and
 iron-stick inputs have no provider in the network, so they wait. Not yet tested: retire with --apply, undergrounds and splitters (skipped by convert), whole-chunk conversions.
+- 2026-11-09 yellow block (x 0..90, y -135..-95) converted: `convert` (11 machines: 8 solid, 3 fluid for their solid items only; 11 requesters, 1 provider; the block is mostly direct insertion between machines, so only the belt taps changed), then `retire`
+  (58 belt groups, 285 pieces removed, 2,040 items salvaged into one red chest; 12 groups that cross the border, the bus trunks, kept, 447 belt pieces remain in the box). Saves: before-logistics-convert, before-logistics-retire.
+  Right after: machines in the chain working or waiting on inputs; utility science, LDS and battery short of network stock (steel and electronic circuits were negative in the network, stone and iron sticks zero; rails started working from the salvaged stock).
+  `convert` now also handles fluid-recipe machines (solid items only).

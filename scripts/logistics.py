@@ -7,7 +7,7 @@ Turn a belt-fed factory chunk into a drone-fed one.
   convert  for every assembling machine and furnace with a solid recipe: each belt tile that one of its inserters picks from becomes a blue requester chest
            asking for the recipe's ingredients (about --minutes of work, at most two stacks of an item); each belt tile an inserter drops its product on becomes a
            red passive provider chest. A tile used both ways becomes a provider chest (the machines still hand items on through it). The inserters stay.
-           Fluid recipes are skipped. Belts are NOT removed (the cut line keeps carrying what is left); run retire when the area is converted.
+           Machines with fluid recipes are converted for their solid items only (the pipes stay). Belts are NOT removed (the cut line keeps carrying what is left); run retire when the area is converted.
   retire   remove belt, underground and splitter groups that lie wholly inside the area and that no inserter, drill or other piece still uses. What they carry is
            salvaged into red provider chests next to the area (nothing is destroyed). Groups that cross the area border are never touched.
 
@@ -44,7 +44,8 @@ for _,m in pairs(s.find_entities_filtered{area=A,force=f,type={'assembling-machi
   local r=m.get_recipe() or (m.type=='furnace' and m.previous_recipe)
   if not r then idle=idle+1 else
     local fl=false for _,i in pairs(r.ingredients) do if i.type=='fluid' then fl=true end end for _,p in pairs(r.products) do if p.type=='fluid' then fl=true end end
-    if fl then fluid=fluid+1 else
+    if fl then fluid=fluid+1 end
+    do
       machines=machines+1
       local per_min=60*m.crafting_speed/r.energy
       local b=m.bounding_box
@@ -54,7 +55,7 @@ for _,m in pairs(s.find_entities_filtered{area=A,force=f,type={'assembling-machi
           if not isbelt(pt) then ugskip=ugskip+1 else
             local k=math.floor(i.pickup_position.x)..','..math.floor(i.pickup_position.y)
             local t=tiles[k] or {x=pt.position.x,y=pt.position.y,req={},prov=false} tiles[k]=t
-            for _,ing in pairs(r.ingredients) do local a=math.max(ing.amount,math.ceil(ing.amount*per_min*minutes)) local cap=2*prototypes.item[ing.name].stack_size if a>cap then a=cap end if a>(t.req[ing.name] or 0) then t.req[ing.name]=a end end
+            for _,ing in pairs(r.ingredients) do if ing.type=='item' then local a=math.max(ing.amount,math.ceil(ing.amount*per_min*minutes)) local cap=2*prototypes.item[ing.name].stack_size if a>cap then a=cap end if a>(t.req[ing.name] or 0) then t.req[ing.name]=a end end end
           end
         elseif pt and pt.unit_number==m.unit_number and dt and isbeltlike(dt) then
           if not isbelt(dt) then ugskip=ugskip+1 else
@@ -78,7 +79,7 @@ if apply then
         for name,a in pairs(t.req) do sec.set_slot(n,{value={name=name,quality='normal'},min=a}) n=n+1 end end end
   end
 end
-rcon.print(helpers.table_to_json({machines=machines,fluid_skipped=fluid,idle_skipped=idle,underground_or_splitter_skipped=ugskip,requesters=nreq,providers=nprov,placed_requesters=made_r,placed_providers=made_p}))
+rcon.print(helpers.table_to_json({machines=machines,fluid_machines_solid_only=fluid,idle_skipped=idle,underground_or_splitter_skipped=ugskip,requesters=nreq,providers=nprov,placed_requesters=made_r,placed_providers=made_p}))
 """
 
 RETIRE = """
