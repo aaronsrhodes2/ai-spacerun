@@ -373,3 +373,8 @@ Next: standard blocks with declared input/output ports, checked by this verifier
 - Measured while the belts filled: 3,163 scrap/min (52.7/s) and 50 holmium ore/min (0.83/s), about 1.6% of scrap. 2 packs/s needs about 1.9 ore/s without productivity modules, about 1.1 with them.
 - Recycler facing north takes input at its south end and drops at (x-0.35, y-2.3); facing south is the mirror. Drill centre is half a tile west of a north-facing recycler's centre.
 - Scrap under the recyclers and belts (rows -97..-94 and -87..-83) and items left on the ground at x 19 are not mined; two units were skipped there.
+
+## Infinite scrap (the Captain's order, 2026-11-11)
+- All 4,387 charted scrap tiles on Fulgora are set to 4,294,967,295 (`e.amount`, the largest value). This is the Captain's explicit exception to "inputs are never spawned", for scrap only.
+- The prototype is not infinite: scrap in chunks generated later has its natural amount. Set it the same way when it is to be mined, and tell the Captain.
+- Consequence for planning: patch richness no longer matters, only tile count and island size. The wide patches on the big islands ((148,515) 829 tiles, (169,-5) 459 tiles, (158,66) 214 tiles) are now the best mining sites, with room to build beside them.
