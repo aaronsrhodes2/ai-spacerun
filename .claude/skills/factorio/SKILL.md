@@ -420,4 +420,6 @@ Next: standard blocks with declared input/output ports, checked by this verifier
 - Verified second delivery: the shuttle left Fulgora with 2,400 packs (the pack condition counts double, so a constant of 4000 means 2,000 real) and Nauvis used them in about 4 minutes: the lab block can burn about 600 packs a minute, Fulgora makes about 126.
 
 ## Nauvis landing pad: ice and carbon requests are the Captain's (2026-11-11)
-The pad's requests for 50 ice and 50 carbon are deliberate: they take the white science platform's surplus down to the surface instead of trashing it. Leave them. They can also take up to 50 of each off the Fulgora Shuttle when the pad is short; that is accepted.
+The pad's request for 50 carbon is deliberate: it takes the White Science platform's surplus down to the surface instead of trashing it. Leave it. The ice request was removed on the Captain's order (White Science has no spare ice, so it only drained the Fulgora Shuttle).
+The Captain wants shuttles never to export carbon. 2.1.24 has no per-item export switch: the only control is `LuaSchedule.set_allow_unloading` for a whole stop, which would also stop the packs. On 2026-11-11 the three shuttles held no carbon in hub or belts, so none can leave. If a shuttle ever stocks carbon in its hub, raise it again.
+Hub and pad slots also take `request_from` = 'planet' (default), 'platforms' or 'all'.
