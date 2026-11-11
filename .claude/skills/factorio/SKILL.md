@@ -353,3 +353,12 @@ Next: standard blocks with declared input/output ports, checked by this verifier
 - `pipe-to-ground` direction is the side of its above-ground opening. Use a pair to pass a machine's unused fluid connection.
 - Recycling results list `amount` 0 with `extra_count_fraction`; scrap-recycling odds are not readable from the prototype, measure them from the chest.
 - The Claude session restarts drop the background autopilot and watchdog; restart both.
+
+## Nauvis science centre: compact lab block (2026-11-10)
+- `scripts/lab_block.py` (teardown, place, fill) replaced the two sparse 50-lab fields with 48 rare labs at x -73..-6, y 32..52: beacon row, lab row, repeated; 16 labs per row, a blue chest and bulk inserter at each end, bulk inserters between labs passing packs toward the middle. 67 beacons with 2 speed module 2, labs with 2 productivity modules (taken from network stock, then raised to rare by upgrade_quality.py). Pack use went from 168 to 492 a minute on the same research; lab speed bonus 11-20, productivity +12.8%.
+- The bottom beacon row is half empty: an underground pipe run and a row of substations along y 52-53 (not mine, left alone).
+- The four belts that ended in a lab at (5.5,34.5) now end in red chests at (4.5..6.5,33.5) and (6.5,34.5); robots carry from there.
+- Blue chests request 100 of each of the 12 lab inputs, so planet packs flow in as soon as they exist.
+- A new requester chest already has one empty section: use `sections[1] or add_section()`; testing `#sections==0` sets nothing.
+- place_entities dry runs fail at random spots while robots fly over; rerun or just place.
+- Production science: the four assemblers at (-51.5,-181..-172) stop on purpose when their red chests hit the 8-slot limit (1,600 each). Not a fault.
