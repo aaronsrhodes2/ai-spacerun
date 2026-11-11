@@ -328,3 +328,11 @@ Next: standard blocks with declared input/output ports, checked by this verifier
   inside a roboport's construction range (a yellow storage chest as trash yard must exist for the spoils), calcite by an electric mining drill. All but jellynut are earned (no jellystem charted yet).
   Next triggers: foundry = craft tungsten carbide, holmium-processing = craft holmium ore (recycle scrap).
 - `queue_research` once reported "queued" while the queue stayed empty; check `force.research_queue` afterwards and use `force.add_research(name)` if so.
+
+## First production on the planets (2026-11-10)
+- `foundry` and `holmium-processing` are earned. Only `jellynut` is left of the planet trigger techs (no jellystem charted on Gleba yet).
+- Fulgora: drill (17.5,-106.5) drops scrap straight into the recycler (18,-110), which drops into a red chest (17.5,-112.5).
+- Vulcanus, at (0,109): pumpjack on the acid geyser, chemical plant (carbon), assembling machine 3 (tungsten carbide), blue chests for coal and tungsten ore, red chest for the carbide. Coal comes by robot from a drill and red chest at (-66.5,-100.5). 20 logistic robots moved from Nauvis. Tungsten ore has no source yet (big mining drill not researched); the 5 ore found in the trash yard made 2 carbide.
+- An inserter's `direction` is the side it picks up from, not the side it drops to. Read `drop_target` back after placing (it is nil until the next tick).
+- Pipe connection positions from the prototype are for direction north; rotate them with the entity. The pipe goes one tile beyond the connection position.
+- Requests on a requester chest: `chest.get_logistic_sections().add_section().set_slot(1,{value={name=..,quality='normal'},min=n})`.
