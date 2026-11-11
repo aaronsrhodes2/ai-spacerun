@@ -418,3 +418,6 @@ Next: standard blocks with declared input/output ports, checked by this verifier
 - An inserter placed without its filter grabs whatever the hub holds first (it jammed on magazines): set the filter in the same call that places it.
 - The Nauvis landing pad also requests 50 ice and 50 carbon, so a platform in Nauvis orbit drops those to the ground. Not mine; left alone.
 - Verified second delivery: the shuttle left Fulgora with 2,400 packs (the pack condition counts double, so a constant of 4000 means 2,000 real) and Nauvis used them in about 4 minutes: the lab block can burn about 600 packs a minute, Fulgora makes about 126.
+
+## Nauvis landing pad: ice and carbon requests are the Captain's (2026-11-11)
+The pad's requests for 50 ice and 50 carbon are deliberate: they take the white science platform's surplus down to the surface instead of trashing it. Leave them. They can also take up to 50 of each off the Fulgora Shuttle when the pad is short; that is accepted.
