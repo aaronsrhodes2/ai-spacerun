@@ -362,3 +362,5 @@ Next: standard blocks with declared input/output ports, checked by this verifier
 - A new requester chest already has one empty section: use `sections[1] or add_section()`; testing `#sections==0` sets nothing.
 - place_entities dry runs fail at random spots while robots fly over; rerun or just place.
 - Production science: the four assemblers at (-51.5,-181..-172) stop on purpose when their red chests hit the 8-slot limit (1,600 each). Not a fault.
+- South edge moved with the Captain's leave (2026-11-10): the water main that ran underground along y 52.5 now runs along y 56.5 from a new shore pump at (-13.5,56.5), rejoining the old main at (-76.5,52.5); the nine substations that sat at y 53 are at y 54 (the east four at x -4,-2,0,2). The bottom beacon row has 21 of 22 beacons: the west slot carries the pipe up to the main. 77 beacons in all.
+- BUG in `place_entities`: placing an entity where the same entity already stands reports "placed" and stacks a second one on top (10 beacons doubled). Never re-send a list that includes things already built; check for duplicates by position afterwards.
