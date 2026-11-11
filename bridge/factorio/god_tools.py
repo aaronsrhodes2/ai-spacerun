@@ -276,6 +276,8 @@ def register(mcp, q: Callable[[str], str]) -> None:
             return json.dumps({"error": f"entities is not valid JSON: {e}"})
         if not isinstance(parsed, list) or not parsed:
             return json.dumps({"error": "entities must be a non-empty JSON list"})
+        # No `--` comments in the Lua below: it is sent as one line. Why `twin` exists: can_place_entity (manual)
+        # says yes over anything it could fast-replace, and create_entity then stacks a second entity on the first.
         return run(_UNLOCK + f"""
             local list = {_lua_json(parsed)}
             local s = game.surfaces[{json.dumps(surface)}]
@@ -300,20 +302,28 @@ def register(mcp, q: Callable[[str], str]) -> None:
                 local check = {{name=spec.name, position=pos, direction=spec.direction or 0, force=f,
                                build_check_type=defines.build_check_type.manual}}
                 local can
+                local b = ep.collision_box
+                local hx, hy = b.right_bottom.x, b.right_bottom.y
+                local dir = spec.direction or 0
+                if dir == 4 or dir == 12 then hx, hy = hy, hx end
+                local here = s.find_entities_filtered{{area={{{{spec.x-hx, spec.y-hy}}, {{spec.x+hx, spec.y+hy}}}}}}
+                local twin
+                local grp = ep.fast_replaceable_group
+                for _, o in pairs(here) do
+                  if o.type ~= 'entity-ghost' and (o.name == spec.name or (grp and o.prototype.fast_replaceable_group == grp)) then twin = o.name end
+                end
                 if dry and clear then
-                  local b = ep.collision_box
-                  local hx, hy = b.right_bottom.x, b.right_bottom.y
-                  local dir = spec.direction or 0
-                  if dir == 4 or dir == 12 then hx, hy = hy, hx end
                   can = true
-                  for _, o in pairs(s.find_entities_filtered{{area={{{{spec.x-hx, spec.y-hy}}, {{spec.x+hx, spec.y+hy}}}}}}) do
+                  for _, o in pairs(here) do
                     if o.type ~= 'tree' and o.type ~= 'simple-entity' and o.type ~= 'resource'
-                       and o.type ~= 'character' and o.type ~= 'item-entity' then can = false end
+                       and o.type ~= 'character' and o.type ~= 'item-entity'
+                       and o.type ~= 'logistic-robot' and o.type ~= 'construction-robot' then can = false end
                   end
                 else
                   can = s.can_place_entity(check)
                 end
-                if not can then fail(i, spec, 'blocked at this position')
+                if twin then fail(i, spec, 'already occupied by ' .. twin)
+                elseif not can then fail(i, spec, 'blocked at this position')
                 elseif dry then placed = placed + 1
                 else
                   local args = {{name=spec.name, position=pos, direction=spec.direction or 0, force=f, raise_built=true, move_stuck_players=true}}
