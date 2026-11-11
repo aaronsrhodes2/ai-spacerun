@@ -4,7 +4,7 @@ Compact shuttle, second design (2026-11-10), built around the platform hub so th
     collectors -> chunk belt -> one inserter into the hub (takes only the chunk types the hub is short of; the rest is thrown into space at the belt's end)
     hub -> crushers -> hub (iron ore) / ice melter (water) / fuel plant;  hub -> furnaces -> hub -> assembler -> hub (magazines)
     hub -> turrets, directly or over two short belts (nose, rear): the magazine stock sits upstream of every turret
-    nose: nuclear reactor, heat exchanger, turbine;  rear: tanks, four thrusters fed through two-tile gaps
+    nose and flanks: fifteen solar panels and six accumulators (nuclear until 2026-11-10);  rear: tanks, four thrusters fed through two-tile gaps
 
 Rare quality throughout: epic and legendary are not unlocked by research. All coordinates are tiles (top-left corner); the hub covers -4..3.
 Usage: scripts/build_shuttle2.py --surface platform-3 [--apply]
@@ -62,12 +62,10 @@ def turret(tx, ty, ix, iy, pick):
     ins(ix, iy, pick)
 
 
-# nose: reactor, exchanger, turbine
-big("nuclear-reactor", -2, -10, 5, 5)
-ins(0, -5, S)                                           # fuel cell in, switched by reactor temperature in configure()
-ins(-1, -5, N)                                          # used cell back to the hub
-big("heat-exchanger", -1, -12, 3, 2)
-big("steam-turbine", -1, -17, 3, 5)
+# nose: solar panels and accumulators where the reactor, heat exchanger and turbine stood until 2026-11-10 (the Captain's order: solar instead of nuclear)
+big("solar-panel", -2, -10, 3, 3)
+for tx, ty in ((1, -10), (1, -8), (-2, -6), (0, -6), (-1, -12), (-1, -14)):
+    big("accumulator", tx, ty, 2, 2)
 
 # turrets fed straight from the hub
 turret(-4, -7, -4, -5, S)
@@ -80,6 +78,11 @@ run(BELT, 5, -4, 5, -18, N)
 run(BELT, 5, -19, -3, -19, W)
 turret(2, -17, 2, -18, N)
 turret(-3, -17, -3, -18, N)
+# four more nose turrets (2026-11-10, after flight damage on the Fulgora run): the two nose turrets did twice the work of any other
+turret(0, -17, 0, -18, N)
+turret(7, -17, 6, -17, W)
+turret(7, -14, 6, -14, W)
+turret(2, -14, 4, -14, E)
 
 # rear ammunition belt
 ins(-1, 4, N, "bulk-inserter")
@@ -150,11 +153,7 @@ big("chemical-plant", 0, 8, 3, 3, S, recipe="thruster-fuel")
 # water: row 11, riser to the oxidizer plant, riser on the east side to the heat exchanger, two tanks
 run(PIPE, -9, 11, 11, 11)
 run(PIPE, -9, 10, -9, 5)
-run(PIPE, 8, 10, 8, -11)
-one(PIPE, 7, -11)
-one(PTG, 6, -11, E)
-one(PTG, 4, -11, W)
-pipes((3, -11), (2, -11))
+run(PIPE, 8, 10, 8, 8)
 big("storage-tank", 5, 8, 3, 3)
 big("storage-tank", 9, 8, 3, 3)
 
@@ -188,9 +187,13 @@ run(PIPE, -9, 13, -9, 15)
 pipes((-7, 20), (-7, 21), (-7, 22), (-6, 22), (-6, 23))
 pipes((5, 20), (5, 21), (5, 22), (6, 22), (6, 23))
 
-# start-up power: the reactor needs water and the water needs power, so four panels carry the collectors and the melter until steam is up
+# power: fifteen panels in all, one in the nose and fourteen in two columns on each flank, inside the width the collectors and tanks already set
 for ty in (-4, -1, 2, 5):
     big("solar-panel", 9, ty, 3, 3)
+for ty in (-4, -1, 2, 5, 8):
+    big("solar-panel", 12, ty, 3, 3)
+for ty in (-3, 0, 3, 6, 9):
+    big("solar-panel", -12, ty, 3, 3)
 
 # three deciders for the chunk whitelist (configure_shuttle2.py wires them)
 for ty in (-6, -8, -10):

@@ -3,9 +3,9 @@ Fly a space platform one leg and record what happens: sends it to --to, then eve
 build mode) and prints speed, route, magazines per turret, magazines on belts, what was rebuilt, water, thruster fuel and oxidizer.
 The last line is the leg's summary. The platform stays parked at the destination (long wait in the schedule).
 
-It refuses to launch unless the pre-flight guard passes (turrets armed, magazine stock, water, propellant, reactor hot) and saves the game first.
+It refuses to launch unless the pre-flight guard passes (turrets armed, magazine stock, propellant; water and reactor heat only matter on a nuclear ship) and saves the game first.
 
-Usage: scripts/shuttle_trial.py --to fulgora [--platform 5] [--every 5] [--minutes 30] [--mags 1500] [--water 15000] [--propellant 40000]
+Usage: scripts/shuttle_trial.py --to fulgora [--platform 5] [--every 5] [--minutes 30] [--mags 1500] [--water 0] [--propellant 40000]
 """
 import sys
 import time
@@ -51,7 +51,7 @@ def arg(name, default):
 
 def main():
     platform, to, every, minutes = arg("--platform", 5), arg("--to", "fulgora"), arg("--every", 5), arg("--minutes", 30)
-    if not guard(platform, arg("--mags", 1500), arg("--water", 15000), arg("--propellant", 40000)):
+    if not guard(platform, arg("--mags", 1500), arg("--water", 0), arg("--propellant", 40000)):
         print("NOT LAUNCHED: pre-flight guard failed", flush=True)
         sys.exit(1)
     print(tools["run_lua"]("game.server_save('before-flight-p%d') rcon.print('saved before-flight-p%d')" % (platform, platform)).strip(), flush=True)

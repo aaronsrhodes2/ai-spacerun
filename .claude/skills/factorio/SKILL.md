@@ -258,6 +258,15 @@ Verified on the live server unless marked otherwise.
     The far stop is only a floor for the flight home (15,000, 5,000, 800); with a Nauvis fill it is already met, so the ship turns round at once. Verified: all three flew out and back and
     now wait at Nauvis. Flight damage is rebuilt by the autopilot's `SHIPS` step each cycle (every platform named `...Shuttle`); `shuttle2_watch.py` does the same and prints a row per ship.
     Without the autopilot running nothing rebuilds a lost turret. Not changed: hull and thrust (a thruster throttle would save fuel but slow the legs; untested).
+  - **Solar since 2026-11-10 (the Captain's order, reversing the nuclear rule above).** `scripts/shuttle2_denuclear.py` (ship parked and paused) took off reactor, exchanger, turbine, the two
+    cell inserters and the water riser; `build_shuttle2.py --apply` then added the rest: 15 rare panels (one in the nose, 14 in two columns per flank, no extra width), 6 rare accumulators
+    (15 MJ each, 90 MJ), and four more nose turrets (11 in all; the two nose turrets had twice the kills of any other). 278 entities, 1136 tiles. Sunlight in orbit: Vulcanus 600%,
+    Nauvis 300, Gleba 200, Fulgora 120, Aquilo 60; a rare panel is 96 kW at 100%. Measured: at Nauvis 40 MJ of charge in 30 s while refilling; held three minutes at Fulgora making
+    propellant the accumulators stayed between 85 and 90 MJ, no machine short of power; Gleba and Vulcanus round trips flown on solar with no damage. The water reserve gate is now 500 and
+    the schedule has no water condition. Legendary panels were asked for but `epic-quality` (needs agricultural science) and `legendary-quality` (needs cryogenic) are not researched: rare
+    is the best allowed; upgrade when they are. About 193 uranium fuel cells sit unused in each hub.
+  - **Mistake to avoid:** a test schedule with only time waits loops. Ship 5 left Nauvis a second time with 22,000 fuel; turned back in time by setting the real schedule. For a one-off
+    hold use a single far record or pause on arrival.
   - `e.status` names: 29 no_input_fluid, 30 fluid_ingredient_shortage, 31 item_ingredient_shortage, 32 full_output, 36 waiting_for_source_items, 43 thrust_not_required, 57 no_ammo.
 
 ## Not built yet

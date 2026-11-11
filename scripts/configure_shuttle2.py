@@ -5,9 +5,8 @@ Wires and sets up a ship built by build_shuttle2.py (2026-11-10). Safe to run ag
     chunk inserter takes only the chunk types the hub holds fewer than CHUNKS of (three deciders, green wire, set-filters)
     metallic crusher input runs while iron ore < ORE; furnace inputs while iron plates < PLATES; magazines leave the assembler while < MAGS
     the two chunk-back inserters and the two ammunition belt inserters get fixed filters
-    the reactor's fuel inserter runs while the reactor is cooler than TEMP
     the furnace inputs take iron ore only (otherwise they smelt the hub's plates into steel)
-    the fuel and oxidizer plants are fed only while the water tanks hold more than RESERVE, so the reactor never runs dry
+    the fuel and oxidizer plants are fed only while the water tanks hold more than RESERVE, a small floor left over from the nuclear design
 
 Run it BEFORE anything is put in the hub: until the filters are set the two ammunition belt inserters carry whatever the hub holds.
 
@@ -18,7 +17,7 @@ import sys
 from _game import tools
 
 # the hub has 59 slots and a chunk takes a whole slot, so the limits are small: about 12 slots of chunks, 4 ore, 2 plates, 20 magazines, 5 fuel cells
-CHUNKS, ORE, PLATES, MAGS, TEMP, RESERVE = 3, 200, 200, 2000, 600, 5000
+CHUNKS, ORE, PLATES, MAGS, RESERVE = 3, 200, 200, 2000, 500
 
 LUA = """
 local s=game.surfaces['%(surface)s'] local p=game.forces.player.platforms[%(platform)d] local hub=p.hub local o={}
@@ -44,22 +43,19 @@ try('chunks',function() local ci=at(-5,-4,'inserter') ci.use_filters=true ci.ins
   d.get_or_create_control_behavior().parameters={conditions={{first_signal={type='item',name=c},comparator='<',constant=%(chunks)d}},outputs={{signal={type='item',name=c},copy_count_from_input=false,constant=1}}}
   wire(prev_in,(prev_in==hub) and W.circuit_red or W.combinator_input_red,d,W.combinator_input_red)
   wire(prev_out,(prev_out==ci) and W.circuit_green or W.combinator_output_green,d,W.combinator_output_green) prev_in=d prev_out=d end end)
-try('reactor',function() local r=s.find_entities_filtered{name='nuclear-reactor'}[1] local cb=r.get_or_create_control_behavior() cb.read_temperature=true cb.temperature_signal={type='virtual',name='signal-T'}
- local e=at(0,-5,'inserter') local ib=e.get_or_create_control_behavior() ib.circuit_enable_disable=true ib.circuit_condition={first_signal={type='virtual',name='signal-T'},comparator='<',constant=%(temp)d}
- wire(r,W.circuit_green,e,W.circuit_green) end)
 try('tank wires',function() local prev=hub for _,q in pairs({{6,9},{6,14},{-7,14}}) do local t=at(q[1],q[2],'storage-tank') wire(prev,W.circuit_green,t,W.circuit_green) prev=t end end)
 rcon.print(table.concat(o,' | '))
 """
 
 # Schedule: the hub sees its own contents (red) and one tank each of water, thruster fuel and oxidizer (green), so every number below is HALF the ship's total.
 # At Nauvis the ship waits for full propellant tanks (a fill covers a round trip); at the far planet it waits for enough to fly home with a margin.
-HOME = dict(fuel=35000, water=7500, mags=1500)
-AWAY = dict(fuel=15000, water=5000, mags=800)
+HOME = dict(fuel=35000, mags=1500)
+AWAY = dict(fuel=15000, mags=800)
 ROUTE = """
 local p=game.forces.player.platforms[%(platform)d]
 local function c(t,n,k) return {type='circuit',compare_type='and',condition={first_signal={type=t,name=n},comparator='>=',constant=k}} end
-local function stop(st,f,w,m) return {station=st,wait_conditions={c('fluid','thruster-fuel',f),c('fluid','thruster-oxidizer',f),c('fluid','water',w),c('item','firearm-magazine',m)}} end
-p.schedule={current=%(current)d,records={stop('nauvis',%(hf)d,%(hw)d,%(hm)d),stop('%(to)s',%(af)d,%(aw)d,%(am)d)}} p.paused=%(paused)s
+local function stop(st,f,m) return {station=st,wait_conditions={c('fluid','thruster-fuel',f),c('fluid','thruster-oxidizer',f),c('item','firearm-magazine',m)}} end
+p.schedule={current=%(current)d,records={stop('nauvis',%(hf)d,%(hm)d),stop('%(to)s',%(af)d,%(am)d)}} p.paused=%(paused)s
 rcon.print('schedule nauvis <-> %(to)s set, paused='..tostring(p.paused))
 """
 
@@ -67,11 +63,11 @@ rcon.print('schedule nauvis <-> %(to)s set, paused='..tostring(p.paused))
 def main():
     surface = sys.argv[sys.argv.index("--surface") + 1]
     platform = int(sys.argv[sys.argv.index("--platform") + 1])
-    code = LUA % dict(surface=surface, platform=platform, chunks=CHUNKS, ore=ORE, plates=PLATES, mags=MAGS, temp=TEMP, reserve=RESERVE)
+    code = LUA % dict(surface=surface, platform=platform, chunks=CHUNKS, ore=ORE, plates=PLATES, mags=MAGS, reserve=RESERVE)
     print(tools["run_lua"](" ".join(code.split())).strip())
     if "--route" in sys.argv:                                # --route fulgora [--go]: without --go the schedule is set but the ship stays paused
         route = ROUTE % dict(platform=platform, to=sys.argv[sys.argv.index("--route") + 1], current=1, paused="false" if "--go" in sys.argv else "true",
-                             hf=HOME["fuel"], hw=HOME["water"], hm=HOME["mags"], af=AWAY["fuel"], aw=AWAY["water"], am=AWAY["mags"])
+                             hf=HOME["fuel"], hm=HOME["mags"], af=AWAY["fuel"], am=AWAY["mags"])
         print(tools["run_lua"](" ".join(route.split())).strip())
 
 
