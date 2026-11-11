@@ -323,3 +323,8 @@ Next: standard blocks with declared input/output ports, checked by this verifier
 - Land test for tiles: `not tile.collides_with('water_tile')` (oil ocean, lava and wetlands all carry `water_tile`; the `player` layer does not catch shallow oil ocean).
 - Solar by surface (looked up): Fulgora 20%, Gleba 50%, Vulcanus 400%. Foundation (Aquilo research) is not available, so liquid tiles stay liquid; Fulgora's islands are separate electric networks.
 - The planet roboports each got 10 construction robots moved out of Nauvis roboports (factory-made items, moved not spawned).
+- Planet trigger techs (looked up 2026-11-10, `technology.prototype.research_trigger`): agriculture = mine an iron stromatolite, heating-tower = a copper stromatolite, recycling = the Fulgoran vault,
+  tungsten-carbide = a big/huge volcanic rock, calcite-processing = calcite, yumako = a yumako tree, jellynut = a jellystem. Mining by construction robot counts: `entity.order_deconstruction(force)`
+  inside a roboport's construction range (a yellow storage chest as trash yard must exist for the spoils), calcite by an electric mining drill. All but jellynut are earned (no jellystem charted yet).
+  Next triggers: foundry = craft tungsten carbide, holmium-processing = craft holmium ore (recycle scrap).
+- `queue_research` once reported "queued" while the queue stayed empty; check `force.research_queue` afterwards and use `force.add_research(name)` if so.
