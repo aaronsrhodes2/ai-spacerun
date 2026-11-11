@@ -336,3 +336,8 @@ Next: standard blocks with declared input/output ports, checked by this verifier
 - An inserter's `direction` is the side it picks up from, not the side it drops to. Read `drop_target` back after placing (it is nil until the next tick).
 - Pipe connection positions from the prototype are for direction north; rotate them with the entity. The pipe goes one tile beyond the connection position.
 - Requests on a requester chest: `chest.get_logistic_sections().add_section().set_slot(1,{value={name=..,quality='normal'},min=n})`.
+
+## Labs idle with an empty queue (2026-11-10)
+- Cause was the autopilot's own TOPUP step, not the labs: it counted trigger techs (big-mining-drill, electromagnetic-plant) as queueable, and writing them to `research_queue` emptied the queue every cycle. TOPUP now skips techs with `prototype.research_trigger` and leaves the queue alone when it has nothing finite to add, so hand-queued infinite techs stay.
+- The four lab requester chests had no production science request; added 100 each. The belt-fed lab group (belts near (5,31)..(8,34)) still carries no production packs: 19 of 50 labs miss them.
+- Production science is not being made: four assemblers at (-51.5,-181..-172) sit on full output, two at (99.5,-60.5) lack electric furnaces. Research runs on a stock of about 12,000.
