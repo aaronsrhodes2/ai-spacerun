@@ -424,3 +424,7 @@ The pad's request for 50 carbon is deliberate: it takes the White Science platfo
 The Captain wants shuttles never to export carbon. 2.1.24 has no per-item export switch: the only control is `LuaSchedule.set_allow_unloading` for a whole stop, which would also stop the packs. On 2026-11-11 the three shuttles held no carbon in hub or belts, so none can leave. If a shuttle ever stocks carbon in its hub, raise it again.
 Hub and pad slots also take `request_from` = 'planet' (default), 'platforms' or 'all'.
 Platform-to-platform test, 2026-11-11: Fulgora Shuttle hub slot carbon 200 with `request_from='platforms'`, parked at Nauvis beside White Science (7,257 carbon in hub) for about 2.5 minutes: nothing moved, no carbon pod, and the shuttle left on schedule. The setting exists but one request alone does not move items; what else it needs (a setting on the giving side, a research, a hub upgrade) is unknown. Test request removed.
+
+## Research queue holds 7 (2026-11-11)
+Writing more than 7 techs to `force.research_queue` fails, and the autopilot's pcall hid it: research sat idle for over an hour with 12,484 electromagnetic packs on the Nauvis pad. TOPUP now caps the list at 7. When asked "is it working", check `current_research` and lab status first.
+Fulgora check the same day: 103 packs/min over an hour (1.7/s, target 2), limited by batteries (network short); ice stock down to 57 with the shuttle's 300-ice request competing with the cell's melters.

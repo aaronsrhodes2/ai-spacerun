@@ -51,7 +51,7 @@ TOPUP = (
     "local ready=true for _,p in pairs(t.prerequisites) do if not p.researched then ready=false end end local ok=true local pen=0 "
     "for _,i in pairs(t.research_unit_ingredients) do if not seven[i.name] then ok=false end if (stock[i.name] or 0)<30 then pen=pen+1000000 end end "
     "if ready and ok then local score=t.research_unit_count+pen for k,n in pairs(pri) do if n==name then score=k-1000000 end end rows[#rows+1]={name=name,score=score} end end end "
-    "table.sort(rows,function(a,b) return a.score<b.score end) local q={} for _,r in pairs(rows) do q[#q+1]=r.name end "
+    "table.sort(rows,function(a,b) return a.score<b.score end) local q={} for _,r in pairs(rows) do if #q<7 then q[#q+1]=r.name end end"
     "if #q>0 then pcall(function() f.research_queue=q end) end local o={} for i,r in pairs(f.research_queue) do o[#o+1]=r.name end rcon.print(table.concat(o,','))"
 ) % ",".join(f"'{p}'" for p in PRIORITY)
 
