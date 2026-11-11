@@ -75,6 +75,13 @@ REPAIR = (
 )
 
 
+# Scheduled shuttles (platforms whose name ends in "Shuttle") fly unattended: rebuild what asteroids broke, free in friendly build mode.
+SHIPS = (
+    "local n=0 for _,p in pairs(game.forces.player.platforms) do if p.valid and p.name:find('Shuttle$') then local s=p.surface for pass=1,12 do local did=0 "
+    "for _,g in pairs(s.find_entities_filtered{type={'tile-ghost','entity-ghost'}}) do if g.valid and g.revive() then n=n+1 did=did+1 end end if did==0 then break end end end end "
+    "rcon.print('ships rebuilt '..n)"
+)
+
 SILO_GUARD = (
     "local OUTPOSTS={{{296,71},{341,252}},{{664,300},{731,519}},{{709,-83},{763,122}},{{745,-497},{779,-416}}} local s=game.surfaces.nauvis local f=game.forces.player local a,c=0,0 for _,e in pairs(s.find_entities_filtered{name='accumulator',force=f}) do a=a+e.energy c=c+e.electric_buffer_size end "
     "local frac=c>0 and a/c or 1 local act=nil local n=0 for _,e in pairs(s.find_entities_filtered{name='rocket-silo',force=f}) do if math.abs(e.position.y+195.5)<1 then n=n+1 "

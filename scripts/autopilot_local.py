@@ -21,7 +21,8 @@ def main():
             snap = tools["run_lua"](ap.SNAP)
             fix = tools["run_lua"](ap.REPAIR)
             guard = tools["run_lua"](ap.SILO_GUARD)
-            ap.log(snap + " | queue " + queue + " | " + fix + " | " + guard, LOG)
+            ships = tools["run_lua"](ap.SHIPS)
+            ap.log(snap + " | queue " + queue + " | " + fix + " | " + guard + " | " + ships, LOG)
         except Exception as exc:  # noqa: BLE001
             ap.log("error: " + repr(exc), LOG)
         time.sleep(ap.CYCLE)

@@ -252,6 +252,12 @@ Verified on the live server unless marked otherwise.
     and 31,100 oxidizer, the return about 19,500 each, so one fill (80,000 each, about 1 h parked at Nauvis) covers a round trip with 30,000 left. Water rose in flight (22,500 to 24,000),
     a round trip costs about 500 magazines net (hub 2,000 to about 1,480; refill about 29 a minute parked). Damage over six legs: 29 tiles and 4 entities on ship 1 (one turret lost and rebuilt on its return), 1 tile on ship 2,
     none on ship 3; `shuttle_trial.py` revives the ghosts (free rebuild, friendly build mode). The thresholds in the guard (15,000 water, 40,000 propellant, 1,500 magazines) cover one leg.
+  - **Standing schedules since 2026-11-10 (`configure_shuttle2.py --surface S --platform N --route <planet> --go`):** ship 5 Nauvis and Fulgora, 6 Gleba, 7 Vulcanus, looping unattended, no cargo.
+    The hub's green wire also reaches one water, one fuel and one oxidizer tank, so schedule conditions (type `circuit`, read on the hub) see HALF the ship's totals. Nauvis is where the fill
+    happens (oxide chunks are 7 to 10 times more common there): the ship waits for fuel and oxidizer 35,000 each (70,000 total, a round trip burns about 50,000), water 7,500, magazines 1,500.
+    The far stop is only a floor for the flight home (15,000, 5,000, 800); with a Nauvis fill it is already met, so the ship turns round at once. Verified: all three flew out and back and
+    now wait at Nauvis. Flight damage is rebuilt by the autopilot's `SHIPS` step each cycle (every platform named `...Shuttle`); `shuttle2_watch.py` does the same and prints a row per ship.
+    Without the autopilot running nothing rebuilds a lost turret. Not changed: hull and thrust (a thruster throttle would save fuel but slow the legs; untested).
   - `e.status` names: 29 no_input_fluid, 30 fluid_ingredient_shortage, 31 item_ingredient_shortage, 32 full_output, 36 waiting_for_source_items, 43 thrust_not_required, 57 no_ammo.
 
 ## Not built yet
