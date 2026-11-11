@@ -341,3 +341,15 @@ Next: standard blocks with declared input/output ports, checked by this verifier
 - Cause was the autopilot's own TOPUP step, not the labs: it counted trigger techs (big-mining-drill, electromagnetic-plant) as queueable, and writing them to `research_queue` emptied the queue every cycle. TOPUP now skips techs with `prototype.research_trigger` and leaves the queue alone when it has nothing finite to add, so hand-queued infinite techs stay.
 - The four lab requester chests had no production science request; added 100 each. The belt-fed lab group (belts near (5,31)..(8,34)) still carries no production packs: 19 of 50 labs miss them.
 - Production science is not being made: four assemblers at (-51.5,-181..-172) sit on full output, two at (99.5,-60.5) lack electric furnaces. Research runs on a stock of about 12,000.
+
+## Fulgora science, stage 1 (2026-11-10)
+- Goal (the Captain): electromagnetic science at Nauvis' rate, delivered to the Nauvis science centre; first cell 2 packs/s. Stages: 1 triggers (done), 2 scrap block, 3 science cell, 4 silo and shipping, 5 power.
+- `electromagnetic-plant` and `electromagnetic-science-pack` are earned. Ten techs now wait on electromagnetic packs (scrap-recycling-productivity, lightning-collector, ...).
+- Plate line at (9,-103): ice melter, holmium solution, assembler 3 for plates, machines touching so fluids pass without pipes. Its ore request is cleared.
+- Supercapacitor line at (24..42,-124..-99): offshore pump (30.5,-123.5) gives heavy oil from the ocean (deep ocean works too), cracker, second recycler (40,-114) turning advanced circuits and low density structures into circuits, plastic and copper plate, three electromagnetic plants. All fed by robots; 20 logistic robots moved from Nauvis. The superconductor request is cleared (128 in the red chest at (27.5,-113.5)).
+- Sizing for 2 packs/s without modules: 22 electromagnetic plants, 1 foundry, 10 chemical plants for solution, 125-185 scrap/s (50-75 recyclers, 90-135 electric drills), about 75 MW. Charted scrap (1,143 tiles, 30.8M) fits about 127 drills: chart more islands.
+- Roboport logistic reach is 25 tiles; a chest at 25.5 gets nothing though robots still build there. Added a roboport at (40,-106).
+- Electromagnetic plant pipe spots (facing north, plant centre on a whole number): input 1 west (-2.5,+0.5), input 2 east (+2.5,-0.5), output 1 south (+0.5,+2.5), output 2 north (-0.5,-2.5). Fluid ingredients take the inputs in recipe order.
+- `pipe-to-ground` direction is the side of its above-ground opening. Use a pair to pass a machine's unused fluid connection.
+- Recycling results list `amount` 0 with `extra_count_fraction`; scrap-recycling odds are not readable from the prototype, measure them from the chest.
+- The Claude session restarts drop the background autopilot and watchdog; restart both.
