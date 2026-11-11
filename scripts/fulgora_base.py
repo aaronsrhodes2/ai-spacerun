@@ -6,6 +6,8 @@ Everything inside the base moves by logistic robots (the Captain's order 2026-11
   recyclers  row of 34 recyclers: blue chest (requests scrap) -> inserter -> recycler -> purple (active provider) chest
   yard       the trash yard south of the track: yellow storage chest -> inserter -> recycler -> purple chest. Robots carry to blue chests
              first; what nobody wants lands in yellow chests and is recycled away (25% comes back as its ingredients each pass)
+  cell       the science cell (see cell()); modules = productivity modules from Nauvis stock into every machine that takes them
+  silo       rocket fuel unit and rocket silo; space = silo answers platform requests, shuttle 5 asks for packs, Nauvis pad asks for them
   ports      8 more roboports; `robots N` moves N logistic robots from Nauvis' roboports (factory-made, moved)
 
 Usage: scripts/fulgora_base.py STEP [--apply]
@@ -160,6 +162,33 @@ MODULES = ("local f=game.forces.player local s=game.surfaces.fulgora local put=0
            "if got==0 then short=short+room break end inv.insert{name='productivity-module',count=1} put=put+1 room=room-1 end end end rcon.print('productivity modules moved from Nauvis '..put..' short '..short)")
 
 
+def silo():
+    """Rocket fuel unit on the west shore (own pump, melter, cracker, assembler) and the rocket silo at (150.5,-170.5).
+    Robots bring the rocket parts' ingredients to three blue chests; the science packs are loaded by robots on the shuttle's request."""
+    e = []
+    e.append({"name": "offshore-pump", "x": 108.5, "y": -139.5, "direction": 12})
+    e += pipes([(109.5, -139.5), (113.5, -139.5), (111.5, -140.5), (111.5, -139.5), (111.5, -135.5)])
+    e += [{"name": "pipe-to-ground", "x": 110.5, "y": -139.5, "direction": 12}, {"name": "pipe-to-ground", "x": 112.5, "y": -139.5, "direction": 4}]
+    e.append({"name": "chemical-plant", "x": 112.5, "y": -142.5, "direction": 0, "recipe": "ice-melting"})
+    e += [{"name": "bulk-inserter", "x": 110.5, "y": -142.5, "direction": 12}, {"name": "requester-chest", "x": 109.5, "y": -142.5, "req": {"ice": 20}}]
+    e.append({"name": "chemical-plant", "x": 112.5, "y": -137.5, "direction": 0, "recipe": "heavy-oil-cracking"})
+    e.append({"name": "assembling-machine-3", "x": 111.5, "y": -133.5, "direction": 0, "recipe": "rocket-fuel"})
+    e += [{"name": "requester-chest", "x": 114.5, "y": -133.5, "req": {"solid-fuel": 100}}, {"name": "bulk-inserter", "x": 113.5, "y": -133.5, "direction": 4},
+          {"name": "bulk-inserter", "x": 109.5, "y": -133.5, "direction": 4}, {"name": "passive-provider-chest", "x": 108.5, "y": -133.5}]
+    cx, cy = 150.5, -170.5
+    e.append({"name": "rocket-silo", "x": cx, "y": cy})
+    for dx, item in ((-1, "processing-unit"), (0, "low-density-structure"), (1, "rocket-fuel")):
+        e.append({"name": "bulk-inserter", "x": cx + dx, "y": cy - 5, "direction": 0})
+        e.append({"name": "requester-chest", "x": cx + dx, "y": cy - 6, "req": {item: 50}})
+    return e
+
+
+SPACE = ("local f=game.forces.player local o={} local sil=game.surfaces.fulgora.find_entities_filtered{name='rocket-silo'}[1] sil.use_transitional_requests=true o[#o+1]='silo takes platform requests '..tostring(sil.use_transitional_requests) "
+         "local hub=f.platforms[5].hub local secs=hub.get_logistic_sections() local sec=secs.add_section() sec.set_slot(1,{value={name='electromagnetic-science-pack',quality='normal'},min=4000,import_from='fulgora'}) o[#o+1]='shuttle 5 requests 4000 packs from Fulgora' "
+         "local pad=game.surfaces.nauvis.find_entities_filtered{type='cargo-landing-pad'}[1] local ps=pad.get_logistic_sections() local psec=ps.sections[1] or ps.add_section() local n=0 for i,fl in pairs(psec.filters) do if fl.value then n=math.max(n,i) end end "
+         "psec.set_slot(n+1,{value={name='electromagnetic-science-pack',quality='normal'},min=20000}) o[#o+1]='Nauvis pad requests 20000 packs' rcon.print(table.concat(o,' | '))")
+
+
 def main():
     step = sys.argv[1]
     apply = "--apply" in sys.argv
@@ -179,6 +208,10 @@ def main():
         place_with_requests(cell(), apply)
     elif step == "modules":
         print(lua(MODULES))
+    elif step == "silo":
+        place_with_requests(silo(), apply)
+    elif step == "space":
+        print(lua(SPACE))
     elif step == "robots":
         print(lua(ROBOTS % int(sys.argv[2])))
 
