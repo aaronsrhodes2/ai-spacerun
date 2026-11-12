@@ -486,3 +486,15 @@ Vulcanus demolishers (Captain): never kill them. They keep to a regular path unl
 - Measured: 12.7 ore/s from 15 drills; first ore crossed within 4 minutes. The T5 demolisher was patrolling ("minimal" activity) and had not yet passed the crossing when this was written: watch a pass.
 - LESSON: place_entities dry runs check each entity against the world only, not against the others in the same batch (a substation and a drill overlapped; a pole was planned on a chest).
 - Science cell plan: free band y -36.5..-23.5 between the lattice rows; columns 9 wide, each a lava foundry (y -27.5) over a pack or plate foundry (y -33.5), one link pipe at (x-1,-30.5), lava main along y -24.5.
+
+## Vulcanus science cell (2026-11-11, save vulcanus-science-running)
+`scripts/vulcanus_cell.py foundries|unload|coal|carbide|calcite|dump|silo|space`
+- Band y -58.5..-41.5 (the band south of it, y -38.5..-21.5, is the base's first solar field): lava pump (46.5,-43.5) -> lava main along y -43.5 (x -17.5..45.5) -> six columns: packs at x 36.5, 27.5, 18.5 (molten copper foundry at y -46.5 over a pack foundry at y -52.5), plates at x 9.5, -7.5, -16.5 (molten iron over tungsten plate). Link pipe at (x-1,-49.5). West chest of each foundry is blue (calcite 20; packs: carbide 60 + plate 40; plates: ore 100), east chest red. Extra substations at x -10, 10, 30 on y -57 and -42.
+- Tungsten belt ends at (-117.5,-70.5) in three red chests; robots do all item moves at the base (1,020 logistic robots).
+- Coal: three big drills at y -68.5 (x -72.5, -66.5, -52.5) dropping into red chests at y -71.5. Calcite: one big drill (-140.5,108.5) into a red chest, roboport (-130,110) and substation (-132,104) extend the network.
+- Acid block: wells at (2.5,91.5), (-0.5,89.5), (-3.5,89.5), (7.5,94.5) -> acid main y 90.5 (x 4.5..19.5); carbon plants (dir 8) at y 88.5 and carbide assemblers at y 92.5, x 10.5, 14.5, 18.5; blue chests y 85.5 (coal 100) and y 95.5 (carbon 50, ore 100), red chests beside them.
+- Stone is the surplus (about 21/s): two blue chests at (43.5,-50.5/-51.5) with inserters that drop it into lava, on only above 2,000 stone in the network. Verified: nothing lands on the ground.
+- Silo (-30.5,-50.5), blue chests at (-31.5..-29.5,-56.5). Rocket part ingredients are NOT made on Vulcanus yet: 2,500 each of processing units, low density structure and rocket fuel were moved from Nauvis stock (enough for 50 rockets). Shuttle 7 requests 4,000 packs from Vulcanus and waits there for them; Nauvis pad requests 8,000 metallurgic (and electromagnetic lowered to 8,000); autopilot pack set includes metallurgic.
+- Measured: 144 packs/min over 10 minutes (2.4/s) while a stock of ore lasted; ore mined 12/s against 18/s used, so 28 speed module 2 went into the tungsten drills (not yet re-measured). 7.5 ore per pack.
+- Power: load about 44 MW drained the first 3,240 MJ in one night; `planet_base.py solar --cells 9` added 216 panels and 243 accumulators (6,885 MJ). Vulcanus day is 5,400 ticks.
+- Not yet seen: a rocket launch, a delivery to Nauvis, and the T5 demolisher passing the crossing.

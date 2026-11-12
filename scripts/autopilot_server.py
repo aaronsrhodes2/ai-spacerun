@@ -45,7 +45,7 @@ class Rcon:
 
 TOPUP = (
     "local f=game.forces.player local s=game.surfaces.nauvis local seven={['automation-science-pack']=1,['logistic-science-pack']=1,['military-science-pack']=1,"
-    "['chemical-science-pack']=1,['production-science-pack']=1,['utility-science-pack']=1,['space-science-pack']=1,['electromagnetic-science-pack']=1} "
+    "['chemical-science-pack']=1,['production-science-pack']=1,['utility-science-pack']=1,['space-science-pack']=1,['electromagnetic-science-pack']=1,['metallurgic-science-pack']=1} "
     "local stock={} for _,l in pairs(s.find_entities_filtered{type='lab'}) do local inv=l.get_inventory(defines.inventory.lab_input) for p,_ in pairs(seven) do stock[p]=(stock[p] or 0)+inv.get_item_count(p) end end "
     "local pri={%s} local rows={} for name,t in pairs(f.technologies) do if t.enabled and not t.researched and t.research_unit_count>0 and not t.prototype.research_trigger then "
     "local ready=true for _,p in pairs(t.prerequisites) do if not p.researched then ready=false end end local ok=true local pen=0 "
