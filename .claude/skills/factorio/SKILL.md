@@ -436,3 +436,10 @@ Fulgora check the same day: 103 packs/min over an hour (1.7/s, target 2), limite
 - The yard was filling by about 300 slots an hour. Second row of 18 generic recyclers at top y -93 (x 136..144, 156, 162, 164, 174..186, 194..198), 800 more robots (1,868). Measured falling afterwards. Check the yard over hours, not minutes.
 - Power: the added load caused a 10 s blackout at the end of each dry spell. 220 more rare accumulators at x 203..237, y -71..-45 (substations (211,-51), (229,-51), (211,-65), (225,-63)); base now 13,035 MJ, daily minimum about 1,770. Thin: add storage before adding load.
 - Autopilot: now queues repeatable research after finite research (it used to skip it, which left the labs idle once finite research ran out). After editing TOPUP, run it once and read the queue it prints.
+
+## Fulgora storage: intake gate and useful sinks (2026-11-11, save fulgora-intake-gate-foundations)
+- The Captain's idea: turn the miners off when nothing is needed. Done by backpressure, no script: the 24 unload inserters at `Scrap Base Unload` (y -106.5) are wired to the logistic network and run only while electromagnetic packs < 6,000; the train's wait at the base is now "empty" only (no 15 s timeout), so it parks full; home chests and belts fill and the drills stop. Verified: 30 of 37 drills stopped, main recyclers idle, yard fell 1,477 to 1,059 slots in 9 minutes.
+- With intake running the yard was level (1,552 to 1,566 slots over 1.5 game hours) with 16 of 37 generic recyclers idle.
+- Captain's order: turn what is voided into things we consume before voiding it. First sink: two assemblers at (181.5,-125.5) and (202.5,-125.5) make space platform foundation from surplus steel and copper cable (request 200 each, output chest barred at 10 stacks = 1,000 each). Nothing ships them yet.
+- Not done: advanced circuits, processing units and low density structures are also voided and could go to Nauvis, whose chemical science has stopped.
+- The Captain does not want the quality game: quality comes only from upgrading everything when a level is researched.
