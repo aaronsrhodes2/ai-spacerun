@@ -91,7 +91,7 @@ SPACE = ("local f=game.forces.player local s=game.surfaces.vulcanus local o={} l
          "local p=f.platforms[7] local secs=p.hub.get_logistic_sections() local have=false for _,sec in pairs(secs.sections) do for _,fl in pairs(sec.filters) do if fl.value and fl.value.name=='metallurgic-science-pack' then have=true end end end "
          "if not have then local sec=secs.add_section() sec.set_slot(1,{value={name='metallurgic-science-pack',quality='normal'},min=4000,import_from='vulcanus'}) end "
          "local sch=p.schedule local w=sch.records[2].wait_conditions local has=false for _,c in pairs(w) do if c.condition and c.condition.first_signal and c.condition.first_signal.name=='metallurgic-science-pack' then has=true end end "
-         "if not has then w[#w+1]={type='circuit',compare_type='and',condition={first_signal={type='item',name='metallurgic-science-pack'},comparator='>=',constant=4000}} sch.records[2].wait_conditions=w p.schedule=sch end "
+         "if not has then w[#w+1]={type='circuit',compare_type='and',condition={first_signal={type='item',name='metallurgic-science-pack'},comparator='>=',constant=8000}} sch.records[2].wait_conditions=w p.schedule=sch end "
          "o[#o+1]='silo answers platform requests '..tostring(sil.use_transitional_requests)..'; shuttle 7 requests 4000 packs from Vulcanus and waits for them there (stop '..sch.records[2].station..')' rcon.print(table.concat(o,' | '))")
 
 

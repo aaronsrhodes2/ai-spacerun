@@ -564,5 +564,5 @@ To tell a fuel inserter from a cargo loader: carriages sit every 7 tiles from th
   coal 800 (their inserters load opposite lanes). 400 robots. Base end: (-118.5/-116.5,-70.5) ore gated packs<6000; (-117.5,-69.5) coal gated coal<12000.
 - place_entities removes trees and rocks under what it places.
 - Vulcanus Shuttle: its hub has 59 slots and is full at 4,000 packs (the rest is ammunition, fuel cells, calcite), so 4,000 a trip is the
-  ceiling; a request of 8,000 just left it waiting. The hub's pack signal is NOT doubled (4000 packs reads 4000). It waits at Nauvis for
-  thruster fuel 35000, which takes several minutes; that is normal.
+  ceiling; a request of 8,000 just left it waiting. The schedule's circuit condition DOES see the pack signal doubled (it left with 2,000 when the constant was 4000), so the constant is 8000 for 4,000 packs. It waits at Nauvis for
+  thruster fuel 35000. A round trip burns about 21,000 fuel per tank (13,600 out, 7,800 back) and the platform makes 700..1,400 a minute, so the cycle is fuel-bound at 15..30 minutes whatever the threshold: about 130..260 packs a minute.
