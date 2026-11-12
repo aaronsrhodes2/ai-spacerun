@@ -121,6 +121,14 @@ def layout():
     for x, d, item in ((95, W, "yumako-mash"), (99, E, "jelly"), (103, W, "jelly"), (107, E, "yumako-mash"), (115, W, "yumako-mash"), (119, E, "jelly")):
         ins(x, 5, d, [item])
     # line 2
+    # second nutrient chamber, just upstream of science on the nutrient tail: the single lane from the head (about 1,440 a minute) is
+    # eaten by the egg chambers before it gets here, so science had no fuel
+    put("biochamber", 89, 13)
+    recipes.append((89.5, 13.5 + DY, "nutrients-from-bioflux"))
+    ins(90, 11, N, ["bioflux"], long=True)
+    ins(89, 11, S, ["nutrients"])
+    ins(88, 11, N, ["nutrients"])
+    ins(89, 15, N, ["spoilage"])
     for c in SCI:
         put("biochamber", c, 13)
         recipes.append((c + 0.5, 13.5 + DY, "agricultural-science-pack"))
@@ -222,6 +230,12 @@ def main():
         sense = sense[::-1]
         lua = THROTTLE.replace("SENSE", "{" + ",".join("{%s,%s}" % q for q in sense) + "}").replace("OLD", "{" + ",".join("{%s,%s}" % q for q in old) + "}").replace("NEW", "{" + ",".join("{%s,%s}" % q for q in new) + "}").replace("EY", str(16.5 + DY))
         print(tools["run_lua"](lua) if apply else "(dry run) would rewire %d egg inserters" % len(new))
+    elif step == "nu2":
+        add = [e for e in ents if 88 <= e["x"] <= 91 and 12 <= e["y"] <= 17 and "belt" not in e["name"]]
+        print(tools["place_entities"](json.dumps(add), surface="gleba", dry_run=not apply)[:300])
+        if apply:
+            print(tools["run_lua"](CONFIG.replace("SPEC", lua_list([c for c in cfg if 88 <= c[0] <= 91 and 12 <= c[1] <= 17]))))
+            print(tools["run_lua"](RECIPES.replace("SPEC", lua_list([r for r in recipes if r[0] == 89.5])).replace("SKIP", "false")))
     elif step == "config":
         print(tools["run_lua"](CONFIG.replace("SPEC", lua_list(cfg))) if apply else "(dry run) %d inserters to configure" % len(cfg))
     elif step == "recipes":

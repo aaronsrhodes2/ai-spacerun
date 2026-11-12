@@ -594,3 +594,19 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
   `connector.connect_to(other,false)`; `inserter_stack_size_override`; `place_entities` takes `"params":{"quality":"rare"}`;
   `surface.set_tiles` with landfill for wetland; plants are type `plant` (`tick_grown`), not removed by `place_entities`.
 - Not done: rocket silo and shipping, a long stability run, more soil (artificial soil is researched), rocket part ingredients on Gleba.
+
+## Gleba: shipping and first rates (2026-11-12, `gleba_ship.py`, `_glebawatch.py`)
+- Silo (143.5,3.5), blue chests (142.5..144.5,-2.5) holding 2,500 processing units, 2,400 low density structure, 950 rocket fuel moved from
+  Nauvis stock (19 rockets; nothing for rockets is made on Gleba yet). Science belt end -> red chest (128.5,20.5) -> robots -> silo
+  (`use_transitional_requests`). Spoilage in that chest goes to a heating tower (125.5,20.5).
+- **Science rots (the Captain, 2026-11-12):** the science chambers' egg inserters work only while the red chest holds under 1,000 packs
+  (green wire), so packs are made close to pickup. Shuttle 6 asks for 2,000, leaves Gleba with 2,000 aboard or after 10 minutes. Nauvis pad asks 8,000.
+- Measured with science on (production statistics, per minute): science 102, eggs 68, bioflux 168, nutrients 1,440 to 1,640, yumako 240, jellynut 60.
+  The limit is nutrients: every nutrient inserter drops on the same belt lane (about 1,440 a minute) and eggs take 30 each. A second nutrient
+  chamber (89.5,14.5) sits just before the science chambers because they got no fuel at the end of that lane. More rate needs a second lane.
+- The block ran about 2.5 hours of game time unattended during the seed shortage with no jam and the egg line alive.
+- `products_finished` on biochambers does not count plain crafts; use `force.get_item_production_statistics('gleba')` here.
+- The Captain wants the rot burnt for steam power (boilers) rather than only destroyed: not built yet. A boiler stops burning when its steam
+  is full, so a belt end must keep a heating tower as overflow, or the towers get heat exchangers and turbines instead.
+- Not seen yet: a rocket launch from Gleba, a delivery to Nauvis. The autopilot pack list has the agricultural pack added but the running
+  autopilot was not restarted.
