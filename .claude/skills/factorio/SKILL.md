@@ -520,3 +520,8 @@ Vulcanus demolishers (Captain): never kill them. They keep to a regular path unl
 
 ## Nauvis belt survey (2026-11-11, read only)
 13,267 belt pieces in 287 connected networks. 153 networks (3,300 pieces) have no inserter or mining drill touching them, 27 of those (1,266 pieces) hold no items at all; the survey may split networks at underground belts, so re-check before removing. Entities: 860 mining drills, 528 furnaces, 388 assemblers, 8,697 poles, 932 roboports. The Captain wants the main base cleaned up, organised and compressed, with big mining drills and foundries; no plan agreed yet.
+
+## Nauvis clean-up stage 1: dead belts (2026-11-11, saves before-nauvis-dead-belts, nauvis-dead-belts-removed)
+`scripts/nauvis_dead_belts.py [--apply]` groups belts, splitters and underground belts (`underground_belt_neighbour`, not in `belt_neighbours`) into networks and removes those no inserter or drill touches, plus empty ones nothing can ever drop onto. Removed 757 pieces (736 + 21), none held items; 12,510 remain in 70 networks. Machine statuses and alerts unchanged afterwards.
+- The first survey without underground pairing said 3,300 dead pieces; the true figure was 757. Always pair undergrounds.
+- Left alone, for the Captain to decide: one empty, idle network of 826 pieces across x -333..131, y -126..-25 (6 feeders, none working; 12 takers); three networks (108 pieces) that nothing takes from (removing them would make their feeding inserters spill onto the ground).
