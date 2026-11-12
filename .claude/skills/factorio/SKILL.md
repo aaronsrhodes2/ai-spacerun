@@ -498,3 +498,11 @@ Vulcanus demolishers (Captain): never kill them. They keep to a regular path unl
 - Measured: 144 packs/min over 10 minutes (2.4/s) while a stock of ore lasted; ore mined 12/s against 18/s used, so 28 speed module 2 went into the tungsten drills (not yet re-measured). 7.5 ore per pack.
 - Power: load about 44 MW drained the first 3,240 MJ in one night; `planet_base.py solar --cells 9` added 216 panels and 243 accumulators (6,885 MJ). Vulcanus day is 5,400 ticks.
 - Not yet seen: a rocket launch, a delivery to Nauvis, and the T5 demolisher passing the crossing.
+
+## Vulcanus solved, first version (2026-11-11, save vulcanus-solved-v1)
+- End to end: tungsten mine in territory 5 -> 1,100-tile belt -> robot crossing -> base cell -> silo -> Vulcanus Shuttle -> Nauvis pad -> labs. First delivery of 2,000 metallurgic packs seen on Nauvis (shuttle trips 144 -> 146), labs researching cliff explosives.
+- Measured over 10 minutes: 160 packs/min (2.7/s); ore mined 1,354/min against 1,200 used after 28 speed module 2 went into the tungsten drills; no alerts, no ghosts; accumulators full at dusk (6,885 MJ).
+- Demolisher pass watched live: T5's demolisher went by the mine at 31 tiles and through the crossing (nearest building 12 tiles from the path, robots flying 4 tiles over its head), woke to "full" activity near the buildings, stayed on patrol (ai type 0) and damaged nothing. Keep everything 12+ tiles from a patrol path.
+- Intake gate: the three unload inserters at the tungsten belt's end run only while fewer than 6,000 packs are in the network.
+- Autopilot TOPUP now counts a pack as available if Nauvis labs plus network hold 30 or Nauvis made some in the last 10 minutes; otherwise techs needing it rank last (it had queued metallurgic research before any pack arrived and stalled the labs).
+- Open: rocket part ingredients on Vulcanus came from Nauvis stock (2,500 each, about 50 rockets); no local production yet. The tungsten patch is finite (4.2M ore, 7.5 ore per pack). Chemical science on Nauvis (130/min) limits the labs.
