@@ -566,3 +566,31 @@ To tell a fuel inserter from a cargo loader: carriages sit every 7 tiles from th
 - Vulcanus Shuttle: its hub has 59 slots and is full at 4,000 packs (the rest is ammunition, fuel cells, calcite), so 4,000 a trip is the
   ceiling; a request of 8,000 just left it waiting. The schedule's circuit condition DOES see the pack signal doubled (it left with 2,000 when the constant was 4000), so the constant is 8000 for 4,000 packs. It waits at Nauvis for
   thruster fuel 35000. A round trip burns about 21,000 fuel per tank (13,600 out, 7,800 back) and the platform makes 700..1,400 a minute, so the cycle is fuel-bound at 15..30 minutes whatever the threshold: about 130..260 packs a minute.
+
+## Gleba: spoilage-first core (started 2026-11-12, scripts `gleba.py`, `gleba_core.py`, routes in `docs/gleba_routes.json`)
+The Captain's warning: spoilage is what makes Gleba unstable. The layout answers that first; rate comes second.
+- **Where:** core at x 61..132, y 1..20 (free band between the substation rows). Yumako farm: tower (-150.5,-115.5) on the natural soil north-west.
+  Jellynut farm: tower (195.5,100.5) east. Two turbo trunks (392 and 176 tiles, wetland landfilled) meet at (126,-4), one lane each.
+  Water: pump (156.5,26.5) -> pipe -> main along y 12 over the egg chambers.
+- **Rules built in** (details in the `gleba_core.py` header): mash and jelly never ride a belt (direct insertion); every belt is a dead end whose
+  last inserter takes spoilage only into a heating tower (egg belt and junk belt: takes everything); every machine has a spoilage-out inserter;
+  two electric assemblers restart the nutrient belt from fruit alone; priority is by position on the belt (fuel for the fruit line, then eggs,
+  then science; bioflux passes the nutrient chamber before science).
+- **Eggs:** keeper pair (117.5/121.5, y 14.5) hands eggs to each other and always runs. The other six chambers take eggs off the egg belt one at
+  a time and only while no egg reaches the ten sensor tiles before the burner (red wire, condition egg = 0), so surplus is not made.
+  Egg chambers must face east (water inlet); a biochamber placed before its recipe has a fluid ignores `direction`, set it after `set_recipe`.
+- **Trigger chain as earned:** jellynut (robot-mined jellystem) -> 10 nutrients from spoilage in an assembler (biochamber) -> 500 nutrients
+  (artificial soil) -> one biochamber crafted in an assembler (bioflux; needs 1 pentapod egg) -> bioflux 1/25/100 (bacteria, bioflux processing,
+  agricultural science). The egg came from the lone small raft at (-134,199): two laser turrets on a four-panel solar outpost shot it; it
+  dropped 3 eggs (script moved one to the crafter with 5 nutrients, two into egg chambers; `gleba.py seed` spreads belt eggs to empty chambers).
+  If the egg line ever dies (15 minutes without nutrients), another raft has to be shot: 28 left, nearest small ones at (127,221), (99,-242).
+- **Agricultural towers harvest every wild tree in reach too** (wood, stone, spoilage): the trunk inserter is whitelisted fruit + spoilage, a
+  second inserter (blacklist) puts the rest in a red chest. Stone cannot burn, so it must never reach a belt end.
+- **Seeds are the slow part.** A tower only replants with seeds; 50 fruit give 1.5 seeds in a biochamber (1 in an assembler). The wild plants in
+  reach (7 yumako, 13 jellystems) were harvested in minutes, then the field regrows from seeds at about x1.5 per 5-minute generation. Seeds go
+  junk belt -> red chest (72.5,0.5) -> robots -> blue chest at each tower.
+- **Science chambers are off** (`gleba_core.py recipes --science` turns them on): there is no rocket silo on Gleba yet, packs would only spoil.
+- API: `defines.inventory.crafter_input`; belt control behaviour uses `circuit_enable_disable`, `read_contents`, `read_contents_mode`;
+  `connector.connect_to(other,false)`; `inserter_stack_size_override`; `place_entities` takes `"params":{"quality":"rare"}`;
+  `surface.set_tiles` with landfill for wetland; plants are type `plant` (`tick_grown`), not removed by `place_entities`.
+- Not done: rocket silo and shipping, a long stability run, more soil (artificial soil is researched), rocket part ingredients on Gleba.
