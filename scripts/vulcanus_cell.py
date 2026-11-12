@@ -49,9 +49,9 @@ def unload():
 
 
 def coal():
-    """Three big mining drills on the coal field, each dropping straight into a red chest."""
+    """Six big mining drills on the coal field, each dropping straight into a red chest."""
     e = []
-    for x in (-72.5, -66.5, -52.5):
+    for x in (-80.5, -72.5, -66.5, -58.5, -52.5, -46.5):
         e += [{"name": "big-mining-drill", "x": x, "y": -68.5, "direction": 0}, {"name": "passive-provider-chest", "x": x, "y": -71.5}]
     return e
 
