@@ -221,7 +221,9 @@ def register(mcp, q: Callable[[str], str]) -> None:
         """Where the factory is blocked. Machine counts by type and status, with sample
         positions of every machine that isn't working, plus items made and used per
         minute. A machine short of inputs points upstream; one with full output points
-        downstream. Sort out low_power and no_power first."""
+        downstream. Sort out low_power and no_power first. Also returns the game's own
+        alert list for the surface (what the player sees in the alert overview), the number
+        of damaged entities and of ghosts: read these first, every time."""
         return run(_STATUS_NAMES + f"""
             local s = game.surfaces[{json.dumps(surface)}]
             local f = game.forces.player
@@ -255,7 +257,29 @@ def register(mcp, q: Callable[[str], str]) -> None:
               table.sort(list, function(a, b) return a.per_minute > b.per_minute end)
               return list
             end
+            local alert_names = {{}}
+            for k, v in pairs(defines.alert_type) do alert_names[v] = k end
+            local alerts = {{}}
+            local pl = game.connected_players[1] or game.players[1]
+            if pl then
+              for _, by_type in pairs(pl.get_alerts{{surface=s}}) do
+                for at, list in pairs(by_type) do
+                  local a = {{type=alert_names[at] or tostring(at), count=#list, at={{}}, what={{}}}}
+                  for i, al in pairs(list) do
+                    local nm = (al.target and al.target.valid and al.target.name) or (al.prototype and al.prototype.name) or '?'
+                    a.what[nm] = (a.what[nm] or 0) + 1
+                    if i <= n and al.position then a.at[#a.at+1] = {{x=al.position.x, y=al.position.y}} end
+                  end
+                  alerts[#alerts+1] = a
+                end
+              end
+            end
+            local damaged = 0
+            for _, e in pairs(s.find_entities_filtered{{force=f}}) do
+              if e.health and e.max_health and e.health < e.max_health then damaged = damaged + 1 end
+            end
             rcon.print(helpers.table_to_json({{
+              alerts=alerts, damaged_entities=damaged, ghosts=s.count_entities_filtered{{type='entity-ghost', force=f}},
               machines=by, problems=problems,
               made_per_minute=rates(stats.input_counts, 'input'),
               used_per_minute=rates(stats.output_counts, 'output'),
