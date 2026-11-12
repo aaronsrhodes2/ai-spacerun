@@ -554,3 +554,15 @@ To tell a fuel inserter from a cargo loader: carriages sit every 7 tiles from th
   plate foundry 48.5,-22.5) is now the fourth: its chest (44.5,-16.5) requests calcite 20, chest (44.5,-22.5) tungsten ore 100.
   Measured after: 230 plates/min, 170 packs/min (three pack foundries, capacity 173). Nauvis science machines are 96..144 packs/min per kind.
 - At that rate the network's coal fell about 180/min; the 6,000-pack intake gate pauses the cell often, which lets coal recover.
+
+## Vulcanus coal from territory 5 (2026-11-12) - `scripts/vulcanus_coal.py`
+- Coal outside all territories is under 1 million; territory 5 holds 17 million, and the tungsten belt passes 20 tiles east of that field.
+- Seven big drills on a collector belt along y -209.5 (x -640..-588.5). It meets the tungsten belt's corner (-587.5,-209.5) from the west while the
+  ore arrives from the east: a belt fed from both sides and not from behind stays straight and both side-load, so ore keeps lane 1 and coal lane 2.
+- Mixed belts with separately gated unloaders jam (head-of-line blocking). Keeping one item per lane, with filtered unloaders, avoids it.
+- Crossing: west red chests (-259.5,..),(-257.5,-70.5) ore only; (-255.5,-68.5/-67.5) coal only. East blue chests: north row ore 800, south row
+  coal 800 (their inserters load opposite lanes). 400 robots. Base end: (-118.5/-116.5,-70.5) ore gated packs<6000; (-117.5,-69.5) coal gated coal<12000.
+- place_entities removes trees and rocks under what it places.
+- Vulcanus Shuttle: its hub has 59 slots and is full at 4,000 packs (the rest is ammunition, fuel cells, calcite), so 4,000 a trip is the
+  ceiling; a request of 8,000 just left it waiting. The hub's pack signal is NOT doubled (4000 packs reads 4000). It waits at Nauvis for
+  thruster fuel 35000, which takes several minutes; that is normal.
