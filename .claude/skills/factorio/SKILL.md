@@ -540,3 +540,10 @@ A pilot (`scripts/nauvis_foundry_pilot.py`: melting foundry over a casting found
 Why trains still burned coal and rocket fuel: (1) old refuelling inserters fed locomotives straight from coal and rocket fuel belts at stations; (2) the 21 blue refuelling chests (request nuclear fuel 10) still held thousands of leftover coal and some rocket fuel; (3) locomotive fuel slots were full of the old fuels (nuclear fuel stacks to 1, so little fitted); (4) trains 290 (Hub Chem Yard / Refinery Yard) and 320 (Science Packs Load / Unload) had no nuclear chest at either station.
 Done with `scripts/nauvis_train_fuel.py` plus two scratch scripts: old fuel moved out of chests and locomotives into storage (coal about 7,300, rocket fuel 310, wood 200), each locomotive topped up to at least 2 nuclear fuel, five belt-fed fuel inserters removed, and four new inserter + blue chest pairs at the front and rear locomotive positions of Refinery Yard and Science Packs Unload. The three rocket fuel inserters at (-204.5,-262.5..-260.5) load cargo wagon 4 of train 290 and were left.
 To tell a fuel inserter from a cargo loader: carriages sit every 7 tiles from the stop (first centre 3 tiles behind it); compare with `train.carriages`.
+
+## Nauvis chemical science (2026-11-12)
+- Eight assemblers at y -66.5 (x -344.5..-316.5), fed by the belt y -63.5 (advanced circuits south lane, engines north lane) and y -62.5 (sulfur).
+- They were starved of engines (48/min from four belt-side assemblers; about 130/min needed). Fix in `scripts/nauvis_chem_science.py`:
+  blue chest (-304.5,-59.5) + long-handed inserter (-304.5,-61.5) puts network engines on the north lane; seven robot-fed engine
+  assemblers at x -320.5, y -118.5..-100.5. Measured after: 130 packs/min (was 48), engines 135 made / 134 used.
+- Labs can use far more (48 labs, all packs but chemical plentiful), so chemical science is still the limit; next step is more science assemblers.
