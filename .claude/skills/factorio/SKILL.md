@@ -428,3 +428,11 @@ Platform-to-platform test, 2026-11-11: Fulgora Shuttle hub slot carbon 200 with 
 ## Research queue holds 7 (2026-11-11)
 Writing more than 7 techs to `force.research_queue` fails, and the autopilot's pcall hid it: research sat idle for over an hour with 12,484 electromagnetic packs on the Nauvis pad. TOPUP now caps the list at 7. When asked "is it working", check `current_research` and lab status first.
 Fulgora check the same day: 103 packs/min over an hour (1.7/s, target 2), limited by batteries (network short); ice stock down to 57 with the shuttle's 300-ice request competing with the cell's melters.
+
+## Fulgora at 2 packs/s (2026-11-11, save fulgora-two-per-second)
+- The limit was accumulator assemblers (5 at 60/min exactly), then batteries. Now 8 assemblers (new at (202.5,-132.5), (160.5,-125.5), (195.5,-125.5)); 5 rare productivity modules in each of the 3 supercapacitor plants. The accumulator recipe takes no productivity modules: `inv.insert` returns 0, so count what insert returns, never assume.
+- Batteries (4% of scrap) are the hard cap: about 3.05 per pack, so packs/min = batteries/min / 3.05. Each level of scrap-recycling-productivity adds 10% of everything from scrap; it is queued first.
+- Ice: the yard was voiding it (about 380/min; melters need under 30). Generic yard inserters now blacklist ice (`use_filters`, `inserter_filter_mode='blacklist'`); an ice void unit at (200,-153) runs only above 3,000 in the network, so 3,000 is the standing reserve.
+- The yard was filling by about 300 slots an hour. Second row of 18 generic recyclers at top y -93 (x 136..144, 156, 162, 164, 174..186, 194..198), 800 more robots (1,868). Measured falling afterwards. Check the yard over hours, not minutes.
+- Power: the added load caused a 10 s blackout at the end of each dry spell. 220 more rare accumulators at x 203..237, y -71..-45 (substations (211,-51), (229,-51), (211,-65), (225,-63)); base now 13,035 MJ, daily minimum about 1,770. Thin: add storage before adding load.
+- Autopilot: now queues repeatable research after finite research (it used to skip it, which left the labs idle once finite research ran out). After editing TOPUP, run it once and read the queue it prints.
