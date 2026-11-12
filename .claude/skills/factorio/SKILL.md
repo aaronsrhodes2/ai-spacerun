@@ -547,3 +547,10 @@ To tell a fuel inserter from a cargo loader: carriages sit every 7 tiles from th
   blue chest (-304.5,-59.5) + long-handed inserter (-304.5,-61.5) puts network engines on the north lane; seven robot-fed engine
   assemblers at x -320.5, y -118.5..-100.5. Measured after: 130 packs/min (was 48), engines 135 made / 134 used.
 - Labs can use far more (48 labs, all packs but chemical plentiful), so chemical science is still the limit; next step is more science assemblers.
+
+## Vulcanus science rate (2026-11-12)
+- Production statistics flows on Vulcanus read low and jumpy; measure with `products_finished` deltas over a few minutes instead.
+- Three plate foundries (57.6 plates/min each) capped science at about 127 packs/min. The trigger workshop pair (lava foundry 48.5,-16.5 and
+  plate foundry 48.5,-22.5) is now the fourth: its chest (44.5,-16.5) requests calcite 20, chest (44.5,-22.5) tungsten ore 100.
+  Measured after: 230 plates/min, 170 packs/min (three pack foundries, capacity 173). Nauvis science machines are 96..144 packs/min per kind.
+- At that rate the network's coal fell about 180/min; the 6,000-pack intake gate pauses the cell often, which lets coal recover.
