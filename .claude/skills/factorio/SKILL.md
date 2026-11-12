@@ -443,3 +443,8 @@ Fulgora check the same day: 103 packs/min over an hour (1.7/s, target 2), limite
 - Captain's order: turn what is voided into things we consume before voiding it. First sink: two assemblers at (181.5,-125.5) and (202.5,-125.5) make space platform foundation from surplus steel and copper cable (request 200 each, output chest barred at 10 stacks = 1,000 each). Nothing ships them yet.
 - Not done: advanced circuits, processing units and low density structures are also voided and could go to Nauvis, whose chemical science has stopped.
 - The Captain does not want the quality game: quality comes only from upgrading everything when a level is researched.
+
+## Nauvis chemical science fed from the network (2026-11-11, save chem-science-fed)
+- The 8 chemical science assemblers (y -66.5, x -344.5..-316.5) take sulfur, engines and advanced circuits from belts y -63.5 and -62.5. The advanced circuit lane was empty because the local circuit makers at y -59.5 are short of copper cable and iron, while the network held 451,000 advanced circuits. Added a requester chest (-312.5,-65.5, 400 advanced circuits) and a bulk inserter (-312.5,-64.5) onto the south lane. All 8 working again. The starved local circuit makers are the Captain's and were left alone.
+- Nauvis stock on that day: advanced circuits 451k, processing units 91k, low density structure 62k, steel 126k, platform foundation 84k, copper and iron plate 450k+ each, holmium plate 0, batteries 1,800. So Fulgora's surplus has no use on Nauvis except holmium and batteries, which Fulgora itself is short of. Nothing is shipped.
+- Rocket capacity: advanced circuit 1000, plates 1000, plastic 2000, steel 400, battery 400, processing unit 300, low density structure 200, platform foundation 50.
