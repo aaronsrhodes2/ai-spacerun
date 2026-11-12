@@ -464,3 +464,9 @@ Fulgora that day (save fulgora-alerts-clear), all cleared:
 - unclaimed_cargo: drop pod containers with 50 iron ore on Fulgora and Gleba; emptied into network storage and removed.
 - A stray train-stop ghost of mine at (171,-103) removed.
 Vulcanus demolishers (Captain): never kill them. They keep to a regular path unless bothered; lay a block of walls or foundation in front of one and the path it carves shows the safe build area. Cross its path with underground belts or with robots.
+
+## Vulcanus demolishers: exact paths from the API (2026-11-11)
+- `surface.get_territories()[i].get_patrol_path()` returns the waypoints the demolisher follows (closed loop); `get_segmented_units()[1]` has `.segments[1].position` (head), `.get_ai_state()` (waypoint, destination), `.activity_mode` (T4's was asleep and did not move for minutes; T2 and T3 were patrolling). Small demolisher head box is 3x3. Never script the unit itself.
+- All tungsten ore is inside territories. Ore clear of its own demolisher's path: T5 patch at (-371,-183) 4.2M total, 3.1M at >=25 tiles, 1.5M at >=40 (safe ore box x -405..-359, y -217..-154); T4 near patch 364k total, only 102k at >=15; T8 (-524,-570) 816k all >=40 but a medium demolisher; T16/T17 around (450,605).
+- T5's path is a huge loop (x -781..-241, y -394..211) and the ore is inside it, so any route crosses it once. T1's loop sits between the base and the ore north of y -90 (its southern edge runs (-205,-104),(-214,-96)); stay south of y -90 to avoid it. Chosen crossing: T5 path segment (-248,-82) to (-241,-55), i.e. cross at about (-245,-70) going west, then north-west inside the loop to the ore.
+- Plan: tungsten mine in the safe box, elevated rail over the crossing (supports 12 apart, path midway), train to the base as on Fulgora; foundries on the lava at (53,0); carbide from coal and acid near the base.
