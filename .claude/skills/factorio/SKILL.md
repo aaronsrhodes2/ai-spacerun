@@ -793,3 +793,11 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - **The hub edge is the scarce thing on a platform**: 32 tiles, and each quadrant of bays needs four of them. One bulk inserter on a mixed belt moved about 3 items a second; on a pure belt it keeps up with 5. Keep the belts into the hub pure.
 - The six north crushers are cut off the avenue and idle; use their products directly in the next pack line.
 - An inserter north of an east-flowing belt and a belt side-loading from the south both land on lane 2. Check lanes before merging.
+
+## Wheels: products, valve; shuttles and the Gleba pad (2026-11-13, night)
+- **Free the hub edge with bridge bays.** All bays only need one 4-tile contact with the hub if the quadrants are joined: a bay laid across an avenue (the avenue belt dives under it with an underground pair) joins two quadrants. Done over the west avenue (frees the hub's north edge) and the east avenue (frees the east edge). `wheel_science.py products --apply` brings the north crushers in on the north edge.
+- **Surplus valve** (`scripts/wheel_valve.py`): a decider reads the hub (`each > 50000` gives each = 1), four bulk inserters on the east edge take those items out and drop them into a slot cut in the deck (`set_tiles` `empty-space`), which is overboard. `circuit_set_filters` plus enable on `signal-anything > 0`, so nothing is moved when nothing is over. Capping intake instead does not work: products share belts, and the plentiful one (iron) blocks the scarce one (ice).
+- The space science feed inserters stop above 20,000 stored packs (wired to the hub).
+- **A paused platform does not drop cargo.** Both wheels were paused; `p.paused=false`.
+- **Gleba landing pad was full** (80 slots of over-delivered packs), so nothing landed and the labs had no red, green, blue or white. Four rare cargo bays beside it: 208 slots.
+- **Shuttles**: Nauvis orbit gives a parked shuttle a few hundred fuel a minute; a round trip costs about 7,000 to 13,000. All nine were waiting at Nauvis for 35,000. Now: leave Nauvis at 20,000, fill to 32,000 at the far planet (`HOME`/`AWAY` in `configure_shuttle2.py`).

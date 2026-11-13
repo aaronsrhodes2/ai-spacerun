@@ -49,8 +49,8 @@ rcon.print(table.concat(o,' | '))
 
 # Schedule: the hub sees its own contents (red) and one tank each of water, thruster fuel and oxidizer (green), so every number below is HALF the ship's total.
 # At Nauvis the ship waits for full propellant tanks (a fill covers a round trip); at the far planet it waits for enough to fly home with a margin.
-HOME = dict(fuel=35000, mags=1500)
-AWAY = dict(fuel=15000, mags=800)
+HOME = dict(fuel=20000, mags=1500)      # was 35000: Nauvis orbit has almost no asteroids, all nine shuttles sat there about an hour refuelling (2026-11-13)
+AWAY = dict(fuel=32000, mags=800)       # was 15000: the far orbits are rich in asteroids, so fill up there and Nauvis never holds a ship (2026-11-13)
 ROUTE = """
 local p=game.forces.player.platforms[%(platform)d]
 local function c(t,n,k) return {type='circuit',compare_type='and',condition={first_signal={type=t,name=n},comparator='>=',constant=k}} end
