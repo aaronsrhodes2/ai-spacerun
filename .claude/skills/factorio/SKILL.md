@@ -823,3 +823,4 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - Salvaged asteroid chunks stack to 1: about 1,460 hub slots on the Nauvis wheel. The hub stood at 0 free slots at cap 40,000.
 - `LuaEntity.fluidbox` is not a valid key in 2.1; `get_fluid_contents()` works.
 - Chemical plant facing north: inputs top, outputs bottom; facing west: inputs west, outputs east. Refinery facing east: inputs west, outputs east. Joining all ports of one side with one pipe run avoids guessing which box a recipe uses.
+- A quality upgrade (`upgrade_quality.py`) resets the read-contents setting of wired belts (inserter and combinator settings, lamps and recipes survive). The blue line circuit went blind and both loops overfilled; after every upgrade run `wheel_blue.py config` then `wheel_blue.py trim`. Epic bays give each hub 7,621 slots. The hub itself cannot be upgraded.

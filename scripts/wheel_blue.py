@@ -19,8 +19,9 @@ on the Gleba wheel and 7 on Nauvis. Ordinary coal liquefaction would halve that 
                         belt O (a U round the cluster); steel, gears and pipes meet in the engine assembler; cable, circuits and
                         plastic meet in the advanced-circuit assembler; both feed the one science assembler, sulfur comes off K
   packs      one belt back west under the loop, side-loading the east product belt, which the hub already takes in
-Steps on every wheel (--only gleba|nauvis): check | pre | build [--apply] | refit | config | sweep | status. Never apply twice on the same wheel.
-Usage: wheel_blue.py check | pre | build [--apply] | refit | config | sweep | status  [--only PLANET]"""
+Steps on every wheel (--only gleba|nauvis): check | pre | build [--apply] | refit | config | sweep | trim | status. Never apply twice on the same wheel.
+After a quality upgrade run `config` then `trim`: the upgrade resets the belts' read-contents setting, the circuit goes blind and the loops overfill.
+Usage: wheel_blue.py check | pre | build [--apply] | refit | config | sweep | trim | status  [--only PLANET]"""
 import sys
 
 from _game import tools
@@ -247,6 +248,9 @@ ALLOWED = {"K": ["carbon", "sulfur", "calcite", "coal"], "O": ["iron-ore", "copp
 SWEEP = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local ok={} for _,n in pairs(ALLOW) do ok[n]=true end local t={} local junk=0 for _,p in pairs(TILES) do local e=s.find_entities_filtered{type={'transport-belt','underground-belt'},position=p,radius=0.3}[1] "
          "if e then for l=1,e.get_max_transport_line_index() do local tl=e.get_transport_line(l) for _,it in pairs(tl.get_contents()) do if ok[it.name] then t[it.name]=(t[it.name] or 0)+it.count else junk=junk+tl.remove_item{name=it.name,count=it.count,quality=it.quality} hub.insert{name=it.name,count=it.count,quality=it.quality} end end end end end "
          "local o={} for k,v in pairs(t) do o[#o+1]=k..' '..v end rcon.print('LINE: '..table.concat(o,', ')..' | strays returned to the hub '..junk)")
+TRIM = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local cap=CAPS local have={} local back=0 for _,p in pairs(TILES) do local e=s.find_entities_filtered{type={'transport-belt','underground-belt'},position=p,radius=0.3}[1] "
+        "if e then for l=1,e.get_max_transport_line_index() do local tl=e.get_transport_line(l) for _,it in pairs(tl.get_contents()) do local c=cap[it.name] if c then local h=have[it.name] or 0 local over=h+it.count-c "
+        "if over>0 then local n=tl.remove_item{name=it.name,count=math.min(over,it.count),quality=it.quality} hub.insert{name=it.name,count=n,quality=it.quality} back=back+n have[it.name]=h+it.count-n else have[it.name]=h+it.count end end end end end end rcon.print('LINE: returned to the hub '..back)")
 STATUS = ("local s=game.surfaces['SURF'] local st={} for _,c in pairs(s.find_entities_filtered{type={'assembling-machine','furnace'},area={{46,-42},{124,-3}}}) do local k='?' for n,v in pairs(defines.entity_status) do if v==c.status then k=n end end "
           "local rc=c.get_recipe() k=(rc and rc.name or c.name)..' '..k st[k]=(st[k] or 0)+1 end local o={} for k,v in pairs(st) do o[#o+1]=k..' '..v end table.sort(o) local f=game.forces.player.get_item_production_statistics(s) local inv=s.platform.hub.get_inventory(defines.inventory.hub_main) "
           "rcon.print(table.concat(o,' ; ')..' ; blue science a minute (10 min window) '..string.format('%.1f',f.get_flow_count{name='chemical-science-pack',category='input',precision_index=defines.flow_precision_index.ten_minutes})"
@@ -287,6 +291,10 @@ def main():
             gone, _, need = tools["run_lua"](REFIT.replace("SURF", surface).replace("OLDT", lua_list([(x + OX, y + OY) for x, y in OLD])).replace("WANT", want)).strip().partition(";")
             todo = [bl[int(i) - 1] for i in need.split(",") if i]
             print("belts removed", gone, "to place", len(todo), "placed, failed", place_all(todo, surface, True))
+        elif step == "trim":                        # after anything that reset the belt readers (a quality upgrade did): back down to the targets
+            for k, tiles in lines.items():
+                caps = "{" + ",".join("['%s']=%d" % kv for kv in TARGETS[k].items()) + "}"
+                print(tools["run_lua"](TRIM.replace("SURF", surface).replace("LINE", k).replace("CAPS", caps).replace("TILES", lua_list(tiles))))
         elif step == "sweep":                       # what lies on each supply belt; anything that does not belong goes back into the hub
             for k, tiles in lines.items():
                 print(tools["run_lua"](SWEEP.replace("SURF", surface).replace("LINE", k).replace("ALLOW", "{" + ",".join("'%s'" % a for a in ALLOWED[k]) + "}").replace("TILES", lua_list(tiles))))
