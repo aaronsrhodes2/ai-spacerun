@@ -16,7 +16,7 @@ import json
 from _game import tools
 from _wheels import wheels
 
-CAP, PACKS = 50000, 20000
+CAP, PACKS = 40000, 20000
 Q = {"quality": "rare"}
 BRIDGE = [{"name": "cargo-bay", "x": 34, "y": 2, "direction": 0, "params": Q},
           {"name": "express-underground-belt", "x": 36.5, "y": 3.5, "direction": 12, "params": dict(Q, type="input")},

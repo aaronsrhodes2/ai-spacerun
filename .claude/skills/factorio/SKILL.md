@@ -801,3 +801,11 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - **A paused platform does not drop cargo.** Both wheels were paused; `p.paused=false`.
 - **Gleba landing pad was full** (80 slots of over-delivered packs), so nothing landed and the labs had no red, green, blue or white. Four rare cargo bays beside it: 208 slots.
 - **Shuttles**: Nauvis orbit gives a parked shuttle a few hundred fuel a minute; a round trip costs about 7,000 to 13,000. All nine were waiting at Nauvis for 35,000. Now: leave Nauvis at 20,000, fill to 32,000 at the far planet (`HOME`/`AWAY` in `configure_shuttle2.py`).
+
+## Wheels: red science (2026-11-13, night)
+- `scripts/wheel_red.py` (check | clear | build | config | status, every wheel): six units in the south avenue, each iron furnace -> gear assembler -> pack assembler <- copper furnace by direct insertion. About 70 a minute per wheel at first reading; five of six pack assemblers working.
+- **Lanes**: an inserter drops on the right lane (lane 2) of a belt running away from it. So put the straight-fed item on the east column and side-load the other from the west to get a lane each.
+- Hub edge of the south side: iron ore out, copper ore out, packs in (pure belt, own bulk inserter), products in (one inserter). The ore inserters stop above 20,000 stored red packs.
+- Valve cap is now 40,000 per item (hub is 6,459 slots after the red line took 35 bays).
+- The Nauvis landing pad now asks for 2,000 automation packs; the Nauvis wheel delivered 605 within 90 seconds. Not checked: whether Nauvis takes them from the pad to the labs.
+- Next: green science (belts, inserters: needs circuits, so copper cable), then a ring per planet tuned to its asteroid mix (the Captain's idea).
