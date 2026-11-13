@@ -645,3 +645,12 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
   the hub. Check `turrets armed 11/11` before the first flight of any new ship.
 - Autopilot PRIORITY now starts with advanced-asteroid-processing (58% done), rocket-turret, planet-discovery-aquilo; they wait on agricultural packs.
 - Asked for, not started: a platform above Gleba making all the sciences in space (needs advanced asteroid processing, not researched yet).
+
+## Server freeze, 2026-11-12 night (my mistake)
+- `gleba_labs.py ships` ran `while #secs.sections>0 do secs.remove_section(1) end` over RCON. It never ended: RCON stopped answering and SSH to the
+  VM timed out at the banner (ping still fine). **Never send an unbounded loop over RCON**: a Lua command that does not return freezes the game
+  for everyone and nothing but a restart ends it. Use `for` over a fixed list, or a counter with a hard cap.
+- `gcloud` had no active account in my shell, so I could not restart the VM or container; reported to the Captain.
+- State at the freeze: last named save `six-shuttles`. Built after it and possibly lost: Gleba labs, pack belt, landing pad (`gleba_labs.py build`
+  and `config` rebuild them in a minute). Not yet run: `gleba_labs.py ships` (fixed, untested) and the autopilot change to count Gleba's packs.
+- Decision recorded: Gleba is science central (labs on Gleba, other packs shipped in); the Nauvis-Gleba shuttles carry packs outward.
