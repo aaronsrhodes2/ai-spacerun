@@ -705,3 +705,10 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
   labs and both farms, besides the four lasers at the core (`scripts/gleba_defence.py`). No repair packs on Gleba or Nauvis (stock 0); ghosts are
   revived by script.
 - Second keeper pair B is not kept alive by the reserve (pair A takes all of it); it and the production chambers reseed from the belt afterwards.
+
+## Nauvis logistic science (2026-11-13, `scripts/nauvis_logistic_science.py`)
+- It made none: the seven inserter assemblers (x -198.5..-78.5 step 20, y -59.5) had iron and gears but no electronic circuits on their belt.
+  Six now have a blue chest (circuits 200) on the north side with an inserter into the assembler (west of centre where a substation stands
+  east: -198.5 and -158.5). A roboport at (-162,-66) closes a hole in robot coverage at the -158.5 chest. The unit at -78.5 has a belt north of
+  it and is left belt-fed (still starved). Six units at 20 a minute each: about 120 a minute; measured 52 a minute and rising two minutes in.
+- Do not apply a build whose dry run reported failures: I did, and left a stray inserter at (-77.5,-61.5), since removed.
