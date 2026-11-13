@@ -7,14 +7,15 @@ A circle of radius RC tiles round the hub of the first wheel (scripts/wheel.py):
   turrets      one gun turret every TURRET tiles of that loop on the inside, a substation between them every POLE tiles
   spokes       straight belts along the axes down to the first wheel's rim, with a substation line and solar panels beside them
 Everything is generated from the two circles, checked for overlaps here (run `check`), and placed in batches.
-Usage: wheel_round.py check | found | build [--apply] | config | arm | solar [--apply] | lasers"""
+Runs on every wheel in scripts/_wheels.py; --only gleba|nauvis for one. Never run `build --apply` twice on the same wheel.
+Usage: wheel_round.py check | found | build [--apply]  [--only PLANET]"""
 import json
 import math
 import sys
 
 from _game import tools
+from _wheels import lay_foundation, place_all, wheels
 
-NAME = "Gleba Wheel"
 Q = {"quality": "rare"}
 RC, RA = 600, 598
 COLLECT, TURRET, POLE = 30, 24, 16
@@ -129,14 +130,7 @@ def layout():
             under[t] = None
             under[ammo[(i - 1) % m]] = "input"
             under[ammo[(i + 1) % m]] = "output"
-    for i, t in enumerate(ammo):
-        nx = ammo[(i + 1) % m]
-        d = DIRS[(nx[0] - t[0], nx[1] - t[1])]
-        if t in under:
-            if under[t]:
-                one("express-underground-belt", t, d, type=under[t])
-        else:
-            one("express-transport-belt", t, d)
+    # (the inner circle carried ammunition on Gleba's first build; with lasers it only marks where the turrets stand)
     # collectors on the outside of the rim
     placed = 0
     last = -COLLECT
@@ -172,8 +166,7 @@ def layout():
             b = (t[0] + 3 * inn[0], t[1] + 3 * inn[1])
             body = [a, b, (a[0] + side[0], a[1] + side[1]), (b[0] + side[0], b[1] + side[1])]
             if free([ins] + body):
-                put("gun-turret", body, sum(c[0] for c in body) / 4 + .5, sum(c[1] for c in body) / 4 + .5)
-                one("fast-inserter", ins, DIRS[o], filt=["firearm-magazine"])   # picks from the loop (outward side)
+                put("laser-turret", body, sum(c[0] for c in body) / 4 + .5, sum(c[1] for c in body) / 4 + .5)
                 lt = i
                 nt += 1
                 continue
@@ -195,23 +188,9 @@ def layout():
             c = [turn((x, yy), k) for x in (6, 7, 8) for yy in (y, y + 1, y + 2)]
             if free(c):
                 put("solar-panel", c, sum(q[0] for q in c) / 9 + .5, sum(q[1] for q in c) / 9 + .5)
-    # ammunition feed: from the first wheel's column at x=-2 (it ends at y=-32 heading north) up to the loop
-    for y in range(-32, -RA, -1):
-        one("express-transport-belt", (-2, y), 0)
     for c in holes:
         tiles.discard(c)
     return {"rim": len(rim), "ammo": len(ammo), "collectors": placed, "turrets": nt, "substations": npole, "entities": len(ents), "tiles": len(tiles)}
-
-
-WHERE = "local f=game.forces.player for i,p in pairs(f.platforms) do if p.name=='" + NAME + "' then rcon.print(i..' '..p.surface.name) return end end rcon.print('none')"
-CONFIG = ("local s=game.surfaces['SURF'] local n=0 for _,q in pairs(FILT) do local i=s.find_entities_filtered{type='inserter',position={q[1],q[2]},radius=0.3}[1] if i then i.use_filters=true i.inserter_filter_mode='whitelist' "
-          "for k,name in pairs(q[3]) do i.set_filter(k,name) end n=n+1 end end rcon.print('inserters filtered '..n)")
-LASERS = ("local f=game.forces.player local s=game.surfaces['SURF'] if not f.recipes['laser-turret'].enabled then rcon.print('laser turret not researched') return end local n,ins=0,0 "
-          "for _,t in pairs(s.find_entities_filtered{name='gun-turret'}) do local pos,q=t.position,t.quality.name for _,i in pairs(s.find_entities_filtered{type='inserter',position=pos,radius=2.2}) do if i.drop_target==t then i.destroy() ins=ins+1 end end "
-          "t.destroy() if s.create_entity{name='laser-turret',position=pos,force=f,quality=q} then n=n+1 end end rcon.print('gun turrets replaced by lasers '..n..', feed inserters removed '..ins)")
-ARM = ("local f=game.forces.player local s=game.surfaces['SURF'] local p for i,q in pairs(f.platforms) do if q.surface==s then p=q end end local hub=p.hub.get_inventory(defines.inventory.hub_main) local n,a=0,0 "
-       "for _,t in pairs(s.find_entities_filtered{type='ammo-turret'}) do local inv=t.get_inventory(defines.inventory.turret_ammo) local need=10-inv.get_item_count() if need>0 then local got=hub.remove{name='firearm-magazine',count=need} "
-       "if got>0 then inv.insert{name='firearm-magazine',count=got} a=a+got end end n=n+1 end rcon.print('turrets '..n..', magazines handed out '..a..', hub magazines left '..hub.get_item_count('firearm-magazine'))")
 
 
 def main():
@@ -220,35 +199,17 @@ def main():
     print(info)
     if step == "check":
         return
-    surface = tools["run_lua"](WHERE).split()[1]
     apply = "--apply" in sys.argv
-    if step == "found":
-        ts = sorted(tiles)
-        for i in range(0, len(ts), 4000):
-            part = ",".join("{%d,%d}" % t for t in ts[i:i + 4000])
-            print(tools["run_lua"]("local s=game.surfaces['%s'] local add={} for _,p in pairs({%s}) do add[#add+1]={name='space-platform-foundation',position=p} end s.set_tiles(add) rcon.print('foundation '..#add)" % (surface, part)))
-    elif step == "build":
-        bad = 0
-        for i in range(0, len(ents), 400):
-            r = json.loads(tools["place_entities"](json.dumps(ents[i:i + 400]), surface=surface, dry_run=not apply))
-            f = r.get("failed") or []
-            bad += len(f)
-            if f:
-                print("failed", json.dumps(f)[:260])
-        print("batches done, failures", bad)
-    elif step == "config":
-        for i in range(0, len(cfg), 300):
-            filt = "{" + ",".join("{%s,%s,{%s}}" % (x, y, ",".join("'%s'" % f for f in fl)) for x, y, fl in cfg[i:i + 300]) + "}"
-            print(tools["run_lua"](CONFIG.replace("SURF", surface).replace("FILT", filt)))
-    elif step == "solar":                            # only the panels (the rest already stands)
-        add = [e for e in ents if e["name"] == "solar-panel"]
-        r = json.loads(tools["place_entities"](json.dumps(add[:400]), surface=surface, dry_run=not apply))
-        r2 = json.loads(tools["place_entities"](json.dumps(add[400:]), surface=surface, dry_run=not apply)) if len(add) > 400 else {"placed": 0}
-        print("panels placed", r.get("placed", 0) + r2.get("placed", 0), "(already standing ones are refused)")
-    elif step == "lasers":
-        print(tools["run_lua"](LASERS.replace("SURF", surface)))
-    elif step == "arm":
-        print(tools["run_lua"](ARM.replace("SURF", surface)))
+    for name, planet, surface, turrets in wheels():
+        print("==", name, surface or "(not created)")
+        if not surface:
+            continue
+        mine = [e for e in ents if turrets or e["name"] != "laser-turret"]
+        if step == "found":
+            print("foundation tiles", lay_foundation(tiles, surface))
+        elif step == "build":
+            ok, bad = place_all(mine, surface, apply)
+            print("placed" if apply else "dry run", ok, "failures", bad)
 
 
 if __name__ == "__main__":

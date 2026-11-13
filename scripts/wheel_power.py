@@ -6,6 +6,7 @@ import json
 import sys
 
 from _game import tools
+from _wheels import place_all, wheels
 
 Q = {"quality": "rare"}
 
@@ -22,12 +23,7 @@ for k in range(4):
         x2, y2 = turn((2, y), k)
         e.append({"name": "accumulator", "x": x2, "y": y2, "params": dict(Q)})
 apply = "--apply" in sys.argv
-ok = bad = 0
-for i in range(0, len(e), 400):
-    r = json.loads(tools["place_entities"](json.dumps(e[i:i + 400]), surface="platform-12", dry_run=not apply))
-    ok += r.get("placed", 0)
-    f = r.get("failed") or []
-    bad += len(f)
-    if f:
-        print("failed", json.dumps(f)[:300])
-print("placed" if apply else "dry run ok", ok, "failed", bad)
+for name, planet, surface, turrets in wheels():
+    if surface:
+        ok, bad = place_all(e, surface, apply)
+        print(name, "placed" if apply else "dry run ok", ok, "failed", bad)

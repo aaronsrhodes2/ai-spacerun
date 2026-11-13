@@ -766,3 +766,16 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
   130-tile ring that was never built; one collector at (-601,35) was refused.
 - **Blocked now: the hub is full (59 slots)**, so crushing stops and 6,000 items wait on the belts. Next: a bigger centre (cargo bays need
   hub-adjacent tiles, so the crushers must move off the hub), reprocessing to balance chunk types, then the pack lines.
+
+## Two wheels, one set of scripts (2026-11-13)
+- `scripts/_wheels.py` lists the wheels (`Gleba Wheel` on platform-12 with turrets, `Nauvis Wheel` on platform-13 without: Nauvis orbit only has
+  chunks). `wheel.py`, `wheel_round.py`, `wheel_power.py` run each step on every wheel; `--only gleba|nauvis` for one. Order for a new wheel:
+  `wheel.py create`, `wheel.py build --apply`, `wheel.py config`, `wheel_round.py found`, `wheel_round.py build` (dry), `build --apply`,
+  `wheel_power.py --apply`. Never `build --apply` twice on the same wheel.
+- The generators now place lasers (no ammunition belts, no substations). The Gleba wheel still carries its unused ammunition circle and feed.
+- **Side by side over 13.6 game minutes** (chunks piling up on the belts while both hubs were full):
+  Gleba about 246 chunks a minute (metallic 62, carbonic 155, oxide 29); Nauvis about 214 (metallic 107, carbonic 73, oxide 35).
+  Nauvis is about 1.7 times better for metal, Gleba for carbon; totals are close. No damage on either.
+- The Captain: calcite from the Nauvis wheel is what the Nauvis foundry plan was waiting for (it was on hold for advanced asteroid
+  processing), and foundries can stand on the station itself.
+- Both hubs are full (59 slots); crushing has stopped on both. Next: a bigger centre with cargo bays, reprocessing, pack lines, on both.
