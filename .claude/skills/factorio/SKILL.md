@@ -840,3 +840,13 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - State when written: built, all chains running, filling at Fulgora, schedule set (leaves at 120,000 fuel and oxidizer, 600 magazines, 2,500 carbon, 2,000 iron ore). NOT yet flown: fuel per trip, rocket use per trip and survival against big asteroids are unknown. The two grabbers fill slowly when parked (about 1,000 fuel a minute in the first minutes).
 - Hull tricks kept from the old script: foundation is every entity's footprint plus one tile; a collector's front row has no foundation; storage tanks join at their top-left (north and west) and bottom-right (south and east) corners; pipes to ground only join at their open end.
 - Uranium A train (2026-11-13): its rear engine ran dry because the Load stop had no working refuelling point (requester chest at -449.5,-410.5 without a request, inserter only a ghost). Now requests 10 nuclear fuel and the inserter is revived. Every other stop already had a stocked fuel chest per engine. Check `get_alerts{surface=...}` for `no_material_for_construction`: it pointed straight at the ghost.
+
+## Asteroid reprocessing on the wheels (2026-11-13)
+- `scripts/wheel_reprocess.py` (check | build [--apply] | config | status): 16 reprocessing crushers a wheel in the free slots between the crushers on the loop flats (8 metallic, 4 oxide, 4 carbonic). Each intake inserter is wired to the hub and works only while the hub holds over 30,000 of that chunk's main product (iron ore, ice, carbon), so surplus chunks are reshuffled before the valve voids anything.
+- The inserter-to-hub wires are over reach: after a quality upgrade run `wheel_reprocess.py config`.
+- The lamps that stood in those slots are gone; `wheel_lights.py` would collide there.
+- The Captain's rule: on any platform with a surplus of one resource and a shortage of another, reprocess first.
+
+## Rocket turrets: big asteroids only (2026-11-13)
+- A rocket turret left free fires at small and medium asteroids too. The Aquilo shuttle burned about 5,600 rockets parked in Fulgora orbit and all its carbon with them. Set `set_priority_target(i, '<big|huge>-<metallic|carbonic|oxide>-asteroid')` and `ignore_unprioritised_targets=true` (in `aquilo_shuttle.py config`).
+- Artillery is no answer in space: it does not target asteroids. The next step up is the railgun, which needs Aquilo research.

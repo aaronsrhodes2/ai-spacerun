@@ -228,6 +228,10 @@ def surface():
 
 TILES = ("local s=game.surfaces['SURF'] local want={} local add={} for _,p in pairs(LIST) do want[p[1]..','..p[2]]=true add[#add+1]={name='space-platform-foundation',position=p} end s.set_tiles(add) local rm={} "
          "for _,t in pairs(s.find_tiles_filtered{name='space-platform-foundation'}) do if not want[t.position.x..','..t.position.y] then rm[#rm+1]={name='empty-space',position=t.position} end end s.set_tiles(rm) rcon.print('foundation '..#add..' removed '..#rm)")
+# Rocket turrets fire only at big and huge asteroids: left free they shot rockets at small and medium ones in Fulgora orbit, 5,635 rockets
+# made and the hub held none, with all the carbon gone (the Captain, 2026-11-13: "major rocket ammo problems"). The guns take the small ones.
+TARGETS = ("local s=game.surfaces['SURF'] local n=0 for _,t in pairs(s.find_entities_filtered{name='rocket-turret'}) do local i=0 for _,sz in pairs{'big','huge'} do "
+           "for _,k in pairs{'metallic','carbonic','oxide'} do i=i+1 t.set_priority_target(i,sz..'-'..k..'-asteroid') end end t.ignore_unprioritised_targets=true n=n+1 end rcon.print('rocket turrets limited to big asteroids '..n)")
 CONFIG = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=defines.wire_connector_id local n,r,g=0,0,0 local function ins(x,y) return s.find_entities_filtered{type='inserter',position={x,y},radius=0.3}[1] end "
           "pcall(function() hub.get_or_create_control_behavior().read_contents=true end) "
           "for _,q in pairs(FILT) do local i=ins(q[1],q[2]) if i then i.use_filters=true i.inserter_filter_mode='whitelist' for k,name in pairs(q[3]) do i.set_filter(k,name) end n=n+1 end end "
@@ -278,6 +282,7 @@ def main():
         rec = "{" + ",".join("{%s,%s,'%s'}" % r for r in recipes) + "}"
         gt = "{" + ",".join("{%s,%s,'%s',%d,'%s'}" % g for g in gates) + "}"
         print(tools["run_lua"](CONFIG.replace("SURF", sf).replace("FILT", filt).replace("REC", rec).replace("GATES", gt)))
+        print(tools["run_lua"](TARGETS.replace("SURF", sf)))
         print(tools["run_lua"](VALVE.replace("SURF", sf).replace("CAPS", "{" + ",".join("['%s']=%d" % kv for kv in CAPS.items()) + "}")))
     elif step == "route":
         print(tools["run_lua"](ROUTE.replace("SURF", sf)))
