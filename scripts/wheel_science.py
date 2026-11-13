@@ -145,7 +145,8 @@ def main():
             print("bridge", place_all(late[:3], surface, True))
             print(tools["run_lua"](UNBAY.replace("SURF", surface)))
             print("belts", place_all(late[3:], surface, True))
-        elif step == "config":
+        if step == "config" or (step == "build" and apply):   # straight after placing: an unfiltered hub inserter pulls anything out (sulfur once
+                                                               # filled the far end of the ore belt and starved a unit)
             filt = "{" + ",".join("{%s,%s,{%s}}" % (x, y, ",".join("'%s'" % f for f in fl)) for x, y, fl in cfg) + "}"
             rec = "{" + ",".join("{%s,%s,'%s'}" % r for r in recipes) + "}"
             print(tools["run_lua"](CONFIG.replace("SURF", surface).replace("FILT", filt).replace("REC", rec)))

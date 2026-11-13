@@ -809,3 +809,5 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - Valve cap is now 40,000 per item (hub is 6,459 slots after the red line took 35 bays).
 - The Nauvis landing pad now asks for 2,000 automation packs; the Nauvis wheel delivered 605 within 90 seconds. Not checked: whether Nauvis takes them from the pad to the labs.
 - Next: green science (belts, inserters: needs circuits, so copper cable), then a ring per planet tuned to its asteroid mix (the Captain's idea).
+- **Filter hub inserters the moment they are placed.** An unfiltered inserter on the hub edge pulls out whatever comes first; sulfur filled the dead end of the red line's ore belt and starved one unit until swept back into the hub. `build --apply` in `wheel_red.py` and `wheel_science.py` now runs `config` itself. With that swept and bulk inserters on the ore tiles, red science is 125 a minute per wheel, six of six units working.
+- Nauvis labs (48) all report missing packs; the nine Gleba labs do the research. More Gleba labs is the next lever on research speed.

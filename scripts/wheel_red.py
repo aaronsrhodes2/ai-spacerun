@@ -62,8 +62,8 @@ def unit(y0, m):
 
 
 def layout():
-    put("fast-inserter", 0, -5, d=S, filt=["iron-ore"])
-    put("fast-inserter", 1, -5, d=S, filt=["copper-ore"])
+    put("bulk-inserter", 0, -5, d=S, filt=["iron-ore"])                # bulk: a fast inserter could not feed six units, the last one starved
+    put("bulk-inserter", 1, -5, d=S, filt=["copper-ore"])
     put("bulk-inserter", 2, -5, d=N)
     put("bulk-inserter", 3, -5, d=N)
     belt(3, -6, S)
@@ -123,7 +123,8 @@ def main():
         elif step == "build":
             ok, bad = place_all(ents, surface, apply)
             print("placed" if apply else "dry run", ok, "failed", bad)
-        elif step == "config":
+        if step == "config" or (step == "build" and apply):   # straight after placing: an unfiltered hub inserter pulls anything out (sulfur once
+                                                               # filled the far end of the ore belt and starved a unit)
             filt = "{" + ",".join("{%s,%s,{%s}}" % (x, y, ",".join("'%s'" % f for f in fl)) for x, y, fl in cfg) + "}"
             rec = "{" + ",".join("{%s,%s,'%s'}" % r for r in recipes) + "}"
             print(tools["run_lua"](CONFIG.replace("SURF", surface).replace("FILT", filt).replace("REC", rec)))
