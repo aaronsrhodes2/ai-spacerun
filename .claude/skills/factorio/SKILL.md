@@ -747,3 +747,22 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - State left: 60 collectors, 24 turrets armed, loop full, hub 2,500 magazines (moved from Nauvis; nothing on board makes them yet), hub full
   of ore so crushing has stopped. The autopilot repairs platforms named `...Wheel` as well as `...Shuttle`.
 - Not built: furnace, magazine and space science machines on the wheel (no hub-adjacent room between the crushers: needs a belt-fed block).
+
+## Gleba Wheel, round rim at 600 tiles (2026-11-13, `scripts/wheel_round.py`, `wheel_power.py`)
+- The Captain: bigger, as round as possible, grabbers spread out, advanced asteroid processing, lasers instead of bullets, solar and
+  accumulators as the buffer, no power poles. He was right on every count.
+- Built: a belt circle at radius 600 (4,800 tiles), each quarter flowing to the nearest of four spokes down to the first wheel; 155 collectors
+  30 tiles apart outside it; a second circle two tiles inside (was the ammunition loop); 219 laser turrets in all (gun turrets swapped in place,
+  feed inserters removed); 788 solar panels and 360 accumulators (5,400 MJ) along the spokes. About 14,000 pieces, 63,000 foundation tiles.
+- **Income after the rim: about 108 chunks a minute** (metallic 28, carbonic 64, oxide 17; ten-minute average, still rising) against 5 with
+  the first ring: the ring's size sets how many asteroids arrive. With advanced crushing that is roughly 280 iron ore, 110 copper ore,
+  320 carbon, 130 sulfur, 50 ice, 33 calcite a minute before productivity or reprocessing.
+- Lasers: 188 damage a shot at our research, mediums resist 89%, smalls 20%; range 24 against 18 for guns. All 219 working on solar alone.
+- **A space platform needs no power poles**: everything on it is powered. 425 substations placed and removed again.
+- Facts: the platform surface is 2,000,000 tiles wide, no practical size limit; chunks must be generated (`request_to_generate_chunks`) before
+  `place_entities` accepts positions; a circle's tile on an axis is off by one on two sides (floor), so axis crossings are computed from the
+  path, and the loop is flattened five tiles either side of each axis; `LuaTransportLine.insert_at_back` puts items on a belt.
+- Leftovers to clean up: the ammunition circle and its feed still carry about 5,000 rounds nobody uses; the square foundation laid for a
+  130-tile ring that was never built; one collector at (-601,35) was refused.
+- **Blocked now: the hub is full (59 slots)**, so crushing stops and 6,000 items wait on the belts. Next: a bigger centre (cargo bays need
+  hub-adjacent tiles, so the crushers must move off the hub), reprocessing to balance chunk types, then the pack lines.
