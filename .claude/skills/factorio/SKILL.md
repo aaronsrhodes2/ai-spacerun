@@ -787,3 +787,9 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - `scripts/wheel_lights.py [--apply]`: about 1,300 always-on rare lamps per wheel. Colour code: orange metallic, green carbonic, blue oxide, white storage/deck, yellow spokes, cyan rim/collectors, red lasers. Lamp colour over RCON: `e.always_on=true e.color={r=,g=,b=}`. It dry-runs, drops what collides, places the rest; safe to rerun.
 - A dry run does not check for foundation, and a passing thing (two bays were "blocked" once, fine a minute later) can fail it: retest before believing a failure.
 - `wheel.py build` is retired (it exits with the new build order). The chunks that `clear` salvaged sit in each hub (about 1,800 on Gleba, 1,460 on Nauvis) with no way out yet; Gleba's hub also holds the old ammunition.
+
+## Wheels: space science line (2026-11-13)
+- `scripts/wheel_science.py` (check | clear | build | config | status, every wheel): eight furnace-to-assembler units in the widened north avenue. Three filtered inserters take carbon, iron ore and ice out of the hub; packs return on their own belt through one bulk inserter. Measured about 280 a minute on Gleba, 240 on Nauvis (two assemblers short of an ingredient there).
+- **The hub edge is the scarce thing on a platform**: 32 tiles, and each quadrant of bays needs four of them. One bulk inserter on a mixed belt moved about 3 items a second; on a pure belt it keeps up with 5. Keep the belts into the hub pure.
+- The six north crushers are cut off the avenue and idle; use their products directly in the next pack line.
+- An inserter north of an east-flowing belt and a belt side-loading from the south both land on lane 2. Check lanes before merging.
