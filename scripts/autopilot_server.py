@@ -12,7 +12,7 @@ import time
 
 import os
 CYCLE = int(os.environ.get("AUTOPILOT_CYCLE", "180"))
-PRIORITY = ["space-platform-thruster", "planet-discovery-vulcanus", "planet-discovery-fulgora", "planet-discovery-gleba",
+PRIORITY = ["advanced-asteroid-processing", "rocket-turret", "planet-discovery-aquilo", "space-platform-thruster", "planet-discovery-vulcanus", "planet-discovery-fulgora", "planet-discovery-gleba",
             "logistic-system", "landing-pad-unloading-bay"]
 
 

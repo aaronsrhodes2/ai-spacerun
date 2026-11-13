@@ -45,7 +45,7 @@ STOCK = ("local f=game.forces.player local s=game.surfaces.gleba local best,bn=n
          "local inv=c.get_inventory(defines.inventory.chest) local want=q[2]-inv.get_item_count(q[1]) if want>0 then local got=best.remove_item{name=q[1],count=want} local put=got>0 and inv.insert{name=q[1],count=got} or 0 "
          "if put<got then best.insert{name=q[1],count=got-put} end o[#o+1]=q[1]..' moved '..put end o[#o+1]=q[1]..' now '..inv.get_item_count(q[1]) end rcon.print(table.concat(o,' | '))")
 
-SPACE = ("local f=game.forces.player local o={} local p=f.platforms[6] if p.name~='Gleba Shuttle' then rcon.print('platform 6 is '..p.name) return end "
+SPACE = ("local f=game.forces.player local o={} local p=f.platforms[6] if p.name~='Nauvis-Gleba 1 Shuttle' then rcon.print('platform 6 is '..p.name) return end "
          "local secs=p.hub.get_logistic_sections() local have=false for _,sec in pairs(secs.sections) do for _,fl in pairs(sec.filters) do if fl.value and fl.value.name=='agricultural-science-pack' then have=true end end end "
          "if not have then local sec=secs.add_section() sec.set_slot(1,{value={name='agricultural-science-pack',quality='normal'},min=2000,import_from='gleba',minimum_delivery_count=500}) end "
          "local sch=p.schedule local w=sch.records[2].wait_conditions local has=false for _,c in pairs(w) do if c.condition and c.condition.first_signal and c.condition.first_signal.name=='agricultural-science-pack' then has=true end end "

@@ -632,3 +632,16 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - Research on the road to Aquilo: carbon fibre done; rocket turret, advanced asteroid processing, Aquilo discovery queued (6,000 agricultural packs).
 - Relay shuttles (the Captain's order): outer ships go only between an outer planet and an inner hub planet; cargo changes ship on the hub's
   surface (landing pad -> silo -> inner shuttle), since platforms cannot hand cargo to each other. Not built: needs rocket turrets and Aquilo discovery.
+
+## Six shuttles, named by route (2026-11-12, `scripts/more_shuttles.py`)
+- The Captain: several fast shuttles per planet (Gleba first, its packs rot), names that say source and destination, Fulgora as the hand-off
+  hub for the outer relay ships. Platforms: 5 `Nauvis-Fulgora 1 Shuttle`, 6 `Nauvis-Gleba 1 Shuttle`, 7 `Nauvis-Vulcanus 1 Shuttle`,
+  8 `Nauvis-Gleba 2 Shuttle` (platform-6), 9 `Nauvis-Vulcanus 2 Shuttle` (platform-7), 10 `Nauvis-Fulgora 2 Shuttle` (platform-8).
+  Names still end in `Shuttle` because the autopilot repairs platforms matching `Shuttle$`.
+- New ship: `more_shuttles.py create` -> `build_shuttle2.py --surface S --apply` -> `configure_shuttle2.py --surface S --platform N` ->
+  `more_shuttles.py twin` (200 iron plates from Nauvis, sibling's schedule and science requests). It fills from zero in about an hour.
+- **Trap:** the starter pack leaves foundation items in the hub, and the rear ammunition belt took 10 of them before the filters were set, so
+  the rear turret (-3,14) got no magazines on all three new ships. Cleared by moving every non-magazine, non-chunk item off the belts back into
+  the hub. Check `turrets armed 11/11` before the first flight of any new ship.
+- Autopilot PRIORITY now starts with advanced-asteroid-processing (58% done), rocket-turret, planet-discovery-aquilo; they wait on agricultural packs.
+- Asked for, not started: a platform above Gleba making all the sciences in space (needs advanced asteroid processing, not researched yet).
