@@ -680,3 +680,10 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
   (or auto-pause off). Asked the Captain before starting the VM (it costs money and pings Discord).
 - White science above Gleba (asked 2026-11-13): not useful now. Oxide chunks there are 0.0006 against 0.0042 at Nauvis (ice is the limit), while
   Nauvis holds about 106,000 space packs and the White Science platform another 26,000 and makes 472 a minute; ship them.
+- 2026-11-13 later: VM started with `ops start factorio` (the Captain's yes); it came up on the current state. `gleba_eggs.py --apply` done: second
+  keeper pair (93.5/97.5) with pair inserters at x 95.5 and slow one-at-a-time nutrient inserters; reserve is three chests in a row. NOT tested:
+  the game only ticks with a player connected (auto-pause is a server setting; `/config` has no runtime switch for it), and nobody was on.
+  To do when the Captain is on: 60-minute fruit cut at speed 8 (remove the belt tile at (126.5,0.5), `/tmp`-style watch as in the 25-minute test).
+- The Captain: the server must not sleep until Factorio is solved. A separate session ("Games VM: stay-on mode for Factorio") is changing SkippyTel
+  so `ops` can set idle-minutes 0 and max-hours 0. Until it lands the VM still sleeps after 30 idle minutes.
+- Raw server commands: `mcp_server._GW._send('/command')`.
