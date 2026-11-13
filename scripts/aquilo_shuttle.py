@@ -16,8 +16,8 @@ board; Aquilo's orbit has 60% sun, so it has 36 panels on two wings; and it is b
              and the old rear block (headers on rows 17 and 19, four thrusters)
   circuits   hub contents on red gate the crusher, furnace and assembler inputs; a decider and a constant make the valve throw out only
              what is listed in CAPS and only above its cap; three tanks on green for the schedule (one tank of three: a third of the total)
-Steps: check | create | build [--apply] | config | status. The surface is found by the platform's name.
-Usage: aquilo_shuttle.py check | create | build [--apply] | config | status"""
+Steps: check | create | build [--apply] | config | route | status. The surface is found by the platform's name.
+Usage: aquilo_shuttle.py check | create | build [--apply] | config | route | status"""
 import json
 import sys
 
@@ -114,7 +114,7 @@ def layout():
     put("chemical-plant", -8, -6, 3, 3, recipe="thruster-oxidizer")
     ins(-5, -4, E, ["iron-ore"])
     put("crusher", -8, -2, 3, 2, d=E, recipe="metallic-asteroid-crushing")
-    ins(-5, -2, E, ["metallic-asteroid-chunk"], gate=("iron-ore", 800))
+    ins(-5, -2, E, ["metallic-asteroid-chunk"], gate=("iron-ore", 3000))
     ins(-5, -1, W)
     put("electric-furnace", -8, 0, 3, 3)
     ins(-5, 0, E, ["iron-ore"], gate=("iron-plate", 400))
@@ -125,7 +125,7 @@ def layout():
     put("chemical-plant", 5, -6, 3, 3, recipe="thruster-fuel")
     ins(4, -4, W, ["carbon"])
     put("crusher", 5, -2, 3, 2, d=E, recipe="advanced-carbonic-asteroid-crushing")
-    ins(4, -2, W, ["carbonic-asteroid-chunk"], gate=("carbon", 3000))
+    ins(4, -2, W, ["carbonic-asteroid-chunk"], gate=("carbon", 4000))
     ins(4, -1, E)
     put("assembling-machine-3", 5, 0, 3, 3, recipe="firearm-magazine")
     ins(4, 0, W, ["iron-plate"], gate=("firearm-magazine", 1000))
@@ -244,6 +244,11 @@ VALVE = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=defines
          "dec.get_wire_connector(W.combinator_input_red,true).connect_to(hub.get_wire_connector(W.circuit_red,true),false) dec.get_wire_connector(W.combinator_input_green,true).connect_to(cc.get_wire_connector(W.circuit_green,true),false) "
          "local vr=v.get_wire_connector(W.circuit_green,true) vr.connect_to(dec.get_wire_connector(W.combinator_output_green,true),false) v.use_filters=true v.inserter_filter_mode='whitelist' local cb=v.get_or_create_control_behavior() cb.circuit_set_filters=true cb.circuit_enable_disable=true "
          "cb.circuit_condition={first_signal={type='virtual',name='signal-anything'},comparator='>',constant=0} rcon.print('valve wired '..tostring(vr.is_connected_to(dec.get_wire_connector(W.combinator_output_green,true)))..', caps '..k)")
+# The hub sees one tank of three for each fluid, so 40,000 here is 120,000 on board. Aquilo's orbit has almost no carbonic or metallic
+# chunks: the ship refuels there from the carbon and iron ore in its hub (gates: 4,000 and 3,000), so it must leave Fulgora with both.
+ROUTE = ("local p=game.surfaces['SURF'].platform local function c(t,n,k) return {type='circuit',compare_type='and',condition={first_signal={type=t,name=n},comparator='>=',constant=k}} end "
+         "p.schedule={current=1,records={{station='fulgora',wait_conditions={c('fluid','thruster-fuel',40000),c('fluid','thruster-oxidizer',40000),c('item','firearm-magazine',600),c('item','carbon',2500),c('item','iron-ore',2000),{type='time',compare_type='and',ticks=18000}}},"
+         "{station='aquilo',wait_conditions={c('fluid','thruster-fuel',40000),c('fluid','thruster-oxidizer',40000),{type='time',compare_type='and',ticks=7200}}}}} p.paused=false rcon.print('schedule fulgora <-> aquilo set')")
 STATUS = ("local s=game.surfaces['SURF'] local p=s.platform local st={} for _,c in pairs(s.find_entities_filtered{type={'assembling-machine','furnace','asteroid-collector','ammo-turret'}}) do local k='?' for n,v in pairs(defines.entity_status) do if v==c.status then k=n end end "
           "local rc=c.type=='assembling-machine' and c.get_recipe() k=(rc and rc.name or c.name)..' '..k st[k]=(st[k] or 0)+1 end local o={} for k,v in pairs(st) do o[#o+1]=k..' '..v end table.sort(o) local fl={} for _,t in pairs(s.find_entities_filtered{name='storage-tank'}) do for k,v in pairs(t.get_fluid_contents()) do fl[k]=(fl[k] or 0)+v end end "
           "local f={} for k,v in pairs(fl) do f[#f+1]=k..' '..math.floor(v) end local inv=p.hub.get_inventory(defines.inventory.hub_main) local c={} for _,it in pairs(inv.get_contents()) do c[#c+1]=it.name..' '..it.count end "
@@ -274,6 +279,8 @@ def main():
         gt = "{" + ",".join("{%s,%s,'%s',%d}" % g for g in gates) + "}"
         print(tools["run_lua"](CONFIG.replace("SURF", sf).replace("FILT", filt).replace("REC", rec).replace("GATES", gt)))
         print(tools["run_lua"](VALVE.replace("SURF", sf).replace("CAPS", "{" + ",".join("['%s']=%d" % kv for kv in CAPS.items()) + "}")))
+    elif step == "route":
+        print(tools["run_lua"](ROUTE.replace("SURF", sf)))
     elif step == "status":
         print(tools["run_lua"](STATUS.replace("SURF", sf)).replace(" ; ", "\n"))
 
