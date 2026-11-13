@@ -811,3 +811,15 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - Next: green science (belts, inserters: needs circuits, so copper cable), then a ring per planet tuned to its asteroid mix (the Captain's idea).
 - **Filter hub inserters the moment they are placed.** An unfiltered inserter on the hub edge pulls out whatever comes first; sulfur filled the dead end of the red line's ore belt and starved one unit until swept back into the hub. `build --apply` in `wheel_red.py` and `wheel_science.py` now runs `config` itself. With that swept and bulk inserters on the ore tiles, red science is 125 a minute per wheel, six of six units working.
 - Nauvis labs (48) all report missing packs; the nine Gleba labs do the research. More Gleba labs is the next lever on research speed.
+
+## Wheels: blue science from asteroids (scripts/wheel_blue.py, 2026-11-13)
+- All four of yellow, blue, purple, grey are researched and none is barred in space. Grey and purple need stone (by rocket; the Captain: nothing by rocket to the wheels yet). Blue needs plastic: carbon + sulfur -> coal, coal + calcite + sulfuric acid -> heavy oil (simple coal liquefaction), cracked to petroleum gas. About 60 carbon a pack, so carbon caps it at about 12 a minute (Gleba) and 7 (Nauvis).
+- Boilers and heating towers need pressure >= 10: no steam in space, so ordinary coal liquefaction is out.
+- Hub edge: three of the four valve tiles (east edge) now feed the line; one valve inserter is left and the cap is 36,000. Do not rerun the old four-inserter valve on a wheel that has the blue line.
+- One bulk inserter can load several items onto one lane if a circuit sets its filters: constant combinator (targets) plus arithmetic (each * -1) reading every belt tile of the line (hold mode), wired with `connect_to(target, false)` (the default reach check silently stops the chain at the first underground). Add an enable condition `anything > 0`, or an empty filter list lets everything through.
+- A mixed lane must be a loop. With a dead end, the item used least piles up at the end and blocks the rest (both first-build supply belts jammed within minutes).
+- A new belt in front of an old belt's last tile gets side-loaded by it: the east product belt ended pointing at the start of the ice belt and fed crusher products onto it. Turn the old end away.
+- A freshly placed hub inserter grabs one hand of anything before its filter is set; `wheel_blue.py sweep` returns what does not belong on each supply belt to the hub.
+- Salvaged asteroid chunks stack to 1: about 1,460 hub slots on the Nauvis wheel. The hub stood at 0 free slots at cap 40,000.
+- `LuaEntity.fluidbox` is not a valid key in 2.1; `get_fluid_contents()` works.
+- Chemical plant facing north: inputs top, outputs bottom; facing west: inputs west, outputs east. Refinery facing east: inputs west, outputs east. Joining all ports of one side with one pipe run avoids guessing which box a recipe uses.

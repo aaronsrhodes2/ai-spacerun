@@ -238,9 +238,6 @@ CIRCUIT = ("local s=game.surfaces['SURF'] local W=defines.wire_connector_id loca
            "local ir=i.get_wire_connector(W.circuit_red,true) local a=ir.connect_to(ar.get_wire_connector(W.combinator_output_red,true)) local c=ir.connect_to(cc.get_wire_connector(W.circuit_red,true)) "
            "i.use_filters=true i.inserter_filter_mode='whitelist' local ib=i.get_or_create_control_behavior() ib.circuit_set_filters=true ib.circuit_enable_disable=true ib.circuit_condition={first_signal={type='virtual',name='signal-anything'},comparator='>',constant=0} "
            "o[#o+1]=q.n..': belts read '..nb..', inserter-arithmetic '..tostring(ir.is_connected_to(ar.get_wire_connector(W.combinator_output_red,true)))..', inserter-constant '..tostring(ir.is_connected_to(cc.get_wire_connector(W.circuit_red,true))) end rcon.print(table.concat(o,' | '))")
-PORTS = ("local s=game.surfaces['SURF'] local o={} for _,m in pairs(s.find_entities_filtered{name={'chemical-plant','oil-refinery'},area={{46,-42},{124,-3}}}) do local fb=m.fluidbox local t={} for i=1,#fb do local lf=fb.get_locked_fluid(i) if lf then "
-         "for _,pc in pairs(fb.get_pipe_connections(i)) do t[#t+1]=lf..'@'..(pc.target_position.x-0.5-OX)..','..(pc.target_position.y-0.5-OY)..(pc.target and ' ok' or ' OPEN') end end end "
-         "local k='?' for n,v in pairs(defines.entity_status) do if v==m.status then k=n end end o[#o+1]=(m.get_recipe() and m.get_recipe().name or 'none')..' ['..k..'] '..table.concat(t,'  ') end rcon.print(table.concat(o,' ; '))").replace("OX", str(OX)).replace("OY", "(%d)" % OY)
 OLD = [(40, 4), (41, 4)]                            # belt tiles of the first build (dead-end belts) that the loops do not use
 REFIT = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local need={} local gone=0 local function out(e) for l=1,e.get_max_transport_line_index() do for _,it in pairs(e.get_transport_line(l).get_contents()) do hub.insert{name=it.name,count=it.count,quality=it.quality} end end e.destroy() gone=gone+1 end "
          "for _,p in pairs(OLDT) do for _,e in pairs(s.find_entities_filtered{type={'transport-belt','underground-belt'},position=p,radius=0.3}) do out(e) end end "
@@ -293,8 +290,6 @@ def main():
         elif step == "sweep":                       # what lies on each supply belt; anything that does not belong goes back into the hub
             for k, tiles in lines.items():
                 print(tools["run_lua"](SWEEP.replace("SURF", surface).replace("LINE", k).replace("ALLOW", "{" + ",".join("'%s'" % a for a in ALLOWED[k]) + "}").replace("TILES", lua_list(tiles))))
-        elif step == "ports":
-            print(tools["run_lua"](PORTS.replace("SURF", surface)).replace(" ; ", "\n"))
         elif step == "status":
             print(tools["run_lua"](STATUS.replace("SURF", surface)).replace(" ; ", "\n"))
 
