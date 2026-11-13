@@ -49,6 +49,8 @@ TOPUP = (
     "local stock={} for _,l in pairs(s.find_entities_filtered{type='lab'}) do local inv=l.get_inventory(defines.inventory.lab_input) for p,_ in pairs(seven) do stock[p]=(stock[p] or 0)+inv.get_item_count(p) end end "
     "local net=s.find_logistic_network_by_position({-40,42},f) local ps=f.get_item_production_statistics(s) for p,_ in pairs(seven) do stock[p]=(stock[p] or 0)+(net and net.get_item_count(p) or 0) "
     "if ps.get_flow_count{name=p,category='input',precision_index=defines.flow_precision_index.ten_minutes}>0 then stock[p]=stock[p]+1000 end end "
+    "local g=game.surfaces.gleba if g then for _,l in pairs(g.find_entities_filtered{type='lab'}) do local inv=l.get_inventory(defines.inventory.lab_input) for p,_ in pairs(seven) do stock[p]=(stock[p] or 0)+inv.get_item_count(p) end end "
+    "local gn=g.find_logistic_network_by_position({128,20},f) for p,_ in pairs(seven) do stock[p]=(stock[p] or 0)+(gn and gn.get_item_count(p) or 0) end end "
     "local pri={%s} local rows={} for name,t in pairs(f.technologies) do if t.enabled and not t.researched and t.research_unit_count>0 and not t.prototype.research_trigger then "
     "local ready=true for _,p in pairs(t.prerequisites) do if not p.researched then ready=false end end local ok=true local pen=0 "
     "for _,i in pairs(t.research_unit_ingredients) do if not seven[i.name] then ok=false end if (stock[i.name] or 0)<30 then pen=pen+1000000 end end "

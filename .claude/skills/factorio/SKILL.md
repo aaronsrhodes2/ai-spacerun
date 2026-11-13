@@ -664,3 +664,14 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
   or `six-shuttles.zip` (00:56). Fix: stop the container, keep the old file under another name, copy the wanted save to `skippy.zip`, start.
   My SSH attempt to do that was denied by the auto mode classifier; left for the Captain. Autopilot stopped meanwhile so it does not act on the old state.
 - Before any planned restart: copy the newest save over `skippy.zip` first, or the restart goes back in time.
+
+## Recovery and Gleba science central (2026-11-13)
+- Recovery from the freeze: `ops restart` (allowed by the Captain) brought the server up on the old `skippy.zip`. Fix that worked, over SSH to the VM:
+  copy `_autosave4.zip` aside, `docker stop factorio`, rename `skippy.zip` to `skippy-old-171h.zip`, copy the autosave to `skippy.zip`, `docker start factorio`.
+  Came back at game hour 188.2 with six shuttles and Gleba intact. **`save_game skippy` now and then keeps the file a restart loads current.**
+- Hub logistic sections: some are not manual and raise "trying to change logistic section that is not manual"; touch only `sec.is_manual` ones.
+- `scripts/gleba_labs.py build|config|ships` all applied: nine labs beside a pack belt from the science chest, blue chests asking 200 of each
+  non-rotting pack, landing pad (142,23) asking 4,000 of each. Both Nauvis-Gleba shuttles ask Nauvis for 400 each of eight packs (not military:
+  Nauvis has none), leave Nauvis fuelled, armed and loaded (`all_requests_satisfied`), leave Gleba after 10 quiet seconds. Nauvis pad no longer asks
+  for agricultural packs. Autopilot counts packs in Gleba's labs and network too.
+- Not seen yet: a pack delivery to Gleba, research progress in the Gleba labs. Military packs: none made on Nauvis, rocket turret research needs them.
