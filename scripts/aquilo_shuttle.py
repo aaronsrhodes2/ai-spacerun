@@ -48,7 +48,7 @@ def put(name, tx, ty, w=1, h=1, d=N, filt=None, recipe=None, gate=None, **params
     if recipe:
         recipes.append((e["x"], e["y"], recipe))
     if gate:
-        gates.append((e["x"], e["y"], gate[0], gate[1]))
+        gates.append((e["x"], e["y"], gate[0], gate[1], gate[2] if len(gate) > 2 else "<"))
 
 
 def ins(x, y, d, filt=None, gate=None, name="fast-inserter"):
@@ -123,7 +123,7 @@ def layout():
     ins(-5, 3, E, ["ice"])
     # ---- east ----
     put("chemical-plant", 5, -6, 3, 3, recipe="thruster-fuel")
-    ins(4, -4, W, ["carbon"])
+    ins(4, -4, W, ["carbon"], gate=("carbon", 200, ">"))                  # the coal plant (rockets) has first call on carbon
     put("crusher", 5, -2, 3, 2, d=E, recipe="advanced-carbonic-asteroid-crushing")
     ins(4, -2, W, ["carbonic-asteroid-chunk"], gate=("carbon", 4000))
     ins(4, -1, E)
@@ -233,7 +233,7 @@ CONFIG = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=define
           "for _,q in pairs(FILT) do local i=ins(q[1],q[2]) if i then i.use_filters=true i.inserter_filter_mode='whitelist' for k,name in pairs(q[3]) do i.set_filter(k,name) end n=n+1 end end "
           "for _,q in pairs(REC) do for _,m in pairs(s.find_entities_filtered{position={q[1],q[2]},radius=0.5}) do if m.type=='assembling-machine' then m.set_recipe(q[3]) r=r+1 end end end "
           "for _,q in pairs(GATES) do local i=ins(q[1],q[2]) i.get_wire_connector(W.circuit_red,true).connect_to(hub.get_wire_connector(W.circuit_red,true),false) local cb=i.get_or_create_control_behavior() cb.circuit_enable_disable=true "
-          "cb.circuit_condition={first_signal={type='item',name=q[3]},comparator='<',constant=q[4]} g=g+1 end "
+          "cb.circuit_condition={first_signal={type='item',name=q[3]},comparator=q[5],constant=q[4]} g=g+1 end "
           "local prev=hub for _,q in pairs({{-1.5,11.5},{5.5,11.5},{-7.5,11.5}}) do local t=s.find_entities_filtered{name='storage-tank',position=q,radius=0.5}[1] prev.get_wire_connector(W.circuit_green,true).connect_to(t.get_wire_connector(W.circuit_green,true),false) prev=t end "
           "rcon.print('inserters filtered '..n..', recipes '..r..', gates '..g)")
 VALVE = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=defines.wire_connector_id local dec=s.find_entities_filtered{name='decider-combinator'}[1] local cc=s.find_entities_filtered{name='constant-combinator'}[1] "
@@ -276,7 +276,7 @@ def main():
     if step == "config" or (step == "build" and apply):
         filt = "{" + ",".join("{%s,%s,{%s}}" % (x, y, ",".join("'%s'" % f for f in fl)) for x, y, fl in cfg) + "}"
         rec = "{" + ",".join("{%s,%s,'%s'}" % r for r in recipes) + "}"
-        gt = "{" + ",".join("{%s,%s,'%s',%d}" % g for g in gates) + "}"
+        gt = "{" + ",".join("{%s,%s,'%s',%d,'%s'}" % g for g in gates) + "}"
         print(tools["run_lua"](CONFIG.replace("SURF", sf).replace("FILT", filt).replace("REC", rec).replace("GATES", gt)))
         print(tools["run_lua"](VALVE.replace("SURF", sf).replace("CAPS", "{" + ",".join("['%s']=%d" % kv for kv in CAPS.items()) + "}")))
     elif step == "route":
