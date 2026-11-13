@@ -658,3 +658,9 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
   `ops logs factorio` showed no crash: autosave `_autosave4` finished about 75 s before my command, then only health-check connections and the
   container `unhealthy`: the game thread is stuck in the loop. `restart-game` got no reply (the VM's agent is starved); `ops restart` was denied
   by the auto mode classifier, so the restart is the Captain's to run or allow.
+- **A restart loads `skippy.zip` and nothing else** (`SAVE_NAME=skippy`, `LOAD_LATEST_SAVE=false` in SkippyTel `games/docker-compose.yml`). `save_game <name>`
+  and the rotating `_autosaveN.zip` are never loaded by themselves. After the 2026-11-13 restart the server came up on a `skippy.zip` from game hour 171.6
+  (before Gleba), at speed 20, paused with nobody on. The state to bring back is `_autosave4.zip` (01:10 UTC, about 75 s before the freeze; game hour ~187)
+  or `six-shuttles.zip` (00:56). Fix: stop the container, keep the old file under another name, copy the wanted save to `skippy.zip`, start.
+  My SSH attempt to do that was denied by the auto mode classifier; left for the Captain. Autopilot stopped meanwhile so it does not act on the old state.
+- Before any planned restart: copy the newest save over `skippy.zip` first, or the restart goes back in time.
