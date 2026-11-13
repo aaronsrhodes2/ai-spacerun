@@ -687,3 +687,21 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - The Captain: the server must not sleep until Factorio is solved. A separate session ("Games VM: stay-on mode for Factorio") is changing SkippyTel
   so `ops` can set idle-minutes 0 and max-hours 0. Until it lands the VM still sleeps after 30 idle minutes.
 - Raw server commands: `mcp_server._GW._send('/command')`.
+
+## Gleba science central running; egg tests; military cell (2026-11-13)
+- First deliveries to Gleba worked once the Gleba stop waits 60 quiet seconds (10 left packs aboard). All nine labs ran; advanced asteroid
+  processing finished there; rocket turret reached 91%. Both Nauvis-Gleba ships now ask for all nine packs x400 and wait at Nauvis for them.
+- **Logistic packs are the short one:** Nauvis network 0. Its 48 labs were using them on research that needs no agricultural pack. The
+  autopilot now queues only techs that need the agricultural pack while any is open, so the Nauvis labs idle once their leftover packs are gone.
+- **Military science:** the belt plant at (99..127,-122) made none (grenade assemblers get no iron: iron lane of belt y -125.5 empty). New
+  robot-fed cell `scripts/nauvis_military.py`: eleven 9x3 slots at x -360 and -350 (blue chest, inserter, assembler, inserter, red chest),
+  about 77 packs a minute; 2,000 in stock within minutes. The old plant is untouched.
+- **60-minute fruit cut (`scripts/_glebacut.py 60`):** keeper pair A held 2 eggs for the whole hour on the rot reserve (31,000 spoilage, gone at
+  minute 57: the assembler eats about 550 a minute); full restart about 6 minutes after fruit came back. But 161 premature pentapods were killed
+  by the turrets, 15 entities scratched, one lost: starved chambers kept taking eggs off the belt and those hatched.
+- Fix, `scripts/gleba_egg_gate.py`: a decider (95.5,20) puts out signal A only while eggs at the tail = 0 AND nutrients on tail tiles
+  x 100..105 > 10; the six belt egg inserters need A > 0 (green). Not yet re-tested with a fruit cut.
+- Defence (the Captain's warning: whatever breeds eggs gets attacked): four tesla turrets (104,-2), (112,-2), (131,4), (54,10) and lasers at the
+  labs and both farms, besides the four lasers at the core (`scripts/gleba_defence.py`). No repair packs on Gleba or Nauvis (stock 0); ghosts are
+  revived by script.
+- Second keeper pair B is not kept alive by the reserve (pair A takes all of it); it and the production chambers reseed from the belt afterwards.
