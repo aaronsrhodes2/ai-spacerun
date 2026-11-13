@@ -36,7 +36,7 @@ CONFIG = ("local s=game.surfaces.gleba local o={} local function at(t,x,y) retur
           "local G=defines.wire_connector_id.circuit_green local chain={at('logistic-container',128.5,20.5)} "
           "for _,x in pairs{126.5,119.5,112.5,105.5,98.5,91.5} do local b=at('transport-belt',x,18.5) local cb=b.get_or_create_control_behavior() cb.read_contents=false cb.circuit_enable_disable=false chain[#chain+1]=b end "
           "local n=0 for _,x in pairs{84.5,80.5,76.5,72.5,68.5} do local i=at('inserter',x,16.5) local cb=i.get_or_create_control_behavior() cb.circuit_enable_disable=true "
-          "cb.circuit_condition={first_signal={type='item',name='agricultural-science-pack'},comparator='<',constant=1000} chain[#chain+1]=i n=n+1 end "
+          "cb.circuit_condition={first_signal={type='item',name='agricultural-science-pack'},comparator='<',constant=1200} chain[#chain+1]=i n=n+1 end "
           "local ok=0 for k=2,#chain do local a,b=chain[k-1].get_wire_connector(G,true),chain[k].get_wire_connector(G,true) if a.is_connected_to(b) or a.connect_to(b,false) then ok=ok+1 end end "
           "rcon.print('silo answers requests '..tostring(sil.use_transitional_requests)..', gated science egg inserters '..n..', wires '..ok..' of '..(#chain-1))")
 
@@ -47,7 +47,7 @@ STOCK = ("local f=game.forces.player local s=game.surfaces.gleba local best,bn=n
 
 SPACE = ("local f=game.forces.player local o={} local p=f.platforms[6] if p.name~='Gleba Shuttle' then rcon.print('platform 6 is '..p.name) return end "
          "local secs=p.hub.get_logistic_sections() local have=false for _,sec in pairs(secs.sections) do for _,fl in pairs(sec.filters) do if fl.value and fl.value.name=='agricultural-science-pack' then have=true end end end "
-         "if not have then local sec=secs.add_section() sec.set_slot(1,{value={name='agricultural-science-pack',quality='normal'},min=2000,import_from='gleba'}) end "
+         "if not have then local sec=secs.add_section() sec.set_slot(1,{value={name='agricultural-science-pack',quality='normal'},min=2000,import_from='gleba',minimum_delivery_count=500}) end "
          "local sch=p.schedule local w=sch.records[2].wait_conditions local has=false for _,c in pairs(w) do if c.condition and c.condition.first_signal and c.condition.first_signal.name=='agricultural-science-pack' then has=true end end "
          "if not has then local base={} for _,c in pairs(w) do if c.type=='circuit' then base[#base+1]=c end end "
          "w[#w+1]={type='circuit',compare_type='and',condition={first_signal={type='item',name='agricultural-science-pack'},comparator='>=',constant=4000}} "

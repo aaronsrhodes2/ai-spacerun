@@ -89,9 +89,9 @@ def silo():
 SPACE = ("local f=game.forces.player local s=game.surfaces.vulcanus local o={} local sil=s.find_entities_filtered{name='rocket-silo'}[1] sil.use_transitional_requests=true "
          "for i,item in pairs{'processing-unit','low-density-structure','rocket-fuel'} do local c=s.find_entities_filtered{name='requester-chest',position={-32.5+i,-56.5},radius=0.3}[1] local ss=c.get_logistic_sections() local se=ss.sections[1] or ss.add_section() se.set_slot(1,{value={name=item,quality='normal'},min=100}) end "
          "local p=f.platforms[7] local secs=p.hub.get_logistic_sections() local have=false for _,sec in pairs(secs.sections) do for _,fl in pairs(sec.filters) do if fl.value and fl.value.name=='metallurgic-science-pack' then have=true end end end "
-         "if not have then local sec=secs.add_section() sec.set_slot(1,{value={name='metallurgic-science-pack',quality='normal'},min=4000,import_from='vulcanus'}) end "
+         "if not have then local sec=secs.add_section() sec.set_slot(1,{value={name='metallurgic-science-pack',quality='normal'},min=3000,import_from='vulcanus'}) end "
          "local sch=p.schedule local w=sch.records[2].wait_conditions local has=false for _,c in pairs(w) do if c.condition and c.condition.first_signal and c.condition.first_signal.name=='metallurgic-science-pack' then has=true end end "
-         "if not has then w[#w+1]={type='circuit',compare_type='and',condition={first_signal={type='item',name='metallurgic-science-pack'},comparator='>=',constant=8000}} sch.records[2].wait_conditions=w p.schedule=sch end "
+         "if not has then w[#w+1]={type='circuit',compare_type='and',condition={first_signal={type='item',name='metallurgic-science-pack'},comparator='>=',constant=6000}} sch.records[2].wait_conditions=w p.schedule=sch end "
          "o[#o+1]='silo answers platform requests '..tostring(sil.use_transitional_requests)..'; shuttle 7 requests 4000 packs from Vulcanus and waits for them there (stop '..sch.records[2].station..')' rcon.print(table.concat(o,' | '))")
 
 

@@ -610,3 +610,25 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
   is full, so a belt end must keep a heating tower as overflow, or the towers get heat exchangers and turbines instead.
 - Not seen yet: a rocket launch from Gleba, a delivery to Nauvis. The autopilot pack list has the agricultural pack added but the running
   autopilot was not restarted.
+
+## Gleba long run, egg life support, stalled shuttles (2026-11-12 evening)
+- **Game speed for tests (the Captain's order):** `game.speed=8` gives about 6.8x on the server; set it back to 1 afterwards. `scripts/_glebalong.py`
+  appends one line a minute to `docs/gleba_longrun.log` (rates from the ten-minute production statistics, keeper eggs, belts, rot, enemies, deliveries).
+- **Long run:** about 5 game hours at speed, 46 lines. Keeper pair never lost its eggs, no rot in the pack chest, no hatchlings, packs delivered
+  to Nauvis and used by the labs. Science averaged 50 a minute over the run (100 while the chambers run; they pause when 1,200 packs wait for the shuttle).
+- **Fruit-cut tests** (remove the belt tile at (126.5,0.5), put it back later; `LuaEntity.active` is read only on belts): 10 minutes without fruit: the
+  nutrient belt was empty in 3 minutes and every chamber stopped, eggs survived, restart by itself in under 2 minutes. That margin was too thin
+  (eggs hatch at 15), so `scripts/gleba_reserve.py` built a life support from rot: spoilage caught at the junk belt and the egg belt tail ->
+  robots -> blue chest (130.5,10.5, asks 9,600) -> electric assembler (127.5,10.5) -> nutrients onto the belt just before the keeper pair, fed only
+  while the nutrient belt is empty. 25 minutes without fruit: keeper kept 2 eggs alive throughout, 5,200 spoilage used, restart by itself, nothing hatched.
+  So about 40 minutes of cover per 9,600 spoilage.
+- Yumako was the short fruit (16 trees on natural soil): `gleba.py soil` put artificial soil on the wetland in each tower's reach; 40 plants each now.
+- A rocket only flies full (1,000 packs) unless the request carries `minimum_delivery_count`; the Gleba request has 500. The pack buffer gate is 1,200.
+- **Vulcanus Shuttle was stuck:** hub full at 3,000 packs (other cargo grew), waiting for 4,000. Now asks 3,000, leaves at 3,000 (constant 6000).
+- **Fulgora silo was starved:** no processing units or low density structure in the Fulgora network (cause not found; scrap normally yields both).
+  2,500 and 2,400 moved from Nauvis stock into its blue chests; electromagnetic packs reached Nauvis again.
+- Vulcanus rocket parts under load: 4.4 rockets' worth of parts an hour used at today's lab demand; capacity measured earlier 8 PU, 7 LDS, about 9.6
+  rocket fuel a minute (solid fuel bound). Four productivity modules moved into the Vulcanus and Gleba silos (16%), so a full 170 packs/min needs 7.3 each.
+- Research on the road to Aquilo: carbon fibre done; rocket turret, advanced asteroid processing, Aquilo discovery queued (6,000 agricultural packs).
+- Relay shuttles (the Captain's order): outer ships go only between an outer planet and an inner hub planet; cargo changes ship on the hub's
+  surface (landing pad -> silo -> inner shuttle), since platforms cannot hand cargo to each other. Not built: needs rocket turrets and Aquilo discovery.

@@ -19,6 +19,7 @@ y 64..112) across wetland, egg rafts from 240 tiles out (nearest small raft -135
            raft at (-134,199); with --turrets also two laser turrets, which shoot the raft (no ammunition involved)
   loot     picks the eggs up off the ground there: one (with five nutrients off the belt) into the assembler at (5.5,13.5) that crafts the
            one biochamber the bioflux research asks for, one into each egg chamber
+  soil     artificial soil (researched) on every wetland tile of the matching kind inside each tower's reach, so the tower has more cells to plant
   seed     gives one egg off the egg belt (surplus on its way to the burner) to every egg chamber that has none, so every pair runs
 Usage: gleba.py STEP [--apply] [--turrets]"""
 import json
@@ -173,6 +174,11 @@ SEED = ("local s=game.surfaces.gleba local o={} local belts=s.find_entities_filt
         "if got>0 then m.insert{name='pentapod-egg',count=1} n=n+1 else short=short+1 end end end rcon.print('egg chambers seeded '..n..', still without an egg '..short)")
 
 
+SOIL = ("local s=game.surfaces.gleba local f=game.forces.player local o={} for _,q in pairs{{-150.5,-115.5,'yumako'},{195.5,100.5,'jellynut'}} do local art='artificial-'..q[3]..'-soil' "
+        "if f.recipes[art].enabled then local a={{q[1]-10.5,q[2]-10.5},{q[1]+10.5,q[2]+10.5}} local t={} for _,tl in pairs(s.find_tiles_filtered{area=a,name='wetland-'..q[3]}) do t[#t+1]={name=art,position=tl.position} end "
+        "if APPLY then s.set_tiles(t) end o[#o+1]=q[3]..': '..#t..' wetland tiles to artificial soil; soil tiles in reach now '..s.count_tiles_filtered{area=a,name={art,'natural-'..q[3]..'-soil'}} else o[#o+1]=art..' not researched' end end rcon.print(table.concat(o,' | '))")
+
+
 def place(ents, apply):
     reqs = [(x["x"], x["y"], x.pop("req")) for x in ents if x.get("req")]
     print(tools["place_entities"](json.dumps(ents), surface="gleba", dry_run=not apply)[:900])
@@ -213,6 +219,8 @@ def main():
         print(tools["run_lua"](LOOT) if apply else "(dry run) would collect eggs")
     elif step == "seed":
         print(tools["run_lua"](SEED) if apply else "(dry run) would seed empty egg chambers from the egg belt")
+    elif step == "soil":
+        print(tools["run_lua"](SOIL.replace("APPLY", "true" if apply else "false")))
     elif step == "boot":
         place(boot(), apply)
         if apply:
