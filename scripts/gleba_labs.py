@@ -16,7 +16,7 @@ import sys
 
 from _game import tools
 
-R = {"quality": "rare"}
+R = {"quality": "epic"}
 PACKS = ["automation-science-pack", "logistic-science-pack", "military-science-pack", "chemical-science-pack", "production-science-pack",
          "utility-science-pack", "space-science-pack", "metallurgic-science-pack", "electromagnetic-science-pack"]
 PAD = 1200      # the pad has 80 slots: nine packs at 4,000 filled it

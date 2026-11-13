@@ -12,7 +12,7 @@ import sys
 
 from _game import tools
 
-R = {"quality": "rare"}
+R = {"quality": "epic"}
 E = [{"name": "bulk-inserter", "x": 95.5, "y": 14.5, "direction": 12}, {"name": "bulk-inserter", "x": 95.5, "y": 15.5, "direction": 4},
      {"name": "inserter", "x": 93.5, "y": 12.5, "direction": 0}, {"name": "inserter", "x": 97.5, "y": 12.5, "direction": 0},
      {"name": "bulk-inserter", "x": 131.5, "y": 10.5, "direction": 4}, {"name": "requester-chest", "x": 132.5, "y": 10.5},

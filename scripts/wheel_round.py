@@ -16,7 +16,7 @@ import sys
 from _game import tools
 from _wheels import lay_foundation, place_all, wheels
 
-Q = {"quality": "rare"}
+Q = {"quality": "epic"}
 RC, RA = 600, 598
 COLLECT, TURRET, POLE = 30, 24, 16
 DIRS = {(0, -1): 0, (1, 0): 4, (0, 1): 8, (-1, 0): 12}

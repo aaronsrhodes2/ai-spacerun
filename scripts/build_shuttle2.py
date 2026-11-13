@@ -14,7 +14,7 @@ import sys
 
 from _game import tools
 
-Q = {"quality": "rare"}
+Q = {"quality": "epic"}
 N, E, S, W = 0, 4, 8, 12
 BELT, UG, PIPE, PTG, INS = "express-transport-belt", "express-underground-belt", "pipe", "pipe-to-ground", "fast-inserter"
 ents = []

@@ -26,7 +26,7 @@ import sys
 
 from _game import tools
 
-Q = {"quality": "rare"}
+Q = {"quality": "epic"}
 YP, BF, JP = (93, 109, 113), (97, 105, 117), (101, 121)
 SCI = (69, 73, 77, 81, 85)
 EGG = (93, 97, 101, 105, 109, 113, 117, 121)

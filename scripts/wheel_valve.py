@@ -18,7 +18,7 @@ from _game import tools
 from _wheels import wheels
 
 CAP, PACKS = 36000, 20000   # 36,000 since the blue line (scripts/wheel_blue.py): salvaged chunks hold 1,460 slots and the Nauvis hub stood full at 40,000
-Q = {"quality": "rare"}
+Q = {"quality": "epic"}
 BRIDGE = [{"name": "cargo-bay", "x": 34, "y": 2, "direction": 0, "params": Q},
           {"name": "express-underground-belt", "x": 36.5, "y": 3.5, "direction": 12, "params": dict(Q, type="input")},
           {"name": "express-underground-belt", "x": 31.5, "y": 3.5, "direction": 12, "params": dict(Q, type="output")}]

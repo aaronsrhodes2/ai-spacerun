@@ -14,7 +14,7 @@ import sys
 
 from _game import tools
 
-R = {"quality": "rare"}
+R = {"quality": "epic"}
 
 
 def build():

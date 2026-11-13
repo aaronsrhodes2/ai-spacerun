@@ -25,6 +25,6 @@ LUA = ("local s=game.surfaces.gleba local f=game.forces.player local W=defines.w
        "local yard=at('logistic-container',2.5,2.5) local have=s.find_logistic_network_by_position({2.5,2.5},f).get_item_count('repair-pack') local moved=0 if have<100 then moved=nb.remove_item{name='repair-pack',count=200} if moved>0 then yard.insert{name='repair-pack',count=moved} end end "
        "rcon.print('wires '..ok..', ghosts revived '..g..', repair packs moved from Nauvis '..moved)")
 apply = "--apply" in sys.argv
-print(tools["place_entities"](json.dumps([{"name": "decider-combinator", "x": 95.5, "y": 20, "direction": 0, "params": {"quality": "rare"}}]), surface="gleba", dry_run=not apply)[:200])
+print(tools["place_entities"](json.dumps([{"name": "decider-combinator", "x": 95.5, "y": 20, "direction": 0, "params": {"quality": "epic"}}]), surface="gleba", dry_run=not apply)[:200])
 if apply:
     print(tools["run_lua"](LUA))

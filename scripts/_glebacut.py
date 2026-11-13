@@ -28,7 +28,7 @@ try:
         time.sleep(iv)
         print(lua(S), flush=True)
 finally:
-    print(tools["place_entities"](json.dumps([{"name": "turbo-transport-belt", "x": 126.5, "y": 0.5, "direction": 8, "params": {"quality": "rare"}}]), surface="gleba", dry_run=False)[:120], flush=True)
+    print(tools["place_entities"](json.dumps([{"name": "turbo-transport-belt", "x": 126.5, "y": 0.5, "direction": 8, "params": {"quality": "epic"}}]), surface="gleba", dry_run=False)[:120], flush=True)
 for i in range(6):
     time.sleep(iv)
     print(lua(S), flush=True)

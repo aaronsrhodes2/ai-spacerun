@@ -23,7 +23,7 @@ import sys
 from _game import tools
 from _wheels import create, lay_foundation, place_all, wheels
 
-Q = {"quality": "rare"}
+Q = {"quality": "epic"}
 N, E, S, W = 0, 4, 8, 12
 ents, tiles, cfg, recipes = [], set(), [], []          # cfg: (x, y, [filters]); recipes: (x, y, recipe)
 

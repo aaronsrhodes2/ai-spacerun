@@ -13,8 +13,8 @@ SIDE = {-198.5: -1, -158.5: -1}
 XS = [x + SIDE.get(x, 1) - 1 for x in XS if x != -78.5]
 e = []
 for x in XS:
-    e += [{"name": "bulk-inserter", "x": x + 1, "y": -61.5, "direction": 0, "params": {"quality": "rare"}},
-          {"name": "requester-chest", "x": x + 1, "y": -62.5, "params": {"quality": "rare"}}]
+    e += [{"name": "bulk-inserter", "x": x + 1, "y": -61.5, "direction": 0, "params": {"quality": "epic"}},
+          {"name": "requester-chest", "x": x + 1, "y": -62.5, "params": {"quality": "epic"}}]
 REQ = ("local s=game.surfaces.nauvis local n=0 for _,x in pairs(XS) do local c=s.find_entities_filtered{name='requester-chest',position={x+1,-62.5},radius=0.3}[1] if c then "
        "local ss=c.get_logistic_sections() local se=ss.sections[1] or ss.add_section() se.set_slot(1,{value={name='electronic-circuit',quality='normal'},min=200}) n=n+1 end "
        "local i=s.find_entities_filtered{type='inserter',position={x+1,-61.5},radius=0.3}[1] if i then i.use_filters=true i.inserter_filter_mode='whitelist' i.set_filter(1,'electronic-circuit') end end rcon.print('circuit chests set '..n)")

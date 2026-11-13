@@ -8,7 +8,7 @@ import sys
 from _game import tools
 from _wheels import place_all, wheels
 
-Q = {"quality": "rare"}
+Q = {"quality": "epic"}
 
 
 def turn(t, k):

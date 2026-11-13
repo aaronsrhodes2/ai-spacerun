@@ -104,7 +104,7 @@ def main():
         if not surface:
             continue
         mine = [(p, c) for p, (c, t) in sorted(lamps.items()) if turrets or not t]
-        todo = [{"name": "small-lamp", "x": p[0] + .5, "y": p[1] + .5, "direction": 0, "params": {"quality": "rare"}} for p, c in mine]
+        todo = [{"name": "small-lamp", "x": p[0] + .5, "y": p[1] + .5, "direction": 0, "params": {"quality": "epic"}} for p, c in mine]
         ok, dropped = place(todo, surface, apply)
         lit = 0
         if apply:

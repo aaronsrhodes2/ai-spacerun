@@ -41,8 +41,8 @@ ROBOTS = ("local s=game.surfaces.gleba local rp=s.find_entities_filtered{name='r
 
 
 def east():
-    return ([{"name": "substation", "x": x, "y": y, "quality": "rare"} for x, y in ((130, 74), (148, 76), (164, 84))]
-            + [{"name": "roboport", "x": x, "y": y, "quality": "rare"} for x, y in ((131, 71), (160, 86))])
+    return ([{"name": "substation", "x": x, "y": y, "quality": "epic"} for x, y in ((130, 74), (148, 76), (164, 84))]
+            + [{"name": "roboport", "x": x, "y": y, "quality": "epic"} for x, y in ((131, 71), (160, 86))])
 
 
 def boot():
@@ -62,7 +62,7 @@ LANDFILL = ("local s=game.surfaces.gleba local f=game.forces.player if not f.rec
             "for _,q in pairs(SPEC) do local tl=s.get_tile(q[1],q[2]) if tl.collides_with('water_tile') then t[#t+1]={name='landfill',position={q[1],q[2]}} end end "
             "if APPLY then s.set_tiles(t) end rcon.print('landfill tiles '..#t)")
 
-RARE = {"quality": "rare"}
+RARE = {"quality": "epic"}
 
 
 def landfill(tiles, apply):

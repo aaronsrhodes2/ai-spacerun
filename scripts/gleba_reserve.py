@@ -13,7 +13,7 @@ import sys
 
 from _game import tools
 
-R = {"quality": "rare"}
+R = {"quality": "epic"}
 E = [{"name": "assembling-machine-3", "x": 127.5, "y": 10.5, "recipe": "nutrients-from-spoilage"},
      {"name": "bulk-inserter", "x": 125.5, "y": 10.5, "direction": 4}, {"name": "bulk-inserter", "x": 129.5, "y": 10.5, "direction": 4},
      {"name": "requester-chest", "x": 130.5, "y": 10.5},

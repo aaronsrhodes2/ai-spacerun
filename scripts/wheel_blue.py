@@ -26,7 +26,7 @@ import sys
 from _game import tools
 from _wheels import lay_foundation, place_all, wheels
 
-Q = {"quality": "rare"}
+Q = {"quality": "epic"}
 N, E, S, W = 0, 4, 8, 12
 OX, OY = 57, -29
 DIR = {(0, -1): N, (1, 0): E, (0, 1): S, (-1, 0): W}

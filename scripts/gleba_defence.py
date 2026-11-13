@@ -1,6 +1,6 @@
 import json,sys
 from _game import tools
-R={"quality":"rare"}
+R={"quality":"epic"}
 e=[{"name":"tesla-turret","x":x,"y":y,"params":R} for x,y in ((104,-2),(112,-2),(131,4),(54,10),(110,-2+0))][:4]
 e+=[{"name":"laser-turret","x":x,"y":y,"params":R} for x,y in ((67,0),(119,23),(131,40),(-144,-108),(190,104))]
 print(tools["place_entities"](json.dumps(e),surface="gleba",dry_run="--apply" not in sys.argv)[:600])
