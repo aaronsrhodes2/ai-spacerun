@@ -654,3 +654,7 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - State at the freeze: last named save `six-shuttles`. Built after it and possibly lost: Gleba labs, pack belt, landing pad (`gleba_labs.py build`
   and `config` rebuild them in a minute). Not yet run: `gleba_labs.py ships` (fixed, untested) and the autopilot change to count Gleba's packs.
 - Decision recorded: Gleba is science central (labs on Gleba, other packs shipped in); the Nauvis-Gleba shuttles carry packs outward.
+- Freeze follow-up: the VM is operated from skippy-core, not with gcloud here: `ssh -o BatchMode=yes skippy-core "sudo -n python3 /opt/skippy-core/cd/cd.py ops status|logs factorio|restart|restart-game factorio"`.
+  `ops logs factorio` showed no crash: autosave `_autosave4` finished about 75 s before my command, then only health-check connections and the
+  container `unhealthy`: the game thread is stuck in the loop. `restart-game` got no reply (the VM's agent is starved); `ops restart` was denied
+  by the auto mode classifier, so the restart is the Captain's to run or allow.
