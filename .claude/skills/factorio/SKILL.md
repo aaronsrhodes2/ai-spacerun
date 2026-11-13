@@ -712,3 +712,16 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
   east: -198.5 and -158.5). A roboport at (-162,-66) closes a hole in robot coverage at the -158.5 chest. The unit at -78.5 has a belt north of
   it and is left belt-fed (still starved). Six units at 20 a minute each: about 120 a minute; measured 52 a minute and rising two minutes in.
 - Do not apply a build whose dry run reported failures: I did, and left a stray inserter at (-77.5,-61.5), since removed.
+
+## 2026-11-13 evening: five Gleba ships, egg gate re-test, space factory idea
+- Rocket turret researched; Aquilo discovery reached 70% in the Gleba labs. Labs use 400 of each pack in about 4 minutes (9 labs, about 100
+  units a minute), so delivery is the limit: `Nauvis-Gleba 3/4/5 Shuttle` built (platforms 11, 12, 13 on platform-9/10/11). `more_shuttles.py twin`
+  now clears starter-pack junk off the belts itself and skips ships that already have a schedule.
+- Egg gate re-test, 30 minutes without fruit: production chambers held no eggs, keeper A kept 2, restart by itself. Hatchlings killed went
+  161 -> 23 more (eggs already inside chambers when the fruit stops still hatch, and keeper B's own). One more building scratched.
+- Fulgora hand-off landing pad: no dry spot with power found next to the silo (150,-170) in a quick search; not placed.
+- The Captain's idea: a gigantic stationary factory platform above Gleba, most materials from asteroids, dropping packs straight to the Gleba
+  labs (drops need no rocket). Game data: chunk spawn at Gleba is metallic 0.0012, carbonic 0.0030, oxide 0.0006 plus medium asteroids
+  (0.0010, 0.0025, 0.0005); Nauvis is 0.0125, 0.0083, 0.0042 chunks only. Advanced asteroid processing (researched) gives copper, sulfur,
+  calcite; reprocessing turns the plentiful carbonic chunks into the other kinds. My rough estimate, not measured: 0.4 to 0.7 chunks a minute per
+  collector at Gleba, so hundreds of collectors for 10 full pack sets a minute. Proposed a small pilot first to measure the real income.
