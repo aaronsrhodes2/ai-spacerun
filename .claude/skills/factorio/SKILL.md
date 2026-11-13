@@ -730,3 +730,20 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
   When it completes: `scripts/upgrade_quality.py --items --apply` (all surfaces), and change the `"quality": "rare"` constants in the Gleba,
   shuttle and Nauvis scripts. Everything else is already at rare except things the game refuses (rails, Fulgoran ruin attractors, hubs).
 - Aquilo discovery is researched (2026-11-13).
+
+## Gleba Wheel, stage 1 (2026-11-13, `scripts/wheel.py`, platform 15 on `platform-12`)
+- The Captain: a zero-waste wagon wheel above Gleba for space science and every Nauvis pack, most material from asteroids, stone by rocket.
+  All fluids those packs need can be made in space (coal synthesis, simple coal liquefaction, cracking, sulfuric acid, lubricant are unlocked).
+- Built: square ring, collector row 34 tiles out, 60 collectors, rim belts, four spokes, inner belt loop at 10 tiles, 8 crushers handing
+  products straight into the hub, ammunition loop with 24 gun turrets, 60 solar panels, 20 substations. Layout in the script header.
+- **Measured income (first 40 game minutes): about 5 chunks a minute in all** (metallic 1.0 to 1.6, carbonic 2.9 to 4.5, oxide 0.5 to 1.0),
+  i.e. 32 iron ore, 38 carbon, 7 ice a minute; about 0.08 chunks per collector-minute, about 0.02 per tile of rim. Belts ran empty, so this is
+  what arrives, not what the crushers can take. Ice limits space science to about 35 packs a minute; the Nauvis packs need 50 to 100 times this.
+- Lessons: (1) collectors near the corners were refused until the ring foundation in front of them was removed; (2) an underground belt's
+  `type` must go in `params`, a top-level `type` is ignored and both ends become inputs; (3) the ammunition feed stopped one tile short of the
+  loop and the starter-pack foundation items jammed it, so the turrets stayed empty and asteroids destroyed 21 collectors and about 200 tiles
+  in half an hour at speed 8: arm turrets from the hub by script BEFORE running at speed; (4) the hub (59 slots) fills in under an hour and then
+  everything backs up, which is safe but stops the count; (5) the Gleba pad has 80 slots: nine packs at 4,000 filled it, now 1,200 each.
+- State left: 60 collectors, 24 turrets armed, loop full, hub 2,500 magazines (moved from Nauvis; nothing on board makes them yet), hub full
+  of ore so crushing has stopped. The autopilot repairs platforms named `...Wheel` as well as `...Shuttle`.
+- Not built: furnace, magazine and space science machines on the wheel (no hub-adjacent room between the crushers: needs a belt-fed block).

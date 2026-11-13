@@ -83,7 +83,7 @@ REPAIR = (
 
 # Scheduled shuttles (platforms whose name ends in "Shuttle") fly unattended: rebuild what asteroids broke, free in friendly build mode.
 SHIPS = (
-    "local n=0 for _,p in pairs(game.forces.player.platforms) do if p.valid and p.name:find('Shuttle$') then local s=p.surface for pass=1,12 do local did=0 "
+    "local n=0 for _,p in pairs(game.forces.player.platforms) do if p.valid and (p.name:find('Shuttle$') or p.name:find('Wheel$')) then local s=p.surface for pass=1,12 do local did=0 "
     "for _,g in pairs(s.find_entities_filtered{type={'tile-ghost','entity-ghost'}}) do if g.valid and g.revive() then n=n+1 did=did+1 end end if did==0 then break end end end end "
     "rcon.print('ships rebuilt '..n)"
 )

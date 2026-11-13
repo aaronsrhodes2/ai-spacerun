@@ -19,7 +19,7 @@ from _game import tools
 R = {"quality": "rare"}
 PACKS = ["automation-science-pack", "logistic-science-pack", "military-science-pack", "chemical-science-pack", "production-science-pack",
          "utility-science-pack", "space-science-pack", "metallurgic-science-pack", "electromagnetic-science-pack"]
-PAD = 4000
+PAD = 1200      # the pad has 80 slots: nine packs at 4,000 filled it
 WEST = [24, 27, 30, 33, 36, 39]
 EAST = [24, 27, 30]
 
