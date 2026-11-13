@@ -725,3 +725,8 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
   (0.0010, 0.0025, 0.0005); Nauvis is 0.0125, 0.0083, 0.0042 chunks only. Advanced asteroid processing (researched) gives copper, sulfur,
   calcite; reprocessing turns the plentiful carbonic chunks into the other kinds. My rough estimate, not measured: 0.4 to 0.7 chunks a minute per
   collector at Gleba, so hundreds of collectors for 10 full pack sets a minute. Proposed a small pilot first to measure the real income.
+- 2026-11-13: the Captain expected everything at epic (purple) already. It is NOT researched: `is_quality_unlocked('epic')` false, `epic-quality`
+  0% of 5,000 units (automation, logistic, chemical, utility, space, agricultural). Put first in the queue and in the autopilot PRIORITY.
+  When it completes: `scripts/upgrade_quality.py --items --apply` (all surfaces), and change the `"quality": "rare"` constants in the Gleba,
+  shuttle and Nauvis scripts. Everything else is already at rare except things the game refuses (rails, Fulgoran ruin attractors, hubs).
+- Aquilo discovery is researched (2026-11-13).
