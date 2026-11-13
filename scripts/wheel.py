@@ -13,7 +13,10 @@ Stage 1 (this script): the frame and the asteroid stage, to measure real chunk i
 Coordinates are tiles; everything is written for the north side and turned three times.
 Runs on every wheel in scripts/_wheels.py (Gleba Wheel, Nauvis Wheel); --only gleba|nauvis for one. Never run `build --apply` twice on
 the same wheel: on a platform an identical entity is stacked a second time.
-Usage: wheel.py create | build [--apply] | config | status  [--only PLANET]"""
+RETIRED LAYOUT: the square centre below (ring of 56 collectors, crushers against the hub) was removed from both wheels on 2026-11-13;
+nothing reaches the inside of the round rim, so those collectors caught nothing. scripts/wheel_hub.py builds the round centre instead and
+reuses the constants here. Still in use from this file: create and status.
+Usage: wheel.py create | status  [--only PLANET]"""
 import json
 import sys
 
@@ -134,6 +137,7 @@ def main():
             continue
         mine = [e for e in ents if turrets or e["name"] != "laser-turret"]
         if step == "build":
+            sys.exit("the square first centre is retired (removed on both wheels 2026-11-13): build a wheel with wheel.py create, wheel_round.py found + build, wheel_power.py, wheel_hub.py build + config, wheel_lights.py")
             if apply:
                 print("foundation tiles", lay_foundation(tiles, surface))
             ok, bad = place_all(mine, surface, apply)

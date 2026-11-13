@@ -5,7 +5,7 @@ A circle of radius RC tiles round the hub of the first wheel (scripts/wheel.py):
   collectors   one every COLLECT tiles of rim, outside the belt, facing outward, an inserter behind each onto the rim belt
   ammunition   a second belt circle two tiles inside, one closed loop (it dives under each spoke), fed from the hub up the north spoke
   turrets      one gun turret every TURRET tiles of that loop on the inside, a substation between them every POLE tiles
-  spokes       straight belts along the axes down to the first wheel's rim, with a substation line and solar panels beside them
+  spokes       straight belts along the axes down to the round centre's loop at 46 tiles (scripts/wheel_hub.py), with a substation line and solar panels beside them
 Everything is generated from the two circles, checked for overlaps here (run `check`), and placed in batches.
 Runs on every wheel in scripts/_wheels.py; --only gleba|nauvis for one. Never run `build --apply` twice on the same wheel.
 Usage: wheel_round.py check | found | build [--apply]  [--only PLANET]"""
@@ -100,7 +100,7 @@ def layout():
     spoke_cells = set()
     for k in range(4):
         d = [8, 12, 0, 4][k]                         # flow toward the hub
-        for y in range(-RC - 1, -30):                # one tile beyond the rim: the circle's tile on an axis is off by one on two of the four sides
+        for y in range(-RC - 1, -46):                # one tile beyond the rim: the circle's tile on an axis is off by one on two of the four sides
             c = turn((0, y), k)
             spoke_cells.add(c)
         for x in range(-3, 10):
@@ -119,7 +119,7 @@ def layout():
         one("express-transport-belt", t, DIRS[(nx[0] - t[0], nx[1] - t[1])])
     for k in range(4):
         d = [8, 12, 0, 4][k]
-        for y in range(-RC - 1, -30):
+        for y in range(-RC - 1, -46):
             if turn((0, y), k) in rimset or y > -RC:
                 one("express-transport-belt", turn((0, y), k), d)
     # ammunition loop, clockwise, diving under each spoke

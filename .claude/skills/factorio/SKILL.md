@@ -779,3 +779,11 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - The Captain: calcite from the Nauvis wheel is what the Nauvis foundry plan was waiting for (it was on hold for advanced asteroid
   processing), and foundries can stand on the station itself.
 - Both hubs are full (59 slots); crushing has stopped on both. Next: a bigger centre with cargo bays, reprocessing, pack lines, on both.
+
+## Wheels: the round centre and the lights (2026-11-13)
+- **An inserter cannot put items into a cargo bay**, only into the hub itself (the Captain said so; 24 crushers stood at `full_output` against bays). Bays only add slots, and each must touch the hub or another bay. Bring products to the hub's own edge by belt.
+- `scripts/wheel_hub.py` (check | clear | build | refit | restock | config, on every wheel): a disc of 256 rare cargo bays (radius 40) gives the hub 8,251 slots (59 before). Six crushers on each of the four flats, a round chunk loop at 46 tiles, product belts down four avenues to four bulk inserters a side at the hub. Deck is a solid foundation disc, radius 52.
+- The square inner ring (56 collectors) is gone from both wheels: with the rim at 600, nothing was inside 300 tiles and the Nauvis inner collectors held zero. The Captain: everything inside the rim is protected factory real estate.
+- `scripts/wheel_lights.py [--apply]`: about 1,300 always-on rare lamps per wheel. Colour code: orange metallic, green carbonic, blue oxide, white storage/deck, yellow spokes, cyan rim/collectors, red lasers. Lamp colour over RCON: `e.always_on=true e.color={r=,g=,b=}`. It dry-runs, drops what collides, places the rest; safe to rerun.
+- A dry run does not check for foundation, and a passing thing (two bays were "blocked" once, fine a minute later) can fail it: retest before believing a failure.
+- `wheel.py build` is retired (it exits with the new build order). The chunks that `clear` salvaged sit in each hub (about 1,800 on Gleba, 1,460 on Nauvis) with no way out yet; Gleba's hub also holds the old ammunition.
