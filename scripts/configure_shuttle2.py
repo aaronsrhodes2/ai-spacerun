@@ -10,6 +10,9 @@ Wires and sets up a ship built by build_shuttle2.py (2026-11-10). Safe to run ag
 
 Run it BEFORE anything is put in the hub: until the filters are set the two ammunition belt inserters carry whatever the hub holds.
 
+Run it again on every shuttle after a quality upgrade: the upgrade dropped the wire to the oxidizer tank (2026-11-13), the schedule never saw
+oxidizer and all nine ships stood still.
+
 Usage: scripts/configure_shuttle2.py --surface platform-3 --platform 5
 """
 import sys
@@ -17,7 +20,7 @@ import sys
 from _game import tools
 
 # the hub has 59 slots and a chunk takes a whole slot, so the limits are small: about 12 slots of chunks, 4 ore, 2 plates, 20 magazines, 5 fuel cells
-CHUNKS, ORE, PLATES, MAGS, RESERVE = 3, 200, 200, 2000, 500
+CHUNKS, ORE, PLATES, MAGS, RESERVE = 3, 200, 200, 1000, 500   # 1,000 magazines since 2026-11-13: 2,000 took 20 of the hub's slots
 
 LUA = """
 local s=game.surfaces['%(surface)s'] local p=game.forces.player.platforms[%(platform)d] local hub=p.hub local o={}
@@ -49,8 +52,8 @@ rcon.print(table.concat(o,' | '))
 
 # Schedule: the hub sees its own contents (red) and one tank each of water, thruster fuel and oxidizer (green), so every number below is HALF the ship's total.
 # At Nauvis the ship waits for full propellant tanks (a fill covers a round trip); at the far planet it waits for enough to fly home with a margin.
-HOME = dict(fuel=20000, mags=1500)      # was 35000: Nauvis orbit has almost no asteroids, all nine shuttles sat there about an hour refuelling (2026-11-13)
-AWAY = dict(fuel=32000, mags=800)       # was 15000: the far orbits are rich in asteroids, so fill up there and Nauvis never holds a ship (2026-11-13)
+HOME = dict(fuel=20000, mags=800)       # was 35000: Nauvis orbit has almost no asteroids, all nine shuttles sat there about an hour refuelling (2026-11-13)
+AWAY = dict(fuel=32000, mags=500)       # was 15000: the far orbits are rich in asteroids, so fill up there and Nauvis never holds a ship (2026-11-13)
 ROUTE = """
 local p=game.forces.player.platforms[%(platform)d]
 local function c(t,n,k) return {type='circuit',compare_type='and',condition={first_signal={type=t,name=n},comparator='>=',constant=k}} end

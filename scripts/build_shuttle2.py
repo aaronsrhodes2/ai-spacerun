@@ -4,7 +4,7 @@ Compact shuttle, second design (2026-11-10), built around the platform hub so th
     collectors -> chunk belt -> one inserter into the hub (takes only the chunk types the hub is short of; the rest is thrown into space at the belt's end)
     hub -> crushers -> hub (iron ore) / ice melter (water) / fuel plant;  hub -> furnaces -> hub -> assembler -> hub (magazines)
     hub -> turrets, directly or over two short belts (nose, rear): the magazine stock sits upstream of every turret
-    nose and flanks: fifteen solar panels and six accumulators (nuclear until 2026-11-10);  rear: tanks, four thrusters fed through two-tile gaps
+    nose and flanks: fourteen solar panels, three accumulators and a cargo bay (nuclear until 2026-11-10);  rear: tanks, four thrusters fed through two-tile gaps
 
 Rare quality throughout: epic and legendary are not unlocked by research. All coordinates are tiles (top-left corner); the hub covers -4..3.
 Usage: scripts/build_shuttle2.py --surface platform-3 [--apply]
@@ -63,8 +63,10 @@ def turret(tx, ty, ix, iy, pick):
 
 
 # nose: solar panels and accumulators where the reactor, heat exchanger and turbine stood until 2026-11-10 (the Captain's order: solar instead of nuclear)
-big("solar-panel", -2, -10, 3, 3)
-for tx, ty in ((1, -10), (1, -8), (-2, -6), (0, -6), (-1, -12), (-1, -14)):
+# One cargo bay against the hub's north edge (2026-11-13): the bare hub has 59 slots, and nine kinds of science pack, magazines, fuel cells and
+# chunks filled it, so rockets could not deliver; an epic bay makes it 97. It stands where a solar panel and three accumulators stood.
+big("cargo-bay", -2, -8, 4, 4)
+for tx, ty in ((1, -10), (-1, -12), (-1, -14)):
     big("accumulator", tx, ty, 2, 2)
 
 # turrets fed straight from the hub
