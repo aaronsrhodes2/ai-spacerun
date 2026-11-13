@@ -675,3 +675,8 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
   Nauvis has none), leave Nauvis fuelled, armed and loaded (`all_requests_satisfied`), leave Gleba after 10 quiet seconds. Nauvis pad no longer asks
   for agricultural packs. Autopilot counts packs in Gleba's labs and network too.
 - Not seen yet: a pack delivery to Gleba, research progress in the Gleba labs. Military packs: none made on Nauvis, rocket turret research needs them.
+- 2026-11-13: the VM switched itself off after 30 idle minutes (status TERMINATED via `ops status`), so `scripts/gleba_eggs.py` (second keeper
+  pair fed slowly, reserve tripled) is written but NOT applied. The game also pauses with nobody connected, so outage tests need a player on
+  (or auto-pause off). Asked the Captain before starting the VM (it costs money and pings Discord).
+- White science above Gleba (asked 2026-11-13): not useful now. Oxide chunks there are 0.0006 against 0.0042 at Nauvis (ice is the limit), while
+  Nauvis holds about 106,000 space packs and the White Science platform another 26,000 and makes 472 a minute; ship them.
