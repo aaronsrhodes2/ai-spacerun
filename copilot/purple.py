@@ -38,9 +38,15 @@ class Purple:
         return {"text": got["text"], "steps": got["steps"], "ok": got["ok"], "error": got["error"]}
 
 
-TURN = ("You are playing Factorio as Skippy Copilot in this workspace. Follow the factorio-copilot skill. Use only the tools of the "
-        "skippy-copilot MCP server to see and change the game; do not edit files or run commands for this. Answer the player in at most three "
-        "short sentences of plain text.\n\n%s")
+TURN = ("This comes from a player inside a running Factorio game, where you are Skippy Copilot. You decide what kind of request it is "
+        "(the Captain, 2026-11-13: purple Skippy is the router).\n"
+        "- About the game (what to build, what is wrong, research, a goal): follow the factorio-copilot skill and use only the tools of the "
+        "skippy-copilot MCP server to see and change the game. Do not edit files or run commands for this.\n"
+        "- About the assistant itself (change or fix the mod, the bridge or their tests): that is a development task. You may change only "
+        "mods/skippy-copilot, copilot/ and tests/copilot_tests in this repository, and the player is mid-game: do not restart, reload or "
+        "stop the game server, and do not start a test server or a model on this computer, unless asked for exactly that.\n"
+        "- If you cannot tell which is meant, ask the player in one sentence before changing anything.\n"
+        "Answer the player in at most three short sentences of plain text, and say which of the two you did.\n\n%s")
 
 
 class PurpleAgent:
