@@ -50,6 +50,6 @@ Status words: **open** (unlocked, not applied), **applied**, **waiting** (not re
 | cryogenic-science-pack | crafting one cryogenic plant on Aquilo | the last planet pack | build its relay Aquilo -> Fulgora -> Nauvis -> Gleba labs; queue the four techs below |
 | railgun | 2,000 units | railgun turrets kill huge asteroids | the edge ship; the Aquilo shuttle can drop its rocket line (coal plant, explosives plant, rocket assembler) |
 | fusion-reactor | 2,000 units | power without sun or fuel | Aquilo shuttle and edge ship lose their solar wings; the Aquilo base stops burning fuel for power |
-| foundation | units | build on lava, oil ocean and Aquilo's sea | bases stop being shaped by the coastline; pipe and belt detours round water go |
+| foundation | 2,000 units of all ten packs incl. cryogenic; prerequisite cryogenic-science-pack | the foundation tile: build on lava, oil and Aquilo's ocean | **Aquilo's land problem (about 20% land) is solved by this**: ice platforms (50 ice + 400 ammonia each, one tile, also from icebergs) only bridge the gap until it is researched. Queue it as soon as cryogenic science exists |
 | quantum-processor | 500 units | the top-tier component | needed by fusion and the edge ship; note what else asks for it when it lands |
 | legendary-quality | units | legendary machines | the standing order: upgrade everything at once, then rerun every `config` |
