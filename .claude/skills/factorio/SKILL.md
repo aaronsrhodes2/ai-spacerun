@@ -1067,3 +1067,8 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - Fix in `aquilo_ship2.py`: set `max` well above what the ship carries (ore and carbon 4,000, cells 200, robots 40/100, repair packs 200). Then clear `hub_trash` into `hub_main` (before the change the trash just refills).
 - Order matters: run `requests` first, then clear trash. Clearing before the new max applies puts the items straight back in the trash.
 - The wait conditions read the red wire. Carbon and ore show their real count there, not doubled, so 3,000 means 3,000 aboard.
+
+## Aquilo ice sink (2026-11-14)
+- The separation plant's ice chest filled (4,550), the plant stopped, no ammonia, no solid fuel, tower out of fuel. `scripts/aquilo_ice_sink.py`: recycler at tiles x 38..39, y -5..-2 facing south, requester chest (41.5,-3.5) asking 400 ice, two provider chests in front. Within 3 minutes: separation and fuel plants working, tower chest 189 solid fuel, tower 748 C and `working`.
+- Triangle sweeper idea (the Captain): NOT a filled triangle; a thin strip of foundation along the three 1,000-tile edges (like a wheel's rim) with collectors (and turrets off Nauvis). Test platform `Nauvis Triangle Test` (platform-18) carries 11,923 strip ghosts (4 wide). Hub option "Auto request missing construction materials" pulls foundations; `foundation-ferry` section on Nauvis-Fulgora 1 Shuttle carried them. The filled `Fulgora Triangle 1` (platform-14) is the wrong shape and gets hit by Fulgora's medium asteroids.
+- Foundation makers stall on full provider chests (115,321 moved to storage 2026-11-14).
