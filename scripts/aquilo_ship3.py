@@ -40,8 +40,28 @@ def layout():
         for x in range(int(e["x"] - h), int(e["x"] + h)):
             for y in range(int(e["y"] - h), int(e["y"] + h)):
                 A.occ.pop((x, y), None)
-    A.cfg[:] = [c for c in A.cfg if (c[0], c[1]) != (4.5, 3.5)]
-    A.gates[:] = [g for g in A.gates if (g[0], g[1]) != (4.5, 3.5)]
+    # Hold (the Captain, 2026-11-14: "storage problems"): the 325 slots were full of ore (64), carbon (68), ice (31), chunks (39, they stack
+    # to 1), sulfur, coal and plates for an ammunition chain that no longer runs, plus the ammunition itself. The chain is gone (coal plant,
+    # explosives plant, rocket assembler and their inserters); two more bays stand in its place on the hub's south edge.
+    dead = {(-0.5, 6.5), (2.5, 6.5), (6.5, 4.5), (-1.5, 4.5), (0.5, 4.5), (1.5, 4.5), (4.5, 5.5), (4.5, 3.5)}
+    for e in [e for e in A.ents if (e["x"], e["y"]) in dead and e["name"] in ("chemical-plant", "assembling-machine-3", "fast-inserter")]:
+        A.ents.remove(e)
+        h = .5 if e["name"] == "fast-inserter" else 1.5
+        for x in range(int(e["x"] - h), int(e["x"] + h)):
+            for y in range(int(e["y"] - h), int(e["y"] + h)):
+                A.occ.pop((x, y), None)
+    A.cfg[:] = [c for c in A.cfg if (c[0], c[1]) not in dead]
+    A.gates[:] = [g for g in A.gates if (g[0], g[1]) not in dead]
+    A.recipes[:] = [(x, y, "carbonic-asteroid-crushing" if r == "advanced-carbonic-asteroid-crushing" else r) for x, y, r in A.recipes if (x, y) not in dead]
+    A.gates[:] = [(x, y, it, {"iron-ore": 2000, "carbon": 2000, "ice": 1000, "iron-plate": 0}.get(it, k) if cmp == "<" else k, cmp) for x, y, it, k, cmp in A.gates]
+    A.put("cargo-bay", -2, 4, 4, 4)
+    A.put("cargo-bay", 2, 4, 4, 4)
+    A.put("decider-combinator", 2, -7, 1, 2)            # intake: which chunk kinds the hub is short of
+    A.put("constant-combinator", 4, -6)
+    A.put("selector-combinator", 6, 2, 1, 2)            # alert: stack sizes of what the hub holds
+    A.put("arithmetic-combinator", 7, 2, 1, 2)          # count / stack size = slots, per item
+    A.put("arithmetic-combinator", 9, 2, 1, 2)          # sum -> signal S
+    A.put("programmable-speaker", 9, 5)
     A.ins(4, 0, A.W, ["uranium-rounds-magazine"], name="bulk-inserter")   # hub -> magazines
     A.belts([(5, 0), (6, 0), (7, 0, "in"), (13, 0, "out"), (14, 0), (14, -1), (13, -1)], A.W)    # under the trunk, back onto it from the east: east lane
     for x, ix in ((-2, -2), (0, 1)):                                                 # nose guns
@@ -65,8 +85,32 @@ ROUTE = (FIND + "local function c(t,n,k) return {type='circuit',compare_type='an
          "p.schedule={current=CUR,records={{station='fulgora',wait_conditions={c('fluid','thruster-fuel',40000),c('fluid','thruster-oxidizer',40000),c('item','carbon',3000),c('item','iron-ore',3000),c('item','RKIND',ROCKETS),c('item','uranium-rounds-magazine',MAGS),c('item','repair-pack',400),{type='time',compare_type='and',ticks=1800}}},"
          "{station='aquilo',wait_conditions={{type='time',compare_type='and',ticks=5400},c('fluid','thruster-fuel',15000),c('fluid','thruster-oxidizer',15000)}}}} p.paused=PAUSED if p.space_location then p.space_location=p.space_location.name end "
          "rcon.print('schedule fulgora <-> aquilo set for '..p.name..', paused='..tostring(p.paused)..', state '..p.state)")
+# The hold control. Intake: the hub's chunk inserter (-3.5,-4.5) takes a chunk kind only while the hub holds fewer than 5 of it (decider at
+# 2.5,-6: each(hub, red) < each(constant, green)). Eject: the valve inserter throws overboard whatever is above its cap in VCAPS; it never
+# blocks (hub trash does: the Fulgora pad was full, 0 of 80 slots free, so trash never dropped and the ship could not leave). Requests carry
+# a huge max and every item the ship can hold has a request, so nothing ever lands in the trash. Alert: selector (stack sizes) -> arithmetic
+# (count / stack size) -> arithmetic (sum to signal S = slots in use, rounded down per item) -> speaker with a map alert above SLOTS - 40.
+VCAPS = {"metallic-asteroid-chunk": 8, "carbonic-asteroid-chunk": 8, "oxide-asteroid-chunk": 8, "sulfur": 1, "coal": 1, "iron-plate": 1, "explosives": 1, "copper-ore": 1, "calcite": 1,
+         "space-platform-foundation": 1, "ice": 2500, "carbon": 2500, "iron-ore": 2500}
+HOLD = (FIND + "local s=p.surface local hub=p.hub local W=defines.wire_connector_id local function at(n,x,y) return s.find_entities_filtered{name=n,position={x,y},radius=0.7}[1] end local function wire(a,ac,b,bc) a.get_wire_connector(ac,true).connect_to(b.get_wire_connector(bc,true),false) end "
+        "local cc=at('constant-combinator',4.5,-5.5) local sec=cc.get_or_create_control_behavior().get_section(1) or cc.get_or_create_control_behavior().add_section() for i,k in pairs{'metallic','carbonic','oxide'} do sec.set_slot(i,{value={type='item',name=k..'-asteroid-chunk',quality='normal'},min=5}) end "
+        "local d=at('decider-combinator',2.5,-6) d.get_or_create_control_behavior().parameters={conditions={{first_signal={type='virtual',name='signal-each'},first_signal_networks={red=true,green=false},comparator='<',second_signal={type='virtual',name='signal-each'},second_signal_networks={red=false,green=true}},"
+        "{first_signal={type='virtual',name='signal-each'},first_signal_networks={red=false,green=true},comparator='>',constant=0,compare_type='and'}},outputs={{signal={type='virtual',name='signal-each'},copy_count_from_input=false,constant=1}}} "
+        "wire(d,W.combinator_input_red,hub,W.circuit_red) wire(d,W.combinator_input_green,cc,W.circuit_green) local i=s.find_entities_filtered{type='inserter',position={-3.5,-4.5},radius=0.3}[1] wire(i,W.circuit_green,d,W.combinator_output_green) "
+        "i.use_filters=true i.inserter_filter_mode='whitelist' local cb=i.get_or_create_control_behavior() cb.circuit_set_filters=true "
+        "local sel=at('selector-combinator',6.5,3) sel.get_or_create_control_behavior().parameters={operation='stack-size'} local a1=at('arithmetic-combinator',7.5,3) local a2=at('arithmetic-combinator',9.5,3) local sp=at('programmable-speaker',9.5,5.5) "
+        "a1.get_or_create_control_behavior().parameters={first_signal={type='virtual',name='signal-each'},first_signal_networks={red=true,green=false},second_signal={type='virtual',name='signal-each'},second_signal_networks={red=false,green=true},operation='/',output_signal={type='virtual',name='signal-each'}} "
+        "a2.get_or_create_control_behavior().parameters={first_signal={type='virtual',name='signal-each'},second_constant=0,operation='+',output_signal={type='virtual',name='signal-S'}} "
+        "wire(sel,W.combinator_input_red,hub,W.circuit_red) wire(a1,W.combinator_input_red,hub,W.circuit_red) wire(a1,W.combinator_input_green,sel,W.combinator_output_green) wire(a2,W.combinator_input_red,a1,W.combinator_output_red) wire(sp,W.circuit_red,a2,W.combinator_output_red) "
+        "local slots=#hub.get_inventory(defines.inventory.hub_main) local scb=sp.get_or_create_control_behavior() scb.circuit_condition={first_signal={type='virtual',name='signal-S'},comparator='>',constant=slots-40} "
+        "sp.alert_parameters={show_alert=true,show_on_map=true,icon_signal_id={type='item',name='cargo-bay'},alert_message=p.name:gsub('^%[.-%]%s*','')..': hold nearly full'} sp.parameters={playback_volume=0.5,playback_mode='local',allow_polyphony=false} "
+        "for _,x in pairs{{-8.5,-5},{-10.5,-5}} do local dd=at('decider-combinator',x[1],x[2]) local pr=dd.get_or_create_control_behavior().parameters pr.conditions[1].constant=2000 dd.get_or_create_control_behavior().parameters=pr end "
+        "local vc=s.find_entities_filtered{name='constant-combinator',position={4.5,-6.5},radius=0.3}[1] local vs=vc.get_or_create_control_behavior().get_section(1) for k=1,40 do pcall(function() vs.clear_slot(k) end) end local k=0 for name,c in pairs(VCAPS) do k=k+1 vs.set_slot(k,{value={type='item',name=name,quality='normal'},min=c}) end "
+        "local pt for _,q in pairs(hub.get_logistic_point()) do if q.mode==defines.logistic_mode.requester then pt=q end end local rs for _,x in pairs(pt.sections) do if x.is_manual then rs=rs or x end end local seen={} local n=0 for j,f in pairs(rs.filters) do if f.value then seen[f.value.name]=true f.max=100000 rs.set_slot(j,f) n=j end end "
+        "for _,name in pairs{'metallic-asteroid-chunk','carbonic-asteroid-chunk','oxide-asteroid-chunk','sulfur','coal','iron-plate','explosives','copper-ore','calcite','space-platform-foundation','rocket','explosive-rocket','uranium-rounds-magazine'} do if not seen[name] then n=n+1 rs.set_slot(n,{value={type='item',name=name,quality='normal'},min=0,max=100000,import_from='fulgora'}) end end "
+        "local sig=sp.get_signal({type='virtual',name='signal-S'},W.circuit_red) rcon.print('hold control set: slots '..slots..', alert above '..(slots-40)..', S now '..sig..', free '..hub.get_inventory(defines.inventory.hub_main).count_empty_stacks()..', valve caps '..k..', requests '..n)")
 REQ = (FIND + "local pt for _,q in pairs(p.hub.get_logistic_point()) do if q.mode==defines.logistic_mode.requester then pt=q end end local sec=nil for _,x in pairs(pt.sections) do if x.is_manual then sec=sec or x end end sec=sec or pt.add_section() "
-       "for i=#sec.filters+8,1,-1 do pcall(function() sec.clear_slot(i) end) end for i,it in pairs{{'repair-pack',300,1000},{'ice',500,3000},{'carbon',3500,5000},{'iron-ore',3500,5000},{'explosive-rocket',0,40000},{'uranium-rounds-magazine',0,40000}} do "
+       "for i=#sec.filters+8,1,-1 do pcall(function() sec.clear_slot(i) end) end for i,it in pairs{{'repair-pack',300,100000},{'ice',500,100000},{'carbon',2000,100000},{'iron-ore',2000,100000},{'explosive-rocket',0,100000},{'uranium-rounds-magazine',0,100000},{'rocket',0,100000}} do "
        "sec.set_slot(i,{value={type='item',name=it[1],quality='normal'},min=it[2],max=it[3],import_from='fulgora',request_from=((it[1]=='carbon' or it[1]=='iron-ore' or it[1]=='ice') and 'platforms' or 'planet')}) end "
        "local t={} for _,fl in pairs(sec.filters) do if fl.value then t[#t+1]=fl.value.name..' '..fl.min..'..'..(fl.max or '-') end end rcon.print('ship requests: '..table.concat(t,', '))")
 LASERS = (FIND + "local s=p.surface local n=0 for _,t in pairs(s.find_entities_filtered{name='laser-turret'}) do local i=0 for _,k in pairs{'metallic','carbonic','oxide','promethium'} do i=i+1 t.set_priority_target(i,'small-'..k..'-asteroid') end t.ignore_unprioritised_targets=true n=n+1 end rcon.print('lasers limited to small asteroids '..n)")
@@ -116,6 +160,9 @@ def main():
         print(lua(REQ))
     elif step == "targets":
         print(lua(TARGETS).replace(" ;; ", chr(10)))
+    elif step == "hold":
+        caps = "{" + ",".join("['%s']=%d" % kv for kv in VCAPS.items()) + "}"
+        print(lua(HOLD.replace("VCAPS", caps)))
     elif step == "fit":
         plain = sys.argv[2] == "plain"
         print(lua(FIT.replace("USE", "rocket" if plain else "explosive-rocket").replace("DROP", "explosive-rocket" if plain else "rocket")))
@@ -135,6 +182,7 @@ def main():
         r = A.main()
         if step in ("config",) or (step == "build" and "--apply" in sys.argv):
             print(lua(TARGETS).replace(" ;; ", chr(10)))
+            print(lua(HOLD.replace("VCAPS", "{" + ",".join("['%s']=%d" % kv for kv in VCAPS.items()) + "}")))      # after A's config: it resets the valve caps
         return r
 
 
