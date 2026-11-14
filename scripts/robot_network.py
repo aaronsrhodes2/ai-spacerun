@@ -2,7 +2,7 @@
 """Drone supply (the Captain, 2026-11-14): a logistic network detects that it is short of robots, asks for more, the Replicator (or the
 robot cells' stock) provides them, and they are put into the network's roboports ("drone ports"), only while the network is short.
 Per surface the MAIN network is the one with the most roboport cells. For each robot kind (logistic, construction):
-  SHORT (enter)  any of: robots in the network < floor (max(F_MIN, F_PER x roboports): too few for its size);
+  SHORT (enter)  any of: robots in the network < floor (max(F_MIN, F_PER x roboports): too few for its size) while the idle share is under 50%;
                  idle share (available/all) < ENTER (0.10) at the last SAMPLES (3) samples spanning >= SPAN ticks (2 game minutes);
                  construction only: ghosts waiting > QUEUE_K (25) x available construction robots (sustained as above).
   OK (exit)      robots >= floor AND idle share >= EXIT (0.25) AND queue short enough, or the shortfall computed is 0. (Hysteresis: 0.10 / 0.25.)
@@ -36,6 +36,7 @@ F_PER = {"l": 10, "c": 5}
 ENTER, EXIT, OVER = 0.10, 0.25, 0.60
 SAMPLES, SPAN = 3, 7200
 QUEUE_K = 25
+FLOOR_IDLE = 0.50
 CAP = 200
 
 STATS = ("local s=game.surfaces['%(S)s'] if not s then rcon.print('{}') return end local f=game.forces.player local best=nil "
@@ -121,7 +122,7 @@ def decide(surface, a, st, enter=ENTER, exit_=EXIT, samples=SAMPLES, span=SPAN, 
         if k == "c":
             queue = math.ceil(a["ghosts"] / QUEUE_K) - av
             qrule = queue > 0 and sustained and all(h["g"] > QUEUE_K * max(h["vc"], 1) for h in recent)
-        need_floor = max(0, floor - tot)
+        need_floor = max(0, floor - tot) if ratio < FLOOR_IDLE else 0   # few robots matter only while they are not mostly idle
         need_ratio = max(0, math.ceil(busy / (1 - exit_)) - tot) if ratio < exit_ else 0
         need_q = max(0, queue) if qrule else 0
         short_new = need_floor > 0 or low or qrule
