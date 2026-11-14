@@ -68,8 +68,14 @@ Built so far:
   - Settings name exactly one source: `anthropic`, `openai`, `ollama` or `purple`, with one address and one key.
   - `anthropic` is any server that speaks the Anthropic Messages API. Skippy Core serves purple's model that way, with
     tool use, so the bridge's own loop can run every turn on it in seconds: one address, one key. Not yet tried live.
-  - Purple's bridge is built for long jobs (minutes a run, one at a time, 409 when busy), so the `purple` source suits
-    a standing goal handed over whole more than chat. A run nobody waits for any more is cancelled.
+    The Captain chose this for turns (2026-11-13); purple stays for long goals. `copilot/copilot.env` on skippy-pc names
+    the dev-root vault (`COPILOT_VAULT`) and takes address, key and model from it by name (`$SKIPPY_CORE_URL` and so on).
+  - Purple Skippy is the development agent, reached through its MCP door on skippy-pc (`127.0.0.1:47860/mcp`,
+    SkippyTel's purple-mcp; no key on loopback, and the home token never comes near this repository). Every call is a
+    task; the work is a job of seconds to minutes, one at a time. `copilot/purple_client.py` is the client (plain
+    JSON-RPC over urllib). Two uses: `/purple <task>` in the game (mod 0.15.0), run by the bridge as a background job
+    with the house rules in the prompt, and the `purple` source for every turn, which now goes through the same door.
+    Tried live 2026-11-13: health, and a one-word run that came back done in one call.
   - Purple Skippy is an agent, so it thinks in its own loop: the bridge sends each turn to SkippyTel's bridge for one
     conversation in one workspace, and purple reaches the game through this repository's MCP server, which offers the same
     tools. The skill purple reads is the same text a plain model is given; a test keeps them identical.

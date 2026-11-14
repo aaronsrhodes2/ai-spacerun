@@ -78,6 +78,13 @@ class LuaMod:
             return "{" + ", ".join("[%s] = %s" % (json.dumps(k), self._literal(x)) for k, x in v.items()) + "}"
         return json.dumps(v)
 
+    def printed(self):
+        """Everything printed in the game: what single players were told, then what everyone was told."""
+        out = []
+        for i in range(1, int(self.lua.eval("#game.players")) + 1):
+            out += [str(v) for v in self.lua.eval("game.players[%d].printed" % i).values()]
+        return out + [str(v) for v in self.lua.eval("fake.printed").values()]
+
     def tick(self, n=1):
         self.fake.tick(n)
 

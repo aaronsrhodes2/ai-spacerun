@@ -19,12 +19,19 @@ Settings: a file named copilot.env next to this package (copy copilot.env.exampl
                                           An agent built for long jobs: a turn takes minutes and it runs one at a time.
     COPILOT_URL                where the source is. anthropic: the server's address, such as http://skippy-core:11434
                                openai: the API's base, such as https://api.example.com/v1    ollama: default http://localhost:11434
-                               purple: SkippyTel's bridge, default http://localhost:9337
-    COPILOT_KEY                the source's key, or COPILOT_KEY_FILE (a file holding it). Not needed for a local Ollama.
+                               purple: its MCP door, default http://127.0.0.1:47860/mcp
+    COPILOT_KEY                the source's key, or COPILOT_KEY_FILE (a file holding it). Not needed for a local Ollama,
+                               nor for purple on the same computer.
     COPILOT_MODEL              anthropic, openai and ollama: the model's name. purple needs none.
     COPILOT_WORKSPACE          purple only: the id of the project (workspace) purple works in
 
+  Purple Skippy for a task, whatever the source: type  /purple <what to do>  in the game (and  /purple stop).
+    COPILOT_PURPLE_URL         purple's MCP door, default http://127.0.0.1:47860/mcp; set it to "off" to switch /purple off
+    COPILOT_PURPLE_PROJECT     the project purple works in for those tasks, default f-ai-factorio
+
   Optional
+    COPILOT_VAULT              a file of NAME=value lines kept elsewhere (a shared .env). Any setting here may then be written
+                               as $NAME and is read from that file, so a key need not be copied into copilot.env.
     COPILOT_NUM_CTX            context size asked of Ollama, default 16384
     COPILOT_LOG_DIR            where run logs go, default ./runs
     COPILOT_STALL_HOURS        game hours without progress before a stall is logged, default 2
@@ -40,6 +47,7 @@ from .game import Game
 from .loop import AlertWatch, Bridge, alert_prompt, news_prompt, say          # noqa: F401  (re-exported for callers and tests)
 from .models import make
 from .purple import Purple, PurpleAgent, SourceError
+from .purple_client import DEFAULT_URL as PURPLE_URL, PurpleClient
 from .toolbox import Toolbox
 from .tools import LocalTools
 
@@ -51,14 +59,41 @@ class SetupError(Exception):
     """Something in the settings is missing or wrong, said so a newcomer can fix it."""
 
 
+def _lines(path):
+    out = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if "=" in line and not line.strip().startswith("#"):
+            k, v = line.split("=", 1)
+            out[k.strip()] = v.strip().strip('"').strip("'")
+    return out
+
+
 def settings():
     env = dict(os.environ)
     f = HERE / "copilot.env"
     if f.exists():
-        for line in f.read_text(encoding="utf-8").splitlines():
-            if "=" in line and not line.strip().startswith("#"):
-                k, v = line.split("=", 1)
-                env.setdefault(k.strip(), v.strip().strip('"'))
+        for k, v in _lines(f).items():
+            env.setdefault(k, v)
+    return resolve(env)
+
+
+def resolve(env):
+    """Settings written as $NAME are read from the vault file (COPILOT_VAULT), or from the environment."""
+    refs = [k for k, v in env.items() if k.startswith("COPILOT_") and v.startswith("$") and len(v) > 1]
+    if not refs:
+        return env
+    vault = {}
+    if env.get("COPILOT_VAULT"):
+        p = pathlib.Path(env["COPILOT_VAULT"])
+        if not p.exists():
+            raise SetupError("COPILOT_VAULT points at %s, which does not exist" % p)
+        vault = _lines(p)
+    for k in refs:
+        name = env[k][1:]
+        value = vault.get(name) or os.environ.get(name)
+        if not value:
+            raise SetupError("%s is set to $%s, but %s has no value named %s" % (k, name, env.get("COPILOT_VAULT") or "the environment", name))
+        env[k] = value
     return env
 
 
@@ -98,12 +133,9 @@ def agent_from(env, game, tools, log_path, max_steps=12):
     kind = source_of(env)
     url = env.get("COPILOT_URL") or env.get("COPILOT_BASE_URL")
     if kind == "purple":
-        key = secret(env, "COPILOT_KEY")
-        if not key:
-            raise SetupError("purple Skippy needs its bridge's key: put COPILOT_KEY (or COPILOT_KEY_FILE) in copilot.env")
         if not env.get("COPILOT_WORKSPACE"):
-            raise SetupError("purple Skippy needs a workspace: put COPILOT_WORKSPACE in copilot.env (the id of a project in SkippyTel's registry)")
-        purple = Purple(url or "http://localhost:9337", key, env["COPILOT_WORKSPACE"])
+            raise SetupError("purple Skippy needs a workspace: put COPILOT_WORKSPACE in copilot.env (the id of a project in purple's registry)")
+        purple = Purple(url or PURPLE_URL, secret(env, "COPILOT_KEY"), env["COPILOT_WORKSPACE"])
         return PurpleAgent(game, purple, Toolbox(game, tools, log_path))
     if kind == "anthropic":
         if not url:
@@ -123,10 +155,14 @@ def agent_from(env, game, tools, log_path, max_steps=12):
 
 
 def main():
+    try:
+        env = settings()
+    except SetupError as e:
+        print("Skippy Copilot cannot start: %s" % e)
+        sys.exit(2)
     if "--check" in sys.argv:
         from .check import run_check
-        sys.exit(0 if run_check(settings()) else 1)
-    env = settings()
+        sys.exit(0 if run_check(env) else 1)
     try:
         game = game_from(env)
         logs = pathlib.Path(env.get("COPILOT_LOG_DIR", "runs"))
@@ -142,8 +178,10 @@ def main():
         print(answer or "(no answer: %s)" % outcome)
         print(stats)
         return
+    door = env.get("COPILOT_PURPLE_URL", PURPLE_URL)
+    helper = None if door.lower() == "off" else PurpleClient(door, secret(env, "COPILOT_PURPLE_KEY"))
     bridge = Bridge(game, agent, tools, stall_hours=float(env.get("COPILOT_STALL_HOURS", "2")), goal_pause=float(env.get("COPILOT_GOAL_PAUSE", "20")),
-                    out=lambda *a: print(*a, flush=True))
+                    out=lambda *a: print(*a, flush=True), purple=helper, purple_project=env.get("COPILOT_PURPLE_PROJECT", "f-ai-factorio"))
     print("listening: %s, %d tools" % (agent.model.model, len(agent.tools)), flush=True)
     while True:
         bridge.step()

@@ -5,7 +5,6 @@ import pytest
 import copilot.__main__ as main
 from copilot.agent import Agent
 from copilot.models import AnthropicCompatible, make, schema
-from copilot.purple import Purple, SourceError
 from copilot.tools import LocalTools
 from fakes import FakeGame
 
@@ -116,21 +115,16 @@ def test_the_settings_build_it_and_say_what_is_missing():
     assert "COPILOT_SOURCE=anthropic" in (main.HERE / "copilot.env.example").read_text(encoding="utf-8")
 
 
-def test_a_purple_run_nobody_waits_for_is_stopped():
-    calls = []
-
-    def http(method, url, token, body=None, timeout=40):
-        calls.append((method, url.split("/workshop")[1].split("?")[0]))
-        if method == "POST" and "/cancel/" not in url:
-            return 200, {"ok": True}
-        if method == "GET":
-            return 200, {"events": [], "next": 0, "done": False}
-        return 200, {"ok": True}
-    p = Purple("http://x", "tok", "w", http=http, sleep=lambda s: None, max_wait=-1)
-    with pytest.raises(SourceError, match="it has been stopped"):
-        p.ask("q", "c")
-    assert calls[-1][0] == "POST" and calls[-1][1].startswith("/cancel/factorio-")
-
-    def down(method, url, token, body=None, timeout=40):
-        raise SourceError("down")
-    assert Purple("http://x", "tok", "w", http=down).cancel("t") is False
+def test_settings_written_as_a_name_are_read_from_the_vault(tmp_path, monkeypatch):
+    vault = tmp_path / "vault.env"
+    vault.write_text("# shared\nCORE_URL=http://core:11434\nCORE_KEY='s3cret'\nOTHER=x\n", encoding="utf-8")
+    env = main.resolve({"COPILOT_VAULT": str(vault), "COPILOT_URL": "$CORE_URL", "COPILOT_KEY": "$CORE_KEY", "COPILOT_MODEL": "plain", "PATH": "$HOME"})
+    assert (env["COPILOT_URL"], env["COPILOT_KEY"], env["COPILOT_MODEL"], env["PATH"]) == ("http://core:11434", "s3cret", "plain", "$HOME")
+    monkeypatch.setenv("FROM_ENVIRONMENT", "e")
+    assert main.resolve({"COPILOT_MODEL": "$FROM_ENVIRONMENT"})["COPILOT_MODEL"] == "e"
+    with pytest.raises(main.SetupError, match="COPILOT_KEY is set to .NOPE, but .* has no value named NOPE"):
+        main.resolve({"COPILOT_VAULT": str(vault), "COPILOT_KEY": "$NOPE"})
+    with pytest.raises(main.SetupError, match="COPILOT_VAULT points at .*which does not exist"):
+        main.resolve({"COPILOT_VAULT": str(tmp_path / "gone"), "COPILOT_KEY": "$X"})
+    assert main.resolve({"COPILOT_KEY": "direct"}) == {"COPILOT_KEY": "direct"}
+    assert "COPILOT_VAULT" in main.__doc__ and "COPILOT_VAULT" in (main.HERE / "copilot.env.example").read_text(encoding="utf-8")

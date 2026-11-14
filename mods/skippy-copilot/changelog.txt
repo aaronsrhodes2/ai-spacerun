@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.15.0
+Date: 2026-11-13
+  Features:
+    - /purple hands a task to purple Skippy, the development agent, through the bridge; its words come back in chat.
+---------------------------------------------------------------------------------------------------
 Version: 0.14.0
 Date: 2026-11-13
   Features:

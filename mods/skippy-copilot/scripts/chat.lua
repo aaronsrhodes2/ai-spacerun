@@ -109,9 +109,18 @@ function C.on_chat(event)
   while #storage.chat > KEEP do table.remove(storage.chat, 1) end
 end
 
+-- A task for purple Skippy, typed as /purple. It travels in the same list as chat, marked with whom it is for.
+function C.for_purple(event, text)
+  local p = event.player_index and game.get_player(event.player_index)
+  local line = { id = storage.chat_next, tick = event.tick or game.tick, player = p and p.name or "server", text = text, to = "purple" }
+  storage.chat_next = storage.chat_next + 1
+  storage.chat[#storage.chat + 1] = line
+  while #storage.chat > KEEP do table.remove(storage.chat, 1) end
+end
+
 R.register {
   name = "chat_read",
-  description = "What players have typed in the game chat since a given line. Each line has an id; pass the last id you have seen as 'after' to get only newer lines.",
+  description = "What players have typed in the game chat since a given line. Each line has an id; pass the last id you have seen as 'after' to get only newer lines. A line with to = 'purple' was typed as /purple and is a task for purple Skippy, not for you.",
   params = {
     after = { type = "number", default = 0, description = "id of the last line already read; 0 for everything remembered" },
   },
@@ -129,9 +138,11 @@ R.register {
   description = "Say something to the players in the game chat. Keep it short and plain: what you are about to do, what you did, or a question.",
   params = {
     text = { type = "string", required = true, description = "what to say" },
+    as = { type = "string", default = "", description = "leave out; the bridge sets 'purple' when it passes on purple Skippy's words" },
   },
   run = function(a)
-    game.print("[color=0,1,0.53][Skippy][/color] " .. a.text)
+    local tag = (a.as == "purple") and "[color=0.5,0.55,0.97][purple][/color] " or "[color=0,1,0.53][Skippy][/color] "
+    game.print(tag .. a.text)
     return { said = a.text }
   end,
 }

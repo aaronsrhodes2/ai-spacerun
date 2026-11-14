@@ -32,7 +32,7 @@ Things to say first: "what should we do next?", "what is wrong with the factory?
 | `openai` | Any service or local server that speaks the OpenAI chat API (most do) | address, key, model name |
 | `anthropic` | Any service or server that speaks the Anthropic Messages API | address, key, model name |
 | `ollama` | Ollama on your own computer | model name; no key |
-| `purple` | Purple Skippy, the SkippyTel project's agent, working in one workspace | the bridge's address and key, the workspace |
+| `purple` | Purple Skippy, the SkippyTel project's development agent, working in one workspace | the workspace; no key on the same computer |
 
 The model must be able to use tools; the check tells you if it cannot.
 
@@ -43,6 +43,20 @@ in SkippyTel's registry whose folder is a clone of this repository. Purple is bu
 and it runs one at a time, so it suits a standing goal better than quick chat. For quick turns on the same model, point the
 `anthropic` source at Skippy Core, which serves that model directly. Any other agent that speaks MCP can be connected the
 same way.
+
+### /purple: a task for the development agent
+
+Purple Skippy can read and change this project, run its tests and deploy. With its MCP door open on the same computer
+(`http://127.0.0.1:47860/mcp`, SkippyTel's purple-mcp), an admin can type in the game:
+
+    /purple make the working light show the goal
+    /purple stop
+
+The mod cannot call out of the game, so the command only writes the request down. The bridge reads it, hands it to
+purple with the rules of the house (change only the mod, the bridge and their tests; do not restart or reload the game
+unless asked), and brings purple's words back into chat in violet. The work is a job of seconds to minutes: the game
+never waits on it, one task runs at a time, and the bridge asks for news no more often than every three seconds.
+From Python: `copilot/purple_client.py` (`ask`, `result`, `cancel`, `run_to_completion`).
 
 ## Calling a tool
 
@@ -189,7 +203,7 @@ server that speaks the OpenAI chat API). `python -m copilot --ask "..."` asks on
 
 ## Testing
 
-- `python -m pytest tests/copilot_tests` runs with no game and no model: 469 tests. They cover the bridge, the planning
+- `python -m pytest tests/copilot_tests` runs with no game and no model: 487 tests. They cover the bridge, the planning
   code, the scorer, and the mod's own Lua run under Lua 5.2 against a stand-in game (`tests/copilot_tests/fake_game.lua`).
   Needs `pip install lupa`.
 - `scripts/modserver.sh start` runs a second, headless copy of the Steam install with its own data folder (`.testserver/`),

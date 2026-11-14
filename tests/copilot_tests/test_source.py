@@ -13,6 +13,7 @@ from copilot.loop import Bridge
 from copilot.purple import Purple, PurpleAgent, SourceError
 from copilot.toolbox import BRIDGE_ONLY, PLAN_ONLY, Toolbox
 from copilot.tools import LocalTools
+from fake_purple import FakePurple
 from fakes import FakeGame, FakeModel
 from luamod import LuaMod
 from test_bridge_with_mod import LuaGame
@@ -20,93 +21,63 @@ from test_bridge_with_mod import LuaGame
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 
-# ---------------------------------------------------------------- purple Skippy's bridge, faked
+# ---------------------------------------------------------------- purple Skippy's door, faked (see test_purple.py for the door itself)
 
-class FakeBridge:
-    """Answers like SkippyTel's claude-bridge: POST /workshop starts a run, GET /workshop/run/<task> returns its events."""
-
-    def __init__(self, events=None, busy=0, status=200, ready=True, projects=("ai-factorio",), ok=True, error=None):
-        self.script = events if events is not None else [[{"t": "tool", "name": "mcp__skippy-copilot__lookup", "detail": ""}], [{"t": "text", "text": "Two iron plates."}]]
-        self.busy, self.status, self.ready, self.projects, self.ok, self.error = busy, status, ready, projects, ok, error
-        self.posts, self.gets, self.sent = [], [], 0
-
-    def __call__(self, method, url, token, body=None, timeout=40):
-        assert token == "tok"
-        if url.endswith("/health"):
-            return 200, {"workshop": {"ready": self.ready, "reason": None if self.ready else "Claude's login on skippy-pc expired", "busy": False,
-                                      "projects": [{"id": p} for p in self.projects]}}
-        if method == "POST":
-            self.posts.append(body)
-            if self.busy > 0:
-                self.busy -= 1
-                return 409, {"error": "busy", "message": "another run is going"}
-            if self.status != 200:
-                return self.status, {"error": "bridge_disabled" if self.status == 503 else "bad_project"}
-            return 200, {"ok": True, "task": body["task"], "done": False}
-        self.gets.append(url)
-        batch = self.script[self.sent] if self.sent < len(self.script) else []
-        self.sent += 1
-        done = self.sent >= len(self.script)
-        seen = sum(len(b) for b in self.script[:self.sent])
-        return 200, {"events": batch, "next": seen, "done": done, "ok": self.ok if done else None, "error": self.error if done else None}
+def FakeBridge(events=None, busy=0, status=200, ready=True, ok=True, error=None):
+    """A stand-in door with a run that answers 'Two iron plates.' after one step, or the script given."""
+    if events is not None:
+        script = [{"text": t, "done": False} for t in events[:-1]] + [{"text": events[-1], "done": True, "ok": ok, "error": error}]
+    else:
+        script = None
+    return FakePurple(script=script, busy=busy, up=ready, tool_error={503: "purple is not ready: no login", 400: "unknown project 'ai-factorio'"}.get(status))
 
 
-def purple(bridge, **kw):
-    return Purple("http://localhost:9337/", "tok", "ai-factorio", http=bridge, sleep=lambda s: None, **kw)
+def purple(door, **kw):
+    return Purple(None, "", "ai-factorio", client=door.client(), sleep=lambda s: None, **kw)
 
 
 def test_a_turn_goes_to_purple_in_its_workspace_and_the_answer_comes_back():
     b = FakeBridge()
-    got = purple(b).ask("how much iron for a gear?", "conv-1")
-    assert got == {"text": "Two iron plates.", "tools": ["mcp__skippy-copilot__lookup"], "ok": True, "error": None}
-    sent = b.posts[0]
-    assert (sent["conv"], sent["project"], sent["brain"], sent["message"]) == ("conv-1", "ai-factorio", "core", "how much iron for a gear?")
-    assert sent["task"].startswith("factorio-") and "after=0" in b.gets[0] and "after=1" in b.gets[1]
+    got = purple(b).ask("how much iron for a gear?", "conv-12345")
+    assert got == {"text": "Two iron plates.", "steps": 1, "ok": True, "error": None}
+    sent = b.asked[0]
+    assert (sent["conv"], sent["project"], sent["message"]) == ("conv-12345", "ai-factorio", "how much iron for a gear?")
+    assert b.polled[0]["after"] == 1
 
 
 def test_it_waits_while_purple_is_busy_with_someone_else():
     b = FakeBridge(busy=2)
     slept = []
-    p = Purple("http://x", "tok", "ai-factorio", http=b, sleep=slept.append)
-    assert p.ask("q", "c")["text"] == "Two iron plates." and len(b.posts) == 3 and slept == [10, 10]
-    with pytest.raises(SourceError, match="busy with another run"):
-        Purple("http://x", "tok", "ai-factorio", http=FakeBridge(busy=99), sleep=lambda s: None, busy_wait=20).ask("q", "c")
+    p = Purple(None, "", "ai-factorio", client=b.client(), sleep=slept.append)
+    assert p.ask("q", "c")["text"] == "Two iron plates." and len(b.asked) == 3 and slept[:2] == [10, 10]
+    with pytest.raises(SourceError, match="busy with another job"):
+        Purple(None, "", "ai-factorio", client=FakeBridge(busy=99).client(), sleep=lambda s: None, busy_wait=-1).ask("q", "c")
 
 
-def test_refusals_from_the_bridge_are_said_plainly():
+def test_refusals_from_the_door_are_said_plainly():
     with pytest.raises(SourceError, match="not ready"):
         purple(FakeBridge(status=503)).ask("q", "c")
-    with pytest.raises(SourceError, match="is 'bad_project' a project it knows"):
+    with pytest.raises(SourceError, match="unknown project 'ai-factorio'"):
         purple(FakeBridge(status=400)).ask("q", "c")
-    with pytest.raises(SourceError, match="refused the key"):
-        purple(FakeBridge(status=401)).ask("q", "c")
-
-    def down(method, url, token, body=None, timeout=40):
-        raise SourceError("purple Skippy's bridge could not be reached at http://localhost:9337 (refused). Is SkippyTel's bridge running?")
-    with pytest.raises(SourceError, match="Is SkippyTel's bridge running"):
-        purple(down).ask("q", "c")
+    with pytest.raises(SourceError, match="Is purple-mcp running"):
+        purple(FakeBridge(ready=False)).ask("q", "c")
 
 
-def test_purple_needs_an_address_a_key_and_a_workspace():
-    with pytest.raises(SourceError, match="address and its token"):
-        Purple("", "tok", "w")
+def test_purple_needs_a_workspace_but_no_key_on_this_computer():
     with pytest.raises(SourceError, match="needs a workspace"):
-        Purple("http://x", "tok", "")
+        Purple("http://x", "", "")
+    p = Purple(None, "", "w")
+    assert p.url == "http://127.0.0.1:47860/mcp" and p.client.key == ""
 
 
-def test_health_says_whether_purple_is_ready_and_knows_the_workspace():
+def test_health_says_whether_purples_door_is_open():
     assert purple(FakeBridge()).health() == (True, "ready")
-    assert purple(FakeBridge(ready=False)).health() == (False, "Claude's login on skippy-pc expired")
-    ready, why = purple(FakeBridge(projects=("skippytel", "sigma-ground"))).health()
-    assert not ready and "'ai-factorio' is not one of purple Skippy's projects (skippytel, sigma-ground)" in why
-
-    def down(method, url, token, body=None, timeout=40):
-        raise SourceError("could not be reached")
-    assert purple(down).health() == (False, "could not be reached")
+    ready, why = purple(FakeBridge(ready=False)).health()
+    assert not ready and "could not be reached" in why
 
 
 def test_a_run_that_fails_is_not_an_answer():
-    got = purple(FakeBridge(events=[[{"t": "text", "text": "I started..."}]], ok=False, error="Claude Code went quiet")).ask("q", "c")
+    got = purple(FakeBridge(events=["I started..."], ok=False, error="Claude Code went quiet")).ask("q", "c")
     assert got["ok"] is False and got["error"] == "Claude Code went quiet"
 
 
@@ -132,8 +103,8 @@ def test_every_turn_goes_to_the_same_conversation_with_the_skill_named_and_the_a
     game.tools = lambda: FakeGame().tools() + [{"name": "alerts", "description": "a", "parameters": {}}]
     agent = PurpleAgent(game, purple(b), Toolbox(game), conv="conv-7")
     agent.handle("what is wrong?")
-    msg = b.posts[0]["message"]
-    assert b.posts[0]["conv"] == "conv-7" and "factorio-copilot skill" in msg and "skippy-copilot MCP server" in msg
+    msg = b.asked[0]["message"]
+    assert b.asked[0]["conv"] == "conv-7" and "factorio-copilot skill" in msg and "skippy-copilot MCP server" in msg
     assert "what is wrong?" in msg and "no_power x3 on nauvis (not connected to power)" in msg
 
 
@@ -150,7 +121,7 @@ def test_the_loop_runs_on_purple_exactly_as_on_a_plain_model():
     from test_goals import LoopGame
     game = LoopGame()
     tools = LocalTools(game)
-    agent = PurpleAgent(game, purple(FakeBridge(events=[[{"t": "text", "text": "Iron first."}]])), Toolbox(game, tools))
+    agent = PurpleAgent(game, purple(FakeBridge(events=["Iron first."])), Toolbox(game, tools))
     bridge = Bridge(game, agent, tools, clock=lambda: 1000.0, out=lambda *a: None)
     game.type("what should we do?")
     bridge.step()
@@ -287,10 +258,8 @@ def test_a_secret_can_be_given_as_a_file(tmp_path):
 def test_each_source_says_what_it_still_needs():
     g = FakeGame()
     t = LocalTools(g)
-    with pytest.raises(main.SetupError, match="needs its bridge's key"):
-        main.agent_from({"COPILOT_SOURCE": "purple", "COPILOT_WORKSPACE": "w"}, g, t, None)
     with pytest.raises(main.SetupError, match="needs a workspace"):
-        main.agent_from({"COPILOT_SOURCE": "purple", "COPILOT_KEY": "k"}, g, t, None)
+        main.agent_from({"COPILOT_SOURCE": "purple"}, g, t, None)
     with pytest.raises(main.SetupError, match="needs COPILOT_URL"):
         main.agent_from({"COPILOT_SOURCE": "openai", "COPILOT_MODEL": "m"}, g, t, None)
     with pytest.raises(main.SetupError, match="needs COPILOT_MODEL"):
@@ -302,8 +271,8 @@ def test_each_source_says_what_it_still_needs():
 def test_each_source_builds_the_one_thing_that_thinks():
     g = FakeGame()
     t = LocalTools(g)
-    p = main.agent_from({"COPILOT_SOURCE": "purple", "COPILOT_KEY": "k", "COPILOT_WORKSPACE": "ai-factorio"}, g, t, None)
-    assert isinstance(p, PurpleAgent) and p.purple.url == "http://localhost:9337" and p.purple.workspace == "ai-factorio"
+    p = main.agent_from({"COPILOT_SOURCE": "purple", "COPILOT_WORKSPACE": "f-ai-factorio"}, g, t, None)       # no key: the door holds it
+    assert isinstance(p, PurpleAgent) and p.purple.url == "http://127.0.0.1:47860/mcp" and p.purple.workspace == "f-ai-factorio"
     o = main.agent_from({"COPILOT_SOURCE": "openai", "COPILOT_URL": "http://h/v1", "COPILOT_MODEL": "m", "COPILOT_KEY": "k"}, g, t, None)
     assert isinstance(o, Agent) and o.model.key == "k" and o.model.base == "http://h/v1"
     l = main.agent_from({"COPILOT_SOURCE": "ollama"}, g, t, None)
@@ -373,7 +342,7 @@ def test_the_check_asks_purple_whether_it_is_ready(monkeypatch, tmp_path):
     lines = []
     made = lambda e, game, t, log: PurpleAgent(game, purple(FakeBridge(ready=False)), Toolbox(game, t))
     ok = check.run_check({"COPILOT_SOURCE": "purple"}, out=lines.append, game_factory=lambda e: g, agent_factory=made)
-    assert not ok and "purple Skippy is not ready: Claude's login on skippy-pc expired" in "\n".join(lines)
+    assert not ok and "purple Skippy is not ready: purple Skippy's door could not be reached" in "\n".join(lines)
     lines.clear()
     made = lambda e, game, t, log: PurpleAgent(game, purple(FakeBridge()), Toolbox(game, t))
     ok = check.run_check({"COPILOT_SOURCE": "purple"}, out=lines.append, game_factory=lambda e: g, agent_factory=made)

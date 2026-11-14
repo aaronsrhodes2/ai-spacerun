@@ -59,7 +59,7 @@ def run_check(env, out=print, game_factory=None, agent_factory=None):
     if purple is not None:
         ready, why = purple.health()
         if not ready:
-            return bad("purple Skippy is not ready: %s" % why, "start SkippyTel's bridge, or fix the workspace or key named above")
+            return bad("purple Skippy is not ready: %s" % why, "start purple-mcp on this computer (SkippyTel/services/purple-mcp), or fix what is named above")
         ok("purple Skippy answers, workspace '%s'" % purple.workspace)
 
     # 3. one real question, answered from the game

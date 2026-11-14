@@ -76,6 +76,24 @@ script.on_configuration_changed(function()
   chat.draw_all()
 end)
 
+-- /purple <what to do> hands a task to purple Skippy, the development agent, outside the game. The game cannot call
+-- out itself, so the request is only written down here; the bridge reads it and brings the answer back.
+commands.add_command("purple", "Hand a task to purple Skippy, the development agent: /purple <what to do>. /purple stop ends it.", function(event)
+  local p = event.player_index and game.get_player(event.player_index)
+  if p and not p.admin then
+    p.print("Only admins can hand tasks to purple Skippy.")
+    return
+  end
+  local text = string.match(event.parameter or "", "^%s*(.-)%s*$")
+  if text == "" then
+    if p then p.print("Say what purple Skippy should do: /purple <what to do>") end
+    return
+  end
+  chat.for_purple(event, text)
+  local note = "[color=0.5,0.55,0.97][purple][/color] asked: " .. text
+  if p then game.print(note) else rcon.print(note) end
+end)
+
 script.on_event(defines.events.on_player_created, chat.on_player)
 script.on_event(defines.events.on_player_joined_game, chat.on_player)
 script.on_event(defines.events.on_console_chat, function(event)

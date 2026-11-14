@@ -4,19 +4,36 @@
   3. brings up alerts that are new
   4. once a minute, notes milestones done and whether the run has stalled
   5. if a standing goal is set and nobody is waiting, takes one turn toward it on its own
+  6. passes a task typed as /purple to purple Skippy and, between its other work, brings back what purple says
+
+Purple's work is a job that takes seconds to minutes. The loop never waits on it: it starts the run, remembers it, and
+asks for news no more often than every few seconds.
 
 A turn the assistant takes on its own is not a prompt: only what a player types counts as one."""
 import time
 
 from . import milestones as ms
 from .milestones import Watch
+from .purple_client import MIN_POLL, PurpleError
 
 NOTHING = "nothing"
 
 
-def say(game, text):
+def say(game, text, voice=None):
     for i in range(0, len(text), 380):                  # a chat line is short; long answers go out in pieces
-        game.call("say", {"text": text[i:i + 380]})
+        game.call("say", dict({"text": text[i:i + 380]}, **({"as": voice} if voice else {})))
+
+
+PURPLE_TASK = chr(10).join([
+    "This request comes from a player inside a running Factorio game, typed as /purple and passed on by the Skippy Copilot bridge in this repository. Rules for this task:",
+    "- You may change only this repository's mod (mods/skippy-copilot), its bridge (copilot/) and their tests (tests/copilot_tests). Touch nothing else, in this repository or outside it.",
+    "- The player is in the middle of a game. Do not restart, reload or stop the game server, and do not start a test server or a model on this computer, unless the request asks for exactly that.",
+    "- You cannot see or change the game itself from here; if the request needs that, say so.",
+    "- Answer in a few short plain sentences: they are shown in the game's chat. Say honestly what you did and what you did not.",
+    "",
+    "The request, from %s: %s"])
+PURPLE_STOP = ("stop", "cancel")
+PURPLE_SAY = 760                                        # of one piece of purple's words, in the chat
 
 
 def news_prompt(ev):
@@ -71,7 +88,11 @@ class AlertWatch:
 
 class Bridge:
     def __init__(self, game, agent, tools, clock=time.time, stall_hours=2.0, goal_pause=20.0, progress_every=60.0, max_idle_turns=3, out=print,
-                 bottleneck_every=180.0, bottleneck_machines=5):
+                 bottleneck_every=180.0, bottleneck_machines=5, purple=None, purple_project=None, purple_poll=3.0, purple_timeout=1800.0):
+        self.purple, self.purple_project = purple, purple_project
+        self.purple_poll, self.purple_timeout = max(purple_poll, MIN_POLL), purple_timeout
+        self.purple_job = None                                  # the one run in flight: {task, next, at, started, who}
+        self.purple_conv = None                                 # one conversation with purple for the whole session
         self.game, self.agent, self.tools, self.clock, self.out = game, agent, tools, clock, out
         self.goal_pause, self.progress_every, self.max_idle_turns = goal_pause, progress_every, max_idle_turns
         self.bottleneck_every, self.bottleneck_machines = bottleneck_every, bottleneck_machines
@@ -94,6 +115,7 @@ class Bridge:
         self._new_alerts()
         self._bottlenecks()
         self._progress()
+        self._purple()
         if not spoke:
             self._goal()
 
@@ -105,11 +127,84 @@ class Bridge:
         lines = self._lines(self.game.call("chat_read", {"after": self.chat_at}), "lines")
         for line in lines:
             self.chat_at = line["id"]
+            if line.get("to") == "purple":
+                self._purple_request(line)
+                continue
             answer, outcome, stats = self.agent.handle(line["text"], line.get("player", "player"))
             say(self.game, answer or "I could not finish that (%s)." % outcome)
             self.tools.goal_paused = False                      # the player has spoken: a goal that was stuck may go on
             self.out(line["text"], "->", outcome, stats)
-        return bool(lines)
+        return any(line.get("to") != "purple" for line in lines)
+
+    # ---- purple Skippy, for a task ------------------------------------------------------------------------------------
+    def _purple_say(self, text):
+        say(self.game, text[:PURPLE_SAY] + (" ..." if len(text) > PURPLE_SAY else ""), "purple")
+
+    def _purple_request(self, line):
+        text, who = (line.get("text") or "").strip(), line.get("player", "player")
+        if self.purple is None:
+            return self._purple_say("purple Skippy is not connected to this bridge.")
+        if text.lower() in PURPLE_STOP:
+            if not self.purple_job:
+                return self._purple_say("nothing of mine is running.")
+            stopped = self.purple.cancel(self.purple_job["task"])
+            self.purple_job = None
+            return self._purple_say("stopped." if stopped else "I could not reach the run to stop it; it may still be going.")
+        if self.purple_job:
+            return self._purple_say("still working on the last task. Type /purple stop to end it.")
+        try:
+            got = self.purple.ask(PURPLE_TASK % (who, text), self.purple_conv, self.purple_project, wait_s=0)
+        except PurpleError as e:
+            self.agent.log(event="purple", ok=False, error=str(e)[:300])
+            return self._purple_say(str(e))
+        if got.get("busy"):
+            return self._purple_say("busy with another job right now. Ask again in a while.")
+        self.purple_conv = got.get("conv") or self.purple_conv
+        now = self.clock()
+        self.purple_job = {"task": got.get("task"), "next": got.get("next") or 0, "at": now, "started": now, "who": who, "said": False}
+        self.agent.log(event="purple", ok=True, task=got.get("task"), who=who, text=text)
+        self._purple_news(got)
+
+    def _purple(self):
+        """Ask for news of the run in flight, no more often than every few seconds, without waiting for any."""
+        job = self.purple_job
+        if not job:
+            return
+        now = self.clock()
+        if now - job["at"] < self.purple_poll:
+            return
+        job["at"] = now
+        if now - job["started"] > self.purple_timeout:
+            self.purple.cancel(job["task"])
+            self.purple_job = None
+            return self._purple_say("that took over %d minutes, so I stopped it." % (self.purple_timeout // 60))
+        try:
+            got = self.purple.result(job["task"], job["next"], wait_s=0)
+        except PurpleError as e:
+            job["errors"] = job.get("errors", 0) + 1
+            if job["errors"] >= 5:                              # the door has gone: say so once and let go
+                self.purple_job = None
+                self._purple_say("I lost touch with the run: %s" % e)
+            return
+        job["errors"] = 0
+        job["next"] = got.get("next") or job["next"]
+        self._purple_news(got)
+
+    def _purple_news(self, got):
+        job = self.purple_job
+        piece = (got.get("text") or "").strip()
+        if piece:
+            job["said"] = True
+            self._purple_say(piece)
+        if got.get("done"):
+            failed = got.get("ok") is False
+            if failed:
+                self._purple_say("that did not finish: %s" % (got.get("error") or "no reason given"))
+            elif not job["said"]:
+                self._purple_say("done.")
+            self.agent.log(event="purple_done", task=job["task"], ok=not failed, steps=got.get("steps"))
+            self.out("purple", job["task"], "->", "failed" if failed else "done")
+            self.purple_job = None
 
     def _news(self):
         for ev in self._lines(self.game.call("events_read", {"after": self.news_at}), "events"):
