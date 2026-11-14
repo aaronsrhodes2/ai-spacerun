@@ -1053,3 +1053,17 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - `Fulgora-Aquilo 2 Shuttle` reached Aquilo orbit at 09:36 and was destroyed there (69 entities gone, then the platform). It carried 100 fuel cells and 70 robots, all lost. The hub held only 24 rockets at departure; the 14 rocket turrets held 158 (~11 each). The rocket assembler cannot keep 14 turrets supplied through big asteroids.
 - Asteroids by prototype: the Fulgora-Aquilo and Gleba-Aquilo connections spawn only chunks, MEDIUM and BIG asteroids (no small, no huge): the 26 lasers (small only, and now set small-only) have nothing to shoot on this route. Aquilo's orbit spawns chunks and BIG asteroids (big-oxide 0.0025, the commonest). Aquilo-solar-system-edge spawns big and huge.
 - So a ship for Aquilo is a rocket ship: needs thousands of rockets, which should be made on the ground (Nauvis) and carried up, not made aboard. The silos on all planets stand full of parts ("waiting_to_launch_rocket"); rocket parts are not the bottleneck, cargo and ammunition are.
+
+## Foundation production on every planet (2026-11-14)
+- Nauvis: 4 more foundation cells at origin (-181,-210), 4 rows, all working within a minute. The old four at x -178 are fine (out=0, so the outflow is no longer blocked). Nauvis stock: steel 588k, copper cable 415k, foundations 120k, so steel is not the limit there yet.
+- Fulgora: 4 cells at origin (206,-132) (`build_cells.py --surface fulgora`). They sit at item_ingredient_shortage (status 31): Fulgora has no steel smelting, only about 3.5k steel and 1.2k cable in chests (about 170 foundations). It needs steel shipped up from Nauvis; not done yet.
+- Vulcanus and Gleba: no steel plate on either surface (cable only on Vulcanus), so foundation cells there would starve. Not built; needs a steel ferry first.
+- `build_cells.py` takes `--surface <planet>` (default nauvis). `entity_status` 31 is item_ingredient_shortage, 18 no_ingredients, 1 working.
+- `scripts/_foundsurvey.py` lists foundation makers and hub stock; `scripts/_planetsurvey.py` lists steel, cable and foundation per surface.
+
+
+## Fulgora-Aquilo 2 Shuttle: the hub trash rule (2026-11-14)
+- Any hub request with `min == max` trashes everything above `max`. The pad loads (`aquilo_ship2.py load`) push stock past the max, so the surplus lands in `hub_trash` and blocks departure. Robots and cells went this way too (cells 200 aboard against max 100).
+- Fix in `aquilo_ship2.py`: set `max` well above what the ship carries (ore and carbon 4,000, cells 200, robots 40/100, repair packs 200). Then clear `hub_trash` into `hub_main` (before the change the trash just refills).
+- Order matters: run `requests` first, then clear trash. Clearing before the new max applies puts the items straight back in the trash.
+- The wait conditions read the red wire. Carbon and ore show their real count there, not doubled, so 3,000 means 3,000 aboard.
