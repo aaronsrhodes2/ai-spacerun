@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The local test server for the Skippy Copilot mod: a second, headless copy of the Steam install with its own data folder
+# The local test server for the Skippy mod: a second, headless copy of the Steam install with its own data folder
 # (.testserver/, not in git). It never touches the live game or the player's own Factorio folder.
 #   modserver.sh start   copy the mod in and run the server (foreground; run it in the background from the caller)
 #   modserver.sh stop    stop the test server only (matched by its config path, never the player's client)

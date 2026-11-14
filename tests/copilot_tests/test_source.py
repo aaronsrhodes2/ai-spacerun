@@ -291,7 +291,7 @@ class CheckGame(FakeGame):
         if not self.reachable:
             return {"ok": False, "error": "the game could not be reached: refused"}
         if tool == "tools":
-            return {"ok": True, "result": self.tools()} if self.mod else {"ok": False, "error": "the game gave no answer; is the Skippy Copilot mod enabled?"}
+            return {"ok": True, "result": self.tools()} if self.mod else {"ok": False, "error": "the game gave no answer; is the Skippy mod enabled?"}
         return super().call(tool, args)
 
 
@@ -322,7 +322,7 @@ def test_the_check_stops_at_the_first_thing_that_is_wrong_and_says_what_to_do(mo
     ok, text = run(ENV, CheckGame(reachable=False), [], monkeypatch, tmp_path)
     assert not ok and "the game does not answer on 127.0.0.1:27015" in text and "RCON switched on" in text
     ok, text = run(ENV, CheckGame(mod=False), [], monkeypatch, tmp_path)
-    assert not ok and "the Skippy Copilot mod does not" in text and "enable the mod" in text
+    assert not ok and "the Skippy mod does not" in text and "enable the mod" in text
     ok, text = run({"COPILOT_RCON_PASSWORD": "x"}, CheckGame(), [], monkeypatch, tmp_path)
     assert not ok and "no AI source is set" in text
     assert text.count("STOP") == 1                                                  # one problem at a time

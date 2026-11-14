@@ -1,4 +1,4 @@
--- Skippy Copilot: the tools an AI model uses to play Factorio, and the chat between player and model.
+-- Skippy: the tools an AI model uses to play Factorio, and the chat between player and model.
 -- One console command carries every call:   /skippy <tool> <arguments as JSON>
 --   /skippy tools                 the list of tools with their parameters (what the model is shown)
 --   /skippy lookup {"name":"electronic-circuit"}
@@ -32,7 +32,7 @@ local function answer(event, tbl)
   end
 end
 
-commands.add_command("skippy", "Skippy Copilot tool call: /skippy <tool> <arguments as JSON>. /skippy tools lists the tools.", function(event)
+commands.add_command("skippy", "Skippy tool call: /skippy <tool> <arguments as JSON>. /skippy tools lists the tools.", function(event)
   if event.player_index then
     local p = game.get_player(event.player_index)
     if p and not p.admin then

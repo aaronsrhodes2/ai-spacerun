@@ -1,4 +1,4 @@
--- A stand-in for the parts of the Factorio API the Skippy Copilot mod uses, so the mod's Lua runs under plain Lua 5.2
+-- A stand-in for the parts of the Factorio API the Skippy mod uses, so the mod's Lua runs under plain Lua 5.2
 -- in unit tests. It is deliberately small and literal: it models what the mod calls, not the game. Where the real
 -- game behaves differently from this file the unit tests will not notice, which is why scripts/modcheck.py also runs
 -- the mod against a real server.

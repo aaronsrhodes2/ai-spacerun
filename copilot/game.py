@@ -28,7 +28,7 @@ class Game:
         except Exception as e:
             return {"ok": False, "error": "the game could not be reached: %s" % e}
         if not out.strip():
-            return {"ok": False, "error": "the game gave no answer; is the Skippy Copilot mod enabled?"}
+            return {"ok": False, "error": "the game gave no answer; is the Skippy mod enabled?"}
         try:
             return json.loads(out)
         except ValueError:

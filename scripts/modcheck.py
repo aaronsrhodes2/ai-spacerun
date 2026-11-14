@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Checks the Skippy Copilot mod against the local test server: builds a small known scene and asserts what each tool says
+"""Checks the Skippy mod against the local test server: builds a small known scene and asserts what each tool says
 about it. The first piece of the scoring harness: a tool that answers wrongly fails here, before a model ever sees it.
 Start the server first (scripts/modserver.sh start). Usage: modcheck.py"""
 import sys

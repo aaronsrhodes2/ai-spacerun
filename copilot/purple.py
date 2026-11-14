@@ -38,7 +38,7 @@ class Purple:
         return {"text": got["text"], "steps": got["steps"], "ok": got["ok"], "error": got["error"]}
 
 
-TURN = ("This comes from a player inside a running Factorio game, where you are Skippy Copilot. You decide what kind of request it is "
+TURN = ("This comes from a player inside a running Factorio game, where you are Skippy. You decide what kind of request it is "
         "(the Captain, 2026-11-13: purple Skippy is the router).\n"
         "- About the game (what to build, what is wrong, research, a goal): follow the factorio-copilot skill and use only the tools of the "
         "skippy-copilot MCP server to see and change the game. Do not edit files or run commands for this.\n"

@@ -140,6 +140,12 @@ planets, and the Anthropic model adapter.
 
 ## Publishing on the mod portal (researched 2026-11-13)
 
+- **The name** (the Captain, 2026-11-13): in the game it is **Skippy**, and "Skippy" is the wake word, the same one
+  purple Skippy answers to. "Copilot" is not to be used as a name (Microsoft's and GitHub's products). A public name is
+  only needed before publishing, and must be chosen then; "Compy" (after Compilatron, the game's own helper robot) was
+  liked as a wake word and is the candidate. The internal identifiers still say `skippy-copilot`, `copilot` and
+  `COPILOT_`; they are renamed once, together with the public name. A wake word wants two syllables with hard sounds.
+
 What it takes, from the official packaging and API pages and the terms of service; items marked unconfirmed had no
 official source.
 

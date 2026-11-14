@@ -1,4 +1,4 @@
-"""Skippy Copilot's bridge: it connects ONE AI source to the game.
+"""Skippy's bridge: it connects ONE AI source to the game.
 
     python -m copilot --check         go through the setup step by step and say plainly what works and what does not
     python -m copilot                 listen to the game chat and answer; keep working toward a standing goal
@@ -158,7 +158,7 @@ def main():
     try:
         env = settings()
     except SetupError as e:
-        print("Skippy Copilot cannot start: %s" % e)
+        print("Skippy cannot start: %s" % e)
         sys.exit(2)
     if "--check" in sys.argv:
         from .check import run_check
@@ -170,7 +170,7 @@ def main():
         tools = LocalTools(game, plan_store=logs / "plans.json")
         agent = agent_from(env, game, tools, logs / (time.strftime("%Y%m%d-%H%M%S") + ".jsonl"))
     except (SetupError, SourceError, RuntimeError) as e:
-        print("Skippy Copilot cannot start: %s" % e)
+        print("Skippy cannot start: %s" % e)
         print("Run  python -m copilot --check  to go through the setup step by step.")
         sys.exit(2)
     if "--ask" in sys.argv:

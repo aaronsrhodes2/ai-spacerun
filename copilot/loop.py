@@ -25,7 +25,7 @@ def say(game, text, voice=None):
 
 
 PURPLE_TASK = chr(10).join([
-    "This request comes from a player inside a running Factorio game, typed as /purple and passed on by the Skippy Copilot bridge in this repository. Rules for this task:",
+    "This request comes from a player inside a running Factorio game, typed as /purple and passed on by the Skippy bridge in this repository. Rules for this task:",
     "- You may change only this repository's mod (mods/skippy-copilot), its bridge (copilot/) and their tests (tests/copilot_tests). Touch nothing else, in this repository or outside it.",
     "- The player is in the middle of a game. Do not restart, reload or stop the game server, and do not start a test server or a model on this computer, unless the request asks for exactly that.",
     "- You cannot see or change the game itself from here; if the request needs that, say so.",

@@ -1,1 +1,1 @@
-"""Skippy Copilot bridge: connects an AI model to the Skippy Copilot mod running in a Factorio game."""
+"""Skippy bridge: connects an AI model to the Skippy mod running in a Factorio game."""

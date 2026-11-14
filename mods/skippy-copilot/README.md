@@ -1,4 +1,4 @@
-# Skippy Copilot
+# Skippy
 
 Play Factorio by talking to an AI. You say what you want in the game's chat; the AI looks at your factory, plans, builds,
 and tells you what it did. The mod holds the tools the AI uses. A small program outside the game, the bridge
@@ -11,7 +11,7 @@ The idea and the mechanism (a mod with tools, a bridge over RCON, a model behind
 
 You need three things: the game running as a server, this mod, and one AI.
 
-1. **Enable the mod** `Skippy Copilot` in the game's mod list.
+1. **Enable the mod** `Skippy` in the game's mod list.
 2. **Start the game with RCON on.** RCON is how a program outside the game talks to it. Start Factorio as a server, or
    host a multiplayer game, with `--rcon-port 27015 --rcon-password <a password you choose>`.
 3. **Copy** `copilot/copilot.env.example` **to** `copilot/copilot.env` and fill in its three parts: where the game is, which

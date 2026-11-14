@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Calls one Skippy Copilot tool on the local test server (never the live game) and prints the answer.
+"""Calls one Skippy tool on the local test server (never the live game) and prints the answer.
 The server is a second, headless copy of the Steam install with its own data folder under .testserver/ (see docs/solver-plan.md).
 Usage: modtest.py tools | modtest.py <tool> ['<json arguments>'] | modtest.py --lua '<lua>'"""
 import json

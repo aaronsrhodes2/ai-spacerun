@@ -1,4 +1,4 @@
-"""Runs the Skippy Copilot mod's real Lua under Lua 5.2 (the version Factorio embeds) against the stand-in game in
+"""Runs the Skippy mod's real Lua under Lua 5.2 (the version Factorio embeds) against the stand-in game in
 fake_game.lua. A test calls a tool exactly as the bridge does over RCON: one `/skippy <tool> <json>` command in, one line
 of JSON out. Needs the `lupa` package."""
 import json

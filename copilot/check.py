@@ -23,7 +23,7 @@ def run_check(env, out=print, game_factory=None, agent_factory=None):
         out("          What to do: %s" % fix)
         return False
 
-    out("Skippy Copilot setup check")
+    out("Skippy setup check")
     if not (main.HERE / "copilot.env").exists() and not env.get("COPILOT_SOURCE") and not env.get("COPILOT_PROVIDER"):
         return bad("there is no settings file yet", "copy copilot/copilot.env.example to copilot/copilot.env and fill in the three parts marked there")
     ok("settings found")
@@ -39,7 +39,7 @@ def run_check(env, out=print, game_factory=None, agent_factory=None):
         if "could not be reached" in err:
             return bad("the game does not answer on %s:%s" % (env.get("COPILOT_RCON_HOST", "127.0.0.1"), env.get("COPILOT_RCON_PORT", "27015")),
                        "start the game as a server (or host a multiplayer game) with RCON switched on, and check the port and password match copilot.env")
-        return bad("the game answers, but the Skippy Copilot mod does not: %s" % err, "enable the mod 'Skippy Copilot' in the game's mod list and load the save again")
+        return bad("the game answers, but the Skippy mod does not: %s" % err, "enable the mod 'Skippy' in the game's mod list and load the save again")
     ok("the game answers and the mod is loaded (%d tools)" % len(r["result"]))
     state = game.call("avatar")
     if state.get("ok"):
