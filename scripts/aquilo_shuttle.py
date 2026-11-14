@@ -25,6 +25,7 @@ from _game import tools
 from _wheels import create, place_all
 
 NAME, PLANET = "Fulgora-Aquilo 1 Shuttle", "fulgora"
+INNER = False            # scripts/inner_shuttle.py sets this: the same hull for the inner routes, guns only, three furnaces
 Q = {"quality": "epic"}
 N, E, S, W = 0, 4, 8, 12
 DIR = {(0, -1): N, (1, 0): E, (0, 1): S, (-1, 0): W}
@@ -125,25 +126,31 @@ def layout():
     ins(-5, 3, E, ["ice"])
     # ---- east ----
     put("chemical-plant", 5, -6, 3, 3, recipe="thruster-fuel")
-    ins(4, -4, W, ["carbon"], gate=("carbon", 200, ">"))                  # the coal plant (rockets) has first call on carbon
-    put("crusher", 5, -2, 3, 2, d=E, recipe="advanced-carbonic-asteroid-crushing")
+    ins(4, -4, W, ["carbon"], gate=None if INNER else ("carbon", 200, ">"))   # the coal plant (rockets) has first call on carbon
+    put("crusher", 5, -2, 3, 2, d=E, recipe="carbonic-asteroid-crushing" if INNER else "advanced-carbonic-asteroid-crushing")   # inner: no use for sulfur
     ins(4, -2, W, ["carbonic-asteroid-chunk"], gate=("carbon", 4000))
     ins(4, -1, E)
     put("assembling-machine-3", 5, 0, 3, 3, recipe="firearm-magazine")
     ins(4, 0, W, ["iron-plate"], gate=("firearm-magazine", 1000))
     ins(4, 2, E)
-    put("assembling-machine-3", 5, 3, 3, 3, recipe="rocket")
+    put("assembling-machine-3", 5, 3, 3, 3, recipe="firearm-magazine" if INNER else "rocket")   # inner: a second magazine assembler, straight onto the belt
     ins(4, 3, W, ["iron-plate"])
     # ---- south ----
     put("crusher", -5, 5, 3, 2, d=E, recipe="oxide-asteroid-crushing")
     ins(-4, 4, N, ["oxide-asteroid-chunk"], gate=("ice", 1500))
     ins(-3, 4, S)
-    put("chemical-plant", -2, 5, 3, 3, d=S, recipe="coal-synthesis")
-    ins(-2, 4, N, ["carbon", "sulfur"], gate=("coal", 300))
-    ins(0, 4, S)
-    put("chemical-plant", 1, 5, 3, 3, d=S, recipe="explosives")
-    ins(1, 4, N, ["coal", "sulfur"])
-    ins(4, 5, W)                                                          # explosives round the corner into the rocket assembler
+    if INNER:                                                             # two more furnaces: the Fulgora run burned 38 magazines a minute
+        for fx in (-2, 1):                                                # and two furnaces (142 plates) could not keep up
+            put("electric-furnace", fx, 5, 3, 3)
+            ins(fx, 4, N, ["iron-ore"], gate=("iron-plate", 400))
+            ins(fx + 2, 4, S)
+    else:
+        put("chemical-plant", -2, 5, 3, 3, d=S, recipe="coal-synthesis")
+        ins(-2, 4, N, ["carbon", "sulfur"], gate=("coal", 300))
+        ins(0, 4, S)
+        put("chemical-plant", 1, 5, 3, 3, d=S, recipe="explosives")
+        ins(1, 4, N, ["coal", "sulfur"])
+        ins(4, 5, W)                                                      # explosives round the corner into the rocket assembler
     # ---- chunks ----
     for tx, ix, pick, bx in ((-11, -8, W, -7), (8, 7, E, 6)):
         put("asteroid-collector", tx, -24, 3, 3)
@@ -156,7 +163,10 @@ def layout():
     ins(8, 4, W)                                                          # rockets out of the assembler, onto the underground that starts the belt
     belts([(9, 4, "in"), (11, 4, "out"), (12, 4)] + col(12, 3, -19) + [(12, -20)] + row(11, -12, -20) + [(-13, -20)] + col(-13, -19, -1), S)
     for x in (-5, 2):                                                     # nose
-        put("rocket-turret", x, -24, 3, 3)
+        if INNER:
+            put("gun-turret", x, -23, 2, 2)
+        else:
+            put("rocket-turret", x, -24, 3, 3)
         ins(x + 1, -21, S)
     put("gun-turret", -2, -23, 2, 2)
     ins(-2, -21, S)
@@ -168,9 +178,13 @@ def layout():
         put("gun-turret", 14, y, 2, 2)
         ins(13, y, W)
     for y in (-16, -3):
-        put("rocket-turret", -17, y, 3, 3)
+        if INNER:
+            put("gun-turret", -16, y, 2, 2)
+            put("gun-turret", 14, y, 2, 2)
+        else:
+            put("rocket-turret", -17, y, 3, 3)
+            put("rocket-turret", 14, y, 3, 3)
         ins(-14, y + 1, E)
-        put("rocket-turret", 14, y, 3, 3)
         ins(13, y + 1, W)
     # ---- water ----
     pipe("water", (-6, 6), (-6, 7), (-8, 6), (-8, 7), *row(-12, 10, 8), (-3, 9), (0, 9), *col(-12, 7, -7), *row(-11, -6, -7), *col(10, 7, -7), *row(9, 5, -7))
@@ -252,7 +266,7 @@ CONFIG = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=define
           "cb.circuit_condition={first_signal={type='item',name=q[3]},comparator=q[5],constant=q[4]} g=g+1 end "
           "local prev=hub for _,q in pairs({{-1.5,11.5},{5.5,11.5},{-7.5,11.5}}) do local t=s.find_entities_filtered{name='storage-tank',position=q,radius=0.5}[1] prev.get_wire_connector(W.circuit_green,true).connect_to(t.get_wire_connector(W.circuit_green,true),false) prev=t end "
           "rcon.print('inserters filtered '..n..', recipes '..r..', gates '..g)")
-VALVE = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=defines.wire_connector_id local dec=s.find_entities_filtered{name='decider-combinator'}[1] local cc=s.find_entities_filtered{name='constant-combinator'}[1] "
+VALVE = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=defines.wire_connector_id local dec=s.find_entities_filtered{name='decider-combinator',position={3.5,-6},radius=0.6}[1] local cc=s.find_entities_filtered{name='constant-combinator'}[1] "
          "local v=s.find_entities_filtered{type='inserter',position={-2.5,-4.5},radius=0.3}[1] local sec=cc.get_or_create_control_behavior().get_section(1) or cc.get_or_create_control_behavior().add_section() local k=0 "
          "for name,c in pairs(CAPS) do k=k+1 sec.set_slot(k,{value={type='item',name=name,quality='normal'},min=c}) end "
          "dec.get_or_create_control_behavior().parameters={conditions={{first_signal={type='virtual',name='signal-each'},first_signal_networks={red=true,green=false},comparator='>',second_signal={type='virtual',name='signal-each'},second_signal_networks={red=false,green=true}},"
@@ -263,7 +277,7 @@ VALVE = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=defines
 # The hub sees one tank of three for each fluid, so 40,000 here is 120,000 on board. Aquilo's orbit has almost no carbonic or metallic
 # chunks: the ship refuels there from the carbon and iron ore in its hub (gates: 4,000 and 3,000), so it must leave Fulgora with both.
 ROUTE = ("local p=game.surfaces['SURF'].platform local function c(t,n,k) return {type='circuit',compare_type='and',condition={first_signal={type=t,name=n},comparator='>=',constant=k}} end "
-         "p.schedule={current=1,records={{station='fulgora',wait_conditions={c('fluid','thruster-fuel',40000),c('fluid','thruster-oxidizer',40000),c('item','firearm-magazine',600),c('item','carbon',2500),c('item','iron-ore',2000),{type='time',compare_type='and',ticks=18000}}},"
+         "p.schedule={current=1,records={{station='fulgora',wait_conditions={c('fluid','thruster-fuel',40000),c('fluid','thruster-oxidizer',40000),c('item','firearm-magazine',600),c('item','carbon',2500),c('item','iron-ore',2000),c('item','processing-unit',300),c('item','refined-concrete',60),{type='time',compare_type='and',ticks=18000}}},"
          "{station='aquilo',wait_conditions={c('fluid','thruster-fuel',40000),c('fluid','thruster-oxidizer',40000),{type='time',compare_type='and',ticks=7200}}}}} p.paused=false rcon.print('schedule fulgora <-> aquilo set')")
 STATUS = ("local s=game.surfaces['SURF'] local p=s.platform local st={} for _,c in pairs(s.find_entities_filtered{type={'assembling-machine','furnace','asteroid-collector','ammo-turret'}}) do local k='?' for n,v in pairs(defines.entity_status) do if v==c.status then k=n end end "
           "local rc=c.type=='assembling-machine' and c.get_recipe() k=(rc and rc.name or c.name)..' '..k st[k]=(st[k] or 0)+1 end local o={} for k,v in pairs(st) do o[#o+1]=k..' '..v end table.sort(o) local fl={} for _,t in pairs(s.find_entities_filtered{name='storage-tank'}) do for k,v in pairs(t.get_fluid_contents()) do fl[k]=(fl[k] or 0)+v end end "
