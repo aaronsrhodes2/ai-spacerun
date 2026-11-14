@@ -31,6 +31,12 @@ local function draw(player)
   local mode = storage.mode or "free-hand"
   frame.skippy_mode.caption = (mode == "my-character") and "moves your character" or "builds on its own"
   frame.skippy_mode.tooltip = "Click to switch: the assistant either builds on its own while you play, or moves your character and builds with its hands."
+  if not frame.skippy_prompts then
+    frame.add { type = "label", name = "skippy_prompts", caption = "" }
+  end
+  local prompts = storage.run and storage.run.prompts or 0
+  frame.skippy_prompts.caption = prompts .. ((prompts == 1) and " prompt" or " prompts")
+  frame.skippy_prompts.tooltip = "How many things you have asked the assistant in this game."
   local s = STATES[storage.state.state] or STATES.idle
   local note = storage.state.note or ""
   frame.state.caption = "Skippy: " .. s.text .. ((note ~= "") and (" - " .. note) or "")

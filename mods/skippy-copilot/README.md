@@ -18,6 +18,15 @@ answered with what would have been right (the tool names, or that tool's paramet
 console; the bridge sends them over RCON. With any mod enabled the game keeps a separate set of achievements that do not
 register with Steam; whether calling this command changes anything further has not been tested.
 
+## Two ways people will play it
+
+- **Fewest prompts.** How few things do you have to say to finish the game? The mod counts every line you type to the
+  assistant, shows the count on the working light, and records how many it took at the win. One prompt can go a long way:
+  say "finish the game" and the assistant takes it on as a standing goal, working through the milestones on its own, turn
+  after turn, until it is done, it is stuck and needs you, or you say stop. Turns it takes on its own are not prompts.
+- **Science per minute.** Say "I want 1,000 science a minute of each science". The assistant measures every pack, takes the
+  target as a standing goal, and works on whichever pack is slowest until all of them are there.
+
 ## Modes
 
 The mod has two modes, and the player can switch between them at any time: in the map's mod settings, with the button on
@@ -29,7 +38,7 @@ the working light, or by asking the assistant.
 
 Switching modes stops whatever the avatar was doing. A scored run can lock the mode.
 
-## Tools in the mod (version 0.6.0)
+## Tools in the mod (version 0.7.0)
 
 | Tool | What it does |
 |---|---|
@@ -39,6 +48,8 @@ Switching modes stops whatever the avatar was doing. A scored run can lock the m
 | `bottlenecks` | The worst bottlenecks ranked by the item machines wait for; whole surface or near the player |
 | `alerts` | The game's own alerts by kind, with what each means |
 | `player` | Where the player is and what they point at |
+| `science` | Science per minute: every pack made and used a minute, the slowest pack, and what falls short of a target |
+| `run_stats` | Prompts typed so far, hours played, and what the win took |
 | `design_note`, `events_read` | What a research makes possible; news of finished research |
 | `reveal_map` | Reveal more map round the known edge |
 | `chat_read`, `say`, `set_state` | The chat channel and the working light (used by the bridge) |
@@ -71,6 +82,7 @@ These are added by the bridge and look the same to the model. They do the arithm
 | `build_plan` | Send a plan to the game: dry run first, build only after a clean dry run, never twice |
 | `walk_to`, `mine`, `travel_to` | Start the avatar walking, mining or travelling to another planet, and wait until it has finished |
 | `milestones` | How far the game has come and what the next goal still needs |
+| `set_goal`, `clear_goal` | Take on a standing goal (win the game, reach a milestone, or a science-per-minute target) and keep working toward it without further prompts; drop it |
 | `locate` | Words to tiles: "the east of the base", "the upper right of my view" |
 
 ## Design notes
@@ -89,7 +101,7 @@ server that speaks the OpenAI chat API). `python -m copilot --ask "..."` asks on
 
 ## Testing
 
-- `python -m pytest tests/copilot_tests` runs with no game and no model: 276 tests. They cover the bridge, the planning
+- `python -m pytest tests/copilot_tests` runs with no game and no model: 306 tests. They cover the bridge, the planning
   code, the scorer, and the mod's own Lua run under Lua 5.2 against a stand-in game (`tests/copilot_tests/fake_game.lua`).
   Needs `pip install lupa`.
 - `scripts/modserver.sh start` runs a second, headless copy of the Steam install with its own data folder (`.testserver/`),

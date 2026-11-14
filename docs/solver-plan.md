@@ -5,7 +5,7 @@ day: one chat builds the mod while the main chat finishes the Fable run. Scored 
 verified solve (see Gate).
 
 Built so far:
-- **The mod** (`mods/skippy-copilot`, version 0.6.0), twenty-eight tools: lookup, search, map, tile, find_free, diagnose,
+- **The mod** (`mods/skippy-copilot`, version 0.7.0), thirty tools: lookup, search, map, tile, find_free, diagnose,
   bottlenecks, alerts, player, design_note, events_read, reveal_map, chat_read, say, set_state, and for the planner
   occupancy, build and frames. `build` is a dry run unless told otherwise, refuses anything not researched, and sits on
   an executor layer so the walking avatar can replace free placement without changing a tool.
@@ -25,6 +25,14 @@ Built so far:
   promethium science beyond, each with a test run against facts the mod reports. The model is told the next goal and what
   it still needs; a watch logs a stall when nothing counts toward any milestone for two game hours. A unit test checks
   every name in the list against the installed game's data.
+- **The two ways people will play it** (the Captain, 2026-11-13), mod 0.7.0:
+  - *Fewest prompts to finish the game.* The mod counts every line a player types, shows the count on the working light and
+    records what the win took. A standing goal lets one prompt go a long way: the model calls `set_goal` and the bridge then
+    gives it a turn of its own every so often, with the goal and the next milestone, until the goal is reached, the model
+    says it is blocked, three turns in a row do nothing, or the player says stop. Turns of its own are logged but are not
+    prompts.
+  - *Science per minute.* The `science` tool measures every pack over ten minutes on all surfaces; a factory's rate is its
+    slowest researched pack. "1,000 a minute of each" is a standing goal of its own kind.
 - **Planning code in the bridge** (`copilot/plan/`, pure and unit-tested): production calculator, layouts with overlap
   check and turning, the generic cells (belt-fed machine, robot-fed machine, direct pair, rows), a belt and pipe router
   with underground pairs, and pointing with words. The model reaches them as plan_production, plan_row, plan_route,
@@ -35,7 +43,7 @@ Built so far:
   kind of alert makes the model look into it and offer one suggestion.
 - **The bridge** (`copilot/`): game chat in, model with tools, answer out, working light, a log of every call, and a
   scorer for those logs. Providers: Ollama and any OpenAI-compatible server. An Anthropic adapter is not written.
-- **Tests**: 276 unit tests that need no game and no model, including the mod's own Lua run under Lua 5.2 against a
+- **Tests**: 306 unit tests that need no game and no model, including the mod's own Lua run under Lua 5.2 against a
   stand-in game; `scripts/modcheck.py` for the mod on a local headless test server. The Lua tests found three bugs on
   their first run (a search centred one tile off, a wrong player returned for an unknown name, an unstable ranking).
 - **First run with a local model** (qwen3:8b on Ollama, 2026-11-13, mod 0.2.0): three questions through the bridge, all

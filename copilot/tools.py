@@ -6,6 +6,7 @@ The model sees these beside the mod's tools, in the same shape, and cannot tell 
 import time
 
 from . import milestones as ms
+from .goals import Goal, GoalError
 from .plan import calc, cells, place, route
 from .plan.layout import Layout, LayoutError
 
@@ -68,6 +69,14 @@ AVATAR_SPECS = [
      "description": "Send the avatar to another planet the way a player travels, and wait until it has landed: it walks to a rocket silo with a rocket ready, rides the rocket to a ship in orbit whose schedule goes there, rides the ship, and drops to the surface. The avatar must carry nothing. The trip takes many minutes of game time. Says where it ended up, or why it could not go and where it is now.",
      "parameters": {"planet": _param("string", "internal name of the planet, such as 'vulcanus'", True),
                     "ship": _param("string", "name of the platform to ride; leave out for any ship in orbit that goes there")}},
+    {"name": "set_goal",
+     "description": "Take on a standing goal: something the player asks for once that you then keep working toward on your own, turn after turn, without further prompts, until it is reached or the player says stop. kind 'win' plays the game to its end; 'milestone' reaches one milestone (give its id, from the milestones tool); 'science' makes at least per_minute of every science pack a minute. Use it when the player says things like 'finish the game', 'get us to blue science', or 'I want 1,000 science a minute'.",
+     "parameters": {"kind": _param("string", "'win', 'milestone' or 'science'", True),
+                    "milestone": _param("string", "for kind milestone: its id, such as 'rocket-silo'"),
+                    "per_minute": _param("number", "for kind science: packs a minute wanted of each science")}},
+    {"name": "clear_goal",
+     "description": "Drop the standing goal, so you stop working on your own. Use it when the player says stop, or changes their mind.",
+     "parameters": {}},
     {"name": "milestones",
      "description": "How far the game has come and what to do next: how many milestones are done, the next one not yet done with exactly what it still needs, and what comes after. Call it when asked 'what should we do next' or when deciding what to work on.",
      "parameters": {}},
@@ -91,6 +100,8 @@ class LocalTools:
         self.game = game
         self.sleep, self.poll, self.patience = sleep, poll, patience
         self.plans = {}
+        self.goal = None                    # the standing goal, if the player gave one
+        self.goal_paused = False            # true while the assistant is stuck on it and waiting for the player
         self.next_id = 1
         self.names = {s["name"] for s in SPECS}
 
@@ -124,7 +135,7 @@ class LocalTools:
             return {"ok": True, "result": getattr(self, name)(**args)}
         except ToolError as e:
             return {"ok": False, "error": e.error, "hint": e.hint}
-        except (calc.PlanError, LayoutError, place.PlaceError) as e:    # RouteError is a LayoutError
+        except (calc.PlanError, LayoutError, place.PlaceError, GoalError) as e:    # RouteError is a LayoutError
             return {"ok": False, "error": str(e)}
 
     def locate(self, frame, part="middle"):
@@ -315,7 +326,20 @@ class LocalTools:
         return f
 
     def milestones(self):
-        return ms.summary(self.facts())
+        out = ms.summary(self.facts())
+        if self.goal:
+            out["standing_goal"] = self.goal.describe()
+        return out
+
+    def set_goal(self, kind, milestone=None, per_minute=None):
+        goal = Goal(kind, milestone if kind == "milestone" else per_minute)
+        self.goal, self.goal_paused = goal, False
+        return {"goal": goal.describe(), "note": "you will be asked to carry on by yourself until it is reached; say so to the player in one sentence"}
+
+    def clear_goal(self):
+        had = self.goal.describe() if self.goal else None
+        self.goal, self.goal_paused = None, False
+        return {"cleared": had is not None, "was": had}
 
     def build_plan(self, plan_id, dry_run=True, surface=None):
         plan = self.plans.get(plan_id)

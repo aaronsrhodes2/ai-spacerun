@@ -30,7 +30,7 @@ def main():
     check("scene built", (c.send_command("/sc " + SCENE) or "").strip() == "scene")
     t = call("tools", None, c)
     names = [x["name"] for x in t["result"]]
-    check("tool list", all(n in names for n in ["lookup", "search", "map", "tile", "find_free", "diagnose", "chat_read", "say", "set_state", "events_read", "design_note", "alerts", "player", "bottlenecks", "occupancy", "build", "frames", "reveal_map", "avatar", "avatar_walk", "avatar_mine", "avatar_stop", "avatar_craft", "avatar_carry", "set_mode", "lock_mode", "avatar_travel", "progress"]), names)
+    check("tool list", all(n in names for n in ["lookup", "search", "map", "tile", "find_free", "diagnose", "chat_read", "say", "set_state", "events_read", "design_note", "alerts", "player", "bottlenecks", "occupancy", "build", "frames", "reveal_map", "avatar", "avatar_walk", "avatar_mine", "avatar_stop", "avatar_craft", "avatar_carry", "set_mode", "lock_mode", "avatar_travel", "progress", "science", "run_stats"]), names)
     check("every tool is described", all(x["description"] and isinstance(x["parameters"], (dict, list)) for x in t["result"]))
 
     r = call("lookup", {"name": "electronic-circuit", "kind": "recipe"}, c)["result"][0]
@@ -154,6 +154,10 @@ def main():
     check("progress: facts for milestones", p["ok"] and p["result"]["built"]["transport-belt"] >= 1 and "researched" in p["result"] and p["result"]["won"] is False, p)
     r = call("avatar_travel", {"planet": "vulcanus"}, c)
     check("travel: refused in free-hand mode", not r["ok"], r)
+    r = call("science", {"target": 60}, c)
+    check("science: every pack the labs take is listed, none made yet", r["ok"] and r["result"]["science_per_minute"] == 0 and len(r["result"]["packs"]) >= 7 and r["result"]["reached"] is False, r)
+    r = call("run_stats", None, c)
+    check("run stats: prompts and hours", r["ok"] and r["result"]["prompts"] == 0 and r["result"]["won"] is False, r)
 
     check("say", call("say", {"text": "check"}, c)["ok"])
     check("set_state", call("set_state", {"state": "working", "note": "check"}, c)["ok"] and not call("set_state", {"state": "napping"}, c)["ok"])

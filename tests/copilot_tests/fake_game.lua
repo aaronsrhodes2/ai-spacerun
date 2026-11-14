@@ -13,6 +13,7 @@ defines = {
   events = { on_player_created = 1, on_player_joined_game = 2, on_console_chat = 3, on_research_finished = 4, on_tick = 5,
              on_script_path_request_finished = 6, on_runtime_mod_setting_changed = 7, on_gui_click = 8 },
   build_check_type = { manual = 1, script = 2 },
+  flow_precision_index = { one_minute = 1, ten_minutes = 2, one_hour = 3 },
   rocket_silo_status = { building_rocket = 1, rocket_ready = 2, launch_started = 3 },
   cargo_destination = { invalid = 0, orbit = 1, station = 2, surface = 3 },
   direction = { north = 0, northeast = 2, east = 4, southeast = 6, south = 8, southwest = 10, west = 12, northwest = 14 },
@@ -48,6 +49,9 @@ local RECIPES = {
   ["inserter"] = { energy = 0.5, categories = { crafting = true }, ingredients = { item_part("iron-plate", 1) }, products = { item_part("inserter", 1) } },
   ["pipe"] = { energy = 0.5, categories = { crafting = true }, ingredients = { item_part("iron-plate", 1) }, products = { item_part("pipe", 1) } },
   ["lab"] = { energy = 2, categories = { crafting = true }, ingredients = { item_part("electronic-circuit", 10) }, products = { item_part("lab", 1) } },
+  ["automation-science-pack"] = { energy = 5, categories = { crafting = true }, ingredients = { item_part("copper-plate", 1), item_part("iron-gear-wheel", 1) }, products = { item_part("automation-science-pack", 1) } },
+  ["logistic-science-pack"] = { energy = 6, categories = { crafting = true }, ingredients = { item_part("inserter", 1), item_part("transport-belt", 1) }, products = { item_part("logistic-science-pack", 1) } },
+  ["chemical-science-pack"] = { energy = 24, categories = { crafting = true }, ingredients = { item_part("iron-plate", 2) }, products = { item_part("chemical-science-pack", 2) } },
   ["cryogenic-science-pack"] = { energy = 20, categories = { cryogenics = true }, ingredients = { item_part("ice", 3) }, products = { item_part("cryogenic-science-pack", 1) },
                                  surface_conditions = { { property = "pressure", min = 300, max = 300 } } },
 }
@@ -61,6 +65,9 @@ local function item(name, stack, weight, place, extra)
 end
 
 local ITEMS = {
+  ["automation-science-pack"] = item("automation-science-pack", 200, 1000),
+  ["logistic-science-pack"] = item("logistic-science-pack", 200, 1000),
+  ["chemical-science-pack"] = item("chemical-science-pack", 200, 1000),
   ["iron-plate"] = item("iron-plate", 100, 1000),
   ["iron-ore"] = item("iron-ore", 50, 2000),
   ["copper-plate"] = item("copper-plate", 100, 1000),
@@ -96,7 +103,7 @@ local ENTITIES = {
   ["electric-mining-drill"] = ent("electric-mining-drill", "mining-drill", 3, 3, { mining_speed = 0.5 }),
   ["medium-electric-pole"] = ent("medium-electric-pole", "electric-pole", 1, 1, {
     get_supply_area_distance = function() return 3.5 end, get_max_wire_distance = function() return 9 end }),
-  ["lab"] = ent("lab", "lab", 3, 3),
+  ["lab"] = ent("lab", "lab", 3, 3, { lab_inputs = { "automation-science-pack", "logistic-science-pack", "chemical-science-pack" } }),
   ["heating-tower"] = ent("heating-tower", "reactor", 3, 3, {
     heat_buffer_prototype = { max_temperature = 1000, connections = { { position = { 0, -1 } }, { position = { 1, 0 } }, { position = { 0, 1 } }, { position = { -1, 0 } } } },
     surface_conditions = { { property = "pressure", min = 10, max = 1.7976931348623157e308 } } }),
@@ -128,8 +135,9 @@ prototypes = {
   tile = { ["out-of-map"] = {}, ["empty-space"] = {}, water = {}, ["grass-1"] = {} },
   get_entity_filtered = function(filters)
     local out = {}
+    local f = filters[1]
     for name, e in pairs(ENTITIES) do
-      if e.crafting_categories then out[name] = e end
+      if (f.filter == "crafting-machine" and e.crafting_categories) or (f.filter == "type" and e.type == f.type) then out[name] = e end
     end
     return out
   end,
@@ -558,8 +566,18 @@ force.rockets_launched = 0
 force.unlocked = {}
 force.is_space_location_unlocked = function(name) return force.unlocked[name] ~= false end
 force.made = {}                                          -- item -> total ever produced, for the progress tool
+force.rate = {}                                          -- item -> { made a minute, used a minute }, on nauvis
+force.rate_elsewhere = {}                                -- the same, on every other surface that is a planet
 force.get_item_production_statistics = function(surface)
-  return { get_input_count = function(item) return (surface == nauvis) and (force.made[item] or 0) or 0 end }
+  return {
+    get_input_count = function(item) return (surface == nauvis) and (force.made[item] or 0) or 0 end,
+    get_flow_count = function(a)
+      local book = (surface == nauvis) and force.rate or (surface.planet and force.rate_elsewhere or {})
+      local r = book[a.name]
+      if not r or a.precision_index ~= defines.flow_precision_index.ten_minutes then return 0 end
+      return (a.category == "input") and r[1] or r[2]
+    end,
+  }
 end
 
 local function move_to(e, surface, x, y)

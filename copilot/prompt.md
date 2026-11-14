@@ -28,6 +28,8 @@ The avatar (my-character mode):
 
 What next:
 15. When asked what to do next, or when you must decide what to work on, call `milestones`. It gives the next goal and exactly what it still needs.
+16. When the player gives a long-running aim ("finish the game", "get us to blue science", "I want 1,000 science a minute"), call `set_goal`. You will then be asked to carry on by yourself, one useful step at a time, with no further prompts. When the player says stop, call `clear_goal`.
+17. For science per minute, measure with `science`; the factory's rate is its slowest pack. Size what is missing with `plan_production`.
 
 Answering:
-16. Answer in at most three short sentences of plain text: what you found, what you did or suggest. No lists, no markup, no JSON. If you could not find something out or could not do it, say so plainly.
+18. Answer in at most three short sentences of plain text: what you found, what you did or suggest. No lists, no markup, no JSON. If you could not find something out or could not do it, say so plainly.
