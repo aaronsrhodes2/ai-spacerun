@@ -62,7 +62,7 @@ def layout():
 A.layout = layout
 # Fluids are read from ONE tank of three (green wire). Item conditions read the hub on red: the real count (SKILL: the hub trash rule).
 ROUTE = (FIND + "local function c(t,n,k) return {type='circuit',compare_type='and',condition={first_signal={type=t,name=n},comparator='>=',constant=k}} end "
-         "p.schedule={current=CUR,records={{station='fulgora',wait_conditions={c('fluid','thruster-fuel',40000),c('fluid','thruster-oxidizer',40000),c('item','carbon',3000),c('item','iron-ore',3000),c('item','explosive-rocket',ROCKETS),c('item','uranium-rounds-magazine',MAGS),c('item','repair-pack',400),{type='time',compare_type='and',ticks=1800}}},"
+         "p.schedule={current=CUR,records={{station='fulgora',wait_conditions={c('fluid','thruster-fuel',40000),c('fluid','thruster-oxidizer',40000),c('item','carbon',3000),c('item','iron-ore',3000),c('item','RKIND',ROCKETS),c('item','uranium-rounds-magazine',MAGS),c('item','repair-pack',400),{type='time',compare_type='and',ticks=1800}}},"
          "{station='aquilo',wait_conditions={{type='time',compare_type='and',ticks=5400},c('fluid','thruster-fuel',15000),c('fluid','thruster-oxidizer',15000)}}}} p.paused=PAUSED if p.space_location then p.space_location=p.space_location.name end "
          "rcon.print('schedule fulgora <-> aquilo set for '..p.name..', paused='..tostring(p.paused)..', state '..p.state)")
 REQ = (FIND + "local pt for _,q in pairs(p.hub.get_logistic_point()) do if q.mode==defines.logistic_mode.requester then pt=q end end local sec=nil for _,x in pairs(pt.sections) do if x.is_manual then sec=sec or x end end sec=sec or pt.add_section() "
@@ -75,12 +75,26 @@ TARGETS = (FIND + "local s=p.surface local o={} local function set(name,list) lo
            "set('laser-turret',{'small-metallic-asteroid','small-carbonic-asteroid','small-oxide-asteroid','small-promethium-asteroid'}) set('gun-turret',{'medium-metallic-asteroid','medium-carbonic-asteroid','medium-oxide-asteroid','medium-promethium-asteroid'}) "
            "set('rocket-turret',{'big-oxide-asteroid','big-metallic-asteroid','big-carbonic-asteroid','big-promethium-asteroid','medium-oxide-asteroid','medium-metallic-asteroid','medium-carbonic-asteroid'}) "
            "for _,q in pairs({{4.5,1.5,'explosive-rocket'},{4.5,0.5,'uranium-rounds-magazine'}}) do local i=s.find_entities_filtered{type='inserter',position={q[1],q[2]},radius=0.3}[1] i.use_filters=true i.inserter_filter_mode='whitelist' for k=1,i.filter_slot_count do i.set_filter(k,nil) end i.set_filter(1,q[3]) end rcon.print(table.concat(o,' ;; '))")
+# fit plain: rocket turrets fire PLAIN rockets at big asteroids only, the guns alone take the medium ones. fit explosive: explosive rockets, big then medium.
+# Either way the other rocket kind is taken off the belt and out of the turrets back into the hub. RLIST is the rocket turrets' target list.
+BIG = "'big-oxide-asteroid','big-metallic-asteroid','big-carbonic-asteroid','big-promethium-asteroid'"
+MED = "'medium-oxide-asteroid','medium-metallic-asteroid','medium-carbonic-asteroid'"
+FIT = (FIND + "local s=p.surface local hi=p.hub.get_inventory(defines.inventory.hub_main) local use,drop='USE','DROP' local n=0 "
+       "local i=s.find_entities_filtered{type='inserter',position={4.5,1.5},radius=0.3}[1] i.set_filter(1,use) if i.held_stack.valid_for_read and i.held_stack.name==drop then n=n+hi.insert{name=drop,count=i.held_stack.count} i.held_stack.clear() end "
+       "for _,e in pairs(s.find_entities_filtered{type={'transport-belt','underground-belt'}}) do for l=1,e.get_max_transport_line_index() do local k=e.get_transport_line(l).remove_item{name=drop,count=1000} if k>0 then n=n+hi.insert{name=drop,count=k} end end end "
+       "for _,e in pairs(s.find_entities_filtered{name='rocket-turret'}) do local k=e.remove_item{name=drop,count=1000} if k>0 then n=n+hi.insert{name=drop,count=k} end end "
+       "for _,e in pairs(s.find_entities_filtered{type='inserter'}) do if e.held_stack.valid_for_read and e.held_stack.name==drop then n=n+hi.insert{name=drop,count=e.held_stack.count} e.held_stack.clear() end end "
+       "local pt for _,q in pairs(p.hub.get_logistic_point()) do if q.mode==defines.logistic_mode.requester then pt=q end end local sec for _,x in pairs(pt.sections) do if x.is_manual then sec=sec or x end end local has=false for _,f in pairs(sec.filters) do if f.value and f.value.name=='rocket' then has=true end end "
+       "if not has then sec.set_slot(#sec.filters+1,{value={type='item',name='rocket',quality='normal'},min=0,max=40000,import_from='fulgora'}) end "
+       "rcon.print('fit '..use..': '..n..' '..drop..' back in the hub; hub '..use..' '..hi.get_item_count(use))")
+RTARGETS = (FIND + "local n=0 local r={} for _,t in pairs(p.surface.find_entities_filtered{name='rocket-turret'}) do for i=1,12 do pcall(function() t.set_priority_target(i,nil) end) end for i,a in pairs({RLIST}) do t.set_priority_target(i,a) end t.ignore_unprioritised_targets=true n=n+1 r={} for _,x in pairs(t.priority_targets) do r[#r+1]=x.name end end "
+            "rcon.print('rocket turrets x'..n..': '..table.concat(r,','))")
 WATCH = (FIND + "if not p then rcon.print('GONE') return end local s=p.surface local fl={} for _,t in pairs(s.find_entities_filtered{name='storage-tank'}) do for k,v in pairs(t.get_fluid_contents()) do fl[k]=(fl[k] or 0)+v end end "
          "local dmg,low=0,0 for _,e in pairs(s.find_entities_filtered{force='player'}) do if e.health and e.max_health and e.health<e.max_health then dmg=dmg+1 if e.health<e.max_health*0.5 then low=low+1 end end end "
-         "local inv=p.hub.get_inventory(defines.inventory.hub_main) local tr=0 local tmin=999 for _,t in pairs(s.find_entities_filtered{name='rocket-turret'}) do local c=t.get_item_count('explosive-rocket') tr=tr+c if c<tmin then tmin=c end end "
+         "local inv=p.hub.get_inventory(defines.inventory.hub_main) local tr=0 local tmin=999 for _,t in pairs(s.find_entities_filtered{name='rocket-turret'}) do local c=t.get_item_count('explosive-rocket')+t.get_item_count('rocket') tr=tr+c if c<tmin then tmin=c end end "
          "local a,cap=0,0 for _,e in pairs(s.find_entities_filtered{name='accumulator'}) do a=a+e.energy cap=cap+e.electric_buffer_size end local gm,gmin=0,999 for _,t in pairs(s.find_entities_filtered{name='gun-turret'}) do local c=t.get_item_count('uranium-rounds-magazine') gm=gm+c if c<gmin then gmin=c end end local ast={} for _,a in pairs(s.find_entities_filtered{type='asteroid'}) do local k=a.name:match('^(%a+)') ast[k]=(ast[k] or 0)+1 end local at={} for k,v in pairs(ast) do at[#at+1]=k..' '..v end "
          "rcon.print((p.space_location and p.space_location.name or 'flight')..' st'..p.state..' | entities '..s.count_entities_filtered{force='player'}..' ghosts '..s.count_entities_filtered{type='entity-ghost'}..' damaged '..dmg..' below half '..low"
-         "..' | rockets hub '..inv.get_item_count('explosive-rocket')..' turrets '..tr..' (least '..tmin..') | mags hub '..inv.get_item_count('uranium-rounds-magazine')..' guns '..gm..' (least '..gmin..') | accu '..string.format('%.0f%%',cap>0 and 100*a/cap or 0)..' | repair '..inv.get_item_count('repair-pack')..' | fuel '..math.floor(fl['thruster-fuel'] or 0)..' ox '..math.floor(fl['thruster-oxidizer'] or 0)"
+         "..' | rockets hub '..inv.get_item_count('explosive-rocket')..' plain '..inv.get_item_count('rocket')..' turrets '..tr..' (least '..tmin..') | mags hub '..inv.get_item_count('uranium-rounds-magazine')..' guns '..gm..' (least '..gmin..') | accu '..string.format('%.0f%%',cap>0 and 100*a/cap or 0)..' | repair '..inv.get_item_count('repair-pack')..' | fuel '..math.floor(fl['thruster-fuel'] or 0)..' ox '..math.floor(fl['thruster-oxidizer'] or 0)"
          "..' | carbon '..inv.get_item_count('carbon')..' ore '..inv.get_item_count('iron-ore')..' ice '..inv.get_item_count('ice')..' | speed '..string.format('%.0f',p.speed or 0)..' | asteroids '..table.concat(at,', ')..' | tick '..game.tick)")
 
 
@@ -97,17 +111,25 @@ def main():
         # counts wanted ABOARD; the hub shows its contents on both wires and a wait condition adds them, so the condition gets twice the number
         rockets = next((a.split("=")[1] for a in sys.argv if a.startswith("--rockets=")), "3000")
         mags = next((a.split("=")[1] for a in sys.argv if a.startswith("--mags=")), "3000")
-        print(lua(ROUTE.replace("CUR", "2" if cur == "aquilo" else "1").replace("PAUSED", "false" if "--go" in sys.argv else "true").replace("ROCKETS", str(2 * int(rockets))).replace("MAGS", str(2 * int(mags)))))
+        print(lua(ROUTE.replace("CUR", "2" if cur == "aquilo" else "1").replace("PAUSED", "false" if "--go" in sys.argv else "true").replace("RKIND", "rocket" if "--plain" in sys.argv else "explosive-rocket").replace("ROCKETS", str(2 * int(rockets))).replace("MAGS", str(2 * int(mags)))))
     elif step == "requests":
         print(lua(REQ))
     elif step == "targets":
         print(lua(TARGETS).replace(" ;; ", chr(10)))
+    elif step == "fit":
+        plain = sys.argv[2] == "plain"
+        print(lua(FIT.replace("USE", "rocket" if plain else "explosive-rocket").replace("DROP", "explosive-rocket" if plain else "rocket")))
+        print(lua(RTARGETS.replace("RLIST", BIG if plain else BIG + "," + MED)))
     elif step == "watch":
         minutes = float(sys.argv[2]) if len(sys.argv) > 2 else 1.5
         every = int(sys.argv[3]) if len(sys.argv) > 3 else 20
         end = time.time() + minutes * 60
         while time.time() < end:
-            print(time.strftime("%H:%M:%S"), lua(WATCH), flush=True)
+            line = lua(WATCH)
+            print(time.strftime("%H:%M:%S"), line, flush=True)
+            if "--fallback" in sys.argv and " damaged 0 " not in line and "GONE" not in line:      # the guns did not hold: rockets take medium again
+                print("FALLBACK", lua(RTARGETS.replace("RLIST", BIG + "," + MED)), flush=True)
+                sys.argv.remove("--fallback")
             time.sleep(every)
     else:
         r = A.main()
