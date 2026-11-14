@@ -862,3 +862,9 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - The three eastern towers (125,20  127,45  131,18) each have their own exchanger and turbine (`gleba_heat.py build --east`): belts lie between them and heat pipes cannot go under a belt. Turbines only make power when solar and accumulators fall short, so 'working, 0 MW' by day is normal.
 - An offshore pump on Gleba is placeable only on some shore spots and facings; `place_entities` dry run does not check that. Test with `can_place_entity` and `build_check_type.manual`.
 - `wheel_reprocess.py balance --apply` (2026-11-13): three deciders at (-23,-46) read the hub; a chunk kind is in surplus when both its products are above 32,000. While it is, that kind's normal crushers stop and its reprocessors run. Run after `config`, and again after a quality upgrade. Measured after it: Nauvis Wheel carbonic chunks used rose from 84 to 128 a minute and carbon in the hub from 9 to 993.
+
+## Asteroid balance survey (2026-11-13)
+- Wheels: `wheel_reprocess.py balance --apply` adds three deciders at -23,-46: a chunk kind is in surplus when BOTH its products in the hub are over 32,000; then its normal crushers stop and its reprocessors run. Before this the normal crushers took the chunks first and the ore went overboard. Rerun `config` then `balance --apply` after a quality upgrade.
+- Inner shuttles are not chunk-limited: ore sits at its cap; magazines on the Fulgora run are limited by two furnaces (142 plates a minute), water on the Fulgora and Vulcanus runs by ice. A reprocessing crusher belongs in the shuttle redesign, not the old hull.
+- Aquilo shuttle: metallic chunks at the cap of 30 and ore at 3,000 while carbon runs out: the clearest case for a metallic reprocessor.
+- 'White Science' (the Captain's old platform at Nauvis) has a full hub (0 of 1,123 free, 58,700 iron plate) and every crusher stands at full output.
