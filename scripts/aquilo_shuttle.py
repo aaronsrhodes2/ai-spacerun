@@ -131,7 +131,7 @@ def layout():
     ins(4, -2, W, ["carbonic-asteroid-chunk"], gate=("carbon", 4000))
     ins(4, -1, E)
     put("assembling-machine-3", 5, 0, 3, 3, recipe="firearm-magazine")
-    ins(4, 0, W, ["iron-plate"], gate=("firearm-magazine", 1000))
+    ins(4, 0, W, ["iron-plate"], gate=("firearm-magazine", 1000 if INNER else 3000))   # outer: 3,000, Aquilo orbit has no metallic chunks to make more
     ins(4, 2, E)
     put("assembling-machine-3", 5, 3, 3, 3, recipe="firearm-magazine" if INNER else "rocket")   # inner: a second magazine assembler, straight onto the belt
     ins(4, 3, W, ["iron-plate"])
@@ -274,12 +274,15 @@ VALVE = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=defines
          "dec.get_wire_connector(W.combinator_input_red,true).connect_to(hub.get_wire_connector(W.circuit_red,true),false) dec.get_wire_connector(W.combinator_input_green,true).connect_to(cc.get_wire_connector(W.circuit_green,true),false) "
          "local vr=v.get_wire_connector(W.circuit_green,true) vr.connect_to(dec.get_wire_connector(W.combinator_output_green,true),false) v.use_filters=true v.inserter_filter_mode='whitelist' local cb=v.get_or_create_control_behavior() cb.circuit_set_filters=true cb.circuit_enable_disable=true "
          "cb.circuit_condition={first_signal={type='virtual',name='signal-anything'},comparator='>',constant=0} rcon.print('valve wired '..tostring(vr.is_connected_to(dec.get_wire_connector(W.combinator_output_green,true)))..', caps '..k)")
+# 2026-11-13: the ship came home from Aquilo with no magazines, no ore and nine parts shot off: it had stood paused in Aquilo orbit for 45
+# minutes (my doing, for the first landing) and its turrets ate 2,800 ore of magazines. It now leaves Fulgora with 2,400 magazines (4,800 here)
+# and must not be held at Aquilo.
 # ITEM conditions count double (the hub puts its contents on the red and the green wire): 5,000 carbon here is 2,500 in the hub. The first
 # flight left with half of what was meant. One leg burned about 80,000 fuel, so Aquilo lets the ship go at 30,000 a tank (90,000 on board).
 # The hub sees one tank of three for each fluid, so 40,000 here is 120,000 on board. Aquilo's orbit has almost no carbonic or metallic
 # chunks: the ship refuels there from the carbon and iron ore in its hub (gates: 4,000 and 3,000), so it must leave Fulgora with both.
 ROUTE = ("local p=game.surfaces['SURF'].platform local function c(t,n,k) return {type='circuit',compare_type='and',condition={first_signal={type=t,name=n},comparator='>=',constant=k}} end "
-         "p.schedule={current=1,records={{station='fulgora',wait_conditions={c('fluid','thruster-fuel',40000),c('fluid','thruster-oxidizer',40000),c('item','firearm-magazine',1200),c('item','carbon',5000),c('item','iron-ore',4000),c('item','processing-unit',300),c('item','refined-concrete',60),{type='time',compare_type='and',ticks=18000}}},"
+         "p.schedule={current=1,records={{station='fulgora',wait_conditions={c('fluid','thruster-fuel',40000),c('fluid','thruster-oxidizer',40000),c('item','firearm-magazine',4800),c('item','carbon',5000),c('item','iron-ore',4000),c('item','processing-unit',300),c('item','refined-concrete',60),{type='time',compare_type='and',ticks=18000}}},"
          "{station='aquilo',wait_conditions={c('fluid','thruster-fuel',30000),c('fluid','thruster-oxidizer',30000),{type='time',compare_type='and',ticks=7200}}}}} p.paused=false rcon.print('schedule fulgora <-> aquilo set')")
 STATUS = ("local s=game.surfaces['SURF'] local p=s.platform local st={} for _,c in pairs(s.find_entities_filtered{type={'assembling-machine','furnace','asteroid-collector','ammo-turret'}}) do local k='?' for n,v in pairs(defines.entity_status) do if v==c.status then k=n end end "
           "local rc=c.type=='assembling-machine' and c.get_recipe() k=(rc and rc.name or c.name)..' '..k st[k]=(st[k] or 0)+1 end local o={} for k,v in pairs(st) do o[#o+1]=k..' '..v end table.sort(o) local fl={} for _,t in pairs(s.find_entities_filtered{name='storage-tank'}) do for k,v in pairs(t.get_fluid_contents()) do fl[k]=(fl[k] or 0)+v end end "

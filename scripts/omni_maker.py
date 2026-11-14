@@ -17,7 +17,7 @@ any request anywhere is missing, sub-components included). Assembling machines 3
             those), and machine 3 does the same for machine 2. Three levels: assembler 3 <- assembler 2 <- assembler 1.
 Limits: slow; nothing that needs a fluid, a furnace, a foundry or another special machine; raw materials must already be in the
 network; deeper than DEPTH levels waits; across planets it only sees what a shuttle in orbit asks for.
-Steps: build PLANET [--from K] [--apply] | rom PLANET [--apply] | config PLANET | status PLANET. SITES: top-left tile of a free 24 x 14 area in the robot
+Steps: build PLANET [--from K] [--apply] | rom PLANET [--apply] | furnace PLANET [--apply | --config] | config PLANET | status PLANET. SITES: top-left tile of a free 24 x 14 area in the robot
 network. Never apply twice (--from 1 places only machines 2 and up). Run config again after a quality upgrade (over-reach wires).
 Usage: omni_maker.py build nauvis [--apply] | config nauvis | status nauvis"""
 import json
@@ -26,7 +26,7 @@ import sys
 from _game import tools
 
 SITES = {"nauvis": (-30, -400)}
-BATCH, DEPTH, PITCH = 5, 3, 7
+BATCH, DEPTH, PITCH = 20, 3, 7
 Q = {"quality": "epic"}
 
 
@@ -67,6 +67,38 @@ def layout(planet, first=0, extra_only=False):
     return out
 
 
+FX = 23        # the furnace unit stands at this offset east of machine 1
+
+
+def furnace_layout(planet, n):
+    """A furnace needs no recipe signal (it smelts what it is given): its own item list, decider, selector and a small recipe table
+    (n deciders in a row south of it) set what the blue chest asks for."""
+    x, y = SITES[planet]
+
+    def e(name, tx, ty, w=1, h=1):
+        return {"name": name, "x": x + FX + tx + w / 2, "y": y + ty + h / 2, "direction": 0, "params": dict(Q)}
+
+    return ([e("substation", 5, 1, 2, 2), e("requester-chest", 2, 6), e("fast-inserter", 2, 7), e("electric-furnace", 1, 8, 3, 3), e("fast-inserter", 2, 11),
+             e("passive-provider-chest", 2, 12), e("constant-combinator", 5, 6), e("decider-combinator", 5, 7, 1, 2), e("selector-combinator", 6, 7, 1, 2)]
+            + [e("decider-combinator", i, 14, 1, 2) for i in range(n)])
+
+
+SMELT = ("local cats=prototypes.entity['electric-furnace'].crafting_categories local mk,rec={},{} for name,r in pairs(f.recipes) do local p=r.prototype local okc=false for _,c in pairs(p.categories) do if cats[c] then okc=true end end "
+         "if r.enabled and okc and not p.hidden and #r.products==1 and r.products[1].type=='item' and #r.ingredients==1 and r.ingredients[1].type=='item' and not rec[r.products[1].name] then mk[#mk+1]=r.products[1].name rec[r.products[1].name]=r end end ")
+FURNACE = ("local s=game.surfaces['SURF'] local f=game.forces.player local W=defines.wire_connector_id local X,Y=OX+FX,OY local function at(n,dx,dy) return s.find_entities_filtered{name=n,position={X+dx,Y+dy},radius=0.6}[1] end "
+           "local function wire(a,ia,b,ib) a.get_wire_connector(ia,true).connect_to(b.get_wire_connector(ib,true),false) end " + SMELT +
+           "local rp=s.find_entities_filtered{name='roboport',position={OX+2,OY+2},radius=0.6}[1] local rq,cc,dec,sel=at('requester-chest',2.5,6.5),at('constant-combinator',5.5,6.5),at('decider-combinator',5.5,8),at('selector-combinator',6.5,8) "
+           "local cb=cc.get_or_create_control_behavior() while cb.sections_count>0 do cb.remove_section(1) end local sec=cb.add_section() for i,it in pairs(mk) do sec.set_slot(i,{value={type='item',name=it,quality='normal'},min=1}) end "
+           "for _,id in pairs{W.combinator_input_red,W.combinator_input_green,W.combinator_output_red,W.combinator_output_green} do dec.get_wire_connector(id,true).disconnect_all() sel.get_wire_connector(id,true).disconnect_all() end "
+           "for _,id in pairs{W.circuit_red,W.circuit_green} do rq.get_wire_connector(id,true).disconnect_all() end "
+           "wire(dec,W.combinator_input_red,rp,W.circuit_red) wire(dec,W.combinator_input_green,cc,W.circuit_green) "
+           "dec.get_or_create_control_behavior().parameters={conditions={{first_signal={type='virtual',name='signal-each'},first_signal_networks={red=true,green=false},comparator='>',constant=0},"
+           "{first_signal={type='virtual',name='signal-each'},first_signal_networks={red=false,green=true},comparator='>',constant=0,compare_type='and'}},outputs={{signal={type='virtual',name='signal-each'},copy_count_from_input=true,networks={red=true,green=false}}}} "
+           "wire(sel,W.combinator_input_red,dec,W.combinator_output_red) sel.get_or_create_control_behavior().parameters={operation='select',select_max=true,index_constant=0} "
+           "local qb=rq.get_or_create_control_behavior() qb.set_requests=true qb.read_contents=false rq.get_logistic_point(defines.logistic_member_index.logistic_container).trash_not_requested=true local n=0 "
+           "for i,it in pairs(mk) do local d=at('decider-combinator',i-0.5,15) if d then local ing=rec[it].ingredients[1] d.get_or_create_control_behavior().parameters={conditions={{first_signal={type='item',name=it},comparator='>',constant=0}},"
+           "outputs={{signal={type='item',name=ing.name},copy_count_from_input=false,constant=ing.amount*BATCH*4}}} for _,id in pairs{W.combinator_input_red,W.combinator_input_green,W.combinator_output_red,W.combinator_output_green} do d.get_wire_connector(id,true).disconnect_all() end "
+           "wire(d,W.combinator_input_green,sel,W.combinator_output_green) wire(d,W.combinator_output_green,rq,W.circuit_green) n=n+1 end end rcon.print('furnace unit: smeltable items '..#mk..' ('..table.concat(mk,', ')..'), table entries wired '..n)").replace("BATCH", str(BATCH))
 HEAD = ("local s=game.surfaces['SURF'] local f=game.forces.player local W=defines.wire_connector_id local X,Y,P,D=OX,OY,PITCH,DEPTH "
         "local function at(n,dx,dy) return s.find_entities_filtered{name=n,position={X+dx,Y+dy},radius=0.6}[1] end local o={} "
         "local function wire(a,ia,b,ib) a.get_wire_connector(ia,true).connect_to(b.get_wire_connector(ib,true),false) end ")
@@ -134,6 +166,12 @@ def main():
         ents = stock_stage(planet) if "--stock" in sys.argv else layout(planet, first) + (stock_stage(planet) if first == 0 else [])
         r = json.loads(tools["place_entities"](json.dumps(ents), surface=planet, dry_run=not apply))
         print("placed" if apply else "dry run", r.get("placed"), "failed", json.dumps(r.get("failed") or [])[:400])
+    if step == "furnace":
+        n = int(run("local f=game.forces.player " + SMELT + "rcon.print(#mk)").strip())
+        r = json.loads(tools["place_entities"](json.dumps(furnace_layout(planet, n)), surface=planet, dry_run=not apply)) if "--config" not in sys.argv else {}
+        print("placed" if apply else "dry run", r.get("placed"), "failed", json.dumps(r.get("failed") or [])[:400])
+        if apply or "--config" in sys.argv:
+            print(run(FURNACE.replace("FX", str(FX))))
     if step == "rom":
         print(run(ROM.replace("APPLY", "true" if apply else "false")))
     if step == "config" or (step in ("build", "rom") and apply):

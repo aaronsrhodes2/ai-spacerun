@@ -894,3 +894,17 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - One machine alone deadlocks on a missing part. Machine 2 gives first call (a decider adding 1,000,000) to what machine 1's chest asks for and the network lacks; machine 3 the same for machine 2.
 - Schedules: the hub puts its contents on both the red and the green wire, so an ITEM wait condition counts double (a condition of 800 magazines lets the ship go at 400). Fluids come from one tank on green and count once.
 - Only Nauvis has the machines so far. The rig needs a free 105 x 30 area inside the robot network on each planet.
+
+## Orders across space: the menu ship (2026-11-13)
+- A hub and a landing pad can take their requests from a circuit (`control_behavior.set_requests`); Nauvis silos do deliver circuit-set hub requests. A roboport can read the network's missing requests, a silo the orbital requests.
+- `scripts/order_carrier.py` (ground | ship | status): pilot on `Nauvis-Gleba 5 Shuttle II`. Gleba's pad requests follow Gleba's missing requests (roboport at 151,13). The ship carries a menu (one of each of 32 catalog items); every menu item it has none of becomes a request for one rocket load, filled at Nauvis. The planet orders by taking.
+- The hub reads its own contents on both wires: put minus twice the contents on green before using set_requests, and give the schedule a virtual signal (signal M = magazines) because item conditions then read zero.
+- A selector combinator does quality filter, quality transfer, stack size and rocket capacity (`parameters={operation='rocket-capacity'}`).
+- Abandoned: sending an uncommon-quality sample up from the ordering planet as the order form (needs a rocket per order; the silo on Gleba has no rocket parts and Gleba is short of 100 rocket fuel).
+- Missing requests do not include ghosts as far as tested; untested either way. Check before promising that a ghost on another planet orders its item.
+
+## Make-anything coverage (2026-11-13)
+- Of 317 enabled recipes: assembler from solids 198 (machines 1-3), furnace 4 (`omni_maker.py furnace`, at offset 23 east of machine 1). Not covered: 91 recipes with a fluid (assembler 30, chemical plant 26, foundry 20, electromagnetic plant 8, refinery 4, biochamber 3) and biochamber 10, centrifuge 4, crusher 9.
+- The machines choose the largest missing count, so a big order preempts a half-made small one and its parts are flushed to the red chest.
+- Aquilo: buildings need concrete under them (ice refuses a landing pad); the pad needs no heat. Never hold a ship in Aquilo orbit: no metallic or carbonic chunks there, the turrets ate 2,800 ore of magazines in 45 minutes and it came home unarmed with nine parts shot off.
+- The inner laser turrets of the Gleba Wheel had 0 kills and 0 damage (the Captain: asteroids only come from outside); removed. Do not put turrets inside a closed rim.
