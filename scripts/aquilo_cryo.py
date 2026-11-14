@@ -11,12 +11,14 @@ Facts read from the game (2026-11-14):
     recipe uses the first box (x-2). Chemical plant N: inputs top (x-1, x+1), outputs bottom (x-1, x+1).
   - Heat: every machine, inserter and pipe must touch a heat pipe. Two continuous pipe mains wall in whatever lies between them, so the
     solution main runs as underground pipe (a heat pipe passes over the gap); the ammonia main is the bottom edge.
-Layout of the platform works (tiles; snow field south-west of the pad, rows -1..11, x -24..13):
-  pump (13,0) facing east -> solution main along y=0 (junction at cx-6, underground between) -> per unit a separation plant
-  (cx-6..cx-4, 4..6) with a bulk inserter (cx-3,5) handing its ice straight to the cryogenic plant (cx-2..cx+2, 2..6); platforms leave by
-  the inserter (cx+1,1) into the red chest (cx+1,0). Ammonia main along y=7 under all units; its west end feeds the rocket fuel plant
-  (-21..-19, 9..11), water from the melter (-24..-22, 6..8). Unit centres cx = -12, -2, 8.
-Steps: platforms [--apply] | config | status [seconds]
+Layout of the platform works (tiles; north field, x -17..20, y -36..-16):
+  pump (-16,-33) facing west on the inlet -> solution main along y=-33 (junction at u+4, underground between) -> per unit (origin u = -15,
+  -3, 9) a separation plant (u+4..u+6, -29..-27) with a bulk inserter on each side handing its ice straight to an assembler (u..u+2 and
+  u+8..u+10): six makers; platforms leave by inserters at y=-30 into red chests at y=-31. Ammonia main along y=-26 under all of them; a
+  branch at x=8 feeds the rocket fuel plant (3..5, -21..-19), water from the melter (0..2, -24..-22).
+The other sections (science line, second power set, lithium from brine) carry their own layout notes below.
+Steps: platforms | config | causeway | science | science_config | power | brine [--lay] | status   (add --apply to build; all skip what
+stands). `brine` first lists the ocean tiles that need a platform: lay them with `_aq_lay.py scripts/aquilo_brine_water.json`.
 Usage: aquilo_cryo.py platforms --apply"""
 import json
 import sys
@@ -93,9 +95,11 @@ def heat_plan(P, grid, net, extra=()):
     free = {t for t, c in grid.items() if c in USABLE} - occ - P.res - net
     need = [e for e in P.ents if e["name"] not in NOHEAT]
     need_adj = set()
+    nohalo = getattr(P, "nohalo", set())
     for e in need:
         for t in e["tiles"]:
-            need_adj.update(adj(t))
+            if t not in nohalo:
+                need_adj.update(adj(t))
     H = (need_adj & free) | (set(extra) & free)
     real = set(net)
     virt = set()            # (a tower is NOT treated as a conductor: it joins pipes only at its four side middles)
@@ -149,11 +153,12 @@ def heat_plan(P, grid, net, extra=()):
                 H.add(c)
             c = prev[c]
     # prune dead ends that heat nothing
+    keepers = need_adj | {n for t in nohalo for n in adj(t)}
     changed = True
     while changed:
         changed = False
         for t in list(H):
-            if t in need_adj:
+            if t in keepers:
                 continue
             if sum(1 for n in adj(t) if n in H or n in net) <= 1:
                 H.discard(t)
@@ -441,11 +446,11 @@ def power(apply):
 
 
 # ---------------------------------------------------------------- lithium from brine
-# Pumpjack on the brine well (-44.5,59.5) on the south-west island -> pipe north (over ice platform stepping stones laid like the fluorine
+# Pumpjack on the brine well (-52.5,58.5) on the south-west island -> pipe north (over ice platform stepping stones laid like the fluorine
 # causeway, heat pipe beside it all the way) -> lithium plant (chemical plant, -23..-21, -20..-18, facing north: brine in at (-23,-21),
 # ammonia in at (-21,-21) by a branch from the science line's ammonia pipe at (-21,-26)). Holmium plate comes by robot from the pad
 # (chest (-23,-16)), lithium leaves by the red chest (-21,-16) for the furnace (plates) and the fluoroketone plant.
-BRINE = (-46, 58)          # top-left tile of the pumpjack
+BRINE = (-54, 57)          # top-left tile of the pumpjack: the well at (-52.5,58.5); the one at (-44.5,59.5) has two lithium icebergs on it
 LIX, LIY = -23, -20        # top-left tile of the lithium plant
 BOX_B = (-62, -30, -8, 64)
 ROUTE_FILE = __file__.replace("aquilo_cryo.py", "aquilo_brine_route.json")
@@ -458,7 +463,7 @@ def brine_route(grid):
     import os
     if os.path.exists(ROUTE_FILE):
         return [tuple(t) for t in json.load(open(ROUTE_FILE))]
-    start, goal = (BRINE[0] + 2, BRINE[1] - 1), (LIX, LIY - 1)
+    start, goal = (BRINE[0], BRINE[1] + 3), (LIX, LIY - 1)
     keep_off = {(LIX + 2, y) for y in range(-26, LIY)} | {(LIX + 1, LIY - 1)}
     keep_off |= {n for t in keep_off for n in adj(t)}
     keep_off |= {(LIX + a, LIY + b) for a in range(-1, 4) for b in range(0, 6)}        # the plant, its inserters and chests
@@ -507,7 +512,8 @@ def brine_plan(grid):
     if not path:
         print("no brine route")
         return P, [], []
-    P.add("pumpjack", BRINE[0], BRINE[1], 3, 3, N)             # facing north its output is the tile (x+2, y-1)
+    P.add("pumpjack", BRINE[0], BRINE[1], 3, 3, S)             # facing south its output is the tile (x, y+3)
+    P.nohalo = set(path)                                       # the line gets its heat pipe on one side only (below), not a halo on both
     pset = set(path)
     step = [(b[0] - a[0], b[1] - a[1]) for a, b in zip(path, path[1:])]
     right = lambda d: (-d[1], d[0])
@@ -537,6 +543,7 @@ def brine_plan(grid):
         elif t not in gaps:
             P.pipe(*t)
     heat -= pset - gaps
+    heat.add((BRINE[0] - 1, BRINE[1] + 2))                     # the pumpjack's own heat pipe, beside the line's first one
     comp = heat
     water = sorted(t for t in pset | comp if grid.get(t) == ".")
     P.add("chemical-plant", LIX, LIY, 3, 3, N, recipe="lithium")
@@ -578,6 +585,8 @@ def brine(apply, lay):
                   % (US[0], CY - 3, US[-1] + 11, CY + 3, tiles, "true" if lay else "false")))
         return
     if apply:
+        print(lua("local s=game.surfaces.aquilo local t={} for x=%d,%d do for y=%d,%d do if s.get_tile(x,y).name:find('ice',1,true) then t[#t+1]={name='concrete',position={x,y}} end end end s.set_tiles(t) rcon.print('paved under the pumpjack '..#t)"
+                  % (BRINE[0], BRINE[0] + 2, BRINE[1], BRINE[1] + 2)))
         print(lua("local s=game.surfaces.aquilo local n=0 for _,p in pairs({{%s,-24.5},{%s,-23.5}}) do local h=s.find_entities_filtered{name='heat-pipe',position=p,radius=0.3}[1] if h then h.destroy{raise_destroy=true} n=n+1 end end rcon.print('heat pipes lifted for the ammonia branch '..n)"
                   % (LIX + 2.5, LIX + 2.5)))
         grid = fetch(BOX_B)

@@ -1,43 +1,46 @@
 #!/usr/bin/env python3
 """The export product of a wheel's rocket district (the Captain, 2026-11-14: every wheel has an export role next to its own science;
-Fulgora Wheel = processing units, Gleba Wheel = rocket fuel, Vulcanus Wheel = low density structure). This script sits on top of
-scripts/wheel_rocket.py (read its docstring first: tap, spiral corridor, heart, counted loop) and raises one product of that district
-to what the west spoke's chunks can carry. Written for and run on the Fulgora Wheel only; `--only PLANET` is there for a later
-roll-out (PRODUCT below), and without it the script works on Fulgora alone.
+Fulgora Wheel = processing units). This script sits on top of scripts/wheel_rocket.py (read its docstring first: tap, spiral corridor,
+heart, counted loop; coordinates below are heart-local unless they are plainly the tap's) and raises the district's processing units
+to what the west spoke's chunks can carry. Written for and run on the Fulgora Wheel only: without `--only PLANET` it works on Fulgora
+alone. PRODUCT and SURPLUS name the other wheels' products for a later roll-out, but only the Fulgora path has been run.
 
-What was wrong (found on the Fulgora Wheel, the same build stands on all four):
+The chain of limits found on the Fulgora Wheel, in the order they showed (1, 2, 10 and the gates of 8 stand on all four wheels):
   1 in1 was a mixed dead end. The carbonic inserter drops on the first tile of in1 and the oxide stub turned INTO that tile (a curve,
     not a side-load), so both kinds lay on lane 1, the belt filled (1,236 carbonic and 329 oxide chunks) and each crusher intake stood
-    in front of the other kind: no carbon, so no coal, no plastic, no circuits. `tap`: the oxide stub now runs south one tile and
-    side-loads from the east at (-66,2) (lane 1); the carbonic inserter drops on a straight tile and lands on lane 2. A lane each.
+    in front of the other kind: no carbon, so no coal, no plastic, no circuits. `tap`: the oxide stub (-65,1) runs south one tile and
+    a new belt (-65,2) side-loads from the east at (-66,2), lane 1; the carbonic inserter drops on a straight tile and lands on lane 2.
   2 The processing unit assembler faced north (place_entities leaves machines facing north), its acid port away from the acid pipe:
     0 processing units ever made. `config` turns it (south for the old assembler, west for the electromagnetic plant).
-  3 Rocket fuel took the light oil before plastic got any gas (15 solid fuel a minute against 4 plastic). `config`: the two products
-    that are not the export work only while the loop holds SURPLUS of the export's last intermediate (advanced circuits >= 5 here).
-  4 One assembler 3 a step: 17 processing units a minute at most. `em`: three epic electromagnetic plants above the loop instead
-    (processing unit x 19..22, electronic circuit x 24..27, advanced circuit x 29..32, all y 12..15 heart-local), electronic circuits
-    handed straight from plant to plant (bulk inserter at 23,13 to the processing unit plant, fast inserter at 28,13 to the advanced
-    circuit plant), so they never ride the loop. Productivity 0.5 built in, five modules: about 29 processing units a minute from one
-    plant, at half the material of the assembler.
-  5 Loop traffic: copper cable target 120 with a second (bulk) cable inserter at 37,28; carbon 60 with a second (bulk) lift at 41,20;
-    iron plate 40; processing unit 8.
-Caps in the hub: the export CAP_EXPORT, the other two CAP_SIDE. The hub request for the export from the planet below (a bonus, the
-wheel does not depend on it) gets its `max` lifted above the cap, or everything the wheel makes over that max goes to the hub's trash.
-`hub.providing_to_other_platforms` is set, so a platform in the same orbit can ask with request_from='platforms'.
+  3 Rocket fuel took the light oil before plastic got any gas. `config`: the two products that are not the export take their
+    ingredients only while the loop holds SURPLUS of the export's last intermediate (advanced circuits >= 5), and stop at CAP_SIDE.
+  4 One assembler 3 a step. `em`: three epic electromagnetic plants above the loop (processing unit x 19..22 facing west, its acid
+    port on the old pipe at 21,16; electronic circuit x 24..27; advanced circuit x 29..32; all y 12..15), electronic circuits handed
+    plant to plant (bulk inserter 23,13 and fast inserter 28,13). Productivity 0.5 built in + 0.5 research + five modules: one plant
+    makes about 29 processing units a minute, which is the line's machine ceiling. A second cable inserter (bulk, 37,28) and a second
+    carbon lift (bulk, 41,20) come with it.
+  5 One carbonic crusher fed everything. `crusher`: a second one at 17..19,43..44 (intake 17,45, products out at 19,42), in1 one tile longer.
+  6 Copper cable for circuits (400 a minute) crowded the loop's inner lane, where everything dropped from outside the loop lands, and
+    iron plate could not get on. `ec2`: a second circuit plant (14..17,12..15) west of the processing unit plant with its own cable
+    caster (8..12,12..16) on molten copper piped under the molten iron row (underground pair 30,34 -> 20,34, then y 34 west, x 14
+    north, in at 11,17). Loop targets: cable 30 (advanced circuits only), carbon 80, iron plate 40, processing unit 8. `trim` hands
+    whatever the loop holds over its targets to the hub (needed once after lowering a target).
+  7 The coal plant's one long-handed inserter lifted 190 carbon a minute off a loop carrying 420 past it. `coal`: a second one at 18,25.
+  8 Water, then metal: see WATER_ENTS. `water`: the reshuffler (5..7,43..44) reprocesses carbonic chunks, the kind this spoke has to
+    spare, run by a decider (7..8,48) on the melters' fluid buffers; the spoke's metallic tap is shut; the first carbonic crusher
+    serves the reshuffler's returned chunks only (`modswap` gives it the metallic crusher's speed modules).
+  9 Power: the plants and casters draw about 30 MW at full pace; the accumulators ran from 98% to 0 in fifteen game minutes.
+    `power w e --apply` lays a second row of panels (151 a spoke) on the free deck strip beside the first row of the named spokes.
+ 10 Hub: the export stops at CAP_EXPORT, the side products at CAP_SIDE. A hub request for the export with a `max` (fulgora-blue,
+    200-300 from the planet) would push everything the wheel makes over that max into the hub's trash: `config` lifts the max and
+    sets the minimum to REQUEST_MIN. `hub.providing_to_other_platforms` is set: a platform in this orbit asks with request_from='platforms'.
 
-  6 One carbonic crusher (18 chunks, 167 carbon a minute) fed everything. `crusher`: a second one at 17..19,43..44, in1 one tile longer.
-  7 Copper cable for circuits (400 a minute) crowded the loop's inner lane, where everything from outside the loop lands, and iron plate
-    could not get on. `ec2`: a second circuit plant west of the processing unit plant with its own cable caster (see EC2_ENTS); the
-    loop's cable target drops from 120 to 30 (advanced circuits only), carbon rises to 80.
-  8 Water. With the old stock of oxide chunks gone, the oxide tap (it yields to the spiral) brings about 5 chunks a minute: 25 ice, 500
-    water, about 12 processing units a minute. `water`: the reshuffler turns spare carbonic chunks into oxide (and metallic) ones while
-    the melter is short of ice (see WATER_ENTS).
-  9 The coal plant's one long-handed inserter lifted about 190 carbon a minute off a loop that carried 420 past it. `coal`: a second one at 18,25.
- 10 Power (see POWER_SPOKES): `power w e --apply` lays a second row of panels along the named spokes; without --apply it counts free spots.
-Steps: check | tap | em [--apply] | crusher [--apply] | ec2 [--apply] | water [--apply] | coal [--apply] | power [w n e s] [--apply] | trim | modules | config | status | rate [seconds]      [--only PLANET]
-Order on a wheel: tap, em (dry run), em --apply, crusher (dry run), crusher --apply, ec2 (dry run), ec2 --apply, water (dry run), water --apply, config. `em --apply` refuses a second run. After a quality upgrade and after any
-`wheel_rocket.py config`: `wheel_export_fulgora.py config` (wheel_rocket.py sets every cap back to 2,000 and its own targets).
-Never run `wheel_rocket.py build` or `refit` on a wheel that has the plants: it would try to put the three assemblers back."""
+Steps: check | tap | em [--apply] | crusher [--apply] | ec2 [--apply] | coal [--apply] | water [--apply] | power [w n e s] [--apply]
+       | config | trim | modswap | modules | status | rate [seconds]                                             [--only PLANET]
+Order on a fresh wheel: tap, em, crusher, ec2, coal, water (each first without --apply), power w e, config, trim. Every build step
+refuses or skips what already stands. `config` is safe to repeat and must be run after a quality upgrade and after any
+`wheel_rocket.py config` on the wheel (that one puts the caps back to 2,000, reopens the metallic tap, sets the reshuffler back to
+metallic chunks and the oxide gate back to 'ice < 20'). Never run `wheel_rocket.py build` or `refit` on a wheel that has the plants."""
 import json
 import sys
 import time
@@ -177,7 +180,7 @@ CONFIG = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=define
           "local mi=at('inserter',MIX,MIY) if mi then mi.get_or_create_control_behavior().circuit_enable_disable=false end "
           "local oi=at('inserter',OIX,OIY) if oi then local ob=oi.get_or_create_control_behavior() ob.circuit_enable_disable=true ob.circuit_condition={first_signal={type='fluid',name='water'},comparator='<',constant=WATERLOW} end "
           "local tap=at('inserter',-66.5,0.5) if tap then local tb=tap.get_or_create_control_behavior() tb.circuit_enable_disable=true tb.circuit_condition={first_signal={type='item',name='metallic-asteroid-chunk'},comparator='>',constant=1000000} end "
-          "o[#o+1]='reshuffler on carbonic chunks while ice or copper ore is short; metallic tap shut, metallic crusher ungated' end "
+          "o[#o+1]='reshuffler on carbonic chunks while water or molten copper is short; metallic tap shut, metallic crusher ungated, oxide intake on water' end "
           "local old=s.find_entities_filtered{name='assembling-machine-3',position={OPX,OPY},radius=0.3}[1] if old then old.direction=defines.direction.south o[#o+1]='old processing unit assembler turned south' end "
           "local g=0 for _,q in pairs(GATED) do g=g+cond(at('inserter',q[1],q[2]),q[3],'<',q[4],lb) end local sd=0 for _,q in pairs(SIDE) do sd=sd+cond(at('inserter',q[1],q[2]),q[3],'>=',q[4],lb) end "
           "local x=0 for _,q in pairs(CAPS) do x=x+cond(at('inserter',q[1],q[2]),q[3],'<',q[4],hub) end hub.providing_to_other_platforms=true "

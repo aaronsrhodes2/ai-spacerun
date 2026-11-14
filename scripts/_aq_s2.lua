@@ -1,9 +1,0 @@
-local s=game.surfaces['aquilo'] local f=game.forces.player local o={}
-local res={} for _,e in pairs(s.find_entities_filtered{type='resource'}) do res[#res+1]=e.name..' '..e.position.x..','..e.position.y..' '..e.amount end
-o[#o+1]=table.concat(res,' | ')
-local land={['snow-crests']='S',['snow-flat']='S',['snow-lumpy']='S',['snow-patchy']='S',['frozen-concrete']='C',['concrete']='C',['refined-concrete']='C',['ice-smooth']='i',['ice-rough']='i',['brash-ice']='~',['ice-platform']='P'}
-for y=-88,72,4 do local r={} for x=-72,64,2 do local t=s.get_tile(x,y) local c=' ' if t.valid then c=land[t.name] or '.' end if not f.is_chunk_charted(s,{math.floor(x/32),math.floor(y/32)}) then c='?' end r[#r+1]=c end o[#o+1]=string.format('%4d ',y)..table.concat(r) end
-local names={} for _,n in pairs({'fluorine-barrel','ammonia-barrel','lithium-brine-barrel','fluoroketone-cold-barrel','fluoroketone-hot-barrel','crude-oil-barrel'}) do names[#names+1]=n..'='..tostring(prototypes.item[n]~=nil) end o[#o+1]=table.concat(names,' ')
-for _,n in pairs({'cryogenic-science-pack','fluoroketone','fluoroketone-cooling','lithium','lithium-plate','ice-platform','ice-melting','ammoniacal-solution-separation','solid-fuel-from-ammonia','cryogenic-plant','fluorine-barrel'}) do local r=prototypes.recipe[n] if r then local a={} for _,i in pairs(r.ingredients) do a[#a+1]=i.amount..' '..i.name end local b={} for _,p in pairs(r.products) do b[#b+1]=(p.amount or '?')..' '..p.name..(p.temperature and ('@'..p.temperature) or '') end o[#o+1]=n..' '..r.energy..'s: '..table.concat(a,', ')..' -> '..table.concat(b,', ')..' enabled='..tostring(f.recipes[n].enabled) end end
-local cp=prototypes.entity['cryogenic-plant'] o[#o+1]='cryoplant speed '..cp.get_crafting_speed('epic')..' energy '..(cp.get_max_energy_usage('epic')*60)..' heat '..tostring(cp.heating_energy*60)..' modslots '..cp.module_inventory_size
-rcon.print(table.concat(o,'\n'))
