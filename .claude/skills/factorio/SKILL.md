@@ -887,3 +887,10 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 
 ## On every research: suggest the improvement (2026-11-13)
 - When a technology or a new level completes, look it up in `reference/unlock-notes.md` and tell the Captain in a line or two what it lets us improve or remove. A yes is an order. Add an entry for any technology that has none, and mark entries applied when built.
+
+## Make-anything machines (2026-11-13)
+- `scripts/omni_maker.py` (build | rom | config | status PLANET): three assembling machines 3 at Nauvis -30,-400 whose recipe is set by circuit from what the robot network is missing (a roboport reading missing requests) plus what shuttles overhead ask for and the network cannot cover (silos reading orbital requests, minus the network's stock from a second roboport).
+- An assembler obeys the FIRST recipe signal in the game's item order, not the largest, and it reads its own "read ingredients" output: with that switched on it slides down the recipe tree. So the ingredients come from a recipe table instead: 175 deciders a machine at -30,-375 (one per makeable item, outputs = ingredients x 5) that set the blue chest's requests.
+- One machine alone deadlocks on a missing part. Machine 2 gives first call (a decider adding 1,000,000) to what machine 1's chest asks for and the network lacks; machine 3 the same for machine 2.
+- Schedules: the hub puts its contents on both the red and the green wire, so an ITEM wait condition counts double (a condition of 800 magazines lets the ship go at 400). Fluids come from one tank on green and count once.
+- Only Nauvis has the machines so far. The rig needs a free 105 x 30 area inside the robot network on each planet.
