@@ -884,3 +884,6 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 
 ## One crusher, two recipes (2026-11-13)
 - A crusher can take its recipe from the circuit network (`control_behavior.circuit_set_recipe=true`, signal `{type='recipe',name=...}`). The Aquilo shuttle's metallic crusher crushes below 3,000 iron ore and reprocesses at or above it: no extra crusher or hub-edge tile needed. Keep the recipe signals on their own wire: on the hub's wire the item signals would read as recipes.
+
+## On every research: suggest the improvement (2026-11-13)
+- When a technology or a new level completes, look it up in `reference/unlock-notes.md` and tell the Captain in a line or two what it lets us improve or remove. A yes is an order. Add an entry for any technology that has none, and mark entries applied when built.
