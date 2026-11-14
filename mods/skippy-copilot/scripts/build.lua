@@ -9,6 +9,7 @@
 -- Rule kept in every mode: nothing can be built before it is researched.
 local R = require("scripts.registry")
 local G = require("scripts.grid")
+local V = require("scripts.avatar")
 
 local MAX_SIDE = 100
 local MAX_PIECES = 600
@@ -87,6 +88,7 @@ local function place_by_hand(surface, force, piece)
   return e
 end
 
+-- "avatar" is not in this table: the avatar does not place at once, it takes the whole plan as a job (scripts/avatar.lua).
 local EXECUTORS = { god = place_by_hand }
 
 R.register {
@@ -134,6 +136,22 @@ R.register {
       end
     end
     local failures = n - ok_count
+    -- under the avatar every piece must also be carried: the avatar places from its own inventory
+    local lacks, lacks_any = nil, false
+    if mode == "avatar" then
+      lacks = V.missing_for(checked)
+      lacks_any = next(lacks) ~= nil
+    end
+    if not a.dry_run and mode == "avatar" then
+      if failures > 0 or lacks_any then
+        return { placed = 0, failed_count = failures, failed = (#failed > 0) and failed or nil, avatar_lacks = lacks_any and lacks or nil, executor = mode,
+                 note = "nothing was started: " .. (lacks_any and "the avatar does not carry every piece" or "some pieces could not be placed") }
+      end
+      local q = V.queue_build(checked)
+      if q.error then return q end
+      return { placed = 0, queued = q.queued, job = q.job, executor = mode, surface = surface.name,
+               note = "the avatar is walking to each piece and placing it; this takes time. Its result comes with the job." }
+    end
     if not a.dry_run then
       -- nothing is placed unless every piece passed: half a line is worse than none
       if failures > 0 then
@@ -149,7 +167,8 @@ R.register {
       end
       return { placed = placed, failed_count = n - placed, failed = (#failed > 0) and failed or nil, surface = surface.name, executor = mode }
     end
-    return { would_place = ok_count, failed_count = failures, failed = (#failed > 0) and failed or nil, surface = surface.name,
-             note = (failures == 0) and "every piece can be placed" or "fix these before building" }
+    return { would_place = ok_count, failed_count = failures, failed = (#failed > 0) and failed or nil, surface = surface.name, executor = mode,
+             avatar_lacks = lacks_any and lacks or nil,
+             note = (failures > 0) and "fix these before building" or (lacks_any and "the avatar must carry these items first" or "every piece can be placed") }
   end,
 }

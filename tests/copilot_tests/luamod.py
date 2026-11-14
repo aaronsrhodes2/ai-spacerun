@@ -78,6 +78,28 @@ class LuaMod:
             return "{" + ", ".join("[%s] = %s" % (json.dumps(k), self._literal(x)) for k, x in v.items()) + "}"
         return json.dumps(v)
 
+    def tick(self, n=1):
+        self.fake.tick(n)
+
+    def run_job(self, limit=6000):
+        """Advance the world until the avatar's job ends; returns its result. Fails the test if it never ends."""
+        for _ in range(limit):
+            if not self.lua.eval("storage.avatar.job ~= nil"):
+                break
+            self.fake.tick(1)
+        assert not self.lua.eval("storage.avatar.job ~= nil"), "the avatar's job did not end in %d ticks" % limit
+        return self.result("avatar")["last_job"]
+
+    def give(self, **items):
+        """Put items into the avatar's inventory (item names with underscores for hyphens)."""
+        self.result("avatar_walk", {"x": 0, "y": 0, "near": 50})          # makes sure a body exists; ends at once
+        self.run_job()
+        for name, n in items.items():
+            self.run("storage.avatar.body.get_main_inventory().insert{name = %s, count = %d}" % (json.dumps(name.replace("_", "-")), n))
+
+    def body(self):
+        return self.lua.eval("storage.avatar.body.position.x"), self.lua.eval("storage.avatar.body.position.y")
+
     def scene(self):
         """The same small scene scripts/modcheck.py builds on a real server."""
         self.place("assembling-machine-2", 3.5, 1.5, recipe="iron-gear-wheel", status="no_power")

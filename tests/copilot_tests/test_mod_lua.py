@@ -21,14 +21,15 @@ def test_the_tool_list_describes_every_tool(mod):
     tools = mod.result("tools")
     names = [t["name"] for t in tools]
     assert {"lookup", "search", "map", "tile", "find_free", "diagnose", "bottlenecks", "alerts", "player", "design_note", "events_read",
-            "reveal_map", "chat_read", "say", "set_state", "occupancy", "build", "frames"} == set(names)
+            "reveal_map", "chat_read", "say", "set_state", "occupancy", "build", "frames",
+            "avatar", "avatar_walk", "avatar_mine", "avatar_stop", "avatar_craft", "avatar_carry", "set_executor"} == set(names)
     assert all(len(t["description"]) > 30 for t in tools)
     lookup = [t for t in tools if t["name"] == "lookup"][0]
     assert lookup["parameters"]["name"]["required"] is True and lookup["parameters"]["kind"]["required"] is False
 
 
 def test_a_bare_command_lists_the_tools_too(mod):
-    assert mod.call("")["ok"] and len(mod.call("")["result"]) == 18
+    assert mod.call("")["ok"] and len(mod.call("")["result"]) == 25
 
 
 def test_bad_calls_are_answered_with_what_would_have_been_right(mod):

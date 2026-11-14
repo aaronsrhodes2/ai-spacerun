@@ -10,9 +10,10 @@ defines = {
                     fluid_ingredient_shortage = 7, full_output = 8, no_recipe = 9, frozen = 10 },
   inventory = { chest = 1, crafter_input = 2, crafter_output = 3 },
   alert_type = { entity_destroyed = 0, no_material_for_construction = 3, turret_out_of_ammo = 7, train_out_of_fuel = 9 },
-  events = { on_player_created = 1, on_player_joined_game = 2, on_console_chat = 3, on_research_finished = 4 },
+  events = { on_player_created = 1, on_player_joined_game = 2, on_console_chat = 3, on_research_finished = 4, on_tick = 5,
+             on_script_path_request_finished = 6 },
   build_check_type = { manual = 1, script = 2 },
-  direction = { north = 0, east = 4, south = 8, west = 12 },
+  direction = { north = 0, northeast = 2, east = 4, southeast = 6, south = 8, southwest = 10, west = 12, northwest = 14 },
 }
 
 storage = {}
@@ -96,9 +97,12 @@ local ENTITIES = {
   ["heating-tower"] = ent("heating-tower", "reactor", 3, 3, {
     heat_buffer_prototype = { max_temperature = 1000, connections = { { position = { 0, -1 } }, { position = { 1, 0 } }, { position = { 0, 1 } }, { position = { -1, 0 } } } },
     surface_conditions = { { property = "pressure", min = 10, max = 1.7976931348623157e308 } } }),
-  ["iron-ore"] = ent("iron-ore", "resource", 1, 1, { items_to_place_this = {} }),
-  ["tree-01"] = ent("tree-01", "tree", 1, 1, { items_to_place_this = {} }),
-  ["character"] = ent("character", "character", 1, 1, { items_to_place_this = {} }),
+  ["iron-ore"] = ent("iron-ore", "resource", 1, 1, { items_to_place_this = {}, mineable_properties = { products = { { name = "iron-ore" } } } }),
+  ["tree-01"] = ent("tree-01", "tree", 1, 1, { items_to_place_this = {}, mineable_properties = { products = { { name = "wood" } } } }),
+  ["cliff"] = ent("cliff", "cliff", 1, 1, { items_to_place_this = {}, mineable_properties = {} }),
+  ["wooden-chest"] = ent("wooden-chest", "container", 1, 1),
+  ["character"] = ent("character", "character", 1, 1, { items_to_place_this = {},
+    collision_box = { left_top = { x = -0.2, y = -0.2 }, right_bottom = { x = 0.2, y = 0.2 } }, collision_mask = { layers = { player = true } } }),
 }
 
 local TECHS = {
@@ -174,7 +178,8 @@ local function new_surface(name, index)
     for _, e in ipairs(s.entities) do
       if e.valid and one_of(e.type, f.type) and one_of(e.name, f.name)
         and (f.force == nil or e.force == nil or e.force.name == (type(f.force) == "table" and f.force.name or f.force))
-        and (f.area == nil or overlap(e.bounding_box, f.area)) then
+        and (f.area == nil or overlap(e.bounding_box, f.area))
+        and (f.position == nil or math.sqrt(((f.position.x or f.position[1]) - e.position.x) ^ 2 + ((f.position.y or f.position[2]) - e.position.y) ^ 2) <= (f.radius or 0.5)) then
         out[#out + 1] = e
         if f.limit and #out >= f.limit then break end
       end
@@ -243,8 +248,41 @@ local function new_surface(name, index)
     end
     function e.get_fluid_contents() return e.fluids end
     function e.destroy() e.valid = false end
+    e.prototype = p
+    function e.remove_item(a2)
+      local have = e.items[a2.name] or 0
+      local n = math.min(have, a2.count)
+      e.items[a2.name] = have - n
+      return n
+    end
+    function e.insert(a2)
+      local room = e.capacity and math.max(0, e.capacity - (e.items[a2.name] or 0)) or a2.count
+      local n = math.min(room, a2.count)
+      e.items[a2.name] = (e.items[a2.name] or 0) + n
+      return n
+    end
+    if a.name == "character" then fake.make_character(e) end
     s.entities[#s.entities + 1] = e
     return e
+  end
+
+  function s.find_non_colliding_position(name, centre, radius, precision)
+    local cx, cy = centre[1] or centre.x, centre[2] or centre.y
+    for r = 0, radius do
+      for dx = -r, r do
+        for dy = -r, r do
+          local pos = { cx + dx + 0.5, cy + dy + 0.5 }
+          if s.can_place_entity { name = name, position = pos } then return { x = pos[1], y = pos[2] } end
+        end
+      end
+    end
+    return nil
+  end
+
+  function s.request_path(a2)
+    fake.next_path = (fake.next_path or 0) + 1
+    fake.path_requests[#fake.path_requests + 1] = { id = fake.next_path, start = { x = a2.start.x, y = a2.start.y }, goal = { x = a2.goal.x, y = a2.goal.y }, args = a2 }
+    return fake.next_path
   end
 
   function s.get_chunks()
@@ -280,6 +318,10 @@ function fake.add_player(name, x, y, admin)
   local p = { name = name, index = #game.players + 1, position = { x = x, y = y }, surface = nauvis, admin = admin ~= false, valid = true,
               zoom = 1, display_resolution = { width = 1920, height = 1080 }, selected = nil, printed = {}, alerts = {},
               gui = { top = element { type = "flow" } } }
+  if fake.players_have_bodies then                      -- the player's character; the player's position is the character's
+    p.character = nauvis.create_entity { name = "character", position = { x, y } }
+    p.position = p.character.position
+  end
   function p.print(text) p.printed[#p.printed + 1] = text end
   function p.get_alerts() return p.alerts end
   game.players[#game.players + 1] = p
@@ -305,6 +347,178 @@ game = {
   end,
   print = function(text) fake.printed[#fake.printed + 1] = text end,
 }
+
+-- ---------------------------------------------------------------- the character: walking, mining, crafting, carrying
+fake.path_requests = {}
+fake.walk_speed = 0.15                                   -- tiles a tick
+fake.mine_ticks = 30                                     -- ticks to mine one item by hand
+fake.craft_ticks = 30
+
+function fake.make_character(e)
+  e.walking_state = { walking = false, direction = 0 }
+  e.mining_state = { mining = false }
+  e.build_distance, e.reach_distance, e.resource_reach_distance = 10, 10, 2.7
+  e.crafting = {}
+  e.crafting_queue_size = 0
+  e.mined = 0
+  local inv = {
+    get_item_count = function(name) return e.items[name] or 0 end,
+    get_contents = function()
+      local out = {}
+      for name, n in pairs(e.items) do
+        if n > 0 then out[#out + 1] = { name = name, count = n, quality = "normal" } end
+      end
+      return out
+    end,
+    insert = function(a) e.items[a.name] = (e.items[a.name] or 0) + a.count return a.count end,
+    remove = function(a)
+      local n = math.min(e.items[a.name] or 0, a.count)
+      e.items[a.name] = (e.items[a.name] or 0) - n
+      return n
+    end,
+  }
+  function e.get_main_inventory() return inv end
+  function e.get_craftable_count(recipe)
+    local r = RECIPES[recipe]
+    local best
+    for _, ing in pairs(r.ingredients) do
+      local n = math.floor((e.items[ing.name] or 0) / ing.amount)
+      if not best or n < best then best = n end
+    end
+    return best or 0
+  end
+  function e.begin_crafting(a)
+    local r = RECIPES[a.recipe]
+    local n = math.min(a.count, e.get_craftable_count(a.recipe))
+    for _, ing in pairs(r.ingredients) do e.items[ing.name] = e.items[ing.name] - ing.amount * n end
+    for _ = 1, n do e.crafting[#e.crafting + 1] = { recipe = a.recipe, left = fake.craft_ticks } end
+    e.crafting_queue_size = #e.crafting
+    return n
+  end
+end
+
+local VECTOR = { [0] = { 0, -1 }, [2] = { 1, -1 }, [4] = { 1, 0 }, [6] = { 1, 1 }, [8] = { 0, 1 }, [10] = { -1, 1 }, [12] = { -1, 0 }, [14] = { -1, -1 } }
+
+-- Can a character stand at x,y? Not on water, not inside anything but ore.
+local function standable(s, x, y, self)
+  local t = s.get_tile(x, y)
+  if t.collides_with("water_tile") or t.name == "out-of-map" then return false end
+  for _, o in ipairs(s.entities) do
+    if o.valid and o ~= self and o.type ~= "resource" and o.type ~= "character" and o.type ~= "entity-ghost"
+      and x > o.bounding_box.left_top.x - 0.2 and x < o.bounding_box.right_bottom.x + 0.2
+      and y > o.bounding_box.left_top.y - 0.2 and y < o.bounding_box.right_bottom.y + 0.2 then
+      return false
+    end
+  end
+  return true
+end
+
+-- The stand-in pathfinder: a breadth-first search over whole tiles, eight ways, within 60 tiles of the start.
+-- fake.no_path makes it answer that there is no way; fake.path_delay holds answers back that many ticks.
+local function find_path(s, req)
+  if fake.no_path then return nil end
+  local sx, sy = math.floor(req.start.x), math.floor(req.start.y)
+  local gx, gy = math.floor(req.goal.x), math.floor(req.goal.y)
+  local radius = req.args.radius or 0.5
+  local queue, head, came = { { sx, sy } }, 1, { [sx .. "," .. sy] = false }
+  local found
+  while queue[head] do
+    local x, y = queue[head][1], queue[head][2]
+    head = head + 1
+    if math.sqrt((x + 0.5 - req.goal.x) ^ 2 + (y + 0.5 - req.goal.y) ^ 2) <= radius + 0.01 or (x == gx and y == gy) then
+      found = { x, y }
+      break
+    end
+    for _, v in pairs(VECTOR) do
+      local nx, ny = x + v[1], y + v[2]
+      local key = nx .. "," .. ny
+      if came[key] == nil and math.abs(nx - sx) <= 60 and math.abs(ny - sy) <= 60
+        and standable(s, nx + 0.5, ny + 0.5, req.args.entity_to_ignore)
+        and (v[1] == 0 or v[2] == 0 or (standable(s, x + v[1] + 0.5, y + 0.5, req.args.entity_to_ignore) and standable(s, x + 0.5, y + v[2] + 0.5, req.args.entity_to_ignore))) then
+        came[key] = { x, y }
+        queue[#queue + 1] = { nx, ny }
+      end
+    end
+  end
+  if not found then return nil end
+  local rev = {}
+  local at = found
+  while at do
+    rev[#rev + 1] = { position = { x = at[1] + 0.5, y = at[2] + 0.5 }, needs_destroy_to_reach = false }
+    at = came[at[1] .. "," .. at[2]]
+  end
+  local path = {}
+  for i = #rev, 1, -1 do path[#path + 1] = rev[i] end
+  return path
+end
+
+local function physics(s)
+  for _, e in ipairs(s.entities) do
+    if e.valid and e.type == "character" then
+      if e.walking_state.walking then
+        local v = VECTOR[e.walking_state.direction]
+        local len = math.sqrt(v[1] * v[1] + v[2] * v[2])
+        local nx, ny = e.position.x + v[1] / len * fake.walk_speed, e.position.y + v[2] / len * fake.walk_speed
+        if standable(s, nx, ny, e) then
+          e.position.x, e.position.y = nx, ny
+          e.bounding_box = { left_top = { x = nx - 0.2, y = ny - 0.2 }, right_bottom = { x = nx + 0.2, y = ny + 0.2 } }
+        end
+      end
+      if e.mining_state.mining then
+        local pos = e.mining_state.position
+        local target
+        for _, o in ipairs(s.entities) do
+          if o.valid and o.prototype and o.prototype.mineable_properties and o.prototype.mineable_properties.products
+            and math.abs(o.position.x - pos.x) < 0.6 and math.abs(o.position.y - pos.y) < 0.6 then
+            target = o
+            break
+          end
+        end
+        if target and math.sqrt((target.position.x - e.position.x) ^ 2 + (target.position.y - e.position.y) ^ 2) <= e.resource_reach_distance + 0.01 then
+          e.mined = e.mined + 1
+          if e.mined >= fake.mine_ticks then
+            e.mined = 0
+            local item = target.prototype.mineable_properties.products[1].name
+            e.items[item] = (e.items[item] or 0) + 1
+            if target.type == "resource" then
+              target.amount = target.amount - 1
+              if target.amount <= 0 then target.valid = false end
+            else
+              target.valid = false
+            end
+          end
+        end
+      end
+      if e.crafting[1] then
+        e.crafting[1].left = e.crafting[1].left - 1
+        if e.crafting[1].left <= 0 then
+          local r = RECIPES[table.remove(e.crafting, 1).recipe]
+          for _, prod in pairs(r.products) do e.items[prod.name] = (e.items[prod.name] or 0) + prod.amount end
+        end
+        e.crafting_queue_size = #e.crafting
+      end
+    end
+  end
+end
+
+-- Advance the stand-in world: answer path requests, run the mod's tick handler, move what moves.
+function fake.tick(n)
+  for _ = 1, n or 1 do
+    game.tick = game.tick + 1
+    local waiting = {}
+    for _, req in ipairs(fake.path_requests) do
+      req.age = (req.age or 0) + 1
+      if req.age > (fake.path_delay or 0) then
+        fake.handlers[defines.events.on_script_path_request_finished] { id = req.id, path = find_path(nauvis, req), try_again_later = false }
+      else
+        waiting[#waiting + 1] = req
+      end
+    end
+    fake.path_requests = waiting
+    if fake.handlers[defines.events.on_tick] then fake.handlers[defines.events.on_tick] { tick = game.tick } end
+    physics(nauvis)
+  end
+end
 
 -- ---------------------------------------------------------------- what the harness calls
 function fake.command(text, player_index)
