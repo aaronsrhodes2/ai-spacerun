@@ -11,22 +11,25 @@ Found: every loop belt was full (2,469 carbonic chunks). A crusher with a return
 full_output, takes no new chunk, and the loop never gets a gap: a deadlock. It began when the hub was full of iron plate (58,700).
 Nauvis orbit gives metallic : carbonic : oxide about 3 : 2 : 1, the packs need 1 : 1 : 2, so oxide (ice) is always the scarce kind.
 
-  governor   every loop belt is read (hold) on one green wire -> arithmetic (each * -1) -> red; a constant combinator on the same
+  governor   EVERY belt on the platform is read (hold) on one green wire (product belts too: their items do no harm on the wire; reading
+             only the belts that held chunks on the day missed the oxide stretch, which was empty then, and 1,450 oxide chunks piled up
+             unseen) -> arithmetic (each * -1) -> red; a constant combinator on the same
              red wire holds TARGETS. Red therefore carries "target minus what lies on the loop" per chunk kind. The 23 collector
              inserters and the collectors themselves set their filters from it (and work only on anything > 0): a kind is caught and
              loaded only while the loop holds fewer than its target, so the loop stays loose and returns always find a gap.
   release    an inserter on the hub's south edge (tile RX,4) puts parked chunks from the hub back on the loop under the same rule.
-  hub caps   the three inserters that load carbon, ice and iron plate into the hub are wired (green) to the hub and stop at CAPS,
-             so the hub can never again fill with one product and stop the others.
+  hub caps   the three inserters that load carbon, ice and iron plate into the hub are wired (green) to the hub and stop at CAPS
+             (carbon 1,500, iron plate 3,000, ice 10,000), so the hub can never again fill with one product and stop the others.
   balance    reprocessing turns the plentiful kinds into oxide (a craft takes 1 chunk and gives 0.4 of the same kind and 0.2 of
              each other kind). Metallic: the crushers at x in KEEP (the middle one of each three, which between them feed all
              eight furnaces) stay on crushing, the other eight reprocess. Carbonic: the six at y -19..-9 reprocess, the four at
              y -7..-1 crush. Two deciders (row 4, tiles -2..-1 and 0..1) read the governor (red) and the hub (green):
-               metallic reprocessors run while oxide is wanted (loop below its target) AND the hub holds more than FLOOR iron plate
-               carbonic reprocessors run while oxide is wanted AND the hub holds more than FLOOR carbon
+               metallic reprocessors run while the loop holds fewer than target + RESERVE oxide chunks (400 + 200, as read) AND the hub holds
+               more than FLOOR iron plate; carbonic reprocessors the same with FLOOR carbon
              (signal R on the decider's green output to the reprocessors' intake inserters). So plates and carbon keep first call,
-             everything else becomes oxide, and when ice and oxide are plentiful the reprocessors rest and the collectors' filters
-             stop the intake: nothing is ever thrown away.
+             everything else becomes an oxide reserve on the loop, and when that is full the reprocessors rest and the collectors'
+             filters stop the intake: nothing is ever thrown away. The collectors catch oxide up to 400; the 200 above that only
+             come from reprocessing. Loop at its fullest: 200 + 150 + 600 = 950 as read, about 1,450 true (it jams near 2,000).
   modules    the 12 science assemblers carry two legendary productivity module 2 each (+30%: ice is the scarce input, so packs per
              ice is what counts; machine capacity falls from 602 to about 356 packs a minute, still above what the chunks give).
              Taken from the Nauvis network (factory-made), the epic speed modules go back there. Crushers and furnaces already hold
@@ -42,8 +45,11 @@ import sys
 from _game import tools
 
 SURF = "platform-1"
-TARGETS = {"metallic-asteroid-chunk": 300, "carbonic-asteroid-chunk": 200, "oxide-asteroid-chunk": 500}
-CAPS = {"carbon": 6000, "ice": 4000, "iron-plate": 8000}
+TARGETS = {"metallic-asteroid-chunk": 200, "carbonic-asteroid-chunk": 150, "oxide-asteroid-chunk": 400}
+# The wire sees only plain belts: what rides in the 38 underground belts is not counted, and the true number on the loop is about
+# 1.5 times the reading (measured: oxide read 972, counted 1,515). The loop jams near 2,000 true, so the readings must stay under about 1,000.
+CAPS = {"carbon": 1500, "ice": 10000, "iron-plate": 3000}    # ice is the reserve to hold (50 ice a slot is 5.5 oxide chunks a slot; a chunk takes a slot of its own); carbon and plates are plentiful
+RESERVE = 200               # reprocessing goes on until the loop holds the oxide target plus this many oxide chunks
 FLOOR = {"iron-plate": 2000, "carbon": 300}       # carbon has first call anyway: the four carbon crushers stand first on the carbonic stretch
 KEEP = (-44, -38, -32, -26)  # metallic crushers (centre x) that stay on crushing
 PARK = 300
@@ -66,7 +72,7 @@ CONFIG = ("local s=game.surfaces['SURF'] local W=defines.wire_connector_id local
           "ar.get_or_create_control_behavior().parameters={first_signal={type='virtual',name='signal-each'},second_constant=-1,operation='*',output_signal={type='virtual',name='signal-each'}} "
           "local red=ar.get_wire_connector(W.combinator_output_red,true) red.connect_to(cc.get_wire_connector(W.circuit_red,true),false) "
           "local prev=ar.get_wire_connector(W.combinator_input_green,true) local nb=0 for _,b in pairs(s.find_entities_filtered{type='transport-belt'}) do local has=false for l=1,2 do for _,it in pairs(b.get_transport_line(l).get_contents()) do if it.name:find('chunk',1,true) then has=true end end end "
-          "local bc=b.get_control_behavior() if has or (bc and bc.read_contents and b.get_wire_connector(W.circuit_green,true).connection_count>0) then bc=b.get_or_create_control_behavior() bc.read_contents=true bc.read_contents_mode=defines.control_behavior.transport_belt.content_read_mode.hold "
+          "local bc=nil if true then bc=b.get_or_create_control_behavior() bc.read_contents=true bc.read_contents_mode=defines.control_behavior.transport_belt.content_read_mode.hold "
           "local g=b.get_wire_connector(W.circuit_green,true) g.connect_to(prev,false) prev=g nb=nb+1 end end "
           "local function gov(i) i.get_wire_connector(W.circuit_red,true).connect_to(red,false) i.use_filters=true i.inserter_filter_mode='whitelist' local ib=i.get_or_create_control_behavior() ib.circuit_set_filters=true ib.circuit_enable_disable=true ib.circuit_condition={first_signal={type='virtual',name='signal-anything'},comparator='>',constant=0} end "
           "local ni,nc=0,0 for _,i in pairs(s.find_entities_filtered{type='inserter'}) do local pt=i.pickup_target if pt and pt.type=='asteroid-collector' then gov(i) ni=ni+1 end end gov(rel) "
@@ -79,7 +85,7 @@ BALANCE = ("local s=game.surfaces['SURF'] local W=defines.wire_connector_id loca
            "local ar=at('arithmetic-combinator',AXP,4.5) local red=ar.get_wire_connector(W.combinator_output_red,true) local dm,dc=at('decider-combinator',DMX,4.5),at('decider-combinator',DCX,4.5) if not dm or not dc then rcon.print('deciders missing: run balance --apply') return end "
            "local function setd(d,item,floor) for _,id in pairs{W.combinator_input_red,W.combinator_input_green,W.combinator_output_red,W.combinator_output_green} do d.get_wire_connector(id,true).disconnect_all() end "
            "d.get_wire_connector(W.combinator_input_red,true).connect_to(red,false) d.get_wire_connector(W.combinator_input_green,true).connect_to(hub.get_wire_connector(W.circuit_green,true),false) "
-           "d.get_or_create_control_behavior().parameters={conditions={{first_signal={type='item',name='oxide-asteroid-chunk'},first_signal_networks={red=true,green=false},comparator='>',constant=0},"
+           "d.get_or_create_control_behavior().parameters={conditions={{first_signal={type='item',name='oxide-asteroid-chunk'},first_signal_networks={red=true,green=false},comparator='>',constant=-RESERVE},"
            "{first_signal={type='item',name=item},first_signal_networks={red=false,green=true},comparator='>',constant=floor,compare_type='and'}},outputs={{signal={type='virtual',name='signal-R'},copy_count_from_input=false,constant=1}}} end "
            "setd(dm,'iron-plate',FLOORP) setd(dc,'carbon',FLOORC) local keep={} for _,x in pairs({KEEP}) do keep[x]=true end local back,nr,nk=0,0,0 "
            "for _,c in pairs(s.find_entities_filtered{name='crusher'}) do local r=c.get_recipe() local rn=r and r.name or '' local want=rn "
@@ -115,7 +121,7 @@ def lua(code):
     return tools["run_lua"](code.replace("SURF", SURF).replace("TARGETS", t).replace("CAPS", c).replace("PARK", str(PARK))
                             .replace("RXP", str(RX + 0.5)).replace("CXP", str(CX + 0.5)).replace("AXP", str(AX + 1.0))
                             .replace("DMX", str(DM)).replace("DCX", str(DC)).replace("FLOORP", str(FLOOR["iron-plate"])).replace("FLOORC", str(FLOOR["carbon"]))
-                            .replace("KEEP", ",".join(str(k) for k in KEEP)))
+                            .replace("KEEP", ",".join(str(k) for k in KEEP)).replace("RESERVE", str(RESERVE)))
 
 
 def main():
