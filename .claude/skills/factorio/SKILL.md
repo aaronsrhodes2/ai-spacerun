@@ -939,3 +939,7 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - Order that worked for a new wheel, always with `--only PLANET`: `wheel.py create`, `wheel_round.py found` then `build`, `wheel_power.py`, remove the spoke solar panels and accumulators inside +-47.5 tiles (they block the hub build on a fresh wheel), `wheel_hub.py build` then `config`, `wheel_science.py clear / build / products`, `wheel_red.py clear / build`, `wheel_valve.py`, `wheel_blue.py pre / build`, `wheel_reprocess.py build / balance`, `wheel_spiral.py build`, `wheel_lights.py` last.
 - Chunks caught a minute at radius 600 (metallic / carbonic / oxide): Fulgora 177 / 104 / 31, Vulcanus 162 / 68 / 31. Both are short of ice (oxide); Vulcanus also of carbon.
 - Neither wheel delivers its packs anywhere yet.
+
+## Platform names carry an icon (2026-11-13)
+- The Captain's convention: every platform name starts with a rich-text icon. Shuttles and the courier `[virtual-signal=signal-rightwards-leftwards-arrow] `, wheels `[virtual-signal=signal-snowflake] `, White Science `[item=space-science-pack] `, Mobile Space Factory `[item=space-platform-hub] `. Give a new platform its icon when it is created.
+- Scripts find a platform by the END of its name (`p.name:sub(-#NAME)==NAME`) or strip a leading tag (`p.name:gsub('^%[.-%]%s*','')`), never by the whole name.

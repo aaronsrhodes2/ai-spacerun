@@ -22,7 +22,7 @@ AWAY = dict(fuel=22000, mags=500)
 ROUTE = ("local p=game.surfaces['SURF'].platform local function c(t,n,k) return {type='circuit',compare_type='and',condition={first_signal={type=t,name=n},comparator='>=',constant=k}} end "
          "local function stop(st,f,m) return {station=st,wait_conditions={c('fluid','thruster-fuel',f),c('fluid','thruster-oxidizer',f),c('item','firearm-magazine',m)}} end "
          "p.schedule={current=CUR,records={stop('nauvis',HF,HM),stop('DEST',AF,AM)}} p.paused=PAUSED rcon.print('schedule nauvis <-> DEST set, paused='..tostring(p.paused))")
-ADOPT = ("local f=game.forces.player local new,old for _,p in pairs(f.platforms) do if p.name=='NEWNAME' then new=p elseif p.name=='OLDNAME' then old=p end end if not (new and old) then rcon.print('platform not found') return end "
+ADOPT = ("local f=game.forces.player local new,old for _,p in pairs(f.platforms) do if p.name:sub(-#'NEWNAME')=='NEWNAME' then new=p elseif p.name:sub(-#'OLDNAME')=='OLDNAME' then old=p end end if not (new and old) then rcon.print('platform not found') return end "
          "if not (new.space_location and old.space_location and new.space_location==old.space_location) then rcon.print('not in the same orbit') return end local o={} "
          "local function req(h) for _,pt in pairs(h.get_logistic_point()) do if pt.mode==defines.logistic_mode.requester then return pt end end end local a,b=req(old.hub),req(new.hub) local n=0 "
          "for i=b.sections_count,1,-1 do b.remove_section(i) end for _,sec in pairs(a.sections) do local t=b.add_section(sec.group) if sec.group=='' then for i,fl in pairs(sec.filters) do if fl.value then t.set_slot(i,fl) n=n+1 end end end t.active=sec.active end o[#o+1]='requests copied '..n "

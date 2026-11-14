@@ -15,13 +15,13 @@ def wheels():
     for name, planet, turrets in WHEELS:
         if only and planet != only:
             continue
-        r = tools["run_lua"]("local f=game.forces.player for i,p in pairs(f.platforms) do if p.name=='%s' then rcon.print(p.surface.name) return end end rcon.print('none')" % name).strip()
+        r = tools["run_lua"]("local f=game.forces.player for i,p in pairs(f.platforms) do if p.name:gsub('^%%[.-%%]%%s*','')=='%s' then rcon.print(p.surface.name) return end end rcon.print('none')" % name).strip()
         out.append((name, planet, None if r == "none" else r, turrets))
     return out
 
 
 def create(name, planet):
-    return tools["run_lua"]("local f=game.forces.player for i,p in pairs(f.platforms) do if p.name=='%s' then rcon.print(p.surface.name..' exists') return end end "
+    return tools["run_lua"]("local f=game.forces.player for i,p in pairs(f.platforms) do if p.name:gsub('^%%[.-%%]%%s*','')=='%s' then rcon.print(p.surface.name..' exists') return end end "
                             "local p=f.create_space_platform{name='%s',planet='%s',starter_pack='space-platform-starter-pack'} p.apply_starter_pack() "
                             "p.surface.request_to_generate_chunks({0,0},20) p.surface.force_generate_chunk_requests() rcon.print(p.surface.name..' created')" % (name, name, planet))
 

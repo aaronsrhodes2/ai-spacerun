@@ -63,7 +63,7 @@ def config():
 
 
 SHIPS = ("local f=game.forces.player local o={} local packs=PACKS local nb,bn=nil,0 for _,net in pairs(f.logistic_networks.nauvis or {}) do if net.all_logistic_robots>bn then nb=net bn=net.all_logistic_robots end end "
-         "for i,p in pairs(f.platforms) do if p.name:find('^Nauvis%-Gleba') then local secs=p.hub.get_logistic_sections() local se=nil for _,sec in pairs(secs.sections) do if sec.is_manual then for j=1,sec.filters_count do sec.clear_slot(j) end se=se or sec end end se=se or secs.add_section() local k=0 "
+         "for i,p in pairs(f.platforms) do if p.name:find('Nauvis%-Gleba') then local secs=p.hub.get_logistic_sections() local se=nil for _,sec in pairs(secs.sections) do if sec.is_manual then for j=1,sec.filters_count do sec.clear_slot(j) end se=se or sec end end se=se or secs.add_section() local k=0 "
          "for _,n in pairs(packs) do if true then k=k+1 se.set_slot(k,{value={name=n,quality='normal'},min=400,import_from='nauvis'}) end end "
          "local sch=p.schedule local w1={} for _,c in pairs(sch.records[1].wait_conditions) do if c.type=='circuit' then w1[#w1+1]=c end end w1[#w1+1]={type='all_requests_satisfied',compare_type='and'} "
          "local w2={} for _,c in pairs(sch.records[2].wait_conditions) do if c.type=='circuit' and c.condition.first_signal.name~='agricultural-science-pack' and #w2<3 then c.compare_type='and' w2[#w2+1]=c end end w2[#w2+1]={type='inactivity',compare_type='and',ticks=3600} "

@@ -53,7 +53,7 @@ UNBUILD = HEAD + (
 SHIP_ENTS = [("arithmetic-combinator", -10.5, -1), ("arithmetic-combinator", -8.5, -1), ("constant-combinator", -10.5, 0.5),
              ("decider-combinator", -10.5, 6), ("selector-combinator", -8.5, 1)]
 SHIP = HEAD + (
-    "local p for _,q in pairs(f.platforms) do if q.name=='NAME' then p=q end end local s=p.surface local hub=p.hub local function at(n,x,y) return s.find_entities_filtered{name=n,position={x,y},radius=0.6}[1] end "
+    "local p for _,q in pairs(f.platforms) do if q.name:sub(-#'NAME')=='NAME' then p=q end end local s=p.surface local hub=p.hub local function at(n,x,y) return s.find_entities_filtered{name=n,position={x,y},radius=0.6}[1] end "
     "for _,q in pairs{{-10.5,2},{-10.5,4}} do local e=at('selector-combinator',q[1],q[2]) if e then e.destroy() end end "
     "local a1,am,cc,rq,rc=at('arithmetic-combinator',-10.5,-1),at('arithmetic-combinator',-8.5,-1),at('constant-combinator',-10.5,0.5),at('decider-combinator',-10.5,6),at('selector-combinator',-8.5,1) "
     "clear(a1) clear(am) clear(rq) clear(rc) for _,id in pairs{W.circuit_red,W.circuit_green} do cc.get_wire_connector(id,true).disconnect_all() end "
@@ -70,7 +70,7 @@ SHIP = HEAD + (
 # The courier: nauvis -> vulcanus -> gleba -> fulgora -> nauvis (all direct routes). At Nauvis it waits until every order is aboard
 # (the Captain, 2026-11-13: "the ship ... will wait for that machine to say it's done with the order ... get it loaded, and then go"), or
 # 10 minutes, whichever comes first, so one order nobody can make does not hold the ship for ever. Signal M is the magazine count.
-ROUTE = ("local p for _,q in pairs(game.forces.player.platforms) do if q.name=='NAME' then p=q end end local function c(t,n,k,cmp) return {type='circuit',compare_type=cmp or 'and',condition={first_signal={type=t,name=n},comparator='>=',constant=k}} end "
+ROUTE = ("local p for _,q in pairs(game.forces.player.platforms) do if q.name:sub(-#'NAME')=='NAME' then p=q end end local function c(t,n,k,cmp) return {type='circuit',compare_type=cmp or 'and',condition={first_signal={type=t,name=n},comparator='>=',constant=k}} end "
          "local function ready(f,m) return c('fluid','thruster-fuel',f),c('fluid','thruster-oxidizer',f),c('virtual','signal-M',m) end local a1,a2,a3=ready(14000,800) local b1,b2,b3=ready(14000,800) "
          "local recs={{station='nauvis',wait_conditions={{type='all_requests_satisfied',compare_type='and'},a1,a2,a3,{type='time',compare_type='or',ticks=36000},b1,b2,b3}}} "
          "for _,st in pairs{'vulcanus','gleba','fulgora'} do local x1,x2,x3=ready(22000,500) recs[#recs+1]={station=st,wait_conditions={{type='time',compare_type='and',ticks=1800},x1,x2,x3}} end "
@@ -82,7 +82,7 @@ STATUS = HEAD + (
     "local function sig(n,max) local t={} if n and n.signals then local l=n.signals table.sort(l,function(a,b) return a.count>b.count end) for i,x in pairs(l) do if i<=max then t[#t+1]=x.signal.name..' '..x.count end end end return table.concat(t,', ') end "
     "o[#o+1]='missing on SURF (top 12): '..sig(rp.get_circuit_network(W.circuit_red),12) "
     "local pad=s.find_entities_filtered{type='cargo-landing-pad'}[1] local pt={} for _,q in pairs(pad.get_logistic_point()) do if q.mode==defines.logistic_mode.requester then for _,sec in pairs(q.sections) do if not sec.is_manual then for _,fl in pairs(sec.filters) do if fl.value then pt[#pt+1]=fl.value.name..' '..fl.min end end end end end end o[#o+1]='pad asks (by circuit): '..table.concat(pt,', ') "
-    "for _,p in pairs(f.platforms) do if p.name=='NAME' then local hub=p.hub local inv=hub.get_inventory(defines.inventory.hub_main) local have=0 for _,it in pairs(cat) do if inv.get_item_count(it)>0 then have=have+1 end end local rqs={} "
+    "for _,p in pairs(f.platforms) do if p.name:sub(-#'NAME')=='NAME' then local hub=p.hub local inv=hub.get_inventory(defines.inventory.hub_main) local have=0 for _,it in pairs(cat) do if inv.get_item_count(it)>0 then have=have+1 end end local rqs={} "
     "for _,q in pairs(hub.get_logistic_point()) do if q.mode==defines.logistic_mode.requester then for _,sec in pairs(q.sections) do if not sec.is_manual then for _,fl in pairs(sec.filters) do if fl.value then rqs[#rqs+1]=fl.value.name..' '..fl.min end end end end end end "
     "o[#o+1]='ship at '..(p.space_location and p.space_location.name or 'flight')..': menu items aboard '..have..' of '..#cat..', free slots '..inv.count_empty_stacks()..' | orders ('..#rqs..'): '..table.concat(rqs,', ') end end rcon.print(table.concat(o,' ;; '))")
 
@@ -107,7 +107,7 @@ def main():
         print(run(UNBUILD, sys.argv[2]))
     elif step == "ship":
         name = sys.argv[2]
-        sf = tools["run_lua"]("for _,p in pairs(game.forces.player.platforms) do if p.name=='%s' then rcon.print(p.surface.name) end end" % name).strip()
+        sf = tools["run_lua"]("for _,p in pairs(game.forces.player.platforms) do if p.name:gsub('^%%[.-%%]%%s*','')=='%s' then rcon.print(p.surface.name) end end" % name).strip()
         have = tools["run_lua"]("local s=game.surfaces['%s'] local t={} for _,q in pairs({%s}) do t[#t+1]=#s.find_entities_filtered{name=q[1],position={q[2],q[3]},radius=0.6} end rcon.print(table.concat(t,','))"
                                 % (sf, ",".join("{'%s',%s,%s}" % e for e in SHIP_ENTS))).strip().split(",")
         todo = [{"name": n, "x": x, "y": y, "direction": 0, "params": dict(Q)} for (n, x, y), h in zip(SHIP_ENTS, have) if h == "0"]

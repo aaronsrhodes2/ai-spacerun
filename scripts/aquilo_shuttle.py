@@ -239,7 +239,7 @@ def layout():
 
 
 def surface():
-    r = tools["run_lua"]("for _,p in pairs(game.forces.player.platforms) do if p.name=='%s' then rcon.print(p.surface.name..'|'..p.index) return end end rcon.print('none')" % NAME).strip()
+    r = tools["run_lua"]("for _,p in pairs(game.forces.player.platforms) do if p.name:gsub('^%%[.-%%]%%s*','')=='%s' then rcon.print(p.surface.name..'|'..p.index) return end end rcon.print('none')" % NAME).strip()
     return None if r == "none" else r.split("|")
 
 

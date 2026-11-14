@@ -110,7 +110,7 @@ def layout():
 CONFIG = ("local s=game.surfaces['SURF'] local n,r=0,0 for _,q in pairs(FILT) do local i=s.find_entities_filtered{type='inserter',position={q[1],q[2]},radius=0.3}[1] if i then i.use_filters=true i.inserter_filter_mode='whitelist' "
           "for k,name in pairs(q[3]) do i.set_filter(k,name) end n=n+1 end end for _,q in pairs(REC) do local m=s.find_entities_filtered{name='crusher',position={q[1],q[2]},radius=0.5}[1] if m then m.set_recipe(q[3]) r=r+1 end end "
           "rcon.print('inserters filtered '..n..', crusher recipes '..r)")
-STATUS = ("local f=game.forces.player local p for i,q in pairs(f.platforms) do if q.name=='NAME' then p=q end end local s=p.surface local st=f.get_item_production_statistics(s) local o={} "
+STATUS = ("local f=game.forces.player local p for i,q in pairs(f.platforms) do if q.name:sub(-#'NAME')=='NAME' then p=q end end local s=p.surface local st=f.get_item_production_statistics(s) local o={} "
           "for _,n in pairs{'iron-ore','carbon','ice','metallic-asteroid-chunk','carbonic-asteroid-chunk','oxide-asteroid-chunk'} do o[#o+1]=n..' made '..string.format('%.1f',st.get_flow_count{name=n,category='input',precision_index=defines.flow_precision_index.ten_minutes})"
           "..' used '..string.format('%.1f',st.get_flow_count{name=n,category='output',precision_index=defines.flow_precision_index.ten_minutes}) end "
           "local inv=p.hub.get_inventory(defines.inventory.hub_main) local c={} for _,it in pairs(inv.get_contents()) do c[#c+1]=it.name..' '..it.count end o[#o+1]='hub ('..inv.count_empty_stacks()..' free): '..table.concat(c,', ') "

@@ -6,7 +6,7 @@ import time
 
 from _game import tools
 
-LUA = ("for _,p in pairs(game.forces.player.platforms) do if p.name=='NAME' then local s=p.surface local fl={} for _,t in pairs(s.find_entities_filtered{name='storage-tank'}) do for k,v in pairs(t.get_fluid_contents()) do fl[k]=(fl[k] or 0)+v end end "
+LUA = ("for _,p in pairs(game.forces.player.platforms) do if p.name:sub(-#'NAME')=='NAME' then local s=p.surface local fl={} for _,t in pairs(s.find_entities_filtered{name='storage-tank'}) do for k,v in pairs(t.get_fluid_contents()) do fl[k]=(fl[k] or 0)+v end end "
        "local dmg,dead=0,s.count_entities_filtered{type='entity-ghost'} for _,e in pairs(s.find_entities_filtered{force='player'}) do if e.health and e.max_health and e.health<e.max_health*0.6 then dmg=dmg+1 end end local inv=p.hub.get_inventory(defines.inventory.hub_main) "
        "rcon.print((p.space_location and p.space_location.name or 'flight')..'|'..dmg..'|'..dead..'|fuel '..math.floor(fl['thruster-fuel'] or 0)..' oxidizer '..math.floor(fl['thruster-oxidizer'] or 0)..' water '..math.floor(fl['water'] or 0)"
        "..' magazines '..inv.get_item_count('firearm-magazine')..' ore '..inv.get_item_count('iron-ore')..' speed '..string.format('%.0f',p.speed or 0)..' free slots '..inv.count_empty_stacks()) return end end rcon.print('gone|0|0|')")
