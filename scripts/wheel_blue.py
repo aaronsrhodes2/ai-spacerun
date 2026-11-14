@@ -31,7 +31,7 @@ Q = {"quality": "epic"}
 N, E, S, W = 0, 4, 8, 12
 OX, OY = 57, -29
 DIR = {(0, -1): N, (1, 0): E, (0, 1): S, (-1, 0): W}
-TARGETS = {"K": {"carbon": 300, "sulfur": 160, "calcite": 30, "iron-plate": 150, "copper-plate": 100}, "O": {"iron-ore": 150, "copper-ore": 100, "stone": 30, "steel-plate": 30}, "W": {"ice": 250}}   # on the whole belt; the plates on K feed scripts/wheel_battery.py; stone and steel plate on O feed scripts/wheel_grey_purple.py. A line's hub inserter has FIVE filter slots: seven items on K starved sulfur and blue science fell by half. The ore loop round the cluster runs on ONE lane of about 400 places: with 200+130 ore and 50+50 stone and steel standing on it the lane filled completely, stopped moving and the furnaces starved (blue science at 0); keep O's targets together well under 350
+TARGETS = {"K": {"carbon": 300, "sulfur": 160, "calcite": 30, "iron-plate": 150, "copper-plate": 100}, "O": {"iron-ore": 120, "copper-ore": 80, "stone": 12, "steel-plate": 12}, "W": {"ice": 250}}   # on the whole belt; the plates on K feed scripts/wheel_battery.py; stone and steel plate on O feed scripts/wheel_grey_purple.py. A line's hub inserter has FIVE filter slots: seven items on K starved sulfur and blue science fell by half. The ore loop round the cluster runs on ONE lane of about 400 places: with 200+130 ore and 50+50 stone and steel standing on it the lane filled completely, stopped moving and the furnaces starved (blue science at 0); keep the targets of O together under about 230 (the loop itself is 74 tiles, 296 places, and loads overshoot)
 ents, cfg, recipes, occ, fluid, lines = [], [], [], {}, {}, {}
 
 
