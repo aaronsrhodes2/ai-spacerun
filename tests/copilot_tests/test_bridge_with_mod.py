@@ -92,6 +92,7 @@ def test_pointing_with_words_uses_the_games_frames(world):
 
 def test_walk_to_waits_until_the_avatar_is_there(world):
     mod, tools = world
+    mod.result("set_mode", {"mode": "my-character"})
     r = ok(tools, "walk_to", {"x": 15, "y": 4})
     assert r["arrived"] and abs(r["x"] - 15) <= 1 and abs(r["y"] - 4) <= 1 and r["game_seconds"] > 1
     assert mod.result("avatar").get("job") is None
@@ -99,6 +100,7 @@ def test_walk_to_waits_until_the_avatar_is_there(world):
 
 def test_walk_to_says_why_it_could_not_arrive_and_where_it_is(world):
     mod, tools = world
+    mod.result("set_mode", {"mode": "my-character"})
     mod.run("fake.no_path = true")
     r = tools.call("walk_to", {"x": 15, "y": 4})
     assert not r["ok"] and "no way on foot" in r["error"] and "it is at 0,0 now" in r["hint"]
@@ -106,6 +108,7 @@ def test_walk_to_says_why_it_could_not_arrive_and_where_it_is(world):
 
 def test_mine_waits_and_reports_what_is_carried(world):
     mod, tools = world
+    mod.result("set_mode", {"mode": "my-character"})
     mod.place("iron-ore", 6.5, 0.5, amount=3, force=False)
     r = ok(tools, "mine", {"x": 6, "y": 0, "count": 2})
     assert (r["item"], r["mined"], r["carries"]) == ("iron-ore", 2, {"iron-ore": 2})
@@ -116,7 +119,7 @@ def test_mine_waits_and_reports_what_is_carried(world):
 
 def test_under_the_avatar_a_plan_needs_the_pieces_carried_then_is_walked_and_built(world):
     mod, tools = world
-    mod.result("set_executor", {"mode": "avatar"})
+    mod.result("set_mode", {"mode": "my-character"})
     plan = ok(tools, "plan_row", {"machine": "assembling-machine-2", "count": 2, "x": 30, "y": 10, "recipe": "copper-cable"})
     dry = ok(tools, "build_plan", {"plan_id": plan["plan_id"]})
     assert dry["avatar_lacks"] == {"assembling-machine-2": 2, "inserter": 4, "transport-belt": 12}
@@ -133,7 +136,7 @@ def test_under_the_avatar_a_plan_needs_the_pieces_carried_then_is_walked_and_bui
 
 def test_something_put_in_the_way_after_the_dry_run_is_caught_before_the_avatar_sets_off(world):
     mod, tools = world
-    mod.result("set_executor", {"mode": "avatar"})
+    mod.result("set_mode", {"mode": "my-character"})
     mod.give(transport_belt=11)
     plan = ok(tools, "plan_route", {"kind": "belt", "from_x": 20, "from_y": 0, "to_x": 30, "to_y": 0})
     ok(tools, "build_plan", {"plan_id": plan["plan_id"]})
@@ -153,7 +156,7 @@ def test_a_build_the_avatar_cannot_finish_reports_how_far_it_got(world):
             dropped.append(True)
         mod.tick(30)
     tools = LocalTools(LuaGame(mod), sleep=sleep, patience=2000)
-    mod.result("set_executor", {"mode": "avatar"})
+    mod.result("set_mode", {"mode": "my-character"})
     mod.give(transport_belt=11)
     plan = ok(tools, "plan_route", {"kind": "belt", "from_x": 20, "from_y": 0, "to_x": 30, "to_y": 0})
     ok(tools, "build_plan", {"plan_id": plan["plan_id"]})
@@ -165,6 +168,7 @@ def test_a_build_the_avatar_cannot_finish_reports_how_far_it_got(world):
 def test_waiting_gives_up_politely_when_the_avatar_takes_too_long(world):
     mod, _ = world
     tools = LocalTools(LuaGame(mod), sleep=lambda s: mod.tick(1), patience=5)
+    mod.result("set_mode", {"mode": "my-character"})
     r = tools.call("walk_to", {"x": 50, "y": 0})
     assert not r["ok"] and "still working" in r["error"] and "avatar_stop" in r["hint"]
     assert mod.result("avatar")["job"]["kind"] == "walk"                      # the walk itself goes on
@@ -173,8 +177,8 @@ def test_waiting_gives_up_politely_when_the_avatar_takes_too_long(world):
 def test_the_model_is_offered_the_waiting_tools_not_the_raw_ones(world):
     mod, tools = world
     agent = Agent(LuaGame(mod), FakeModel(["ok"]), local=tools)
-    assert {"walk_to", "mine", "avatar", "avatar_craft", "avatar_carry", "avatar_stop", "build_plan", "bottlenecks", "locate"} <= agent.names
-    assert not {"avatar_walk", "avatar_mine", "set_executor", "build", "occupancy", "frames", "say"} & agent.names
+    assert {"walk_to", "mine", "avatar", "avatar_craft", "avatar_carry", "avatar_stop", "set_mode", "build_plan", "bottlenecks", "locate"} <= agent.names
+    assert not {"avatar_walk", "avatar_mine", "lock_mode", "build", "occupancy", "frames", "say"} & agent.names
 
 
 def test_a_whole_request_through_the_agent_the_bridge_and_the_mod(world):
@@ -193,3 +197,9 @@ def test_a_whole_request_through_the_agent_the_bridge_and_the_mod(world):
     assert mod.lua.eval("game.surfaces.nauvis.count_entities_filtered{name = 'assembling-machine-2'}") == 2
     assert '"machines_checked": 2' in model.seen[4][-1]["content"]
     assert mod.result("set_state", {"state": "idle"})["state"] == "idle"
+
+
+def test_in_free_hand_mode_walking_is_refused_with_the_way_out(world):
+    mod, tools = world
+    r = tools.call("walk_to", {"x": 5, "y": 5})
+    assert not r["ok"] and "free-hand mode" in r["error"] and "my-character" in r["hint"]

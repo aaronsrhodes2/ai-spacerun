@@ -107,7 +107,7 @@ R.register {
     for _ in pairs(a.entities) do n = n + 1 end
     if n == 0 then return { error = "the list of pieces is empty" } end
     if n > MAX_PIECES then return { error = "at most " .. MAX_PIECES .. " pieces in one call", hint = "build it in parts" } end
-    local mode = storage.executor or "god"
+    local mode = V.executor()
     local place = EXECUTORS[mode]
     local ok_count, placed, failed, checked = 0, 0, {}, {}
     local allowed = {}

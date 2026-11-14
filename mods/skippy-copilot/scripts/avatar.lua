@@ -27,9 +27,29 @@ local DIRS = {                  -- the eight ways a character can walk: {dx, dy,
   { -1, 0, defines.direction.west }, { -1, -1, defines.direction.northwest },
 }
 
+-- The mode of the mod (the Captain, 2026-11-13): a setting the player can change at any moment, not a choice made
+-- once for a whole game.
+--   free-hand      the assistant builds on its own, placing pieces freely, while the player does their own thing
+--   my-character   the assistant moves the player's character around and builds with its hands and its inventory
+-- With nobody in the game, my-character uses a character the mod keeps for itself, so unattended runs still walk.
+V.MODES = { ["free-hand"] = "builds on its own", ["my-character"] = "moves your character" }
+local SETTING = "skippy-copilot-mode"
+
 function V.init()
   storage.avatar = storage.avatar or { next_id = 1 }
-  storage.executor = storage.executor or "god"
+  if not V.MODES[storage.mode or ""] then
+    local set = settings and settings.global and settings.global[SETTING]
+    storage.mode = (set and V.MODES[set.value]) and set.value or "free-hand"
+  end
+end
+
+function V.mode()
+  return storage.mode or "free-hand"
+end
+
+-- How pieces get placed: "god" (freely) or "avatar" (by the character).
+function V.executor()
+  return (V.mode() == "my-character") and "avatar" or "god"
 end
 
 local function dist(a, b)
@@ -325,6 +345,13 @@ function V.on_tick()
   TICKS[av.job.kind](body, av.job)
 end
 
+local function no_avatar()
+  if V.executor() ~= "avatar" then
+    return { error = "the mod is in free-hand mode, where the assistant builds on its own and does not move a character",
+             hint = "build with plans; or the player can switch to my-character mode" }
+  end
+end
+
 local function busy()
   local job = storage.avatar.job
   if job then return { error = "the avatar is busy with a " .. job.kind .. " job (id " .. job.id .. ")", hint = "wait for it, or call avatar_stop" } end
@@ -388,7 +415,7 @@ R.register {
   run = function()
     local av = storage.avatar
     local body = V.body()
-    local out = { executor = storage.executor, has_body = body ~= nil, last_job = av.last }
+    local out = { mode = V.mode(), mode_means = V.MODES[V.mode()], executor = V.executor(), has_body = body ~= nil, last_job = av.last }
     if av.job then
       local j = av.job
       out.job = { id = j.id, kind = j.kind, running_ticks = game.tick - j.started,
@@ -418,6 +445,8 @@ R.register {
     near = { type = "number", default = 1, description = "how many tiles from the spot count as arrived" },
   },
   run = function(a)
+    local off = no_avatar()
+    if off then return off end
     local b = busy()
     if b then return b end
     local body = need_body(true)
@@ -436,6 +465,8 @@ R.register {
     count = { type = "number", default = 10, description = "how many to gather" },
   },
   run = function(a)
+    local off = no_avatar()
+    if off then return off end
     local b = busy()
     if b then return b end
     local body = need_body(true)
@@ -475,6 +506,8 @@ R.register {
     count = { type = "number", default = 1, description = "how many times to craft it" },
   },
   run = function(a)
+    local off = no_avatar()
+    if off then return off end
     local body = need_body(true)
     if not body then return { error = "there is no character to craft with" } end
     local recipe = body.force.recipes[a.recipe]
@@ -506,6 +539,8 @@ R.register {
     direction = { type = "string", required = true, description = "'take' or 'put'" },
   },
   run = function(a)
+    local off = no_avatar()
+    if off then return off end
     if a.direction ~= "take" and a.direction ~= "put" then return { error = "direction must be 'take' or 'put'" } end
     local body = need_body(false)
     if not body then return { error = "there is no character" } end
@@ -525,16 +560,58 @@ R.register {
   end,
 }
 
+-- Change the mode. Whatever the avatar was doing stops: it must not go on walking the player's character after the
+-- player has taken it back.
+function V.set_mode(mode, by_setting)
+  if not V.MODES[mode] then return { error = "mode must be 'free-hand' or 'my-character'" } end
+  if storage.mode_locked and mode ~= V.mode() then
+    return { error = "the mode is locked for this run to '" .. V.mode() .. "'" }
+  end
+  local changed = mode ~= V.mode()
+  if changed and storage.avatar.job then
+    finish(false, "the mode was changed to " .. mode)
+  end
+  storage.mode = mode
+  if not by_setting and settings and settings.global and settings.global[SETTING] and settings.global[SETTING].value ~= mode then
+    settings.global[SETTING] = { value = mode }
+  end
+  return { mode = mode, means = V.MODES[mode], changed = changed }
+end
+
+function V.on_setting(event)
+  if event.setting == SETTING then
+    V.set_mode(settings.global[SETTING].value, true)
+    if V.redraw then V.redraw() end
+  end
+end
+
+-- The other mode from the one in force: what the button on the working light switches to.
+function V.other_mode()
+  return (V.mode() == "free-hand") and "my-character" or "free-hand"
+end
+
 R.register {
-  name = "set_executor",
-  description = "For the run's operator, not the model: how things get built. 'god' places pieces freely once researched; 'avatar' makes the character walk to each piece and place it from what it carries.",
+  name = "set_mode",
+  description = "Switch how the assistant works, when the player asks for it. 'free-hand': the assistant builds on its own, placing pieces freely, while the player does their own thing. 'my-character': the assistant moves the player's character around and builds by hand from its inventory. Only change it because the player said so.",
   params = {
-    mode = { type = "string", required = true, description = "'god' or 'avatar'" },
+    mode = { type = "string", required = true, description = "'free-hand' or 'my-character'" },
   },
   run = function(a)
-    if a.mode ~= "god" and a.mode ~= "avatar" then return { error = "mode must be 'god' or 'avatar'" } end
-    storage.executor = a.mode
-    return { executor = a.mode }
+    local r = V.set_mode(a.mode)
+    if V.redraw then V.redraw() end
+    return r
+  end,
+}
+
+R.register {
+  name = "lock_mode",
+  description = "For the run's operator, not the model: fix the mode so it cannot be changed during a scored run, or release it.",
+  params = {
+    locked = { type = "boolean", required = true, description = "true to fix the mode as it is now" },
+  },
+  run = function(a)
+    storage.mode_locked = a.locked or nil
+    return { mode = V.mode(), locked = a.locked }
   end,
 }
 

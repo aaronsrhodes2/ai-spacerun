@@ -11,12 +11,13 @@ defines = {
   inventory = { chest = 1, crafter_input = 2, crafter_output = 3 },
   alert_type = { entity_destroyed = 0, no_material_for_construction = 3, turret_out_of_ammo = 7, train_out_of_fuel = 9 },
   events = { on_player_created = 1, on_player_joined_game = 2, on_console_chat = 3, on_research_finished = 4, on_tick = 5,
-             on_script_path_request_finished = 6 },
+             on_script_path_request_finished = 6, on_runtime_mod_setting_changed = 7, on_gui_click = 8 },
   build_check_type = { manual = 1, script = 2 },
   direction = { north = 0, northeast = 2, east = 4, southeast = 6, south = 8, southwest = 10, west = 12, northwest = 14 },
 }
 
 storage = {}
+settings = { global = { ["skippy-copilot-mode"] = { value = "free-hand" } } }
 fake = { handlers = {}, commands = {}, printed = {}, rcon = {}, charted = {} }
 
 script = {
@@ -525,6 +526,18 @@ function fake.command(text, player_index)
   fake.rcon = {}
   fake.commands["skippy"] { parameter = text, player_index = player_index }
   return fake.rcon[#fake.rcon]
+end
+
+-- The player changes the mod setting in the game's settings window.
+function fake.change_setting(name, value)
+  settings.global[name] = { value = value }
+  fake.handlers[defines.events.on_runtime_mod_setting_changed] { setting = name, setting_type = "runtime-global" }
+end
+
+-- The player clicks an element of the interface.
+function fake.click(player_index, element)
+  element.valid = true
+  fake.handlers[defines.events.on_gui_click] { player_index = player_index, element = element }
 end
 
 function fake.research(name)

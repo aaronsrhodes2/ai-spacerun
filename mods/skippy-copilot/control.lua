@@ -68,5 +68,15 @@ script.on_event(defines.events.on_player_created, chat.on_player)
 script.on_event(defines.events.on_player_joined_game, chat.on_player)
 script.on_event(defines.events.on_console_chat, chat.on_chat)
 script.on_event(defines.events.on_research_finished, events.on_research)
+avatar.redraw = chat.draw_all                         -- the working light shows the mode
+script.on_event(defines.events.on_runtime_mod_setting_changed, avatar.on_setting)
+script.on_event(defines.events.on_gui_click, function(event)
+  if event.element and event.element.valid and event.element.name == "skippy_mode" then
+    local r = avatar.set_mode(avatar.other_mode())
+    local p = game.get_player(event.player_index)
+    if r.error and p then p.print(r.error) end
+    chat.draw_all()
+  end
+end)
 script.on_event(defines.events.on_tick, avatar.on_tick)
 script.on_event(defines.events.on_script_path_request_finished, avatar.on_path)

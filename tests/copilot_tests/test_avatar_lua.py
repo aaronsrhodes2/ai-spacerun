@@ -13,7 +13,9 @@ STEP = 0.15 + 1e-6            # the stand-in character's speed: tiles a tick
 
 @pytest.fixture
 def mod():
-    return LuaMod()
+    m = LuaMod()
+    m.result("set_mode", {"mode": "my-character"})          # the avatar only moves in this mode
+    return m
 
 
 def walk_and_watch(mod, limit=6000):
@@ -43,7 +45,7 @@ def test_with_nobody_in_the_game_the_mod_keeps_a_body_of_its_own(mod):
     r = mod.result("avatar_walk", {"x": 6, "y": 0})
     assert r["job"] == 1 and (r["from_x"], r["from_y"]) == (0, 0)
     a = mod.result("avatar")
-    assert a["has_body"] and a["job"]["kind"] == "walk" and a["executor"] == "god"
+    assert a["has_body"] and a["job"]["kind"] == "walk" and a["executor"] == "avatar" and a["mode"] == "my-character"
     assert a["reach"] == {"build": 10, "mine": 2.7, "touch": 10}
 
 
@@ -252,14 +254,72 @@ def belts(xs, y):
     return [{"name": "transport-belt", "x": x + 0.5, "y": y + 0.5, "direction": 4} for x in xs]
 
 
-def test_the_executor_switch(mod):
-    assert mod.result("set_executor", {"mode": "avatar"}) == {"executor": "avatar"}
+def test_the_mode_can_be_switched_at_any_time():
+    mod = LuaMod()
+    a = mod.result("avatar")
+    assert (a["mode"], a["executor"], a["mode_means"]) == ("free-hand", "god", "builds on its own")
+    assert mod.result("set_mode", {"mode": "my-character"}) == {"mode": "my-character", "means": "moves your character", "changed": True}
     assert mod.result("avatar")["executor"] == "avatar"
-    assert "'god' or 'avatar'" in mod.call("set_executor", {"mode": "wizard"})["error"]
+    assert mod.lua.eval("settings.global['skippy-copilot-mode'].value") == "my-character"      # the game's setting follows
+    assert mod.result("set_mode", {"mode": "my-character"})["changed"] is False
+    assert mod.result("set_mode", {"mode": "free-hand"})["changed"] is True
+    assert "'free-hand' or 'my-character'" in mod.call("set_mode", {"mode": "wizard"})["error"]
+
+
+def test_in_free_hand_mode_the_assistant_does_not_move_a_character():
+    mod = LuaMod()
+    for tool, args in (("avatar_walk", {"x": 5, "y": 5}), ("avatar_mine", {"x": 5, "y": 5}), ("avatar_craft", {"recipe": "iron-gear-wheel"}),
+                       ("avatar_carry", {"x": 5, "y": 5, "item": "coal", "direction": "put"})):
+        r = mod.call(tool, args)
+        assert not r["ok"] and "free-hand mode" in r["error"] and "my-character" in r["hint"], tool
+    assert mod.result("avatar")["has_body"] is False
+
+
+def test_changing_the_setting_in_the_game_changes_the_mode():
+    mod = LuaMod()
+    mod.run("fake.add_player('captain', 0, 0)")
+    mod.run("fake.change_setting('skippy-copilot-mode', 'my-character')")
+    assert mod.result("avatar")["mode"] == "my-character"
+    assert mod.lua.eval("game.players[1].gui.top.skippy_light.skippy_mode.caption") == "moves your character"
+    mod.run("fake.change_setting('some-other-mods-setting', 'x')")
+    assert mod.result("avatar")["mode"] == "my-character"
+
+
+def test_the_button_on_the_working_light_switches_the_mode():
+    mod = LuaMod()
+    mod.run("fake.add_player('captain', 0, 0)")
+    button = "game.players[1].gui.top.skippy_light.skippy_mode"
+    assert mod.lua.eval(button + ".caption") == "builds on its own"
+    mod.run("fake.click(1, %s)" % button)
+    assert mod.result("avatar")["mode"] == "my-character" and mod.lua.eval(button + ".caption") == "moves your character"
+    mod.run("fake.click(1, %s)" % button)
+    assert mod.result("avatar")["mode"] == "free-hand"
+    mod.run("fake.click(1, game.players[1].gui.top.skippy_light.state)")                         # clicking elsewhere does nothing
+    assert mod.result("avatar")["mode"] == "free-hand"
+
+
+def test_taking_the_character_back_stops_it_at_once(mod):
+    mod.result("avatar_walk", {"x": 40, "y": 0})
+    mod.tick(30)
+    assert mod.result("set_mode", {"mode": "free-hand"})["changed"] is True
+    here = mod.body()
+    mod.tick(30)
+    last = mod.result("avatar")["last_job"]
+    assert mod.body() == here and last["ok"] is False and last["reason"] == "the mode was changed to free-hand"
+
+
+def test_a_locked_mode_cannot_be_changed_during_a_scored_run(mod):
+    assert mod.result("lock_mode", {"locked": True}) == {"mode": "my-character", "locked": True}
+    r = mod.call("set_mode", {"mode": "free-hand"})
+    assert not r["ok"] and "locked for this run to 'my-character'" in r["error"]
+    mod.run("fake.add_player('captain', 0, 0)")
+    mod.run("fake.click(1, game.players[1].gui.top.skippy_light.skippy_mode)")
+    assert mod.result("avatar")["mode"] == "my-character" and "locked" in mod.lua.eval("game.players[1].printed[1]")
+    mod.result("lock_mode", {"locked": False})
+    assert mod.result("set_mode", {"mode": "free-hand"})["changed"] is True
 
 
 def test_a_dry_run_says_what_the_avatar_must_carry_first(mod):
-    mod.result("set_executor", {"mode": "avatar"})
     mod.give(transport_belt=2)
     r = mod.result("build", {"entities": belts(range(5), 3) + [{"name": "inserter", "x": 0.5, "y": 5.5}]})
     assert r["would_place"] == 6 and r["failed_count"] == 0 and r["executor"] == "avatar"
@@ -267,7 +327,6 @@ def test_a_dry_run_says_what_the_avatar_must_carry_first(mod):
 
 
 def test_nothing_is_started_while_the_avatar_lacks_a_piece(mod):
-    mod.result("set_executor", {"mode": "avatar"})
     mod.give(transport_belt=2)
     r = mod.result("build", {"entities": belts(range(5), 3), "dry_run": False})
     assert r["placed"] == 0 and r["avatar_lacks"] == {"transport-belt": 3} and "nothing was started" in r["note"]
@@ -275,7 +334,6 @@ def test_nothing_is_started_while_the_avatar_lacks_a_piece(mod):
 
 
 def test_building_by_hand_walks_into_reach_places_and_uses_up_the_items(mod):
-    mod.result("set_executor", {"mode": "avatar"})
     mod.give(transport_belt=10)
     r = mod.result("build", {"entities": belts(range(30, 36), 4), "dry_run": False})
     assert r["queued"] == 6 and r["placed"] == 0 and r["executor"] == "avatar" and "job" in r
@@ -290,7 +348,6 @@ def test_building_by_hand_walks_into_reach_places_and_uses_up_the_items(mod):
 
 
 def test_every_piece_is_placed_from_within_building_reach(mod):
-    mod.result("set_executor", {"mode": "avatar"})
     mod.give(transport_belt=40)
     pieces = belts(range(20, 60), 0)                                      # a line much longer than the reach
     mod.result("build", {"entities": pieces, "dry_run": False})
@@ -310,7 +367,6 @@ def test_every_piece_is_placed_from_within_building_reach(mod):
 
 
 def test_pieces_are_built_in_walking_order_not_in_the_order_given(mod):
-    mod.result("set_executor", {"mode": "avatar"})
     mod.give(transport_belt=3)
     far, near, mid = belts([60], 0)[0], belts([15], 0)[0], belts([35], 0)[0]
     mod.result("build", {"entities": [far, near, mid], "dry_run": False})
@@ -318,7 +374,6 @@ def test_pieces_are_built_in_walking_order_not_in_the_order_given(mod):
 
 
 def test_a_spot_that_gets_taken_while_it_walks_stops_the_job_with_the_count_so_far(mod):
-    mod.result("set_executor", {"mode": "avatar"})
     mod.give(transport_belt=3)
     mod.result("build", {"entities": belts([20, 40, 60], 0), "dry_run": False})
     mod.tick(5)
@@ -329,7 +384,6 @@ def test_a_spot_that_gets_taken_while_it_walks_stops_the_job_with_the_count_so_f
 
 
 def test_a_machine_gets_its_recipe_and_an_underground_its_type(mod):
-    mod.result("set_executor", {"mode": "avatar"})
     mod.give(assembling_machine_2=1, underground_belt=1)
     mod.result("build", {"entities": [{"name": "assembling-machine-2", "x": 6.5, "y": 6.5, "recipe": "copper-cable"},
                                       {"name": "underground-belt", "x": 9.5, "y": 6.5, "direction": 4, "type": "input"}], "dry_run": False})
@@ -339,7 +393,6 @@ def test_a_machine_gets_its_recipe_and_an_underground_its_type(mod):
 
 
 def test_research_still_gates_the_avatar(mod):
-    mod.result("set_executor", {"mode": "avatar"})
     mod.give(lab=1)
     mod.run("game.forces.player.recipes['lab'].enabled = false")
     r = mod.result("build", {"entities": [{"name": "lab", "x": 6.5, "y": 6.5}], "dry_run": False})
@@ -347,14 +400,14 @@ def test_research_still_gates_the_avatar(mod):
 
 
 def test_a_build_cannot_start_while_the_avatar_is_busy(mod):
-    mod.result("set_executor", {"mode": "avatar"})
     mod.give(transport_belt=2)
     mod.result("avatar_walk", {"x": 50, "y": 0})
     r = mod.call("build", {"entities": belts([3], 3), "dry_run": False})
     assert not r["ok"] and "busy with a walk job" in r["error"]
 
 
-def test_free_placement_still_works_when_the_executor_is_god(mod):
+def test_free_placement_needs_no_character():
+    mod = LuaMod()
     r = mod.result("build", {"entities": belts(range(3), 3), "dry_run": False})
     assert r["placed"] == 3 and r["executor"] == "god" and mod.result("avatar")["has_body"] is False
 
@@ -369,7 +422,6 @@ def test_walk_across_a_base_with_obstacles_and_build_a_ten_machine_line_from_the
     for y in range(-30, 31):
         mod.run("game.surfaces.nauvis.set(36, %d, 'water')" % y)          # and a river with one crossing
     mod.run("game.surfaces.nauvis.set(36, 28, 'grass-1')")
-    mod.result("set_executor", {"mode": "avatar"})
     mod.give(assembling_machine_2=10, inserter=20, transport_belt=60)
 
     line = []                                                             # ten belt-fed machines in a row, east of everything

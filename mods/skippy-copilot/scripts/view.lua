@@ -3,6 +3,7 @@
 -- frames those words refer to, which only the game knows: what is on screen, where the base lies, how far the map goes.
 local R = require("scripts.registry")
 local A = require("scripts.alerts")
+local V = require("scripts.avatar")
 
 local function rect(left, top, right, bottom)
   return { math.floor(left), math.floor(top), math.floor(right), math.floor(bottom) }
@@ -72,8 +73,8 @@ R.register {
     surface = { type = "string", description = "surface name; leave out for where the player is" },
   },
   run = function(a)
-    if (storage.executor or "god") ~= "god" then
-      return { error = "exploring on foot is not built yet", hint = "ask the player to walk there, or to allow free building" }
+    if V.executor() ~= "god" then
+      return { error = "exploring on foot is not built yet", hint = "walk the avatar toward the edge with walk_to, or ask the player to switch to free-hand mode" }
     end
     local p = A.any_player()
     local s = a.surface and game.surfaces[a.surface] or (p and p.surface) or game.surfaces.nauvis

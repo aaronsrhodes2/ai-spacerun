@@ -22,14 +22,14 @@ def test_the_tool_list_describes_every_tool(mod):
     names = [t["name"] for t in tools]
     assert {"lookup", "search", "map", "tile", "find_free", "diagnose", "bottlenecks", "alerts", "player", "design_note", "events_read",
             "reveal_map", "chat_read", "say", "set_state", "occupancy", "build", "frames",
-            "avatar", "avatar_walk", "avatar_mine", "avatar_stop", "avatar_craft", "avatar_carry", "set_executor"} == set(names)
+            "avatar", "avatar_walk", "avatar_mine", "avatar_stop", "avatar_craft", "avatar_carry", "set_mode", "lock_mode"} == set(names)
     assert all(len(t["description"]) > 30 for t in tools)
     lookup = [t for t in tools if t["name"] == "lookup"][0]
     assert lookup["parameters"]["name"]["required"] is True and lookup["parameters"]["kind"]["required"] is False
 
 
 def test_a_bare_command_lists_the_tools_too(mod):
-    assert mod.call("")["ok"] and len(mod.call("")["result"]) == 25
+    assert mod.call("")["ok"] and len(mod.call("")["result"]) == 26
 
 
 def test_bad_calls_are_answered_with_what_would_have_been_right(mod):
@@ -323,7 +323,7 @@ def test_reveal_map_charts_a_ring_round_the_known_map(mod):
     assert r["was"] == [-32, -32, 31, 31] and r["now"] == [-96, -96, 95, 95]
     assert mod.lua.eval("fake.charted[1].area[1][1]") == -96 and mod.lua.eval("fake.charted[1].surface") == "nauvis"
     assert mod.result("reveal_map", {"depth": 5})["now"][0] == -64                 # at least a chunk, whatever was asked
-    mod.run("storage.executor = 'avatar'")
+    mod.result("set_mode", {"mode": "my-character"})
     assert "on foot is not built yet" in mod.call("reveal_map")["error"]
 
 

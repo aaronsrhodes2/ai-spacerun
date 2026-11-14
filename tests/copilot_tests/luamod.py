@@ -92,6 +92,8 @@ class LuaMod:
 
     def give(self, **items):
         """Put items into the avatar's inventory (item names with underscores for hyphens)."""
+        if self.result("avatar")["mode"] != "my-character":
+            self.result("set_mode", {"mode": "my-character"})
         self.result("avatar_walk", {"x": 0, "y": 0, "near": 50})          # makes sure a body exists; ends at once
         self.run_job()
         for name, n in items.items():

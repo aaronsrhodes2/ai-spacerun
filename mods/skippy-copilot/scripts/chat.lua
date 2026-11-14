@@ -25,6 +25,12 @@ local function draw(player)
     frame = top.add { type = "frame", name = "skippy_light", direction = "horizontal" }
     frame.add { type = "label", name = "state", caption = "" }
   end
+  if not frame.skippy_mode then
+    frame.add { type = "button", name = "skippy_mode", caption = "" }
+  end
+  local mode = storage.mode or "free-hand"
+  frame.skippy_mode.caption = (mode == "my-character") and "moves your character" or "builds on its own"
+  frame.skippy_mode.tooltip = "Click to switch: the assistant either builds on its own while you play, or moves your character and builds with its hands."
   local s = STATES[storage.state.state] or STATES.idle
   local note = storage.state.note or ""
   frame.state.caption = "Skippy: " .. s.text .. ((note ~= "") and (" - " .. note) or "")
