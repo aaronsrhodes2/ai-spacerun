@@ -26,7 +26,7 @@ from kit_shipping import KIT
 from nauvis_mall import ITEMS
 
 BARRELS = ["barrel", "water-barrel", "petroleum-gas-barrel", "light-oil-barrel", "lubricant-barrel", "sulfuric-acid-barrel"]   # fluids travel as barrels
-CAT = sorted((set(KIT + ITEMS) - {"iron-gear-wheel", "iron-stick"}) | set(BARRELS) | {"rocket-fuel"})     # a rocket load of gears or sticks is 30 hub slots
+CAT = sorted((set(KIT + ITEMS) - {"iron-gear-wheel", "iron-stick"}) | set(BARRELS) | {"rocket-fuel", "tungsten-carbide"})     # a rocket load of gears or sticks is 30 hub slots
 SITES = {"gleba": (151, 13), "fulgora": (154, -156), "vulcanus": (-26, -64)}
 Q = {"quality": "epic"}
 HEAD = ("local f=game.forces.player local W=defines.wire_connector_id local function wire(a,ia,b,ib) a.get_wire_connector(ia,true).connect_to(b.get_wire_connector(ib,true),false) end "
