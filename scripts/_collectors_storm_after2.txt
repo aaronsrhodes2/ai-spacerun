@@ -1,0 +1,7 @@
+rod: 0 on the map, 0 strikes seen, mean 0 MJ, total 0 MJ over 2.67 game minutes = 0 MJ/min
+collector: 47 on the map, 354 strikes seen, mean 488 MJ, total 172693 MJ over 2.67 game minutes = 64686 MJ/min
+accumulators MJ min/max over the window: 21790 22100
+now: {"tick": 50812865, "day": 0.6507407412796155, "accn": ["11931:42", "11933:37", "11935:30", "11936:87", "11940:907", "21409:2"], "no_power": 3, "low_power": 0, "damaged": 0, "total": 2567, "att": {"fulgoran-ruin-attractor": 75, "lightning-collector": 47}}
+before: {"tick": 50782831, "day": 0.8698148153530318, "accn": ["11931:42", "11933:37", "11935:30", "11936:87", "11940:907", "21409:2"], "no_power": 3, "low_power": 0, "damaged": 0, "total": 2648, "att": {"fulgoran-ruin-attractor": 75, "lightning-rod": 138}}
+entity types that LOST members since the snapshot (destroyed by lightning?): {'cargo-pod': 1}
+collectors: -127.0,-122.0,epic,21409;-109.0,30.0,epic,11931;-110.0,69.0,epic,11931;-94.0,7.0,epic,11931;-83.0,56.0,epic,11931;-72.0,87.0,epic,11931;-35.0,99.0,epic,11933;-19.0,-10.0,epic,11935;-18.0,22.0,epic,11935;13.0,-118.0,epic,11936;2.0,-90.0,epic,11936;19.0,-65.0,epic,11936;30.0,-93.0,epic,11936;16.0,-15.0,epic,11935;6.0,25.0,epic,11935;10.0,100.0,epic,11933;50.0,-111.0,epic,11936;50.0,89.0,epic,11933;7
