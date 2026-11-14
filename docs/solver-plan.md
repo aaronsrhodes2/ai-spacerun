@@ -4,6 +4,12 @@ Written 2026-11-13 from the Captain's brief. **Status: the mod is started.** The
 day: one chat builds the mod while the main chat finishes the Fable run. Scored runs on purple Skippy still wait for the
 verified solve (see Gate).
 
+**Open end: the skill is not complete, because no solve has been recorded yet** (the Captain, 2026-11-13). The skill is
+meant to be distilled from a whole solve of Space Age played under Fable, and that run is still going in the main chat:
+it is heading for Aquilo, with improvements and play still to come before the solar system edge. Until a solve has been
+played through and recorded, the skill's rules are a first draft from part of a game, the milestone list past Aquilo is
+untested, and nothing here should be read as a proven way to win.
+
 Built so far:
 - **The mod** (`mods/skippy-copilot`, version 0.14.0), forty tools: lookup, search, map, tile, find_free, diagnose,
   bottlenecks, alerts, player, design_note, events_read, reveal_map, chat_read, say, set_state, and for the planner

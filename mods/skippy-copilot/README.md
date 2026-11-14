@@ -22,6 +22,9 @@ You need three things: the game running as a server, this mod, and one AI.
 5. **Start it:** `python -m copilot`. In the game, type in chat. The light at the top of the screen shows what the AI is
    doing; it reads "not connected" whenever the bridge is not running.
 
+**Not finished:** the skill the AI follows is a first draft. It is meant to be distilled from a whole recorded solve of
+Space Age, and that solve has not been completed yet.
+
 Things to say first: "what should we do next?", "what is wrong with the factory?", "where is the nearest iron?",
 "solve Nauvis".
 
