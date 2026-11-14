@@ -12,13 +12,16 @@ Settings: a file named copilot.env next to this package (copy copilot.env.exampl
     COPILOT_RCON_PASSWORD      or COPILOT_RCON_PASSWORD_FILE (a file holding it)
 
   The AI: one source, one key
-    COPILOT_SOURCE             purple   purple Skippy, the agent of the SkippyTel project, working in one workspace
-                               openai   any server that speaks the OpenAI chat API (most hosted and local servers do)
-                               ollama   a local Ollama server
-    COPILOT_URL                where the source is. purple: SkippyTel's bridge, default http://localhost:9337
+    COPILOT_SOURCE             anthropic  any server that speaks the Anthropic Messages API: Skippy Core's model, or Anthropic
+                               openai     any server that speaks the OpenAI chat API (most hosted and local servers do)
+                               ollama     a local Ollama server
+                               purple     purple Skippy, the agent of the SkippyTel project, working in one workspace.
+                                          An agent built for long jobs: a turn takes minutes and it runs one at a time.
+    COPILOT_URL                where the source is. anthropic: the server's address, such as http://skippy-core:11434
                                openai: the API's base, such as https://api.example.com/v1    ollama: default http://localhost:11434
+                               purple: SkippyTel's bridge, default http://localhost:9337
     COPILOT_KEY                the source's key, or COPILOT_KEY_FILE (a file holding it). Not needed for a local Ollama.
-    COPILOT_MODEL              openai and ollama only: the model's name. purple needs none.
+    COPILOT_MODEL              anthropic, openai and ollama: the model's name. purple needs none.
     COPILOT_WORKSPACE          purple only: the id of the project (workspace) purple works in
 
   Optional
@@ -41,7 +44,7 @@ from .toolbox import Toolbox
 from .tools import LocalTools
 
 HERE = pathlib.Path(__file__).parent
-SOURCES = ("purple", "openai", "ollama")
+SOURCES = ("anthropic", "openai", "ollama", "purple")
 
 
 class SetupError(Exception):
@@ -84,7 +87,7 @@ def source_of(env):
     """Which one source is configured. COPILOT_PROVIDER is the older name for the same setting."""
     kind = (env.get("COPILOT_SOURCE") or env.get("COPILOT_PROVIDER") or "").strip().lower()
     if not kind:
-        raise SetupError("no AI source is set: put COPILOT_SOURCE in copilot.env. It is one of: purple, openai, ollama.")
+        raise SetupError("no AI source is set: put COPILOT_SOURCE in copilot.env. It is one of: %s." % ", ".join(SOURCES))
     if kind not in SOURCES:
         raise SetupError("COPILOT_SOURCE is '%s'; it must be one of: %s" % (kind, ", ".join(SOURCES)))
     return kind
@@ -102,7 +105,13 @@ def agent_from(env, game, tools, log_path, max_steps=12):
             raise SetupError("purple Skippy needs a workspace: put COPILOT_WORKSPACE in copilot.env (the id of a project in SkippyTel's registry)")
         purple = Purple(url or "http://localhost:9337", key, env["COPILOT_WORKSPACE"])
         return PurpleAgent(game, purple, Toolbox(game, tools, log_path))
-    if kind == "openai":
+    if kind == "anthropic":
+        if not url:
+            raise SetupError("the anthropic source needs COPILOT_URL: the server's address, such as http://skippy-core:11434")
+        if not env.get("COPILOT_MODEL"):
+            raise SetupError("the anthropic source needs COPILOT_MODEL: the name of the model on that server")
+        model = make("anthropic", env["COPILOT_MODEL"], url, secret(env, "COPILOT_KEY"))
+    elif kind == "openai":
         if not url:
             raise SetupError("the openai source needs COPILOT_URL: the API's base address, such as http://localhost:1234/v1")
         if not env.get("COPILOT_MODEL"):

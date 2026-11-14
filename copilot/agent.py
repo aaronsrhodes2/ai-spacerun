@@ -71,7 +71,7 @@ class Agent:
                 if not reply["tool_calls"]:
                     answer = reply["content"]
                     break
-                messages.append({"role": "assistant", "content": reply["content"], "tool_calls": reply["tool_calls"]})
+                messages.append({"role": "assistant", "content": reply["content"], "tool_calls": reply["tool_calls"], "blocks": reply.get("blocks")})
                 if light:
                     self.game.call("set_state", {"state": "working", "note": reply["tool_calls"][0]["name"]})
                 for c in reply["tool_calls"]:

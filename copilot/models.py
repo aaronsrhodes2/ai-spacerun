@@ -3,6 +3,7 @@ shape, whatever the provider. Standard library only, so the bridge installs anyw
 
   ollama   a local Ollama server (native /api/chat, so the context size can be set)
   openai   any server that speaks the OpenAI chat-completions API: LM Studio, llama.cpp, vLLM, OpenAI itself
+  anthropic  any server that speaks the Anthropic Messages API (/v1/messages): Skippy Core's model, or Anthropic itself
 
 Messages are kept in the OpenAI shape: {"role": "system"|"user"|"assistant"|"tool", "content": ...}; an assistant turn with
 tool calls carries "tool_calls": [{"id", "name", "args"}], which each adapter rewrites for its own wire format."""
@@ -89,6 +90,69 @@ class OpenAICompatible:
                 "tokens_in": usage.get("prompt_tokens"), "tokens_out": usage.get("completion_tokens")}
 
 
+class AnthropicCompatible:
+    """The Anthropic Messages API, spoken over plain HTTP so the bridge needs nothing installed. Skippy Core's model
+    answers in this format (the Captain's own server), and so does Anthropic. One address, one key."""
+
+    VERSION = "2023-06-01"
+
+    def __init__(self, model, base_url, api_key="", timeout=600, max_tokens=4096, post=None):
+        base = base_url.rstrip("/")
+        self.model, self.key, self.timeout, self.max_tokens = model, api_key, timeout, max_tokens
+        self.base = base
+        self.url = base + ("/messages" if base.endswith("/v1") else "/v1/messages")
+        self.post = post or _post
+
+    @staticmethod
+    def wire(messages):
+        """(system text, messages) in the Messages shape: tool calls and their results are content blocks, and the
+        results of one step travel together in one user message."""
+        system, out = [], []
+        for m in messages:
+            role = m["role"]
+            if role == "system":
+                system.append(m.get("content") or "")
+            elif role == "assistant":
+                blocks = m.get("blocks")                        # what the server sent, replayed unchanged
+                if not blocks:
+                    blocks = [{"type": "text", "text": m["content"]}] if m.get("content") else []
+                    blocks += [{"type": "tool_use", "id": c["id"], "name": c["name"], "input": c["args"]} for c in m.get("tool_calls") or []]
+                out.append({"role": "assistant", "content": blocks or [{"type": "text", "text": "(nothing)"}]})
+            elif role == "tool":
+                block = {"type": "tool_result", "tool_use_id": m.get("tool_call_id"), "content": m.get("content") or ""}
+                last = out[-1] if out else None
+                if last and last["role"] == "user" and isinstance(last["content"], list) and last["content"][0].get("type") == "tool_result":
+                    last["content"].append(block)
+                else:
+                    out.append({"role": "user", "content": [block]})
+            else:
+                out.append({"role": "user", "content": m.get("content") or ""})
+        return chr(10).join(s for s in system if s), out
+
+    def chat(self, messages, tools):
+        system, wire = self.wire(messages)
+        body = {"model": self.model, "max_tokens": self.max_tokens, "messages": wire}
+        if system:
+            body["system"] = system
+        if tools:
+            body["tools"] = [{"name": t["function"]["name"], "description": t["function"]["description"], "input_schema": t["function"]["parameters"]} for t in tools]
+        headers = {"anthropic-version": self.VERSION}
+        if self.key:
+            headers["x-api-key"] = self.key
+        r = self.post(self.url, body, headers, self.timeout)
+        if r.get("type") == "error":
+            raise RuntimeError("the AI source answered with an error: %s" % ((r.get("error") or {}).get("message") or r))
+        blocks = r.get("content") or []
+        text = "".join(b.get("text") or "" for b in blocks if b.get("type") == "text")
+        calls = [{"id": b.get("id") or "call_%d" % i, "name": b.get("name"), "args": _args(b.get("input"))}
+                 for i, b in enumerate(blocks) if b.get("type") == "tool_use"]
+        if r.get("stop_reason") == "refusal":
+            text = text or "The AI source declined to answer that."
+        usage = r.get("usage") or {}
+        return {"content": THINK.sub("", text).strip(), "tool_calls": calls, "blocks": blocks if calls else None,
+                "tokens_in": usage.get("input_tokens"), "tokens_out": usage.get("output_tokens")}
+
+
 def make(provider, model, base_url=None, api_key="", num_ctx=16384):
     if provider == "ollama":
         return Ollama(model, base_url or "http://localhost:11434", num_ctx)
@@ -96,4 +160,8 @@ def make(provider, model, base_url=None, api_key="", num_ctx=16384):
         if not base_url:
             raise ValueError("the openai provider needs a base URL, such as http://localhost:1234/v1")
         return OpenAICompatible(model, base_url, api_key)
-    raise ValueError("unknown provider '%s' (ollama or openai)" % provider)
+    if provider == "anthropic":
+        if not base_url:
+            raise ValueError("the anthropic provider needs a base URL, such as http://skippy-core:11434")
+        return AnthropicCompatible(model, base_url, api_key)
+    raise ValueError("unknown provider '%s' (ollama, openai or anthropic)" % provider)

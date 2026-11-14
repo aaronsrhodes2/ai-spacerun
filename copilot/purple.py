@@ -11,7 +11,11 @@ bridge's own loop would.
 The bridge's calls used here:
   POST /workshop                {task, conv, message, project, brain: "core", who}   -> {ok, task, done}
   GET  /workshop/run/<task>?after=N&wait=S                                          -> {events, next, done, ok, error}
-with `Authorization: Bearer <token>`. An event is {t: "text", text} or {t: "tool", name, detail}."""
+  POST /workshop/cancel/<task>                                                      stops a run
+with `Authorization: Bearer <token>`. An event is {t: "text", text} or {t: "tool", name, detail}.
+
+Purple is built for long jobs: a run takes minutes, and the bridge runs one at a time. It suits a standing goal handed
+over whole. For quick answers to chat, the model behind it can be the source directly (COPILOT_SOURCE=anthropic)."""
 import json
 import time
 import urllib.error
@@ -91,7 +95,16 @@ class Purple:
             if got.get("done"):
                 return {"text": "\n".join(texts).strip(), "tools": tools, "ok": bool(got.get("ok")), "error": got.get("error")}
             if time.time() - started > self.max_wait:
-                raise SourceError("purple Skippy has been working on this for over %d minutes; it is still running in its own chat" % (self.max_wait // 60))
+                self.cancel(task)                               # do not leave a run going that nobody is waiting for
+                raise SourceError("purple Skippy has been working on this for over %d minutes; it has been stopped" % (self.max_wait // 60))
+
+    def cancel(self, task):
+        """Stop a run. Never raises: this is tidying up."""
+        try:
+            status, _ = self.http("POST", "%s/workshop/cancel/%s" % (self.url, task), self.token, {})
+            return status == 200
+        except SourceError:
+            return False
 
     @staticmethod
     def _why(status, got):

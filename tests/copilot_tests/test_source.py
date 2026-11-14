@@ -268,7 +268,7 @@ def test_plans_survive_a_restart_of_the_tool_server(tmp_path):
 def test_exactly_one_source_is_configured():
     assert main.source_of({"COPILOT_SOURCE": "Purple"}) == "purple"
     assert main.source_of({"COPILOT_PROVIDER": "ollama"}) == "ollama"                # the older name still works
-    with pytest.raises(main.SetupError, match="no AI source is set.*purple, openai, ollama"):
+    with pytest.raises(main.SetupError, match="no AI source is set.*anthropic, openai, ollama, purple"):
         main.source_of({})
     with pytest.raises(main.SetupError, match="'claude'; it must be one of"):
         main.source_of({"COPILOT_SOURCE": "claude"})

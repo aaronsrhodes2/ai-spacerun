@@ -65,7 +65,11 @@ Built so far:
   plates" and "build a rocket silo right now"). The same list every time, scored by the log.
 - **One AI source, and a setup a newcomer can get through** (the Captain, 2026-11-13: purple Skippy in a specific workspace
   is the source for all turns; one source, one key, no collections of models; friendly to new AI users):
-  - Settings name exactly one source: `purple`, `openai` or `ollama`, with one address and one key.
+  - Settings name exactly one source: `anthropic`, `openai`, `ollama` or `purple`, with one address and one key.
+  - `anthropic` is any server that speaks the Anthropic Messages API. Skippy Core serves purple's model that way, with
+    tool use, so the bridge's own loop can run every turn on it in seconds: one address, one key. Not yet tried live.
+  - Purple's bridge is built for long jobs (minutes a run, one at a time, 409 when busy), so the `purple` source suits
+    a standing goal handed over whole more than chat. A run nobody waits for any more is cancelled.
   - Purple Skippy is an agent, so it thinks in its own loop: the bridge sends each turn to SkippyTel's bridge for one
     conversation in one workspace, and purple reaches the game through this repository's MCP server, which offers the same
     tools. The skill purple reads is the same text a plain model is given; a test keeps them identical.
@@ -103,7 +107,7 @@ Built so far:
 - **Alerts** (the Captain, 2026-11-13): the game's alerts are given to the model at the start of every turn, and a new
   kind of alert makes the model look into it and offer one suggestion.
 - **The bridge** (`copilot/`): game chat in, model with tools, answer out, working light, a log of every call, and a
-  scorer for those logs. Providers: Ollama and any OpenAI-compatible server. An Anthropic adapter is not written.
+  scorer for those logs. Providers: Ollama, any OpenAI-compatible server, and any server speaking the Anthropic Messages API.
 - **Tests**: 460 unit tests that need no game and no model, including the mod's own Lua run under Lua 5.2 against a
   stand-in game; `scripts/modcheck.py` for the mod on a local headless test server. The Lua tests found three bugs on
   their first run (a search centred one tile off, a wrong player returned for an unknown name, an unstable ranking).

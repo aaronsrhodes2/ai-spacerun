@@ -30,6 +30,7 @@ Things to say first: "what should we do next?", "what is wrong with the factory?
 | Source | What it is | What you fill in |
 |---|---|---|
 | `openai` | Any service or local server that speaks the OpenAI chat API (most do) | address, key, model name |
+| `anthropic` | Any service or server that speaks the Anthropic Messages API | address, key, model name |
 | `ollama` | Ollama on your own computer | model name; no key |
 | `purple` | Purple Skippy, the SkippyTel project's agent, working in one workspace | the bridge's address and key, the workspace |
 
@@ -38,7 +39,9 @@ The model must be able to use tools; the check tells you if it cannot.
 **Purple Skippy** is an agent with its own thinking loop, so it reaches the game differently: through the MCP server in
 this repository (`.mcp.json`, `python -m copilot.mcp_server`), which offers the same tools, and with the
 `factorio-copilot` skill (`.claude/skills/factorio-copilot`). The workspace named in `COPILOT_WORKSPACE` must be a project
-in SkippyTel's registry whose folder is a clone of this repository. Any other agent that speaks MCP can be connected the
+in SkippyTel's registry whose folder is a clone of this repository. Purple is built for long jobs: a turn takes minutes
+and it runs one at a time, so it suits a standing goal better than quick chat. For quick turns on the same model, point the
+`anthropic` source at Skippy Core, which serves that model directly. Any other agent that speaks MCP can be connected the
 same way.
 
 ## Calling a tool
@@ -186,7 +189,7 @@ server that speaks the OpenAI chat API). `python -m copilot --ask "..."` asks on
 
 ## Testing
 
-- `python -m pytest tests/copilot_tests` runs with no game and no model: 460 tests. They cover the bridge, the planning
+- `python -m pytest tests/copilot_tests` runs with no game and no model: 469 tests. They cover the bridge, the planning
   code, the scorer, and the mod's own Lua run under Lua 5.2 against a stand-in game (`tests/copilot_tests/fake_game.lua`).
   Needs `pip install lupa`.
 - `scripts/modserver.sh start` runs a second, headless copy of the Steam install with its own data folder (`.testserver/`),
