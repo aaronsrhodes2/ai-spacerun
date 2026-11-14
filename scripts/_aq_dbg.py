@@ -4,7 +4,7 @@ which = sys.argv[1]
 box = a.BOX_P if which == "platforms" else a.BOX_S
 grid = a.fetch(box); net = a.heat_tiles(box)
 P = a.platform_plan() if which == "platforms" else a.science_plan()
-extra = [(x, a.CY - 5) for x in range(a.CXS[0] - 6, a.CXS[-1] + 5)] if which == "platforms" else []
+extra = [(x, a.CY - 5) for x in range(a.CXS[0] - 6, a.CXS[-1] + 4)] if which == "platforms" else []
 H, cold = a.heat_plan(P, grid, net, extra)
 sym = {"pipe": "=", "pipe-to-ground": "u", "chemical-plant": "c", "cryogenic-plant": "K", "bulk-inserter": "n", "fast-inserter": "n", "substation": "$", "offshore-pump": "o"}
 ov = {}

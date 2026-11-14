@@ -1,0 +1,12 @@
+AQUILO ROCKET SILO SITE (written 2026-11-14 by the silo agent; add notes for the silo agent BELOW the line "NOTES")
+surface: aquilo
+footprint (tiles, inclusive): x0=-13 y0=-6 x1=2 y1=9
+  silo 9x9 at center (-5.5,3.5) = tiles x -10..-2, y -1..7
+  north yard (inserters y -2, requester chests y -3, heat spine y -4), substation at (-1,-2)
+  south side y 8..9 and west x -13..-11 reserved (cargo inserters / a second silo yard)
+heat link corridor (pipes only, 1 tile wide): from (-3,-4) east/north to the base heat network near (6,-13); the exact tiles are
+  printed by `scripts/aquilo_silo.py check`
+why: the big clean land field west of the landing pad (no ghosts of ice platforms on land, none in the footprint), ~35 tiles from the
+  power block, 17 tiles from roboport (4,-11) (inside its logistic area, network 3635)
+status: planned, not yet placed
+NOTES

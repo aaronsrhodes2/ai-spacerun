@@ -211,15 +211,17 @@ def platform_plan():
         P.add("cryogenic-plant", cx - 2, cy - 2, 5, 5, N, recipe="ice-platform")
         for y in (cy - 4, cy - 3, cy - 2, cy - 1):
             P.pipe(J, y)
-        P.add("pipe-to-ground", J + 1, cy - 4, d=W)
-        P.add("pipe-to-ground", J + 9, cy - 4, d=E)
+        if cx != CXS[-1]:
+            P.add("pipe-to-ground", J + 1, cy - 4, d=W)
+            P.add("pipe-to-ground", J + 9, cy - 4, d=E)
         P.add("bulk-inserter", cx - 3, cy + 1, d=W)           # ice: separation -> cryogenic plant (direction = the side it picks up from)
         P.add("bulk-inserter", cx + 1, cy - 3, d=S)           # platforms out
         P.add("passive-provider-chest", cx + 1, cy - 4)
         P.add("substation", cx - 5, cy - 2, 2, 2)
-    P.pipe(CXS[-1] + 4, cy - 4)
-    P.add("offshore-pump", CXS[-1] + 5, cy - 4, d=E)
     c1 = CXS[0]
+    P.add("offshore-pump", c1 - 9, cy - 4, d=N)                # needs ocean 3 wide and 2 deep in front: the bay at -22..-19, -2..-1
+    for x in (c1 - 9, c1 - 8, c1 - 7):
+        P.pipe(x, cy - 3)
     for x in range(c1 - 7, CXS[-1] - 1):
         P.pipe(x, cy + 3)                                      # the ammonia main
     P.add("bulk-inserter", c1 - 7, cy + 1, d=E)                # ice for the rest of the base (gated in config)
@@ -229,10 +231,10 @@ def platform_plan():
     P.pipe(rx - 1, cy + 4)                                     # water: melter -> rocket fuel plant
     P.add("chemical-plant", rx - 1, cy + 5, 3, 3, N, recipe="ammonia-rocket-fuel")
     P.add("chemical-plant", rx - 4, cy + 2, 3, 3, W, recipe="ice-melting")
-    P.add("fast-inserter", rx - 3, cy + 1, d=N)
-    P.add("requester-chest", rx - 3, cy)
-    P.add("fast-inserter", rx - 2, cy + 6, d=W)
+    P.add("fast-inserter", rx - 3, cy + 5, d=S)                # ice for the melter (west of it must stay open for the heat line)
     P.add("requester-chest", rx - 3, cy + 6)
+    P.add("fast-inserter", rx, cy + 8, d=S)                    # solid fuel for the rocket fuel plant
+    P.add("requester-chest", rx, cy + 9)
     P.add("fast-inserter", rx + 2, cy + 6, d=W)
     P.add("passive-provider-chest", rx + 3, cy + 6)
     return P
@@ -245,7 +247,7 @@ def platforms(apply):
     grid = fetch(BOX_P)
     net = heat_tiles(BOX_P)
     P = platform_plan()
-    extra = [(x, CY - 5) for x in range(CXS[0] - 6, CXS[-1] + 5)]
+    extra = [(x, CY - 5) for x in range(CXS[0] - 6, CXS[-1] + 4)]
     build(P, grid, net, apply, extra)
 
 
@@ -264,8 +266,8 @@ def config():
     c1 = CXS[0]
     rx = c1 - 8
     code = "local s=game.surfaces.aquilo local o={} "
-    code += ask(rx - 2.5, CY + .5, {"ice": 50})
-    code += ask(rx - 2.5, CY + 6.5, {"solid-fuel": 100})
+    code += ask(rx - 2.5, CY + 6.5, {"ice": 50})
+    code += ask(rx + .5, CY + 9.5, {"solid-fuel": 100})
     code += cond(c1 - 6.5, CY + 1.5, "ice", "<", 1500)
     code += cond(40.5, -3.5, "ice", ">", 4000)             # the recycler ice sink runs on true surplus only
     code += "rcon.print(table.concat(o,' | '))"
