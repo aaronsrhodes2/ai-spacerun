@@ -138,6 +138,22 @@ without having to think of it.
 What does not transfer as a habit: long chains of reasoning about circuit logic and ratios across a whole factory. Those
 go into calculators and a small set of named control patterns (cap a stock, gate an inserter on a count, loop a mixed belt).
 
+## Knowledge the skill carries, so nobody has to say "go read the documentation"
+
+The Captain, 2026-11-13: Fable came with a great deal of Factorio knowledge and could search the web; a local model has
+neither to the same degree, and the player should not have to send it off to read. The skill must already be good at this.
+Four sources, all offline, all reached by lookup so they never fill the context:
+
+| Source | What it answers | Where it comes from |
+|---|---|---|
+| Game data | Recipes, technologies and what they need, machines, surface conditions, item weights | Read from the running game itself, so it is exact for the installed version and mods |
+| Scripting reference | Which fields and calls exist on which object | The game makers' published reference, indexed for search; only the tool builders and the last-resort raw script need it |
+| Playbook | How each planet works and in what order to do things: heat on Aquilo, spoilage on Gleba, scrap on Fulgora, lava on Vulcanus, platforms | Written by us from this run, in our own words |
+| Mistakes list | What not to do, and why | This run's transcripts and git history |
+
+Rules: the model looks things up by topic or by name and gets a short answer; nothing is loaded whole. The playbook is our
+own writing, not copied from the wiki. The web stays available as a last resort when the player asks for it.
+
 ## Increments
 
 Each has an exit test. None starts before the one above it passes, except where marked parallel.
