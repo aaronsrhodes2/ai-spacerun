@@ -135,10 +135,16 @@ A clean run has zero of the first four.
 4. **Drift from upstream.** The further our mod goes, the less likely a merge. Decide at increment 1 whether to send
    the walking avatar upstream as its own pull request.
 
-## Open questions for the Captain
+## Upstream and our own mod
 
-1. Offer the walking avatar to the ai-player-v3 author as a small contribution of its own once it works, or keep all our
-   work together and offer it once at the end? To be decided when increment 1 is done.
+Settled 2026-11-13 (the Captain):
 
-Settled 2026-11-13: the solve is the solar system edge; the stock qwen coder run is the very last step. Our own runs use
-purple Skippy with our skill and tuning, to get the most out of the machines at home without paying for tokens.
+- We take the concept and the mechanism from ai-player-v3 (a mod with primitive actions and a remote interface, a bridge
+  over RCON, a model behind a provider adapter), not its code. We write our own mod and bridge with those mechanisms.
+- Everything is offered to the ai-player-v3 author once, at the end, for them to pull from if they wish. No early pull
+  request.
+- Today this repository is a fork: `mod/` and most of `bridge/` are the upstream author's code under the MIT licence.
+  Writing our own replaces them; that is a work item in increment 1 (mod) and increment 2 (bridge). The upstream project
+  is credited by name in our README either way.
+- The solve is the solar system edge. The stock qwen coder run is the very last step; our own runs use purple Skippy with
+  our skill and tuning, to get the most out of the machines at home without paying for tokens.
