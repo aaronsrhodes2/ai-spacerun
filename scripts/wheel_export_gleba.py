@@ -19,14 +19,19 @@ stands on the free deck south of the blue block and takes carbon, sulfur and cal
                   calcite 60): the hub then loads the item whatever K's own count says. What the taps miss rides on to K's
                   loop, so the bound keeps blue's lane from filling with it. (An ask of +40 on top of K's target failed: the
                   missed items piled up on K's loop, K's count stood at target + ask and nothing more was sent.)
-                  Three taps an item for sulfur and calcite: the hub inserter drops 12 at a time, a tap lifts 4.
+                  Four taps an item for sulfur and calcite: the hub inserter drops 12 at a time, a tap lifts 4.
+                  NO DILUTION: blue's junction takes a fixed number of items a second off the head of the feed, so every
+                  sulfur or calcite the taps let through costs blue a carbon (measured: 22% sulfur in the feed north of
+                  the taps, blue's coal 72 a minute instead of 100). A fifth decider (55,-13) reads the feed stretch north
+                  of the taps and puts signal D on the K-loop wire while it holds fewer than PURE carbon of 80 places; the
+                  asks stop while D is up, and while the item's taps are shut for blue's sake.
            take   three deciders (56,-4 / -6 / -8) block an item's taps (they add 1000 to its signal):
                   carbon   while the 20 feed tiles north of the taps (53,-14..-33, what blue gets next) hold fewer than FULL
                            items of 80 places, all kinds together (an arithmetic combinator at 56,-2 sums them into signal T):
                            blue's junction must always be offered a standing full queue, as before the cell existed. Also
                            while the hub holds fewer than RESERVE carbon.
-                  sulfur   while K's LOOP (blue's own stock) holds fewer than 80 sulfur, or the hub is under RESERVE carbon
-                  calcite  while K's loop holds fewer than 12 calcite
+                  sulfur   while K's LOOP (blue's own stock) holds fewer than 100 sulfur, or the hub is under RESERVE carbon
+                  calcite  while K's loop holds fewer than 20 calcite (at 12 blue's refinery ran dry: K reloads calcite slowly)
                   K's belts are read on their free red connectors (K's own count is on green): feed stretch and loop apart.
                   Tried and dropped: carbon alone on the stretch (a mixed queue reads low and the taps starve beside it); K's
                   whole count (the feed is physically full below K's carbon target, the count never rises above it); coal on
@@ -58,12 +63,14 @@ LW, LH = 30, 10                      # loop spans local x 0..LW, y 0..LH
 CAP, RESERVE = 4000, 10000           # rocket fuel in the hub; carbon the hub keeps for blue science
 TARGETS = {"carbon": 150, "sulfur": 80, "calcite": 30, "iron-plate": 8, "coal": 60, "solid-fuel": 40, "rocket-fuel": 8}
 FULL = 64
-DECS = [(56.5, -4.0, "carbon", "signal-T", FULL, 1), (56.5, -6.0, "sulfur", "sulfur", 80, 1), (56.5, -8.0, "calcite", "calcite", 12, 0)]
+DECS = [(56.5, -4.0, "carbon", "signal-T", FULL, 1), (56.5, -6.0, "sulfur", "sulfur", 100, 1), (56.5, -8.0, "calcite", "calcite", 20, 0)]
 # x, y, item whose taps it blocks, signal read (signal-T: items on the feed stretch; else an item on K's loop), least count, 1 = also the hub's carbon reserve
 STRETCH = [(53, y) for y in range(-14, -34, -1)]
 SUM = (56.5, -2.0)                   # arithmetic combinator: each -> T
+PURE = 66                            # carbon in the 80 places north of the taps below which nothing extra is asked of K
+DIL = (55.5, -13.0)                  # decider: signal D while the stretch is diluted
 KFEED, KLOOP = [], []                # every tile of belt K (scripts/wheel_blue.py), filled by layout()
-DEMAND = [(56.5, -10.0, "sulfur", 60, 500, 200), (56.5, -12.0, "calcite", 20, 500, 60)]      # x, y, item, ask while the loop holds fewer, extra on K's filter signal, and only while K's loop holds fewer than this
+DEMAND = [(56.5, -10.0, "sulfur", 60, 500, 200, 100), (56.5, -12.0, "calcite", 20, 500, 60, 20)]      # x, y, item, ask while the loop holds fewer, extra on K's filter signal, only while K's loop holds fewer than this, and at least this (the take threshold in DECS)
 KHUB = (4.5, -2.5)                   # belt K's hub inserter (scripts/wheel_blue.py)
 EXPORT = (71, -14)
 ents, cfg, recipes, occ, fluid, opening = [], [], [], {}, {}, {}
@@ -168,10 +175,11 @@ def layout():
     put("electric-furnace", 89, -9, 3, 3, local=False)
     gate(ins(88, -8, E, ["iron-plate"], local=False), "iron-plate")
     # ---- taps on K's feed column (wheel x 53), reaching over belt O ----
-    for y, item in ((-12, "carbon"), (-11, "carbon"), (-10, "sulfur"), (-9, "sulfur"), (-8, "sulfur"), (-6, "calcite"), (-5, "calcite"), (-4, "calcite")):
+    for y, item in ((-12, "carbon"), (-11, "carbon"), (-10, "sulfur"), (-9, "sulfur"), (-8, "sulfur"), (-7, "sulfur"), (-6, "calcite"), (-5, "calcite"), (-4, "calcite"), (-3, "calcite")):
         e = gate(ins(55, y, W, [item], name=LONG, local=False), item)
         taps.append((e["x"], e["y"]))
     put("arithmetic-combinator", 56, -3, 1, 2, local=False)
+    put("decider-combinator", 55, -14, 1, 2, local=False)
     for row in DECS + DEMAND:
         dy = row[1]
         put("decider-combinator", 56, int(dy) - 1, 1, 2, local=False)
@@ -213,8 +221,11 @@ CONFIG = (HEAD + "local n,r=0,0 pcall(function() hub.get_or_create_control_behav
           "local ir=dec.get_wire_connector(W.combinator_input_red,true) ir.disconnect_all() ir.connect_to(src,false) "
           "if d0 then dec.get_wire_connector(W.combinator_output_green,true).connect_to(d0.get_wire_connector(W.combinator_output_green,true),false) else d0=dec end dn=dn+1 end end "
           "local t=0 if d0 then for _,q in pairs(TAPS) do local i=at('inserter',q[1],q[2]) if i then i.get_wire_connector(W.circuit_green,true).connect_to(d0.get_wire_connector(W.combinator_output_green,true),false) t=t+1 end end end o[#o+1]='deciders '..dn..', taps behind them '..t "
+          "local dil=s.find_entities_filtered{name='decider-combinator',position={QDX,QDY},radius=0.6}[1] if dil and sS and sL then dil.get_or_create_control_behavior().parameters={conditions={{first_signal={type='item',name='carbon'},comparator='<',constant=PURE}},outputs={{signal={type='virtual',name='signal-D'},copy_count_from_input=false,constant=1}}} "
+          "local c=dil.get_wire_connector(W.combinator_input_red,true) c.disconnect_all() c.connect_to(sS.get_wire_connector(W.circuit_red,true),false) local c2=dil.get_wire_connector(W.combinator_output_red,true) c2.disconnect_all() c2.connect_to(sL.get_wire_connector(W.circuit_red,true),false) o[#o+1]='dilution decider set' end "
           "local kh=at('inserter',KX,KY) local an=0 for _,q in pairs(ASKS) do local dec=s.find_entities_filtered{name='decider-combinator',position={q[1],q[2]},radius=0.6}[1] if dec and kh and sL then local X={type='item',name=q[3]} "
-          "dec.get_or_create_control_behavior().parameters={conditions={{first_signal=X,comparator='<',constant=q[4],first_signal_networks={red=false,green=true}},{first_signal=X,comparator='<',constant=q[6],first_signal_networks={red=true,green=false},compare_type='and'}},outputs={{signal=X,copy_count_from_input=false,constant=q[5]}}} "
+          "dec.get_or_create_control_behavior().parameters={conditions={{first_signal=X,comparator='<',constant=q[4],first_signal_networks={red=false,green=true}},{first_signal=X,comparator='<',constant=q[6],first_signal_networks={red=true,green=false},compare_type='and'},"
+          "{first_signal=X,comparator='>=',constant=q[7],first_signal_networks={red=true,green=false},compare_type='and'},{first_signal={type='virtual',name='signal-D'},comparator='<',constant=1,first_signal_networks={red=true,green=false},compare_type='and'}},outputs={{signal=X,copy_count_from_input=false,constant=q[5]}}} "
           "local ir=dec.get_wire_connector(W.combinator_input_red,true) ir.disconnect_all() ir.connect_to(sL.get_wire_connector(W.circuit_red,true),false) local ig=dec.get_wire_connector(W.combinator_input_green,true) ig.disconnect_all() ig.connect_to(prev.get_wire_connector(W.circuit_green,true),false) "
           "dec.get_wire_connector(W.combinator_output_red,true).connect_to(kh.get_wire_connector(W.circuit_red,true),false) an=an+1 end end o[#o+1]='demand deciders on K '..an "
           "local ex=at('inserter',EX,EY) if ex then cond(ex,'rocket-fuel','<',CAP,W.circuit_red,hub) o[#o+1]='export gated on the hub at CAP' end rcon.print(table.concat(o,', '))")
@@ -248,7 +259,7 @@ def fill(code, surface):
     return (code.replace("SURF", surface).replace("FILT", lua_list([(x, y, fl) for x, y, fl in cfg])).replace("REC", lua_list(recipes))
             .replace("LOOP", lua_list(loop_tiles)).replace("GATED", lua_list(gated)).replace("TAPS", lua_list(taps))
             .replace("MACH", lua_list([(x, y) for x, y, _, _ in machines])).replace("KEEP", "{" + ",".join("'%s'" % k for k in TARGETS) + "}")
-            .replace("CAP", str(CAP)).replace("RESERVE", str(RESERVE)).replace("ASKS", lua_list(DEMAND)).replace("KX", str(KHUB[0])).replace("KY", str(KHUB[1])).replace("SENS", lua_list(STRETCH)).replace("UX", str(SUM[0])).replace("UY", str(SUM[1])).replace("KALL", lua_list(KFEED + KLOOP)).replace("KRING", lua_list(KLOOP)).replace("DECS", lua_list(DECS))
+            .replace("CAP", str(CAP)).replace("RESERVE", str(RESERVE)).replace("ASKS", lua_list(DEMAND)).replace("KX", str(KHUB[0])).replace("KY", str(KHUB[1])).replace("SENS", lua_list(STRETCH)).replace("QDX", str(DIL[0])).replace("QDY", str(DIL[1])).replace("PURE", str(PURE)).replace("UX", str(SUM[0])).replace("UY", str(SUM[1])).replace("KALL", lua_list(KFEED + KLOOP)).replace("KRING", lua_list(KLOOP)).replace("DECS", lua_list(DECS))
             .replace("EX", str(EXPORT[0] + .5)).replace("EY", str(EXPORT[1] + .5)))
 
 

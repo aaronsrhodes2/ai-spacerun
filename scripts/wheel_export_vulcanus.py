@@ -8,7 +8,7 @@ This line takes carbon, sulfur, copper ore, iron ore, ice, calcite and iron plat
 
   hub      the west product column (x=-6) had four inserters INTO the hub and used one. The two southern ones (-5,-2 and -5,-1) are
            turned round: they now take OUT of the hub, each on its own lane of the feed belt, filters set by circuit:
-             A (-5,-1): carbon, copper ore, iron ore        B (-5,-2): sulfur, ice, calcite, iron plate
+             A (-5,-1): carbon, iron plate        B (-5,-2): copper ore, iron ore, sulfur, ice, calcite
            The product column now ends at (-6,-3), turned east so that it feeds nothing.
   control  rows -3/-2, x -13..-9: per inserter an arithmetic combinator (every feed belt, read in hold mode, times -1), a constant
            combinator (TARGETS) and a decider. An item is loaded while the feed carries less than its target AND the hub holds more
@@ -18,11 +18,11 @@ This line takes carbon, sulfur, copper ore, iron ore, ice, calcite and iron plat
            x=-60, west along y=12 (the free deck row under the district's corridor), south down x=-117 under the corridor's inner
            winding and the out-belt into the heart chamber. In the heart it is a LOOP: past the machines, under the district's
            out-belt column at (-133,54), north up x=-135 outside the heart's west wall, east along y=21 and back into the feed
-           through a splitter at (-118..-117,23), lane for lane (inserter A's items keep the east lane, B's the west lane; a
-           side-load there put both lanes on one, which stood full and stopped the loop). What an inserter misses comes round
-           again; the count on the wire covers feed and loop, so the hub sends exactly what the machines use. Each lane of the
-           loop holds about 560; keep each inserter's targets together well under half of that. (The first version ran into the district's ore belt instead: what the
-           inserters missed, most of it, rode home on the out-belt, 26 items a second, and stood the out-belt full in five minutes.)
+           through a splitter at (-118..-117,23), lane for lane (each hub inserter's items keep their own lane; a side-load
+           there put both lanes on one, which stood full and stopped the loop). What an inserter misses comes round again; the
+           count on the wire covers feed and loop, so the hub sends exactly what the machines use. See TARGETS for the lane
+           budget. (The first version ran into the district's ore belt instead: what the inserters missed, most of it, rode
+           home on the out-belt, 26 items a second, and stood the out-belt full in five minutes.)
   metals   (heart, north-west): iron melter -130..-126 and copper melter -124..-120 (y 33..37) on the feed row y=39, pipe row y=32,
            casting foundry -127..-123, y 27..31. Its output inserter (-125,26) lays the product straight on the district's out-belt
            (y=25), gated on the hub's stock (CAP).
@@ -32,9 +32,17 @@ This line takes carbon, sulfur, copper ore, iron ore, ice, calcite and iron plat
            -> plastic, port to port; a second coal plant C3 under the plastic plant feeds it coal by hand. Plastic rides its own
            pure belt (x=-131, y 43..30) to the casting foundry.
   loop order  ice melter, copper melter, iron melter (y=39), C1 (y=43), acid plant, refinery calcite, C3 (y=54), return.
-One coal plant (C1, 53 coal a minute with three epic productivity modules) is the line's designed ceiling: about 30 a minute.
-Never apply twice on the same wheel. After a quality upgrade: config (belt readers and over-reach wires).
-`wheel_rocket.py config` on this wheel puts the district's own export gate back to 2,000: run `config` here after it.
+Every ingredient has its own inserter: one inserter with two filters fills its hand with the plentiful item, cannot put it down
+and never fetches the other (C1 stood with 13 carbon and no sulfur).
+Measured 2026-11-14 on the Vulcanus Wheel: 44 to 48 a minute into the hub, the casting foundry at its own limit (18 crafts a
+minute, +146% productivity). C1 carries one speed module (step `modules`): with three productivity modules it was the limit at 22.
+`config` also sets three things outside the line, on this wheel only (each explained at its place in CONFIG): the hand size of the
+two inserters left on the west product column, the district's metallic crusher gate, the facing of the district's processing
+unit assembler.
+A new wheel: check, build (dry run), build --apply, modules, status. `loop` only places what is missing of the layout (used here
+to refit the first two versions). Never build --apply twice. After a quality upgrade: config (belt readers and over-reach wires).
+`wheel_rocket.py config` on this wheel puts the district's own export gate back to 2,000 and its metallic crusher back on the
+always-open ore gate (see CONFIG): run `config` here after it.
 Usage: wheel_export_vulcanus.py check | build [--apply] | loop [--apply] | config | modules | sweep | off | status   [--only PLANET]   (default: --only vulcanus)"""
 import sys
 
@@ -44,8 +52,11 @@ from _wheels import place_all, wheels
 PRODUCT = "low-density-structure"
 CAP = 4000                    # product in the hub: the export stock (10 a slot: 400 slots)
 RESERVE = 3000                # the line never takes an item the hub holds fewer than this of
-TARGETS_A = {"carbon": 345, "copper-ore": 110, "iron-ore": 40}       # together under 500: a lane of the loop holds 580
-TARGETS_B = {"sulfur": 80, "ice": 90, "calcite": 24, "iron-plate": 4}
+# Each inserter's items ride one lane, and a lane of the loop holds 580. A lane that stands 100% full stops the loop (seen twice), so
+# an inserter's targets plus what the wire cannot see (about 20% of the feed is underground) must stay under about 450.
+TARGETS_A = {"carbon": 400, "iron-plate": 4}
+TARGETS_B = {"copper-ore": 100, "iron-ore": 40, "sulfur": 70, "ice": 80, "calcite": 24}
+HAND = 6                      # hand size of the two hub inserters: a full hand (12) overshot every target by one or two hands
 Q = {"quality": "epic"}
 N, E, S, W = 0, 4, 8, 12
 DIR = {(0, -1): N, (1, 0): E, (0, 1): S, (-1, 0): W}
@@ -254,13 +265,24 @@ CONFIG = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=define
           "{first_signal={type='virtual',name='signal-each'},first_signal_networks={red=false,green=true},comparator='>',constant=RESERVE,compare_type='and'},"
           "{first_signal={type='item',name='PRODUCT'},first_signal_networks={red=false,green=true},comparator='<',constant=CAPSIG,compare_type='and'}},"
           "outputs={{signal={type='virtual',name='signal-each'},copy_count_from_input=false,constant=1}}} "
-          "i.use_filters=true i.inserter_filter_mode='whitelist' local ib=i.get_or_create_control_behavior() ib.circuit_set_filters=true ib.circuit_enable_disable=true ib.circuit_condition={first_signal={type='virtual',name='signal-anything'},comparator='>',constant=0} "
+          "i.use_filters=true i.inserter_filter_mode='whitelist' i.inserter_stack_size_override=HAND local ib=i.get_or_create_control_behavior() ib.circuit_set_filters=true ib.circuit_enable_disable=true ib.circuit_condition={first_signal={type='virtual',name='signal-anything'},comparator='>',constant=0} "
           "i.get_wire_connector(W.circuit_red,true).connect_to(d.get_wire_connector(W.combinator_output_red,true),false) "
           "if i.direction~=defines.direction.east then i.direction=defines.direction.east end end "
           "for _,p in pairs{{-5.5,-1.5},{-5.5,-0.5}} do local b=at('transport-belt',p[1],p[2]) b.direction=defines.direction.west end o[#o+1]='hub inserters A and B take out of the hub, facing '..hi.A.direction..' and '..hi.B.direction "
           # the product leaves for the hub while the hub holds fewer than CAP: the line's own inserter and the district's
           "local function cond(i,sig,cmp,k) local c=i.get_wire_connector(W.circuit_red,true) c.disconnect_all() c.connect_to(hub.get_wire_connector(W.circuit_red,true),false) local cb=i.get_or_create_control_behavior() cb.circuit_enable_disable=true cb.circuit_condition={first_signal={type='item',name=sig},comparator=cmp,constant=k} end "
           "cond(at('inserter',-124.5,26.5),'PRODUCT','<',CAPSIG) local de=at('inserter',-89.5,38.5) local fq=de and de.get_filter(1) if fq and (type(fq)=='table' and fq.name or fq)=='PRODUCT' then cond(de,'PRODUCT','<',CAPSIG) o[#o+1]='district export gate raised too' end "
+          # the district's metallic crusher: its gate read 'copper ore in the copper melter < 50', which is always true (a full melter takes
+          # no ore), so it crushed 26 chunks a minute for nothing and 450 ore a minute rode home to a hub that throws ore overboard, through
+          # the hub's west inserters. It now crushes only while that melter holds less than MOLTEN molten copper.
+          "local mg=at('inserter',-117.5,59.5) if mg then local cb=mg.get_or_create_control_behavior() cb.circuit_enable_disable=true cb.circuit_condition={first_signal={type='fluid',name='molten-copper'},comparator='<',constant=MOLTEN} o[#o+1]='district metallic crusher gated on molten copper' end "
+          # the two inserters left on the west product column: with a full hand (12) on a mixed belt they wait for more of the same item and
+          # took 8 items a second between them, less than arrives once the centre crushes again (the belt stood full back into the spiral's and
+          # the district's out-belts). With a hand of 4 they took 14 a second and the queue was gone within ten seconds.
+          "for _,y in pairs{-3.5,-2.5} do local wi=at('inserter',-4.5,y) if wi then wi.inserter_stack_size_override=4 end end o[#o+1]='west intake inserters: hand 4' "
+          # the district's processing unit assembler stood facing north (place_entities does not turn a machine without a recipe), so its acid
+          # port never met the pipe and it made nothing, ever. Facing south it does.
+          "local pu=mach(-109.5,28.5) if pu and pu.get_recipe() and pu.get_recipe().name=='processing-unit' and pu.direction~=defines.direction.south then pu.direction=defines.direction.south o[#o+1]='district processing unit assembler turned south' end "
           "hub.providing_to_other_platforms=true o[#o+1]='hub provides to other platforms: '..tostring(hub.providing_to_other_platforms) rcon.print(table.concat(o,', '))")
 # step `loop` (once, on a wheel built with the first version, whose feed ended on the district's ore belt): takes out that tail
 OLDTAIL = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local n,m=0,0 for _,p in pairs{OBSOLETE} do local b=s.find_entities_filtered{type='transport-belt',position=p,radius=0.3}[1] "
@@ -327,7 +349,7 @@ def main():
             factor = 1
             blt = lua_list([(e["x"], e["y"], e["direction"]) for e in ents if e["name"] == "express-transport-belt"])
             code = (sub(CONFIG).replace("BELTS", blt).replace("FILT", lua_list([(x, y, fl) for x, y, fl in cfg])).replace("REC", lua_list(recipes)).replace("FEED", lua_list(feed))
-                    .replace("TA", lua_map(TARGETS_A)).replace("TB", lua_map(TARGETS_B)).replace("RESERVE", str(RESERVE * factor)).replace("CAPSIG", str(CAP * factor)).replace("PRODUCT", PRODUCT))
+                    .replace("TA", lua_map(TARGETS_A)).replace("TB", lua_map(TARGETS_B)).replace("RESERVE", str(RESERVE * factor)).replace("CAPSIG", str(CAP * factor)).replace("MOLTEN", "600").replace("HAND", str(HAND)).replace("PRODUCT", PRODUCT))
             print(tools["run_lua"](code).strip())
         if step == "sweep":
             print(tools["run_lua"](sub(SWEEP).replace("FEED", lua_list(feed))).strip())

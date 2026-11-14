@@ -33,7 +33,8 @@ wheel does not depend on it) gets its `max` lifted above the cap, or everything 
     water, about 12 processing units a minute. `water`: the reshuffler turns spare carbonic chunks into oxide (and metallic) ones while
     the melter is short of ice (see WATER_ENTS).
   9 The coal plant's one long-handed inserter lifted about 190 carbon a minute off a loop that carried 420 past it. `coal`: a second one at 18,25.
-Steps: check | tap | em [--apply] | crusher [--apply] | ec2 [--apply] | water [--apply] | coal [--apply] | trim | modules | config | status | rate [seconds]      [--only PLANET]
+ 10 Power (see POWER_SPOKES): `power w e --apply` lays a second row of panels along the named spokes; without --apply it counts free spots.
+Steps: check | tap | em [--apply] | crusher [--apply] | ec2 [--apply] | water [--apply] | coal [--apply] | power [w n e s] [--apply] | trim | modules | config | status | rate [seconds]      [--only PLANET]
 Order on a wheel: tap, em (dry run), em --apply, crusher (dry run), crusher --apply, ec2 (dry run), ec2 --apply, water (dry run), water --apply, config. `em --apply` refuses a second run. After a quality upgrade and after any
 `wheel_rocket.py config`: `wheel_export_fulgora.py config` (wheel_rocket.py sets every cap back to 2,000 and its own targets).
 Never run `wheel_rocket.py build` or `refit` on a wheel that has the plants: it would try to put the three assemblers back."""
@@ -114,9 +115,25 @@ WATER_ENTS = [ent("fast-inserter", 5, 45, N), ent("fast-inserter", 6, 45, S), en
 WATER_FILTERS = [(5, 45, ["carbonic-asteroid-chunk"]), (6, 45, ["carbonic-asteroid-chunk"]), (7, 45, ["metallic-asteroid-chunk"]), (6, 42, ["carbon"])]
 WATERCLEAR = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local n=0 for _,e in pairs(s.find_entities_filtered{name='long-handed-inserter',position={IX,IY},radius=0.3}) do "
               "if e.held_stack.valid_for_read then hub.insert(e.held_stack) e.held_stack.clear() end e.destroy() n=n+1 end rcon.print('long-handed intake of the reshuffler removed '..n)")
+# the first carbonic crusher now only takes the reshuffler's returned chunks and its pace sets the reshuffler's: it gets the metallic crusher's
+# two speed modules, the metallic crusher (a few chunks a minute now) gets its two productivity modules
+MODSWAP = ("local s=game.surfaces['SURF'] local a=s.find_entities_filtered{name='crusher',position={AX,AY},radius=0.5}[1] local b=s.find_entities_filtered{name='crusher',position={BX,BY},radius=0.5}[1] "
+           "local ma,mb=a.get_module_inventory(),b.get_module_inventory() if not (ma[1].valid_for_read and mb[1].valid_for_read and ma[1].name:find('productivity',1,true) and mb[1].name:find('speed',1,true)) then rcon.print('modules: nothing to swap') return end "
+           "local n=0 for k=1,math.min(#ma,#mb) do if ma[k].valid_for_read and mb[k].valid_for_read then ma[k].swap_stack(mb[k]) n=n+1 end end rcon.print('modules swapped between the first carbonic crusher and the metallic crusher: '..n..' pairs; speeds now '..a.crafting_speed..' and '..b.crafting_speed)")
 CRUSH_FILTERS = [(17, 45, ["carbonic-asteroid-chunk"])]
 CRUSH_GATES = [(17, 45, "carbon")]
 
+# power: the plants and casters draw about 30 MW at full pace and the accumulators fell from 98% to 18% in ten game minutes. A second row of
+# panels on the free deck strip between the spoke belt and the first row (W spoke: tiles y -6..-4, x -583..-130), spoke by spoke
+POWER_SPOKES = {"w": lambda x: (x, -4.5), "n": lambda x: (4.5, x), "e": lambda x: (-x, 4.5), "s": lambda x: (-4.5, -x)}
+
+
+def power_ents(spokes):
+    return [{"name": "solar-panel", "x": POWER_SPOKES[k](x + .5)[0], "y": POWER_SPOKES[k](x + .5)[1], "params": dict(Q)} for k in spokes for x in range(-583, -130, 3)]
+
+
+POWER = ("local s=game.surfaces['SURF'] local acc=s.find_entities_filtered{type='accumulator'} local e,cap=0,0 for _,a in pairs(acc) do e=e+a.energy cap=cap+a.electric_buffer_size end "
+         "rcon.print(string.format('solar panels %d, accumulators %d holding %.0f of %.0f MJ (%.0f%%)',s.count_entities_filtered{type='solar-panel'},#acc,e/1e6,cap/1e6,100*e/cap))")
 AT = "local function at(t,x,y) return s.find_entities_filtered{type=t,position={x,y},radius=0.3}[1] end "
 HAS_EM = "local s=game.surfaces['SURF'] rcon.print(s.count_entities_filtered{name='electromagnetic-plant',position={PX,PY},radius=0.5})"
 TAP = ("local s=game.surfaces['SURF'] local hub=s.platform.hub " + AT + "local stub=at('transport-belt',-64.5,1.5) local nb=at('transport-belt',-64.5,2.5) if not stub or not nb then rcon.print('tap: stub or new belt missing') return end "
@@ -304,10 +321,23 @@ def main():
             print(run(WATERCLEAR, surface, IX=hc(5, 45)[0], IY=hc(5, 45)[1]))
             print(place(WATER_ENTS, surface, True))
             print(config(surface, export))
+            print(run(MODSWAP, surface, AX=HX + 2.5, AY=HY + 44, BX=HX + 14.5, BY=HY + 44))
         elif step == "decider":                                                     # one-off for a wheel that got `water` before the decider existed
             print(place(WATER_ENTS[3:], surface, apply))
             if apply:
                 print(config(surface, export))
+        elif step == "power":
+            spokes = [k for k in sys.argv[2:] if k in POWER_SPOKES] or ["w"]
+            ents = power_ents(spokes)
+            r = json.loads(tools["place_entities"](json.dumps(ents), surface=surface, dry_run=True))
+            bad = {f["i"] for f in (r.get("failed") or [])}
+            ok = [e for i, e in enumerate(ents, 1) if i not in bad]
+            print("spokes", spokes, "panels planned", len(ents), "free spots", len(ok))
+            if apply:
+                print(place(ok, surface, True))
+            print(run(POWER, surface))
+        elif step == "modswap":
+            print(run(MODSWAP, surface, AX=HX + 2.5, AY=HY + 44, BX=HX + 14.5, BY=HY + 44))
         elif step == "coal":
             print(place(COAL_ENTS, surface, apply))
             if apply:

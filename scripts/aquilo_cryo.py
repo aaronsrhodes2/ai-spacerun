@@ -97,6 +97,9 @@ def heat_plan(P, grid, net, extra=()):
         for t in e["tiles"]:
             need_adj.update(adj(t))
     H = (need_adj & free) | (set(extra) & free)
+    real = set(net)
+    virt = set()            # (a tower is NOT treated as a conductor: it joins pipes only at its four side middles)
+    net = net | virt
     # join the pieces: breadth first from the standing network (and what is already joined) to each piece that is not
     def comps(tiles):
         seen, out = set(), []
@@ -116,9 +119,9 @@ def heat_plan(P, grid, net, extra=()):
         return out
     for _ in range(60):
         cs = comps(H | net)
-        main = [c for c in cs if c & net]
+        main = [c for c in cs if c & real]
         joined = set().union(*main) if main else set()
-        loose = [c for c in cs if not (c & net)]
+        loose = [c for c in cs if not (c & real)]
         if not loose:
             break
         prev, q, hit = {t: None for t in joined}, deque(joined), None
@@ -138,11 +141,12 @@ def heat_plan(P, grid, net, extra=()):
         if hit is None:
             print("heat: %d piece(s) cannot be joined, e.g. %s" % (len(loose), sorted(loose[0])[:3]))
             for c in loose:
-                H -= c
+                H -= c - virt
             break
         c = prev[hit]
         while c is not None and c not in joined:
-            H.add(c)
+            if c not in virt:
+                H.add(c)
             c = prev[c]
     # prune dead ends that heat nothing
     changed = True
@@ -168,7 +172,7 @@ def build(P, grid, net, apply, extra=()):
     print("heat pipes:", len(H), "unheated:", cold)
     for x, y in sorted(H):
         P.add("heat-pipe", x, y)
-    pave = sorted(t for t in P.occupied() if grid.get(t) == "i")
+    pave = sorted(t for t in P.occupied() if grid.get(t) in ("i", "P"))      # ice and ice platform are meltable: nothing heated stands on them without concrete
     print("entities:", len(P.ents), "ice tiles to pave with concrete:", len(pave))
     out = [{k: v for k, v in e.items() if k != "tiles"} for e in P.ents]
     # leave out what stands
@@ -328,25 +332,35 @@ def science_plan(grid):
     P.add("passive-provider-chest", sx + 4, sy + 2)
     P.add("fast-inserter", fx, fy + 3, d=S)                    # solid fuel and lithium for the fluoroketone
     P.add("requester-chest", fx, fy + 4)
-    P.add("heating-tower", fx - 1, fy + 7, 3, 3)               # a second heat source at this end of the network
-    P.add("fast-inserter", fx + 2, fy + 8, d=E)
-    P.add("requester-chest", fx + 3, fy + 8)
+    P.add("heating-tower", fx, fy + 7, 3, 3)                   # a second heat source at this end of the network
+    P.add("fast-inserter", fx + 1, fy + 6, d=N)
+    P.add("requester-chest", fx + 1, fy + 5)
     P.add("roboport", sx - 3, sy + 10, 4, 4)
-    P.add("substation", sx - 1, sy - 5, 2, 2)
+    P.add("substation", sx - 6, sy - 6, 2, 2)                  # not on rows sy-5, sy-4 east of x=sx-3: the heat line to the hot run passes there
     P.add("substation", sx + 2, sy + 10, 2, 2)
     P.add("substation", FLX + 2, -47, 2, 2)
     P.add("substation", FLX + 2, -68, 2, 2)
     P.add("pumpjack", FLX, -72, 3, 3, S)                       # the vent at (-34.5,-70.5); facing south its output is the tile (-36,-69)
     fl = [(FLX, y) for y in range(-69, fy - 1)]
-    for t in fl:
-        P.pipe(*t)
+    for t in fl:                                               # one underground hop (-47 to -45): the fluorine and ammonia columns would
+        if t[1] == -47:                                        # otherwise wall off everything west of x=-36 from the heat network
+            P.add("pipe-to-ground", t[0], t[1], d=N)
+        elif t[1] == -45:
+            P.add("pipe-to-ground", t[0], t[1], d=S)
+        elif t[1] != -46:
+            P.pipe(*t)
     start, goal = (US[0], CY + 3), (fx - 3, fy)
-    path = route(grid, start, goal, P.occupied() | {(US[0], CY + 4)}, set(hot) | set(fl))
+    path = route(grid, start, goal, P.occupied() | {(US[0], CY + 4), (FLX, fy + 10), (FLX, fy + 9)}, set(hot) | set(fl))     # (FLX, fy+10): a corner no heat pipe can reach
     if not path:
-        print("no ammonia route")
+        print("no ammonia route found: taken as standing (the router sees the pipes of an earlier run as obstacles)")
+    hop = [(fx + 1, fy + 11), (fx + 1, fy + 12), (fx + 1, fy + 13)]      # the ammonia column cuts the science block off from the hot side: one hop
+    P.add("pipe-to-ground", hop[0][0], hop[0][1], d=N)
+    P.add("pipe-to-ground", hop[2][0], hop[2][1], d=S)
     for t in path:
-        P.pipe(*t)
-    extra = [(FLX + 1, y) for y in range(-69, fy - 2)]
+        if t not in hop:
+            P.pipe(*t)
+    # a heating tower passes heat only at the middle of each side (the tile two out from its centre), not along its whole edge
+    extra = [(FLX + 1, y) for y in range(-69, fy - 2)] + [(FLX, -46), hop[1], (fx + 3, fy + 8)]
     return P, extra
 
 
@@ -379,9 +393,51 @@ def science_config():
     code = "local s=game.surfaces.aquilo local o={} "
     code += ask(sx + 4.5, sy + .5, {"ice": 100, "lithium-plate": 40})
     code += ask(fx + .5, fy + 4.5, {"solid-fuel": 10, "lithium": 6})
-    code += ask(fx + 3.5, fy + 8.5, {"solid-fuel": 100})
+    code += ask(fx + 1.5, fy + 5.5, {"solid-fuel": 100})
+    # a tower burns flat out until the whole network (1 MJ a degree a heat pipe) stands at 1,000 degrees: the two extra towers only get
+    # fuel while the stock is comfortable, so the rocket fuel plant (the ammonia sink) and the first tower are served first
+    code += cond(fx + 1.5, fy + 6.5, "solid-fuel", ">", 2500)
+    # place_entities leaves a machine facing north and it does not turn without a recipe: turn the fluoroketone plant east now
+    code += "do local e=s.find_entities_filtered{name='cryogenic-plant',position={%s,%s},radius=1}[1] e.direction=defines.direction.east o[#o+1]='fluoroketone plant faces '..e.direction end " % (fx + .5, fy + .5)
     code += "rcon.print(table.concat(o,' | '))"
     print(lua(code))
+
+
+# ---------------------------------------------------------------- second power set
+# One turbine (11 MW epic) carried the base; the works and the science line need more. A third heating tower (-20..-18, -23..-21) with a
+# heat exchanger (-16..-14, -22..-21, facing south, heat in from the pipe above its middle), the turbine straight under it and its own
+# ice melter (-12..-10, -22..-20) whose water meets the exchanger's east port at the pipe (-13,-22). Same arrangement as aquilo_base.
+PX, PY = -16, -22
+BOX_W = (-26, -28, 0, -12)
+
+
+def power_plan():
+    P = Plan()
+    ex, ey = PX, PY
+    P.add("heating-tower", ex - 4, ey - 1, 3, 3)
+    P.add("fast-inserter", ex - 3, ey + 2, d=S)
+    P.add("requester-chest", ex - 3, ey + 3)
+    P.add("heat-exchanger", ex, ey, 3, 2, S)
+    P.add("steam-turbine", ex, ey + 2, 3, 5, N)
+    P.pipe(ex + 3, ey)
+    P.add("chemical-plant", ex + 4, ey, 3, 3, E, recipe="ice-melting")
+    P.add("fast-inserter", ex + 7, ey + 1, d=E)
+    P.add("requester-chest", ex + 8, ey + 1)
+    P.add("substation", ex + 4, ey + 4, 2, 2)
+    return P, [(ex - 1, ey), (ex - 1, ey - 1), (ex, ey - 1), (ex + 1, ey - 1), (ex - 3, ey - 2)]     # the last: the tower's north middle, onto the hot row
+
+
+def power(apply):
+    grid = fetch(BOX_W)
+    net = heat_tiles(BOX_W)
+    P, extra = power_plan()
+    build(P, grid, net, apply, extra)
+    if apply:
+        code = "local s=game.surfaces.aquilo local o={} " + ask(PX - 2.5, PY + 3.5, {"solid-fuel": 100}) + ask(PX + 8.5, PY + 1.5, {"ice": 200})
+        code += cond(PX - 2.5, PY + 2.5, "solid-fuel", ">", 1000)
+        code += ("for _,q in pairs({{'heat-exchanger',%s,%s,defines.direction.south},{'chemical-plant',%s,%s,defines.direction.east}}) do local e=s.find_entities_filtered{name=q[1],position={q[2],q[3]},radius=0.6}[1] "
+                 "e.direction=q[4] o[#o+1]=q[1]..' faces '..e.direction end rcon.print(table.concat(o,' | '))" % (PX + 1.5, PY + 1, PX + 5.5, PY + 1.5))
+        print(lua(code))
 
 
 def cond(x, y, item, comp, n):
@@ -438,6 +494,8 @@ def main():
         causeway(apply)
     elif step == "science":
         science(apply)
+    elif step == "power":
+        power(apply)
     elif step == "science_config":
         science_config()
     elif step == "status":
