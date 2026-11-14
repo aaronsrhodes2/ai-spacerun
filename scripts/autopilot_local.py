@@ -13,10 +13,10 @@ import module_mall
 LOG = str(Path(__file__).resolve().parent.parent / "docs" / "autopilot.log")
 
 # The Captain's shared view (2026-11-13: Aquilo was built and the map stayed black): wherever anything of ours stands on a planet, that
-# area and a chunk round it are charted, whoever built it. Every CHART_EVERY cycles, every planet surface; at most 3,000 chunks a pass.
+# area and a chunk round it are charted, whoever built it. Every 3 cycles (3 minutes: the charted picture is refreshed, not only made once), every planet surface; at most 3,000 chunks a pass.
 CHART = ("local f=game.forces.player local n,c=0,0 for _,s in pairs(game.surfaces) do if not s.platform then local seen={} for _,e in pairs(s.find_entities_filtered{force=f,type={'roboport','cargo-landing-pad','assembling-machine','heating-tower','reactor','rocket-silo','lab','mining-drill','pumpjack','furnace','generator','heat-pipe','electric-pole','solar-panel','storage-tank'}}) do "
          "local cx,cy=math.floor(e.position.x/32),math.floor(e.position.y/32) local k=cx*100000+cy if not seen[k] then seen[k]=true n=n+1 if n<=3000 then local ok=pcall(function() f.chart(s,{{(cx-1)*32,(cy-1)*32},{(cx+2)*32,(cy+2)*32}}) end) if ok then c=c+1 end end end end end end rcon.print('charted '..c..' of '..n..' chunks with our things')")
-CHART_EVERY = 10
+CHART_EVERY = 3
 
 # Robots cannot be upgraded in the air (the Captain, 2026-11-13: swap them when they go to charge). Every cycle, each robot resting in a
 # roboport below the best researched quality is replaced by the same robot at that quality, on every surface. Over a few hours every
