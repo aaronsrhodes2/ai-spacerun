@@ -128,3 +128,42 @@ def test_design_notes_are_short_plain_sentences():
     for name, note in notes:
         assert 40 <= len(note) <= 320, "%s: %d characters" % (name, len(note))
         assert note.endswith(".") and "\\n" not in note
+
+
+def test_the_changelog_follows_the_games_strict_format():
+    """The game refuses a changelog that strays: a line of exactly 99 dashes, 'Version: x.y.z', an optional 'Date: ',
+    category lines indented two spaces ending in a colon, entries indented four spaces starting '- ', no tabs, no
+    trailing spaces, no version twice."""
+    lines = (MOD / "changelog.txt").read_text(encoding="utf-8").split("\n")
+    assert lines[-1] == "", "the file must end with a newline"
+    lines = lines[:-1]
+    versions, i = [], 0
+    while i < len(lines):
+        assert lines[i] == "-" * 99, "line %d must be 99 dashes" % (i + 1)
+        m = re.fullmatch(r"Version: (\d+)\.(\d+)\.(\d+)", lines[i + 1])
+        assert m, "line %d must be 'Version: x.y.z'" % (i + 2)
+        versions.append(tuple(int(g) for g in m.groups()))
+        i += 2
+        if i < len(lines) and lines[i].startswith("Date: "):
+            i += 1
+        saw_entry = False
+        while i < len(lines) and lines[i] != "-" * 99:
+            line = lines[i]
+            assert "\t" not in line and line == line.rstrip(), "line %d has a tab or trailing space" % (i + 1)
+            assert re.fullmatch(r"  [A-Z][A-Za-z ]*:", line) or line.startswith("    - ") or line.startswith("      "), "line %d is not a category or an entry" % (i + 1)
+            saw_entry = saw_entry or line.startswith("    - ")
+            i += 1
+        assert saw_entry, "version %s has no entries" % (versions[-1],)
+    assert len(versions) == len(set(versions)) and versions == sorted(versions, reverse=True)
+    info = json.loads((MOD / "info.json").read_text(encoding="utf-8"))
+    assert ".".join(str(n) for n in versions[0]) == info["version"], "the newest changelog entry must match info.json"
+
+
+def test_the_setting_and_its_names_agree():
+    settings = (MOD / "settings.lua").read_text(encoding="utf-8")
+    locale = (MOD / "locale" / "en" / "skippy-copilot.cfg").read_text(encoding="utf-8")
+    avatar = (MOD / "scripts" / "avatar.lua").read_text(encoding="utf-8")
+    assert 'name = "skippy-copilot-mode"' in settings and 'local SETTING = "skippy-copilot-mode"' in avatar
+    for value in ("free-hand", "my-character"):
+        assert '"%s"' % value in settings and "skippy-copilot-mode-%s=" % value in locale and '["%s"]' % value in avatar
+    assert "skippy-copilot-mode=" in locale

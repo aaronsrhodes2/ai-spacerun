@@ -5,7 +5,7 @@ day: one chat builds the mod while the main chat finishes the Fable run. Scored 
 verified solve (see Gate).
 
 Built so far:
-- **The mod** (`mods/skippy-copilot`, version 0.4.0), twenty-five tools: lookup, search, map, tile, find_free, diagnose,
+- **The mod** (`mods/skippy-copilot`, version 0.6.0), twenty-eight tools: lookup, search, map, tile, find_free, diagnose,
   bottlenecks, alerts, player, design_note, events_read, reveal_map, chat_read, say, set_state, and for the planner
   occupancy, build and frames. `build` is a dry run unless told otherwise, refuses anything not researched, and sits on
   an executor layer so the walking avatar can replace free placement without changing a tool.
@@ -15,6 +15,16 @@ Built so far:
   `avatar`; under free placement nothing changes. The increment's exit test (walk across a base with obstacles, build a
   ten-machine line from the inventory, zero teleports, zero out-of-reach placements) passes against the stand-in game.
   It has not walked in the real game yet.
+- **Two modes, switchable at any time** (the Captain, 2026-11-13: a mode of the mod, not a choice for a whole run):
+  the assistant builds on its own while the player does their own thing, or it moves the player's character. Switched in
+  the map's mod settings, by a button on the working light, or by asking. A scored run can lock it.
+- **Planet travel** (mod 0.6.0): the avatar walks to a silo with a rocket ready, rides the rocket to a ship in orbit whose
+  schedule already goes there (no ship is re-routed), rides it, and drops to the surface. It must carry nothing. The first
+  landing opens a planet that had no surface.
+- **The milestone list** (`copilot/milestones.py`): 21 steps from the first plates to the edge of the solar system and
+  promethium science beyond, each with a test run against facts the mod reports. The model is told the next goal and what
+  it still needs; a watch logs a stall when nothing counts toward any milestone for two game hours. A unit test checks
+  every name in the list against the installed game's data.
 - **Planning code in the bridge** (`copilot/plan/`, pure and unit-tested): production calculator, layouts with overlap
   check and turning, the generic cells (belt-fed machine, robot-fed machine, direct pair, rows), a belt and pipe router
   with underground pairs, and pointing with words. The model reaches them as plan_production, plan_row, plan_route,
@@ -25,7 +35,7 @@ Built so far:
   kind of alert makes the model look into it and offer one suggestion.
 - **The bridge** (`copilot/`): game chat in, model with tools, answer out, working light, a log of every call, and a
   scorer for those logs. Providers: Ollama and any OpenAI-compatible server. An Anthropic adapter is not written.
-- **Tests**: 232 unit tests that need no game and no model, including the mod's own Lua run under Lua 5.2 against a
+- **Tests**: 276 unit tests that need no game and no model, including the mod's own Lua run under Lua 5.2 against a
   stand-in game; `scripts/modcheck.py` for the mod on a local headless test server. The Lua tests found three bugs on
   their first run (a search centred one tile off, a wrong player returned for an unknown name, an unstable ranking).
 - **First run with a local model** (qwen3:8b on Ollama, 2026-11-13, mod 0.2.0): three questions through the bridge, all
@@ -41,6 +51,33 @@ reveal_map). They pass against the stand-in game only. Live runs are for late at
 
 Next: a night run of `modcheck.py` (it now covers the avatar) and of a first build through the bridge; then planet
 travel for the avatar and the milestone list.
+
+## Publishing on the mod portal (researched 2026-11-13)
+
+What it takes, from the official packaging and API pages and the terms of service; items marked unconfirmed had no
+official source.
+
+- **Account**: a factorio.com account that owns the game. No fee was found (unconfirmed).
+- **Package**: `skippy-copilot_x.y.z.zip` holding one folder with `info.json` at its root. Required fields: name, version,
+  title, author. Also wanted: `thumbnail.png` (144 by 144), `changelog.txt` in the game's strict format (added, and checked
+  by a unit test), a LICENSE file matching the licence chosen on the portal.
+- **Still to do before a first upload**: the thumbnail; the LICENSE file (the Captain's choice of licence and copyright
+  name); confirm the right `factorio_version` for the portal (ours says 2.1, the installed game's line; the documentation
+  example is 2.0); gallery pictures; a load test with only base and our mod enabled, and one with Space Age.
+- **Upload**: by the web form, or by API key (scopes for publish, upload and edit) through the publish and upload
+  endpoints; `fmtk` is the usual command-line tool.
+- **Portal fields**: category (ours: utilities), tags, licence (MIT is offered), source URL, summary of at most 500
+  characters, description and FAQ in Markdown.
+- **Rules**: the terms require permission for anything that is not ours and let the makers remove a mod without notice. No
+  review before a mod goes live was found, and no rule about a companion program or RCON (both unconfirmed). A mod cannot
+  open network connections itself, which is why the bridge exists.
+- **The upstream mod**: we use its idea and mechanism, not its code, and credit it. Had we kept its files, the MIT licence
+  would require shipping its licence text and copyright notice.
+- **Achievements**: with any mod enabled the game keeps a separate achievement set that does not register with Steam.
+  Script commands (`/c`, `/sc`) disable achievements for the save; whether our own `/skippy` command does is unconfirmed
+  and must be tested. This corrects an earlier claim in the mod's readme.
+- **Multiplayer**: keep all changing state in `storage`, register events and commands at load and never conditionally.
+  The mod does this; it has not been run with two players.
 
 ## Goal
 

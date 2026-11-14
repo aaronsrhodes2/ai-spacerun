@@ -178,7 +178,8 @@ def test_the_model_is_offered_the_waiting_tools_not_the_raw_ones(world):
     mod, tools = world
     agent = Agent(LuaGame(mod), FakeModel(["ok"]), local=tools)
     assert {"walk_to", "mine", "avatar", "avatar_craft", "avatar_carry", "avatar_stop", "set_mode", "build_plan", "bottlenecks", "locate"} <= agent.names
-    assert not {"avatar_walk", "avatar_mine", "lock_mode", "build", "occupancy", "frames", "say"} & agent.names
+    assert {"travel_to", "milestones"} <= agent.names
+    assert not {"avatar_walk", "avatar_mine", "avatar_travel", "progress", "lock_mode", "build", "occupancy", "frames", "say"} & agent.names
 
 
 def test_a_whole_request_through_the_agent_the_bridge_and_the_mod(world):
@@ -203,3 +204,42 @@ def test_in_free_hand_mode_walking_is_refused_with_the_way_out(world):
     mod, tools = world
     r = tools.call("walk_to", {"x": 5, "y": 5})
     assert not r["ok"] and "free-hand mode" in r["error"] and "my-character" in r["hint"]
+
+
+def space(mod):
+    mod.result("set_mode", {"mode": "my-character"})
+    mod.run("fake.add_planet('vulcanus', true)")
+    mod.place("rocket-silo", 20.5, 0.5, rocket_ready=True)
+    mod.run("fake.add_platform('Nauvis-Vulcanus 1 Shuttle', 'nauvis', { 'nauvis', 'vulcanus' }, 600, 900)")
+    mod.give()
+
+
+def test_travel_to_waits_for_the_landing(world):
+    mod, tools = world
+    space(mod)
+    r = ok(tools, "travel_to", {"planet": "vulcanus"})
+    assert r["arrived"] and (r["planet"], r["surface"], r["ship"]) == ("vulcanus", "vulcanus", "Nauvis-Vulcanus 1 Shuttle") and r["game_minutes"] > 0.2
+
+
+def test_travel_to_says_why_not_and_where_the_avatar_is(world):
+    mod, tools = world
+    space(mod)
+    mod.give(coal=2)
+    r = tools.call("travel_to", {"planet": "vulcanus"})
+    assert not r["ok"] and "must carry nothing" in r["error"]
+    ok(tools, "walk_to", {"x": 0, "y": 0})
+    mod.run("storage.avatar.body.get_main_inventory().remove{name = 'coal', count = 2}")
+    mod.run("fake.silo_refuses = true")
+    r = tools.call("travel_to", {"planet": "vulcanus"})
+    assert not r["ok"] and "would not launch" in r["error"] and "it is on nauvis now (stopped while: board)" in r["hint"]
+
+
+def test_milestones_read_the_real_progress_tool(world):
+    mod, tools = world
+    s = ok(tools, "milestones", {})
+    assert s["done"] == 0 and s["next"][0]["id"] == "first-plates" and "50 more iron-plate made (0 of 50)" in s["next"][0]["still_needs"]
+    mod.run("game.forces.player.made['iron-plate'] = 80")
+    s = ok(tools, "milestones", {})
+    assert s["next"][0]["still_needs"] == ["10 more copper-plate made (0 of 10)"]            # copper is not an item the stand-in knows
+    f = tools.facts()
+    assert f["researched"] == [] and f["platforms"] == [] and f["planets_reached"] == ["nauvis"] or f["planets_reached"] == []

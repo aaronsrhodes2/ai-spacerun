@@ -20,6 +20,7 @@ import time
 
 from .agent import Agent
 from .game import Game
+from .milestones import Watch
 from .models import make
 from .tools import LocalTools
 
@@ -87,6 +88,8 @@ def main():
     # start from now, not from lines and news that were there before the bridge came up
     chat_at = (game.call("chat_read", {"after": 10 ** 9}).get("result") or {}).get("last_id", 0)
     news_at = (game.call("events_read", {"after": 10 ** 9}).get("result") or {}).get("last_id", 0)
+    tools = agent.local
+    stall, last_done, checked_at = Watch(float(env.get("COPILOT_STALL_HOURS", "2"))), -1, 0.0
     watch = AlertWatch()
     watch.new(agent.alerts()[1])                                  # alerts already showing when the bridge starts are not news
     print("listening: model %s, %d tools" % (model.model, len(agent.tools)), flush=True)
@@ -112,6 +115,20 @@ def main():
             if answer and answer.strip().lower().rstrip(".") != "nothing":
                 say(game, answer)
             print("alert", sorted(fresh), "->", outcome, stats, flush=True)
+        if time.time() - checked_at > 60:                 # once a minute: how far is the game, and is it moving?
+            checked_at = time.time()
+            try:
+                facts = tools.facts()
+                done = sum(1 for m in __import__("copilot.milestones", fromlist=["evaluate"]).evaluate(facts) if not m["missing"])
+                if done != last_done:
+                    last_done = done
+                    agent.log(event="milestone", done=done, hours_played=facts.get("hours_played"))
+                said = stall.check(facts)
+                if said:
+                    agent.log(event="stall", text=said, hours_played=facts.get("hours_played"))
+                    print(said, flush=True)
+            except Exception as e:                        # a missing tool or a dropped connection must not stop the loop
+                print("progress check failed:", str(e)[:120], flush=True)
         time.sleep(2)
 
 

@@ -15,9 +15,21 @@ One console command carries every call:
 
 The answer is one line of JSON: `{"ok":true,"result":...}` or `{"ok":false,"error":"...","hint":"..."}`. A wrong call is
 answered with what would have been right (the tool names, or that tool's parameters). Admins can type calls in the game
-console; the bridge sends them over RCON. The command is not a script command, so it does not disable achievements.
+console; the bridge sends them over RCON. With any mod enabled the game keeps a separate set of achievements that do not
+register with Steam; whether calling this command changes anything further has not been tested.
 
-## Tools in the mod (version 0.4.0)
+## Modes
+
+The mod has two modes, and the player can switch between them at any time: in the map's mod settings, with the button on
+the working light, or by asking the assistant.
+
+- **Builds on its own** (`free-hand`): the assistant places pieces freely while you do your own thing.
+- **Moves your character** (`my-character`): the assistant walks your character around and builds with its hands and its
+  inventory. With nobody in the game it uses a character the mod keeps for itself.
+
+Switching modes stops whatever the avatar was doing. A scored run can lock the mode.
+
+## Tools in the mod (version 0.6.0)
 
 | Tool | What it does |
 |---|---|
@@ -31,7 +43,8 @@ console; the bridge sends them over RCON. The command is not a script command, s
 | `reveal_map` | Reveal more map round the known edge |
 | `chat_read`, `say`, `set_state` | The chat channel and the working light (used by the bridge) |
 | `avatar`, `avatar_craft`, `avatar_carry`, `avatar_stop` | The character: where it is and what it carries; craft by hand; move items to and from a chest within reach; stop |
-| `avatar_walk`, `avatar_mine`, `set_executor` | For the bridge and the operator: start a walk or a mining job; switch between free placement and the avatar |
+| `set_mode` | Switch between the two modes, when the player asks |
+| `avatar_walk`, `avatar_mine`, `avatar_travel`, `progress`, `lock_mode` | For the bridge and the operator: start a walk, a mining job or a trip to another planet; the facts milestones are tested against; fix the mode for a scored run |
 | `occupancy`, `build`, `frames` | For the bridge's planning tools: what is in the way, placing a checked plan (dry run first), the rectangles spoken places refer to |
 
 `build` keeps the rule that nothing is built before it is researched, and places nothing unless every piece of a plan can
@@ -40,7 +53,7 @@ avatar.
 
 ## The avatar
 
-With the executor set to `avatar`, nothing is placed freely. The character walks by the game's own pathfinder, and places
+In my-character mode nothing is placed freely. The character walks by the game's own pathfinder, and places
 each piece of a plan from its own inventory once it is within building reach. It mines and crafts by hand in the time the
 game takes. There is no teleport anywhere in the mod. The body is the player's own character when a player is in the game,
 otherwise a character the mod keeps for itself.
@@ -56,7 +69,8 @@ These are added by the bridge and look the same to the model. They do the arithm
 | `plan_row` | A row of identical machines fed by belt or by robots, from one generic cell per machine |
 | `plan_route` | A belt or pipe from A to B round what stands between, underground where it must |
 | `build_plan` | Send a plan to the game: dry run first, build only after a clean dry run, never twice |
-| `walk_to`, `mine` | Start the avatar walking or mining and wait until it has finished |
+| `walk_to`, `mine`, `travel_to` | Start the avatar walking, mining or travelling to another planet, and wait until it has finished |
+| `milestones` | How far the game has come and what the next goal still needs |
 | `locate` | Words to tiles: "the east of the base", "the upper right of my view" |
 
 ## Design notes
@@ -75,7 +89,7 @@ server that speaks the OpenAI chat API). `python -m copilot --ask "..."` asks on
 
 ## Testing
 
-- `python -m pytest tests/copilot_tests` runs with no game and no model: 232 tests. They cover the bridge, the planning
+- `python -m pytest tests/copilot_tests` runs with no game and no model: 276 tests. They cover the bridge, the planning
   code, the scorer, and the mod's own Lua run under Lua 5.2 against a stand-in game (`tests/copilot_tests/fake_game.lua`).
   Needs `pip install lupa`.
 - `scripts/modserver.sh start` runs a second, headless copy of the Steam install with its own data folder (`.testserver/`),
@@ -84,7 +98,8 @@ server that speaks the OpenAI chat API). `python -m copilot --ask "..."` asks on
 - `python -m copilot.score runs/` scores the bridge's logs: tool misses, repeats, stalls.
 
 Not yet run in a real game (written 2026-11-13 while the test server was off): everything added since version 0.2.0,
-which is `alerts`, `player`, `bottlenecks`, `occupancy`, `build`, `frames`, `reveal_map` and the whole avatar, with the
+which is `alerts`, `player`, `bottlenecks`, `occupancy`, `build`, `frames`, `reveal_map`, the modes, the whole avatar, planet
+travel and `progress`, with the
 checks for them in `modcheck.py`. They pass against the stand-in game, which models what the mod calls, not the game
-itself. The avatar leans hardest on the real game (its pathfinder, how a character walks and mines), so it is the part
-most likely to need changes after the first real run. The working light and chat have not been seen with a real player.
+itself. The avatar and planet travel lean hardest on the real game (its pathfinder, how a character walks and mines, how
+a character rides a rocket and a cargo pod), so they are the parts most likely to need changes after the first real run. The working light and chat have not been seen with a real player.

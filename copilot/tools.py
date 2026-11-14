@@ -5,6 +5,7 @@ built by planning: a plan gets an id, and `build_plan` sends it to the game, as 
 The model sees these beside the mod's tools, in the same shape, and cannot tell the difference."""
 import time
 
+from . import milestones as ms
 from .plan import calc, cells, place, route
 from .plan.layout import Layout, LayoutError
 
@@ -63,6 +64,13 @@ AVATAR_SPECS = [
      "description": "Have the avatar mine by hand at a tile (ore, a tree, a rock) until it carries `count` more, and wait for it. It walks there first. Use it early in the game, before there are mining drills.",
      "parameters": {"x": _param("number", "tile x of what to mine", True), "y": _param("number", "tile y of what to mine", True),
                     "count": _param("number", "how many to gather", default=10)}},
+    {"name": "travel_to",
+     "description": "Send the avatar to another planet the way a player travels, and wait until it has landed: it walks to a rocket silo with a rocket ready, rides the rocket to a ship in orbit whose schedule goes there, rides the ship, and drops to the surface. The avatar must carry nothing. The trip takes many minutes of game time. Says where it ended up, or why it could not go and where it is now.",
+     "parameters": {"planet": _param("string", "internal name of the planet, such as 'vulcanus'", True),
+                    "ship": _param("string", "name of the platform to ride; leave out for any ship in orbit that goes there")}},
+    {"name": "milestones",
+     "description": "How far the game has come and what to do next: how many milestones are done, the next one not yet done with exactly what it still needs, and what comes after. Call it when asked 'what should we do next' or when deciding what to work on.",
+     "parameters": {}},
 ]
 SPECS = SPECS + AVATAR_SPECS
 
@@ -278,6 +286,36 @@ class LocalTools:
         if last.get("reason"):
             out["note"] = last["reason"]
         return out
+
+    def travel_to(self, planet, ship=None):
+        args = {"planet": planet}
+        if ship:
+            args["ship"] = ship
+        started = self._start("avatar_travel", args)
+        last, state = self._wait(started["job"])
+        if not last.get("ok"):
+            raise ToolError("the avatar did not reach %s: %s" % (planet, last.get("reason") or "no reason given"),
+                            "it is on %s now (stopped while: %s)" % (state.get("surface"), last.get("stage") or "setting off"))
+        return {"arrived": True, "planet": planet, "ship": started.get("ship"), "surface": state.get("surface"),
+                "game_minutes": round((last.get("ticks") or 0) / 3600.0, 1)}
+
+    def facts(self):
+        """The facts milestones are tested against, read from the game."""
+        items, entities = ms.wanted()
+        r = self.game.call("progress", {"items": items, "entities": entities})
+        if not r.get("ok"):
+            raise ToolError(r.get("error") or "the game's progress could not be read", r.get("hint"))
+        f = r["result"]
+        for key in ("researched", "platforms", "planets_reached"):       # an empty list arrives as an empty object
+            if not isinstance(f.get(key), list):
+                f[key] = []
+        for key in ("produced", "built"):
+            if not isinstance(f.get(key), dict):
+                f[key] = {}
+        return f
+
+    def milestones(self):
+        return ms.summary(self.facts())
 
     def build_plan(self, plan_id, dry_run=True, surface=None):
         plan = self.plans.get(plan_id)

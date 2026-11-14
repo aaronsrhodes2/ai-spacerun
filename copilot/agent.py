@@ -8,7 +8,7 @@ from .models import schema
 
 PROMPT = (pathlib.Path(__file__).parent / "prompt.md").read_text(encoding="utf-8")
 BRIDGE_ONLY = {"chat_read", "say", "set_state", "events_read"}      # the bridge runs the channel; the model gets the rest
-PLAN_ONLY = {"build", "occupancy", "frames", "avatar_walk", "avatar_mine", "lock_mode"}                                  # reached through the planning tools, never called raw
+PLAN_ONLY = {"build", "occupancy", "frames", "avatar_walk", "avatar_mine", "avatar_travel", "progress", "lock_mode"}                                  # reached through the planning tools, never called raw
 MAX_RESULT = 6000                                                   # characters of one tool result shown to the model
 
 

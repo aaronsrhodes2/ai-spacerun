@@ -25,7 +25,7 @@ def score(entries):
     """Totals for one log. 'misses' are tool calls the game or the bridge refused; 'repeats' are the subset refused for
     being the same call a third time; 'stalls' are requests that ended without an answer."""
     s = {"requests": 0, "answered": 0, "stalls": 0, "model_errors": 0, "calls": 0, "misses": 0, "repeats": 0,
-         "unknown_tools": 0, "unreadable": 0, "seconds": 0.0, "tokens_in": 0, "tokens_out": 0, "miss_list": []}
+         "unknown_tools": 0, "unreadable": 0, "seconds": 0.0, "tokens_in": 0, "tokens_out": 0, "miss_list": [], "milestones": 0}
     for e in entries:
         kind = e.get("event")
         if kind == "request":
@@ -50,6 +50,10 @@ def score(entries):
             s["seconds"] += e.get("seconds") or 0
             s["tokens_in"] += e.get("tokens_in") or 0
             s["tokens_out"] += e.get("tokens_out") or 0
+        elif kind == "stall":                       # the milestone watch saw no progress for too long
+            s["stalls"] += 1
+        elif kind == "milestone":
+            s["milestones"] = max(s["milestones"], e.get("done") or 0)
         elif kind == "unreadable":
             s["unreadable"] += 1
     s["clean"] = s["requests"] > 0 and s["misses"] == 0 and s["stalls"] == 0 and s["model_errors"] == 0 and s["unreadable"] == 0

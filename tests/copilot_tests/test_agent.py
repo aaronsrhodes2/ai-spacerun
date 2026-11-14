@@ -176,3 +176,11 @@ def test_no_key_means_no_header_and_unknown_providers_are_refused(monkeypatch):
             assert False, "should have been refused"
         except ValueError:
             pass
+
+
+def test_stalls_seen_by_the_milestone_watch_make_a_run_dirty():
+    entries = [{"event": "request"}, {"event": "answer", "outcome": "answered"}, {"event": "milestone", "done": 3}, {"event": "milestone", "done": 5}]
+    clean = score(entries)
+    assert clean["clean"] and clean["milestones"] == 5
+    dirty = score(entries + [{"event": "stall", "text": "stalled"}])
+    assert not dirty["clean"] and dirty["stalls"] == 1

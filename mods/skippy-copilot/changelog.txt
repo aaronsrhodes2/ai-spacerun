@@ -1,0 +1,32 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.6.0
+Date: 2026-11-13
+  Features:
+    - Planet travel for the avatar: walk to a rocket silo, ride the rocket to a ship in orbit, ride the ship, drop to the surface.
+    - Progress facts for milestones: research, production totals, buildings, rockets launched, platforms and planets reached.
+---------------------------------------------------------------------------------------------------
+Version: 0.5.0
+Date: 2026-11-13
+  Features:
+    - Two modes that can be switched at any time: the assistant builds on its own, or it moves your character.
+    - The mode is a map setting, a button on the working light, and something the assistant can change when asked.
+---------------------------------------------------------------------------------------------------
+Version: 0.4.0
+Date: 2026-11-13
+  Features:
+    - The walking avatar: walks by the game's pathfinder, builds from its inventory within reach, mines, crafts and carries.
+---------------------------------------------------------------------------------------------------
+Version: 0.3.0
+Date: 2026-11-13
+  Features:
+    - Alerts, ranked bottlenecks, the player's position, revealing the map, and building a checked plan with a dry run.
+---------------------------------------------------------------------------------------------------
+Version: 0.2.0
+Date: 2026-11-13
+  Features:
+    - Design notes by technology and news of finished research.
+---------------------------------------------------------------------------------------------------
+Version: 0.1.0
+Date: 2026-11-13
+  Features:
+    - The tool command, game facts read live, the text map, finding free ground, diagnosis, chat and the working light.

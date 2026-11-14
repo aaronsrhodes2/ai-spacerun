@@ -30,7 +30,7 @@ def main():
     check("scene built", (c.send_command("/sc " + SCENE) or "").strip() == "scene")
     t = call("tools", None, c)
     names = [x["name"] for x in t["result"]]
-    check("tool list", all(n in names for n in ["lookup", "search", "map", "tile", "find_free", "diagnose", "chat_read", "say", "set_state", "events_read", "design_note", "alerts", "player", "bottlenecks", "occupancy", "build", "frames", "reveal_map", "avatar", "avatar_walk", "avatar_mine", "avatar_stop", "avatar_craft", "avatar_carry", "set_executor"]), names)
+    check("tool list", all(n in names for n in ["lookup", "search", "map", "tile", "find_free", "diagnose", "chat_read", "say", "set_state", "events_read", "design_note", "alerts", "player", "bottlenecks", "occupancy", "build", "frames", "reveal_map", "avatar", "avatar_walk", "avatar_mine", "avatar_stop", "avatar_craft", "avatar_carry", "set_mode", "lock_mode", "avatar_travel", "progress"]), names)
     check("every tool is described", all(x["description"] and isinstance(x["parameters"], (dict, list)) for x in t["result"]))
 
     r = call("lookup", {"name": "electronic-circuit", "kind": "recipe"}, c)["result"][0]
@@ -131,6 +131,9 @@ def main():
             time.sleep(0.5)
         return call("avatar", None, c)["result"]
     r = call("avatar_walk", {"x": 15, "y": 9}, c)
+    check("modes: the avatar does not move in free-hand mode", not r["ok"] and "free-hand" in r["error"], r)
+    check("modes: switching to my-character", call("set_mode", {"mode": "my-character"}, c)["result"]["changed"] is True)
+    r = call("avatar_walk", {"x": 15, "y": 9}, c)
     check("avatar: a walk starts", r["ok"] and "job" in r["result"], r)
     st = wait_job()
     check("avatar: it arrives on foot", st["last_job"]["ok"] and abs(st["x"] - 15) <= 2 and abs(st["y"] - 9) <= 2 and st["last_job"]["ticks"] > 30, st)
@@ -139,7 +142,6 @@ def main():
     check("avatar: mining starts on ore", r["ok"] and r["result"]["gives"] == "iron-ore", r)
     st = wait_job()
     check("avatar: it carries what it mined", st["last_job"]["ok"] and st.get("carries", {}).get("iron-ore") == 2, st)
-    call("set_executor", {"mode": "avatar"}, c)
     r = call("build", {"entities": [{"name": "transport-belt", "x": 18.5, "y": 9.5, "direction": 4}]}, c)["result"]
     check("avatar: a dry run says what it must carry", r.get("avatar_lacks") == {"transport-belt": 1}, r)
     c.send_command("/sc local b = game.surfaces.nauvis.find_entities_filtered{type='character'}[1] b.get_main_inventory().insert{name='transport-belt', count=1}")
@@ -147,7 +149,11 @@ def main():
     st = wait_job()
     t = call("tile", {"x": 18, "y": 9}, c)["result"]
     check("avatar: it builds by hand from its inventory", r.get("queued") == 1 and st["last_job"]["ok"] and t["things"] and t["things"][0]["name"] == "transport-belt", (r, st.get("last_job"), t))
-    call("set_executor", {"mode": "god"}, c)
+    check("modes: back to free-hand", call("set_mode", {"mode": "free-hand"}, c)["result"]["mode"] == "free-hand")
+    p = call("progress", {"items": ["iron-plate"], "entities": ["transport-belt", "lab"]}, c)
+    check("progress: facts for milestones", p["ok"] and p["result"]["built"]["transport-belt"] >= 1 and "researched" in p["result"] and p["result"]["won"] is False, p)
+    r = call("avatar_travel", {"planet": "vulcanus"}, c)
+    check("travel: refused in free-hand mode", not r["ok"], r)
 
     check("say", call("say", {"text": "check"}, c)["ok"])
     check("set_state", call("set_state", {"state": "working", "note": "check"}, c)["ok"] and not call("set_state", {"state": "napping"}, c)["ok"])
