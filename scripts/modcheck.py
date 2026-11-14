@@ -156,6 +156,21 @@ def main():
     check("travel: refused in free-hand mode", not r["ok"], r)
     r = call("science", {"target": 60}, c)
     check("science: every pack the labs take is listed, none made yet", r["ok"] and r["result"]["science_per_minute"] == 0 and len(r["result"]["packs"]) >= 7 and r["result"]["reached"] is False, r)
+    # fluid ports: the joints assume a port's position is the tile inside the machine and its direction points out.
+    # Place a chemical plant with a pipe on each stub the joint would use and ask the game whether each pipe joined it.
+    ports = call("lookup", {"name": "chemical-plant", "kind": "entity"}, c)["result"][0].get("fluid_ports") or []
+    check("fluid ports: a chemical plant reports four", len(ports) == 4 and {p["flow"] for p in ports} == {"input", "output"}, ports)
+    step = {"north": (0, -1), "east": (1, 0), "south": (0, 1), "west": (-1, 0)}
+    cx, cy = 10.5, -9.5
+    c.send_command("/sc game.surfaces.nauvis.create_entity{name='chemical-plant', position={%s,%s}, force='player'}" % (cx, cy))
+    joined = 0
+    for p in ports:
+        tx = int((cx + p["x"]) // 1) + step[p["direction"]][0]
+        ty = int((cy + p["y"]) // 1) + step[p["direction"]][1]
+        out = c.send_command("/sc local s=game.surfaces.nauvis local e=s.create_entity{name='pipe', position={%s,%s}, force='player'} "
+                             "local n=0 for _,list in pairs(e.neighbours) do for _,o in pairs(list) do if o.name=='chemical-plant' then n=n+1 end end end rcon.print(n)" % (tx + 0.5, ty + 0.5))
+        joined += 1 if (out or "").strip() == "1" else 0
+    check("fluid ports: a pipe on every stub joins the machine", joined == len(ports) and joined > 0, "%d of %d joined" % (joined, len(ports)))
     r = call("run_stats", None, c)
     check("run stats: prompts and hours", r["ok"] and r["result"]["prompts"] == 0 and r["result"]["won"] is False, r)
 

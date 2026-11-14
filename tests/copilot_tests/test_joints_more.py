@@ -221,7 +221,7 @@ def test_a_machine_on_belts_with_its_pipes_tunnelled_past_them():
 def test_the_inserter_moves_aside_for_a_port_in_the_middle():
     middle = [{"flow": "input", "x": 0, "y": -1, "direction": "north"}, {"flow": "output", "x": 1, "y": 0, "direction": "east"}]
     lay = joints.fluid_machine_on_belts("assembling-machine-2", 3, 3, middle)
-    assert lay.picture(CHARS) == ".q.\nbbb\niq.\nMMM\nMMMp\nMMM\n.i.\nbbb"
+    assert lay.picture(CHARS) == ".q..\nbbb.\niq..\nMMM.\nMMMp\nMMM.\n.i..\nbbb."        # the input inserter moved west of the pipe
     full = [{"flow": "input", "x": x, "y": -1, "direction": "north"} for x in (-1, 0, 1)]
     with pytest.raises(LayoutError, match="no room for an inserter"):
         joints.fluid_machine_on_belts("assembling-machine-2", 3, 3, full)

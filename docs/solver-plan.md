@@ -5,7 +5,7 @@ day: one chat builds the mod while the main chat finishes the Fable run. Scored 
 verified solve (see Gate).
 
 Built so far:
-- **The mod** (`mods/skippy-copilot`, version 0.9.0), thirty tools: lookup, search, map, tile, find_free, diagnose,
+- **The mod** (`mods/skippy-copilot`, version 0.10.0), thirty tools: lookup, search, map, tile, find_free, diagnose,
   bottlenecks, alerts, player, design_note, events_read, reveal_map, chat_read, say, set_state, and for the planner
   occupancy, build and frames. `build` is a dry run unless told otherwise, refuses anything not researched, and sits on
   an executor layer so the walking avatar can replace free placement without changing a tool.
@@ -40,11 +40,18 @@ Built so far:
   it is researched, failures said plainly. The run's record counts pieces placed freely apart from pieces placed by a
   character's hands, and unit tests check that no file of the mod inserts items, unlocks recipes, writes research or
   teleports.
-- **Joints** (the Captain, 2026-11-13: the acceptable small blueprints are the ones for where lines intersect): eight
-  patterns, each for one kind of meeting, with the problem it solves: belt crossing, pipe crossing, splitter as a filter,
-  priority merge, side-loading one lane, a lane each for two items, a filtered pick, the row beside a train wagon. The
-  model reads them with `joints` and lays one out with `plan_joint`. Still to add as the same kind of clue: fitting a pipe
-  to a machine's fluid ports (needs the ports from the game), rail signals at a junction, and a balancer.
+- **Joints** (the Captain, 2026-11-13: the acceptable small blueprints are the ones for where lines intersect, and there
+  must be many more than the first eight): twenty layouts and one set of rules so far, each for one kind of meeting, with
+  the problem it solves. Belts: crossing, filter splitter, priority merge, overflow valve, tee, balancer (two and four
+  belts; a unit test sends flow through it to prove every output gets a quarter of every input), side load, lane pair.
+  Inserters: filtered pick, reach over. Robots: belt to robots, robots to belt, robot-run machine. Fluids: pipe crossing,
+  long pipe, machine fluid ports, fluid machine on belts (pipes tunnel under the belts), barrel station. Power: pole line.
+  Trains: wagon side, and rail signals as rules only until signal positions are checked in the game. Anything that
+  depends on a building is read from the game when the joint is laid out. A test refuses any joint with more than one
+  machine or more than thirty pieces. More will be added as real games show which meetings come up.
+- **A building's finite set of connections** (the Captain, 2026-11-13): the `connections` tool lists, for any building,
+  every way it can meet its lines, from the game's facts: sides, fluid connections, free tiles for inserters, heat, and
+  for a recipe the belts its ingredients need and the joint that fits.
 - **Planning code in the bridge** (`copilot/plan/`, pure and unit-tested): production calculator, layouts with overlap
   check and turning, the generic cells (belt-fed machine, robot-fed machine, direct pair, rows), a belt and pipe router
   with underground pairs, and pointing with words. The model reaches them as plan_production, plan_row, plan_route,
@@ -55,7 +62,7 @@ Built so far:
   kind of alert makes the model look into it and offer one suggestion.
 - **The bridge** (`copilot/`): game chat in, model with tools, answer out, working light, a log of every call, and a
   scorer for those logs. Providers: Ollama and any OpenAI-compatible server. An Anthropic adapter is not written.
-- **Tests**: 339 unit tests that need no game and no model, including the mod's own Lua run under Lua 5.2 against a
+- **Tests**: 371 unit tests that need no game and no model, including the mod's own Lua run under Lua 5.2 against a
   stand-in game; `scripts/modcheck.py` for the mod on a local headless test server. The Lua tests found three bugs on
   their first run (a search centred one tile off, a wrong player returned for an unknown name, an unstable ranking).
 - **First run with a local model** (qwen3:8b on Ollama, 2026-11-13, mod 0.2.0): three questions through the bridge, all

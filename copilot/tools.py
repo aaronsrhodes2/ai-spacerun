@@ -44,6 +44,10 @@ SPECS = [
     {"name": "joints",
      "description": "The small patterns for where supply lines meet and cross, each with the problem it solves: belts crossing, pipes crossing belts, a splitter as a filter, merging with one side first, an overflow valve, a balancer, feeding one lane, picking one item off a mixed belt, fitting pipes to a machine's fluid connections, handing a belt to robots and back, long pipe runs, pole lines, the inserters beside a train wagon, and the rules for rail signals. Read this when a layout has such a meeting; then build it with plan_joint.",
      "parameters": {}},
+    {"name": "connections",
+     "description": "Every way one building can be connected, worked out from the game's own facts about it: its size, which side each fluid connection is on and whether it takes or gives, where heat connects, how many tiles of each side are free for inserters, and, with a recipe, how many belts its ingredients need and which joints fit. A building has only so many ways to meet its lines; read them here before laying one out.",
+     "parameters": {"machine": _param("string", "internal name of the building", True),
+                    "recipe": _param("string", "the recipe it will run, to see what that recipe needs of the connections")}},
     {"name": "plan_joint",
      "description": "Lay out one joint at a place on the map. Every joint is designed with its main flow running north; facing turns it (the direction the main flow runs). Returns a picture and a plan_id; nothing is built until build_plan.",
      "parameters": {"joint": _param("string", "the joint's name, from the joints tool", True),
@@ -240,6 +244,54 @@ class LocalTools:
                 "covers": {"from_x": b[0], "from_y": b[1], "to_x": b[2], "to_y": b[3]},
                 "picture": lay.picture(chars), "legend": "M machine, b belt, i inserter, R requester chest, P provider chest",
                 "next": "call build_plan with this plan_id to check it against the map (dry run)"}
+
+    def connections(self, machine, recipe=None):
+        m = self.fact(machine, "entity")
+        w, h = m.get("tiles_wide"), m.get("tiles_high")
+        if not w or not h:
+            raise ToolError("the game gave no size for '%s'" % machine)
+        ports = m.get("fluid_ports") if isinstance(m.get("fluid_ports"), list) else []
+        heat = (m.get("heat") or {}).get("connections") if isinstance(m.get("heat"), dict) else None
+        length = {"north": w, "south": w, "east": h, "west": h}
+        sides = {}
+        for side in ("north", "east", "south", "west"):
+            here = [p for p in ports if p.get("direction") == side]
+            sides[side] = {"tiles": length[side], "fluid_connections": [{"flow": p.get("flow"), "fluid": p.get("fluid")} for p in here],
+                           "tiles_free_for_inserters": max(0, length[side] - len(here))}
+        ways = [{"way": "items by belt", "how": "plan_row with feed 'belt': a belt along one side, a belt along the opposite side, an inserter each"},
+                {"way": "items by robots", "how": "plan_joint robot_machine: a requester chest in, a provider chest out"},
+                {"way": "items straight from a neighbouring machine", "how": "an inserter between the two machines, picking up from the one that makes the item"}]
+        if ports:
+            ways.append({"way": "fluids by pipe", "how": "plan_joint machine_ports shows a pipe stub on each connection"})
+            ways.append({"way": "items by belt and fluids by pipe together", "how": "plan_joint fluid_machine_on_belts: pipes on the belt sides tunnel under the belts"})
+        if heat:
+            ways.append({"way": "heat", "how": "a heat pipe touching one of its %d heat connections" % len(heat)})
+        out = {"machine": machine, "tiles_wide": w, "tiles_high": h, "sides": sides, "heat_connections": len(heat) if heat else None, "ways": ways,
+               "note": "sides are for the building facing north; turning the building turns them with it"}
+        if recipe:
+            r = self.fact(recipe, "recipe")
+            if machine not in (r.get("made_in") or []):
+                raise ToolError("'%s' cannot run the recipe '%s'" % (machine, recipe), "it can be made in: %s" % ", ".join(r.get("made_in") or []))
+            items_in = [i["name"] for i in r.get("ingredients") or [] if i.get("type") != "fluid"]
+            fluids_in = [i["name"] for i in r.get("ingredients") or [] if i.get("type") == "fluid"]
+            fluids_out = [i["name"] for i in r.get("products") or [] if i.get("type") == "fluid"]
+            takes = len([p for p in ports if p.get("flow") in ("input", "input-output")])
+            gives = len([p for p in ports if p.get("flow") in ("output", "input-output")])
+            problems = []
+            if len(fluids_in) > takes:
+                problems.append("the recipe takes %d fluids and the building has %d fluid inputs" % (len(fluids_in), takes))
+            if len(fluids_out) > gives:
+                problems.append("the recipe gives %d fluids and the building has %d fluid outputs" % (len(fluids_out), gives))
+            if len(items_in) <= 2:
+                belts = "one belt, a lane for each item (plan_joint lane_pair makes such a belt)" if len(items_in) == 2 else "one belt"
+            elif len(items_in) <= 4:
+                belts = "two belts, two items on each; the far belt is reached with a long-handed inserter (plan_joint reach_over)"
+            else:
+                belts = "more than two belts' worth: feed it by robots (plan_joint robot_machine)"
+            fits = "fluid_machine_on_belts" if (fluids_in or fluids_out) and items_in else ("machine_ports" if (fluids_in or fluids_out) else "plan_row, or robot_machine for small numbers")
+            out["for_recipe"] = {"recipe": recipe, "items_in": items_in, "fluids_in": fluids_in, "fluids_out": fluids_out,
+                                 "belts_needed_for_items": belts if items_in else "none", "joint_that_fits": fits, "problems": problems or None}
+        return out
 
     def joints(self):
         return {"joints": joints.catalogue(), "note": "every joint is designed with its main flow running north; plan_joint turns it"}

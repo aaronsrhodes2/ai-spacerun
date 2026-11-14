@@ -29,11 +29,22 @@ register with Steam; whether calling this command changes anything further has n
 
 ## Joints
 
-The hard part of a layout is where supply lines meet: a belt across a belt, a pipe across belts, one item taken off a
-mixed belt, two belts into one, a train wagon to a belt. The bridge carries one small pattern for each of these (eight so
-far, in `copilot/plan/joints.py`), each saying what problem it solves. They hold no recipe, no count and no place, and none
-is larger than the meeting itself: production lines are made from them, never stored. Built pieces carry their settings
-(splitter filter and priorities, inserter filter).
+The hard part of a layout is where supply lines meet: a belt across a belt, a pipe across belts, pipes fitted to a
+machine's fluid connections, one item taken off a mixed belt, belts balanced, a train wagon to a belt. The bridge carries
+one small pattern for each such meeting (`copilot/plan/joints.py`), each saying what problem it solves:
+
+belt crossing, pipe crossing, filter splitter, priority merge, overflow valve, tee, balancer, side load, lane pair,
+filtered pick, reach over, belt to robots, robots to belt, robot-run machine, machine fluid ports, fluid machine on belts,
+barrel station, long pipe, pole line, wagon side, and the rules for rail signals (rules only, until signal positions are
+checked in the game).
+
+None holds a recipe, a count or a place, and none holds more than one machine: production lines are made from joints, never
+stored. What depends on a building (its size, where its fluid connections are, how far a pole reaches) is read from the
+game when the joint is laid out. Built pieces carry their settings (splitter filter and priorities, inserter filter).
+
+A building has only so many ways to meet its lines. `connections` lists them for any building from the game's facts: which
+side each fluid connection is on, how many tiles of each side are free for inserters, where heat connects, and, for a
+recipe, how many belts its ingredients need and which joint fits.
 
 ## Modes
 
@@ -46,7 +57,7 @@ the working light, or by asking the assistant.
 
 Switching modes stops whatever the avatar was doing. A scored run can lock the mode.
 
-## Tools in the mod (version 0.9.0)
+## Tools in the mod (version 0.10.0)
 
 | Tool | What it does |
 |---|---|
@@ -87,6 +98,7 @@ These are added by the bridge and look the same to the model. They do the arithm
 | `plan_production` | Machines per recipe, raw inputs and belts for an item at a rate |
 | `plan_row` | A row of identical machines fed by belt or by robots, from one generic cell per machine |
 | `joints`, `plan_joint` | The small patterns for where lines meet and cross, each with the problem it solves; lay one out at a place |
+| `connections` | Every way one building can be connected, worked out from the game's facts about it, and what a recipe needs of them |
 | `plan_route` | A belt or pipe from A to B round what stands between, underground where it must |
 | `build_plan` | Send a plan to the game: dry run first, build only after a clean dry run, never twice |
 | `walk_to`, `mine`, `travel_to` | Start the avatar walking, mining or travelling to another planet, and wait until it has finished |
@@ -110,7 +122,7 @@ server that speaks the OpenAI chat API). `python -m copilot --ask "..."` asks on
 
 ## Testing
 
-- `python -m pytest tests/copilot_tests` runs with no game and no model: 339 tests. They cover the bridge, the planning
+- `python -m pytest tests/copilot_tests` runs with no game and no model: 371 tests. They cover the bridge, the planning
   code, the scorer, and the mod's own Lua run under Lua 5.2 against a stand-in game (`tests/copilot_tests/fake_game.lua`).
   Needs `pip install lupa`.
 - `scripts/modserver.sh start` runs a second, headless copy of the Steam install with its own data folder (`.testserver/`),
