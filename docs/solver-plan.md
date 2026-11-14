@@ -85,6 +85,15 @@ Built so far:
   the share of machines working now and averaged over the last two minutes, and the idle groups with why. It is a standing
   goal of its own kind (`busy`, a percentage). The game has no dial for a machine's effort or power, so the skill says
   what really balances a factory: machine counts by ratio, the throughput between them, and modules and beacons.
+- **Context budget** (the Captain, 2026-11-13: a local model has about 130k of context; the skill, joints, planners and
+  game knowledge must fit comfortably). Measured: the skill text is about 1,600 tokens and the 42 tool descriptions about
+  7,500, so a model always carries about 9,100 tokens, 7% of the window. Everything else is fetched when asked for and is
+  not in the model until then: game facts by `lookup`, the joints by their catalogue, plans by id. One tool result is cut
+  at 6,000 characters. With a plain model every turn starts fresh and carries only a short note of the last six
+  exchanges, words only, so a long game does not fill the context; purple Skippy keeps its own conversation. Unit tests
+  hold these lines: the fixed part under a tenth of the window, no joint and no game fact spelled out in the skill, no
+  runaway tool description. Condensing further (fewer, broader rules; shorter descriptions; rarely used tools offered
+  only when relevant) waits for run data.
 - **Planning code in the bridge** (`copilot/plan/`, pure and unit-tested): production calculator, layouts with overlap
   check and turning, the generic cells (belt-fed machine, robot-fed machine, direct pair, rows), a belt and pipe router
   with underground pairs, and pointing with words. The model reaches them as plan_production, plan_row, plan_route,
@@ -95,7 +104,7 @@ Built so far:
   kind of alert makes the model look into it and offer one suggestion.
 - **The bridge** (`copilot/`): game chat in, model with tools, answer out, working light, a log of every call, and a
   scorer for those logs. Providers: Ollama and any OpenAI-compatible server. An Anthropic adapter is not written.
-- **Tests**: 452 unit tests that need no game and no model, including the mod's own Lua run under Lua 5.2 against a
+- **Tests**: 460 unit tests that need no game and no model, including the mod's own Lua run under Lua 5.2 against a
   stand-in game; `scripts/modcheck.py` for the mod on a local headless test server. The Lua tests found three bugs on
   their first run (a search centred one tile off, a wrong player returned for an unknown name, an unstable ranking).
 - **First run with a local model** (qwen3:8b on Ollama, 2026-11-13, mod 0.2.0): three questions through the bridge, all

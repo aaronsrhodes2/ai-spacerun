@@ -8,6 +8,8 @@ from .models import schema
 
 PROMPT = (pathlib.Path(__file__).parent / "prompt.md").read_text(encoding="utf-8")
 from .toolbox import BRIDGE_ONLY, PLAN_ONLY          # noqa: F401  (kept here for callers that import them from this module)
+MEMORY_TURNS = 6                                                    # how many earlier exchanges a model is reminded of
+MEMORY_CHARS = 500                                                  # of each side of an exchange
 MAX_RESULT = 6000                                                   # characters of one tool result shown to the model
 
 
@@ -20,6 +22,7 @@ class Agent:
         self.tools = schema(offered + (local.specs() if local else []))
         self.names = {t["function"]["name"] for t in self.tools}
         self.log_path = log_path
+        self.memory = []                                # the last few exchanges, words only: (who, what was asked, what was answered)
 
     def alerts(self):
         """The game's alerts right now, as a short text for the model, and the set of alert kinds (for noticing new ones)."""
@@ -38,6 +41,17 @@ class Agent:
             with open(self.log_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(entry) + "\n")
 
+    def remembered(self):
+        """The last few exchanges as a short note for the model: words only, never tool results, so it costs little.
+        Each turn otherwise starts fresh, which keeps a long game from filling the model's context."""
+        if not self.memory:
+            return ""
+        lines = ["", "", "Earlier in this conversation (most recent last):"]
+        for who, asked, answered in self.memory:
+            lines.append("- %s: %s" % ("the player said" if who not in ("game", "goal", "leg", "check") else "you were told (%s)" % who, asked.replace(chr(10), " ")))
+            lines.append("  you answered: %s" % answered.replace(chr(10), " "))
+        return chr(10).join(lines)
+
     def handle(self, text, who="player", light=True):
         """Returns (answer, outcome, stats) for one request. `light` drives the working light in the game."""
         started = time.time()
@@ -46,7 +60,7 @@ class Agent:
         if light:
             self.game.call("set_state", {"state": "thinking", "note": text[:40]})
         alert_text, _ = self.alerts()                   # every turn starts from what the game itself is warning about
-        messages = [{"role": "system", "content": PROMPT}, {"role": "user", "content": text + ((chr(10) * 2 + alert_text) if alert_text else "")}]
+        messages = [{"role": "system", "content": PROMPT + self.remembered()}, {"role": "user", "content": text + ((chr(10) * 2 + alert_text) if alert_text else "")}]
         answer, seen = None, {}
         try:
             for step in range(self.max_steps):
@@ -83,6 +97,9 @@ class Agent:
         except Exception as e:                          # the model server failing is a result too
             outcome, answer = "model error", None
             self.log(event="error", error=str(e)[:300])
+        if answer:                                      # so "yes, do that" next turn means something
+            self.memory.append((who, text[:MEMORY_CHARS], answer[:MEMORY_CHARS]))
+            del self.memory[:-MEMORY_TURNS]
         stats["seconds"] = round(time.time() - started, 1)
         self.log(event="answer", outcome=outcome, text=answer, **stats)
         if light:
