@@ -89,15 +89,16 @@ for _,c in pairs(cells) do local k=c[3] local need=want[k]-(got[k] or 0) if need
 if n>0 then local put=hi.insert{name=k,count=n} if put>0 then inv.remove{name=k,count=put} got[k]=(got[k] or 0)+put end end end end
 local o={} for k,v in pairs(got) do o[#o+1]=k..' +'..v..' (hub '..hi.get_item_count(k)..')' end rcon.print('moved to '..p.name..': '..table.concat(o,', '))"""
 
+# One wait group per stop: a time wait did NOT hold this ship at Aquilo (it left after ~55 s of a 21,600-tick wait, twice), so an "or time"
+# fallback would send it off at once. The hub signal counts cargo already launched, so the gate opens as the rocket lifts; the pod then lands on
+# the departing ship (seen: 200 plates arrived 30 s after departure).
 ROUTE = """
 local function c(t,n,k,cmp,op) return {type='circuit',compare_type=cmp or 'and',condition={first_signal={type=t,name=n},comparator=op or '>=',constant=k}} end
 local function tm(k,cmp) return {type='time',compare_type=cmp or 'and',ticks=k} end
 local fuel,ox=c('fluid','thruster-fuel',40000),c('fluid','thruster-oxidizer',40000)
 p.schedule={current=CUR,records={
-{station='gleba',wait_conditions={fuel,ox,c('item','carbon',3000),c('item','iron-ore',3000),c('item','explosive-rocket',RK),c('item','uranium-rounds-magazine',MG),c('item','cryogenic-science-pack',40,'and','<'),tm(1800),
- c('fluid','thruster-fuel',40000,'or'),c('fluid','thruster-oxidizer',40000),c('item','carbon',3000),c('item','iron-ore',3000),c('item','explosive-rocket',RK),c('item','uranium-rounds-magazine',MG),tm(18000)}},
-{station='aquilo',wait_conditions={c('fluid','thruster-fuel',15000),c('fluid','thruster-oxidizer',15000),tm(5400),c('item','cryogenic-science-pack',PK),
- c('fluid','thruster-fuel',15000,'or'),c('fluid','thruster-oxidizer',15000),tm(WAIT)}}}}
+{station='gleba',wait_conditions={fuel,ox,c('item','carbon',3000),c('item','iron-ore',3000),c('item','explosive-rocket',RK),c('item','uranium-rounds-magazine',MG),c('item','cryogenic-science-pack',40,'and','<'),tm(1800)}},
+{station='aquilo',wait_conditions={c('fluid','thruster-fuel',15000),c('fluid','thruster-oxidizer',15000),c('item','cryogenic-science-pack',PK)}}}}
 if 'SIMPLE'=='yes' then p.schedule={current=CUR,records={p.schedule.records[1],{station='aquilo',wait_conditions={c('fluid','thruster-fuel',15000),c('fluid','thruster-oxidizer',15000),TESTGATE}}}} end
 p.paused=PAUSED if p.space_location then p.space_location=p.space_location.name end
 rcon.print('schedule gleba <-> aquilo set for '..p.name..', paused='..tostring(p.paused)..', state '..p.state)"""
