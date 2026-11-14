@@ -5,7 +5,11 @@ any request anywhere is missing, sub-components included). Assembling machines 3
             shuttle overhead asks this planet for), less what the network already holds (stock_stage). Both end on one red wire.
   filter    a constant combinator lists every item an assembler can make from solid ingredients (generated from the game's
             recipes, science packs left out); a decider per machine passes only the demanded items on that list
-  choice    a selector picks the most-missing item; that signal sets the assembler's recipe
+  choice    smallest order first (a big order used to hold all three machines while small ones waited): the decider gives every
+            missing makeable item a million, the arithmetic combinator beside the machine subtracts the missing count (of the
+            raw demand: what cannot be made ends up negative), and a selector picks the largest score; that signal sets the
+            assembler's recipe. A decider puts every output on BOTH its wires; `networks` in an output only says which INPUT
+            wire the copied count comes from.
   supply    a recipe table: one decider per makeable item (step `rom`, 35 x 5 a machine, south of the machines) that answers the
             chosen item with its ingredients times BATCH and so sets the requests of a blue requester chest (which trashes what is
             no longer asked for). The assembler's own "read ingredients" cannot be used: an assembler obeys the FIRST recipe signal
@@ -13,8 +17,8 @@ any request anywhere is missing, sub-components included). Assembling machines 3
             (assembler 3 -> 2 -> 1 -> gears). The arithmetic combinators beside the machines are left over from that try, unwired.
   output    an inserter empties the assembler into a red provider chest; robots carry the goods to whoever asked
   nesting   one machine alone deadlocks: it keeps choosing the big order and never switches to the part it is waiting for. So
-            machine 2 gives first call to whatever machine 1's chest asks for and the network lacks (a decider adds a million to
-            those), and machine 3 does the same for machine 2. Three levels: assembler 3 <- assembler 2 <- assembler 1.
+            machine 2 gives first call to whatever machine 1's chest asks for and the network lacks (a decider adds ten million
+            to those scores), and machine 3 does the same for machine 2. Three levels: assembler 3 <- assembler 2 <- assembler 1.
 Limits: slow; nothing that needs a fluid, a furnace, a foundry or another special machine; raw materials must already be in the
 network; deeper than DEPTH levels waits; across planets it only sees what a shuttle in orbit asks for.
 Steps: build PLANET [--from K] [--apply] | rom PLANET [--apply] | furnace PLANET [--apply | --config] | config PLANET | status PLANET. SITES: top-left tile of a free 24 x 14 area in the robot
@@ -120,16 +124,16 @@ CONFIG = HEAD + (
     "local prev,nrom=nil,0 for u=0,D-1 do local ox=P*u local rq,am,dec,sel,ar=at('requester-chest',ox+2.5,6.5),at('assembling-machine-3',ox+2.5,9.5),at('decider-combinator',ox+5.5,8),at('selector-combinator',ox+6.5,8),at('arithmetic-combinator',ox+5.5,11) "
     "for _,id in pairs{W.combinator_input_red,W.combinator_input_green,W.combinator_output_red,W.combinator_output_green} do if u>0 then dec.get_wire_connector(id,true).disconnect_all() end sel.get_wire_connector(id,true).disconnect_all() ar.get_wire_connector(id,true).disconnect_all() end "
     "for _,id in pairs{W.circuit_red,W.circuit_green} do am.get_wire_connector(id,true).disconnect_all() rq.get_wire_connector(id,true).disconnect_all() end "
-    "if u==0 then dec.get_wire_connector(W.combinator_input_red,true).connect_to(demand,false) else local cp,bo=at('arithmetic-combinator',ox+6.5,11),at('decider-combinator',ox+5.5,13) "
+    "dec.get_wire_connector(W.combinator_input_red,true).connect_to(demand,false) if u>0 then local cp,bo=at('arithmetic-combinator',ox+6.5,11),at('decider-combinator',ox+5.5,13) "
     "for _,id in pairs{W.combinator_input_red,W.combinator_input_green,W.combinator_output_red,W.combinator_output_green} do cp.get_wire_connector(id,true).disconnect_all() bo.get_wire_connector(id,true).disconnect_all() end "
-    "cp.get_wire_connector(W.combinator_input_red,true).connect_to(demand,false) cp.get_or_create_control_behavior().parameters={first_signal={type='virtual',name='signal-each'},second_constant=1,operation='*',output_signal={type='virtual',name='signal-each'}} "
-    "bo.get_wire_connector(W.combinator_input_red,true).connect_to(demand,false) wire(bo,W.combinator_input_green,prev,W.circuit_green) "
+    "wire(bo,W.combinator_input_red,dec,W.combinator_output_red) wire(bo,W.combinator_input_green,prev,W.circuit_green) "
     "bo.get_or_create_control_behavior().parameters={conditions={{first_signal={type='virtual',name='signal-each'},first_signal_networks={red=true,green=false},comparator='>',constant=0},"
-    "{first_signal={type='virtual',name='signal-each'},first_signal_networks={red=false,green=true},comparator='>',constant=0,compare_type='and'}},outputs={{signal={type='virtual',name='signal-each'},copy_count_from_input=false,constant=1000000}}} "
-    "wire(bo,W.combinator_output_red,cp,W.combinator_output_red) wire(dec,W.combinator_input_red,cp,W.combinator_output_red) end "
+    "{first_signal={type='virtual',name='signal-each'},first_signal_networks={red=false,green=true},comparator='>',constant=0,compare_type='and'}},outputs={{signal={type='virtual',name='signal-each'},copy_count_from_input=false,constant=10000000}}} "
+    "wire(bo,W.combinator_output_red,dec,W.combinator_output_red) end "
     "wire(dec,W.combinator_input_green,cc,W.circuit_green) "
     "dec.get_or_create_control_behavior().parameters={conditions={{first_signal={type='virtual',name='signal-each'},first_signal_networks={red=true,green=false},comparator='>',constant=0},"
-    "{first_signal={type='virtual',name='signal-each'},first_signal_networks={red=false,green=true},comparator='>',constant=0,compare_type='and'}},outputs={{signal={type='virtual',name='signal-each'},copy_count_from_input=true,networks={red=true,green=false}}}} "
+    "{first_signal={type='virtual',name='signal-each'},first_signal_networks={red=false,green=true},comparator='>',constant=0,compare_type='and'}},outputs={{signal={type='virtual',name='signal-each'},copy_count_from_input=false,constant=1000000}}} "
+    "ar.get_wire_connector(W.combinator_input_red,true).connect_to(demand,false) ar.get_or_create_control_behavior().parameters={first_signal={type='virtual',name='signal-each'},second_constant=-1,operation='*',output_signal={type='virtual',name='signal-each'}} wire(ar,W.combinator_output_red,dec,W.combinator_output_red) "
     "wire(sel,W.combinator_input_red,dec,W.combinator_output_red) sel.get_or_create_control_behavior().parameters={operation='select',select_max=true,index_constant=0} "
     "wire(am,W.circuit_green,sel,W.combinator_output_green) local ab=am.get_or_create_control_behavior() ab.circuit_set_recipe=true ab.circuit_read_ingredients=false "
     "local qb=rq.get_or_create_control_behavior() qb.set_requests=true qb.read_contents=false rq.get_logistic_point(defines.logistic_member_index.logistic_container).trash_not_requested=true "

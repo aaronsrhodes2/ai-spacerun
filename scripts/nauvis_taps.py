@@ -3,7 +3,7 @@
 them about, because barrels are much easier to clear than pipes"). One station per barrelable fluid, set against a pipe that
 carries it: an assembling machine 3 with the fill recipe, its fluid port touching that pipe (a pipe joins on every side; the tanks'
 own connections were all taken), a blue
-chest asking for 10 empty barrels and a red chest barred to 2 slots (20 barrels, 1,000 units). Empty barrels are an ordinary item the
+chest asking for 10 empty barrels and a red chest barred to 10 slots (100 barrels, 5,000 units: enough to ship by rocket too). Empty barrels are an ordinary item the
 make-anything machines produce (scripts/omni_maker.py).
 Nothing of the Captain's is changed: the station only touches a pipe from a free side. For each fluid the script lists the free
 spots, places one, waits, and keeps it only if fluid actually arrives.
@@ -25,7 +25,7 @@ CAND = ("local s=game.surfaces.nauvis local f=game.forces.player local out={} lo
         "out[#out+1]={ax,ay,d[3],ax+2*dx,ay+2*dy,idir,ax+3*dx,ay+3*dy,ax+2*sx,ay+2*sy,odir,ax+3*sx,ay+3*sy} break end end end end end end rcon.print(helpers.table_to_json(out))")
 SETUP = ("local s=game.surfaces.nauvis local a=s.find_entities_filtered{name='assembling-machine-3',position={AX,AY},radius=0.5}[1] a.set_recipe('FLUID-barrel') "
          "local rq=s.find_entities_filtered{name='requester-chest',position={RX,RY},radius=0.4}[1] local lp=rq.get_logistic_point(defines.logistic_member_index.logistic_container) local sec=lp.get_section(1) or lp.add_section() "
-         "sec.set_slot(1,{value={type='item',name='barrel',quality='normal'},min=10}) local pv=s.find_entities_filtered{name='passive-provider-chest',position={PX,PY},radius=0.4}[1] pv.get_inventory(defines.inventory.chest).set_bar(3) rcon.print('set')")
+         "sec.set_slot(1,{value={type='item',name='barrel',quality='normal'},min=10}) local pv=s.find_entities_filtered{name='passive-provider-chest',position={PX,PY},radius=0.4}[1] pv.get_inventory(defines.inventory.chest).set_bar(11) rcon.print('set')")
 CHECK = "local a=game.surfaces.nauvis.find_entities_filtered{name='assembling-machine-3',position={AX,AY},radius=0.5}[1] rcon.print(a.get_fluid_contents()['FLUID'] or 0)"
 REMOVE = "local s=game.surfaces.nauvis local n=0 for _,p in pairs({LIST}) do for _,e in pairs(s.find_entities_filtered{position=p,radius=0.4,name={'assembling-machine-3','fast-inserter','requester-chest','passive-provider-chest'}}) do e.destroy() n=n+1 end end rcon.print(n)"
 STATUS = ("local s=game.surfaces.nauvis local o={} for _,a in pairs(s.find_entities_filtered{name='assembling-machine-3'}) do local r=a.get_recipe() if r and r.name:find('%-barrel$') and not r.name:find('^empty') then local k='?' for n,v in pairs(defines.entity_status) do if v==a.status then k=n end end "

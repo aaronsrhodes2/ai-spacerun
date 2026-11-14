@@ -101,6 +101,7 @@ def ptg(f, x, y, d):
 
 
 def layout():
+    ore, carb, ice = (1000, 1000, 500) if INNER else (3000, 4000, 1500)     # inner hulls are cargo ships: 3,000 ore, 4,000 carbon and 90 chunks filled the hub
     # ---- hub edge, north ----
     ins(-4, -5, N, name="bulk-inserter")                                  # chunks in: everything, the valve throws out the surplus
     ins(-3, -5, S, name="bulk-inserter")                                  # the valve, drops into the hole at -3,-6
@@ -115,7 +116,7 @@ def layout():
     put("chemical-plant", -8, -6, 3, 3, recipe="thruster-oxidizer")
     ins(-5, -4, E, ["iron-ore"])
     put("crusher", -8, -2, 3, 2, d=E, recipe="metallic-asteroid-crushing")
-    ins(-5, -2, E, ["metallic-asteroid-chunk"], gate=("iron-ore", 3000))
+    ins(-5, -2, E, ["metallic-asteroid-chunk"], gate=("iron-ore", ore))
     ins(-5, -1, W)
     put("decider-combinator", -9, -6, 1, 2)                               # the west crusher's recipe: crushing below 3,000 iron ore,
     put("decider-combinator", -11, -6, 1, 2)                              # reprocessing at or above it (REPRO)
@@ -128,7 +129,7 @@ def layout():
     put("chemical-plant", 5, -6, 3, 3, recipe="thruster-fuel")
     ins(4, -4, W, ["carbon"], gate=None if INNER else ("carbon", 200, ">"))   # the coal plant (rockets) has first call on carbon
     put("crusher", 5, -2, 3, 2, d=E, recipe="carbonic-asteroid-crushing" if INNER else "advanced-carbonic-asteroid-crushing")   # inner: no use for sulfur
-    ins(4, -2, W, ["carbonic-asteroid-chunk"], gate=("carbon", 4000))
+    ins(4, -2, W, ["carbonic-asteroid-chunk"], gate=("carbon", carb))
     ins(4, -1, E)
     put("assembling-machine-3", 5, 0, 3, 3, recipe="firearm-magazine")
     ins(4, 0, W, ["iron-plate"], gate=("firearm-magazine", 1000 if INNER else 3000))   # outer: 3,000, Aquilo orbit has no metallic chunks to make more
@@ -137,7 +138,7 @@ def layout():
     ins(4, 3, W, ["iron-plate"])
     # ---- south ----
     put("crusher", -5, 5, 3, 2, d=E, recipe="oxide-asteroid-crushing")
-    ins(-4, 4, N, ["oxide-asteroid-chunk"], gate=("ice", 1500))
+    ins(-4, 4, N, ["oxide-asteroid-chunk"], gate=("ice", ice))
     ins(-3, 4, S)
     if INNER:                                                             # two more furnaces: the Fulgora run burned 38 magazines a minute
         for fx in (-2, 1):                                                # and two furnaces (142 plates) could not keep up
@@ -314,8 +315,9 @@ def main():
         gt = "{" + ",".join("{%s,%s,'%s',%d,'%s'}" % g for g in gates) + "}"
         print(tools["run_lua"](CONFIG.replace("SURF", sf).replace("FILT", filt).replace("REC", rec).replace("GATES", gt)))
         print(tools["run_lua"](TARGETS.replace("SURF", sf)))
-        print(tools["run_lua"](REPRO.replace("SURF", sf)))
-        print(tools["run_lua"](VALVE.replace("SURF", sf).replace("CAPS", "{" + ",".join("['%s']=%d" % kv for kv in CAPS.items()) + "}")))
+        print(tools["run_lua"](REPRO.replace("SURF", sf).replace("constant=3000", "constant=%d" % (1000 if INNER else 3000))))
+        caps = {k: (5 if INNER and "chunk" in k else v) for k, v in CAPS.items()}
+        print(tools["run_lua"](VALVE.replace("SURF", sf).replace("CAPS", "{" + ",".join("['%s']=%d" % kv for kv in caps.items()) + "}")))
     elif step == "route":
         print(tools["run_lua"](ROUTE.replace("SURF", sf)))
     elif step == "status":

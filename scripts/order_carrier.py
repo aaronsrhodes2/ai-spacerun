@@ -16,7 +16,7 @@ every catalog item. The planet orders by taking.
 First try, abandoned: an uncommon-quality sample sent UP from planet B as the order form. It needs a rocket from B for every order,
 and the silo on Gleba had no rocket parts. `unbuild` removes the catalog chest and combinators of that try and gives the samples
 back as normal items.
-Steps: ground PLANET [--apply] | unbuild PLANET | ship "NAME" [--apply] | status PLANET "NAME"
+Steps: ground PLANET [--apply] | unbuild PLANET | ship "NAME" [--apply] | route "NAME" | status PLANET "NAME"
 Usage: order_carrier.py ground gleba --apply ; order_carrier.py ship "Nauvis-Gleba 5 Shuttle II" --apply"""
 import json
 import sys
@@ -25,8 +25,9 @@ from _game import tools
 from kit_shipping import KIT
 from nauvis_mall import ITEMS
 
-CAT = sorted(set(KIT + ITEMS) - {"iron-gear-wheel", "iron-stick"})     # a rocket load of those two is 30 hub slots
-SITES = {"gleba": (151, 13)}
+BARRELS = ["barrel", "water-barrel", "petroleum-gas-barrel", "light-oil-barrel", "lubricant-barrel", "sulfuric-acid-barrel"]   # fluids travel as barrels
+CAT = sorted((set(KIT + ITEMS) - {"iron-gear-wheel", "iron-stick"}) | set(BARRELS) | {"rocket-fuel"})     # a rocket load of gears or sticks is 30 hub slots
+SITES = {"gleba": (151, 13), "fulgora": (154, -156), "vulcanus": (-26, -64)}
 Q = {"quality": "epic"}
 HEAD = ("local f=game.forces.player local W=defines.wire_connector_id local function wire(a,ia,b,ib) a.get_wire_connector(ia,true).connect_to(b.get_wire_connector(ib,true),false) end "
         "local function clear(e) for _,id in pairs{W.combinator_input_red,W.combinator_input_green,W.combinator_output_red,W.combinator_output_green} do e.get_wire_connector(id,true).disconnect_all() end end local o={} local cat={CAT} ")
@@ -66,6 +67,16 @@ SHIP = HEAD + (
     "hub.get_or_create_control_behavior().set_requests=true local pt for _,q in pairs(hub.get_logistic_point()) do if q.mode==defines.logistic_mode.requester then pt=q end end "
     "for i=pt.sections_count,1,-1 do local x=pt.sections[i] if x.is_manual and x.filters_count>0 and x.filters[1].value and x.filters[1].value.quality=='uncommon' then pt.remove_section(i) end end "
     "rcon.print('carrier wired on '..p.name..': menu of '..#cat..' items')")
+# The courier: nauvis -> vulcanus -> gleba -> fulgora -> nauvis (all direct routes). At Nauvis it waits until every order is aboard
+# (the Captain, 2026-11-13: "the ship ... will wait for that machine to say it's done with the order ... get it loaded, and then go"), or
+# 10 minutes, whichever comes first, so one order nobody can make does not hold the ship for ever. Signal M is the magazine count.
+ROUTE = ("local p for _,q in pairs(game.forces.player.platforms) do if q.name=='NAME' then p=q end end local function c(t,n,k,cmp) return {type='circuit',compare_type=cmp or 'and',condition={first_signal={type=t,name=n},comparator='>=',constant=k}} end "
+         "local function ready(f,m) return c('fluid','thruster-fuel',f),c('fluid','thruster-oxidizer',f),c('virtual','signal-M',m) end local a1,a2,a3=ready(14000,800) local b1,b2,b3=ready(14000,800) "
+         "local recs={{station='nauvis',wait_conditions={{type='all_requests_satisfied',compare_type='and'},a1,a2,a3,{type='time',compare_type='or',ticks=36000},b1,b2,b3}}} "
+         "for _,st in pairs{'vulcanus','gleba','fulgora'} do local x1,x2,x3=ready(22000,500) recs[#recs+1]={station=st,wait_conditions={{type='time',compare_type='and',ticks=1800},x1,x2,x3}} end "
+         "local cur=1 local names={nauvis=1,vulcanus=2,gleba=3,fulgora=4} if p.space_location and names[p.space_location.name] then cur=names[p.space_location.name] end p.schedule={current=cur,records=recs} p.paused=false "
+         "local pt for _,q in pairs(p.hub.get_logistic_point()) do if q.mode==defines.logistic_mode.requester then pt=q end end local gone=0 for i=pt.sections_count,1,-1 do if pt.sections[i].is_manual then pt.remove_section(i) gone=gone+1 end end "
+         "rcon.print('route set for '..p.name..': nauvis, vulcanus, gleba, fulgora; '..gone..' fixed request sections removed (the courier carries orders only)')")
 STATUS = HEAD + (
     "local s=game.surfaces['SURF'] local rp=s.find_entities_filtered{name='roboport',position={OX+2,OY+2},radius=0.6}[1] "
     "local function sig(n,max) local t={} if n and n.signals then local l=n.signals table.sort(l,function(a,b) return a.count>b.count end) for i,x in pairs(l) do if i<=max then t[#t+1]=x.signal.name..' '..x.count end end end return table.concat(t,', ') end "
@@ -104,6 +115,8 @@ def main():
         print("placed" if apply else "dry run", r.get("placed"), "failed", json.dumps(r.get("failed") or [])[:300])
         if apply:
             print(run(SHIP, name=name))
+    elif step == "route":
+        print(run(ROUTE, name=sys.argv[2]))
     elif step == "status":
         print(run(STATUS, sys.argv[2], sys.argv[3]).replace(" ;; ", "\n"))
 

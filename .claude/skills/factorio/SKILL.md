@@ -925,3 +925,11 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - Barrel loop: empties leave A and B into red chests and go back to the filling stations and to C and D by robot. A dedicated barrel maker at 31.5,-388.5 is barred to 2 slots, so the number of barrels in the system is bounded.
 - Assembler 3 fluid ports: input on the north edge centre when facing north (east edge facing east, and so on); output on the opposite edge. Chemical plant facing north: inputs top at x-1 and x+1, outputs bottom at x-1 and x+1.
 - Known weakness of all the make-anything machines: they pick the LARGEST missing count, so a big order (216 assemblers) holds the three assemblers and small ones wait. Smallest-first would be better; not built.
+
+## Courier 1 and smallest-first (2026-11-13)
+- The new-hull prototype is now `Courier 1` (was "Nauvis-Gleba 5 Shuttle II"): orders only, no fixed requests. Route nauvis -> vulcanus -> gleba -> fulgora -> nauvis (`order_carrier.py route "Courier 1"`). At Nauvis it waits for `all_requests_satisfied` (a schedule wait condition type) plus fuel and magazines, or 10 minutes; elsewhere 30 seconds. Menu: 39 items, fluid barrels and rocket fuel included. Pads on Gleba, Fulgora (roboport 156,-154) and Vulcanus (roboport -24,-62) follow their network's missing requests.
+- The old `Nauvis-Gleba 5 Shuttle` keeps hauling science.
+- A decider puts every output on BOTH its output wires; `networks` inside an output only says which input wire a copied count comes from. One decider can therefore serve one machine or one circuit-set chest. The chemical plant's recipe table has eight deciders a recipe (two blocks: 4,-398 and 4,-382); the flamethrower-ammo entry is unwired (its place is taken by a chest, and there is no crude oil barrel yet).
+- Smallest order first on the three assemblers: decider gives each missing makeable item 1,000,000; the arithmetic combinator beside the machine adds minus the raw demand; the selector takes the maximum. Machines 2 and 3 add 10,000,000 for what the machine before is waiting for.
+- Inner hulls on the new pattern are cargo ships: gates 1,000 ore, 1,000 carbon, 500 ice, 5 chunks of each kind (3,000 / 4,000 / 1,500 / 30 filled all 325 hub slots).
+- Filling stations buffer 10 slots (100 barrels) so barrels can also ship by rocket.

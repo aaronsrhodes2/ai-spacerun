@@ -9,10 +9,11 @@ four assembling machines 3 standing on its four fluid ports:
   plant  a blue chest for the solid ingredients, a red chest for the solid products.
 Control is the same as scripts/omni_maker.py: the demand wire of its first roboport, a list of what this plant can make, a decider
 and a selector that picks the most-missing item. A fluid product is ordered as its barrel (lubricant-barrel). The recipe table has
-four deciders per recipe: plant recipe + solid requests, A's recipe + A's barrels, B's recipe + B's barrels, C's and D's recipes.
+eight deciders per recipe, one for each machine and each circuit-set chest (a decider puts every output on both of its wires, so
+it can serve only one of them): plant recipe, plant requests, A recipe, A barrels, B recipe, B barrels, C recipe, D recipe.
 Machines get RECIPE signals (no ambiguity, and none of them can make another's recipe on its own wire).
 Only recipes whose fluids all have barrels are listed (no steam, ammonia, thruster fuel). Base fluids come from scripts/nauvis_taps.py.
-Steps: build [--apply] | config | status. Never apply twice.
+Steps: build [--more] [--apply] | config | status. Never apply twice (--more places only the second block of the recipe table).
 Usage: omni_fluid.py build [--apply] | config | status"""
 import json
 import sys
@@ -21,6 +22,7 @@ from _game import tools
 
 CX, CY = 15, -388            # the plant's centre tile
 RX, RY = 4, -398             # top-left tile of the recipe table (two rows of deciders, two columns a recipe)
+RY2 = -382                   # its second block, south of the plant
 DEMAND = (-28, -398)         # the roboport of scripts/omni_maker.py that reads missing requests
 BATCH = 10
 Q = {"quality": "epic"}
@@ -33,7 +35,7 @@ LIST = ("local f=game.forces.player local bar={} for name,r in pairs(f.recipes) 
         "if ok and key and #fi<=2 and #fo<=2 and (#fi>0 or #fo>0) and not seen[key] then seen[key]=true rs[#rs+1]={name=name,key=key,fi=fi,fo=fo,si=si} end end end ")
 
 
-def layout(n):
+def layout(n, more=False):
     ents = []
 
     def e(name, tx, ty, w=1, h=1, d=N):
@@ -70,10 +72,15 @@ def layout(n):
     e("constant-combinator", c - 6, y - 6)
     e("decider-combinator", c - 6, y - 4, 1, 2)
     e("selector-combinator", c - 5, y - 4, 1, 2)
+    first = len(ents)
     for i in range(n):
         for dx, dy in ((0, 0), (1, 0), (0, 2), (1, 2)):
             e("decider-combinator", RX + 2 * i + dx, RY + dy, 1, 2)
-    return ents
+    second = len(ents)
+    for i in range(n):                                          # the second block: a decider puts its outputs on both wires, so one
+        for dx, dy in ((0, 0), (1, 0), (0, 2), (1, 2)):         # decider can serve only one machine or chest (eight a recipe)
+            e("decider-combinator", RX + 2 * i + dx, RY2 + dy, 1, 2)
+    return ents[second:] if more else ents
 
 
 CONFIG = ("local s=game.surfaces.nauvis local W=defines.wire_connector_id local function at(n,x,y) return s.find_entities_filtered{name=n,position={x+0.5,y+0.5},radius=0.4}[1] end "
@@ -91,15 +98,16 @@ CONFIG = ("local s=game.surfaces.nauvis local W=defines.wire_connector_id local 
           "for _,m in pairs{plant,A,B,C,D} do clr(m,CC) local b=m.get_or_create_control_behavior() b.circuit_set_recipe=true b.circuit_read_ingredients=false end "
           "for _,q in pairs{qm,qa,qb} do clr(q,CC) local b=q.get_or_create_control_behavior() b.set_requests=true b.read_contents=false q.get_logistic_point(defines.logistic_member_index.logistic_container).trash_not_requested=true end "
           "for _,q in pairs{qc,qd} do local lp=q.get_logistic_point(defines.logistic_member_index.logistic_container) local se=lp.get_section(1) or lp.add_section() se.set_slot(1,{value={type='item',name='barrel',quality='normal'},min=10}) end "
-          "local function R(n) return {type='recipe',name=n} end local function red(sg,k) return {signal=sg,copy_count_from_input=false,constant=k,networks={red=true,green=false}} end local function grn(sg,k) return {signal=sg,copy_count_from_input=false,constant=k,networks={red=false,green=true}} end "
-          "local n=0 for i,r in pairs(rs) do local x0=TX+2*(i-1) local d={} for j,p in pairs{{0,0},{1,0},{0,2},{1,2}} do d[j]=s.find_entities_filtered{name='decider-combinator',position={x0+p[1]+0.5,TY+p[2]+1},radius=0.3}[1] end "
-          "if d[1] and d[2] and d[3] and d[4] then local cond={{first_signal={type='item',name=r.key},comparator='>',constant=0}} local o1={red(R(r.name),1)} for _,ing in pairs(r.si) do o1[#o1+1]=grn({type='item',name=ing.name},ing.amount*BATCH) end "
-          "local fa,fb=r.fi[1],r.fi[2] if fa and fb and (fa.fluidbox_index==2 or fb.fluidbox_index==1) then fa,fb=fb,fa end local o2,o3,o4={},{},{} "
-          "if fa then o2={red(R('empty-'..bar[fa.name]),1),grn({type='item',name=bar[fa.name]},math.ceil(fa.amount*BATCH/50))} end if fb then o3={red(R('empty-'..bar[fb.name]),1),grn({type='item',name=bar[fb.name]},math.ceil(fb.amount*BATCH/50))} end "
-          "if r.fo[1] then o4[#o4+1]=red(R(bar[r.fo[1].name]),1) end if r.fo[2] then o4[#o4+1]=grn(R(bar[r.fo[2].name]),1) end "
-          "for j,outs in pairs{o1,o2,o3,o4} do clr(d[j],CB) d[j].get_or_create_control_behavior().parameters={conditions=cond,outputs=outs} wire(d[j],W.combinator_input_green,sel,W.combinator_output_green) end "
-          "wire(d[1],W.combinator_output_red,plant,W.circuit_red) wire(d[1],W.combinator_output_green,qm,W.circuit_green) wire(d[2],W.combinator_output_red,A,W.circuit_red) wire(d[2],W.combinator_output_green,qa,W.circuit_green) "
-          "wire(d[3],W.combinator_output_red,B,W.circuit_red) wire(d[3],W.combinator_output_green,qb,W.circuit_green) wire(d[4],W.combinator_output_red,C,W.circuit_red) wire(d[4],W.combinator_output_green,D,W.circuit_green) n=n+1 end end "
+          "local function R(n) return {type='recipe',name=n} end "
+          "local n=0 for i,r in pairs(rs) do local x0=TX+2*(i-1) local d={} for j,p in pairs{{0,0},{1,0},{0,2},{1,2}} do d[j]=s.find_entities_filtered{name='decider-combinator',position={x0+p[1]+0.5,TY+p[2]+1},radius=0.3}[1] "
+          "d[j+4]=s.find_entities_filtered{name='decider-combinator',position={x0+p[1]+0.5,TY2+p[2]+1},radius=0.3}[1] end local all=true for j=1,8 do if not d[j] then all=false end end "
+          "if all then local cond={{first_signal={type='item',name=r.key},comparator='>',constant=0}} local function K(sg,k) return {signal=sg,copy_count_from_input=false,constant=k} end local o={{K(R(r.name),1)},{},{},{},{},{},{},{}} "
+          "for _,ing in pairs(r.si) do o[2][#o[2]+1]=K({type='item',name=ing.name},ing.amount*BATCH) end local fa,fb=r.fi[1],r.fi[2] if fa and fb and (fa.fluidbox_index==2 or fb.fluidbox_index==1) then fa,fb=fb,fa end "
+          "if fa then o[3]={K(R('empty-'..bar[fa.name]),1)} o[4]={K({type='item',name=bar[fa.name]},math.ceil(fa.amount*BATCH/50))} end if fb then o[5]={K(R('empty-'..bar[fb.name]),1)} o[6]={K({type='item',name=bar[fb.name]},math.ceil(fb.amount*BATCH/50))} end "
+          "if r.fo[1] then o[7]={K(R(bar[r.fo[1].name]),1)} end if r.fo[2] then o[8]={K(R(bar[r.fo[2].name]),1)} end "
+          "local tgt={{plant,W.circuit_red},{qm,W.circuit_green},{A,W.circuit_red},{qa,W.circuit_green},{B,W.circuit_red},{qb,W.circuit_green},{C,W.circuit_red},{D,W.circuit_red}} "
+          "for j=1,8 do clr(d[j],CB) d[j].get_or_create_control_behavior().parameters={conditions=cond,outputs=o[j]} wire(d[j],W.combinator_input_green,sel,W.combinator_output_green) "
+          "local oc=(tgt[j][2]==W.circuit_red) and W.combinator_output_red or W.combinator_output_green wire(d[j],oc,tgt[j][1],tgt[j][2]) end n=n+1 end end "
           "local t={} for _,r in pairs(rs) do t[#t+1]=r.key end rcon.print('recipes wired '..n..' of '..#rs..': '..table.concat(t,', '))")
 STATUS = ("local s=game.surfaces.nauvis local W=defines.wire_connector_id local c,y=CX,CY local o={} local function st(e) local k='?' for a,v in pairs(defines.entity_status) do if v==e.status then k=a end end local r=e.get_recipe() "
           "local fl={} for n,v in pairs(e.get_fluid_contents()) do fl[#fl+1]=n..' '..math.floor(v) end return (r and r.name or 'no recipe')..', '..k..', made '..e.products_finished..(#fl>0 and (' ['..table.concat(fl,', ')..']') or '') end "
@@ -112,7 +120,7 @@ STATUS = ("local s=game.surfaces.nauvis local W=defines.wire_connector_id local 
 
 
 def sub(code):
-    return (code.replace("CX", str(CX)).replace("CY", str(CY)).replace("TX", str(RX)).replace("TY", str(RY)).replace("DX", str(DEMAND[0])).replace("DY", str(DEMAND[1])).replace("BATCH", str(BATCH)))
+    return (code.replace("CX", str(CX)).replace("CY", str(CY)).replace("TY2", str(RY2)).replace("TX", str(RX)).replace("TY", str(RY)).replace("DX", str(DEMAND[0])).replace("DY", str(DEMAND[1])).replace("BATCH", str(BATCH)))
 
 
 def main():
@@ -120,7 +128,7 @@ def main():
     apply = "--apply" in sys.argv
     if step == "build":
         n = int(tools["run_lua"](LIST + "rcon.print(#rs)").strip())
-        r = json.loads(tools["place_entities"](json.dumps(layout(n)), surface="nauvis", dry_run=not apply))
+        r = json.loads(tools["place_entities"](json.dumps(layout(n, "--more" in sys.argv)), surface="nauvis", dry_run=not apply))
         print("recipes", n, "placed" if apply else "dry run", r.get("placed"), "failed", json.dumps(r.get("failed") or [])[:400])
     if step == "config" or (step == "build" and apply):
         print(tools["run_lua"](sub(CONFIG)))
