@@ -49,6 +49,19 @@ to 16 tiles, `goto` teleports anywhere, and `build_ghosts` revives ghosts with n
 from the inventory). So there is no walking code to pull in: increment 1 is ours to write. What we keep from upstream is
 the character itself, the inventory handling, the perception and the bridge.
 
+## How it plays
+
+The Captain's picture of the loop (2026-11-13): you start as the avatar and say, in the game, "let's start getting to red
+science". Your words become the prompt; whichever model you configured plans the work and carries it out.
+
+- **The channel is the in-game chat.** The mod reads chat lines and the model answers there, so the whole exchange sits
+  in the game and in the save's log.
+- **Voice sits outside the game.** A Factorio mod is sandboxed Lua and cannot reach a microphone. A small companion on
+  the player's machine listens on a push-to-talk key, turns speech into text (SkippyTel already runs whisper) and types it
+  into the chat. Text chat works without it.
+- **Two ways to run.** Co-op: the player talks, the model works, both build. Solo: the harness feeds the milestone list
+  as the prompts and nobody speaks. The scored runs are solo; the mod people play with is co-op.
+
 ## Parts to build
 
 | Part | What it is |
@@ -63,6 +76,7 @@ the character itself, the inventory handling, the perception and the bridge.
 | Mistakes list | The traps of the Fable run as rules ("a mixed-item belt must be a loop"). |
 | Milestones | A fixed list from first plate to the win, each with a test code can run. |
 | Harness | Runs a model against a save, scores it, saves at each milestone, resumes after a crash. |
+| Voice companion | Push-to-talk speech to text into the game chat. Optional; outside the mod. |
 | Provider plugin | Paid API, local model, or a local server that speaks the Anthropic API. Upstream's two providers are the base. |
 
 ## Increments
