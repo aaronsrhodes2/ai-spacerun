@@ -28,8 +28,9 @@ def reactor():
 
 
 def robots():
-    print(tools["run_lua"](PAD + "local rp=s.find_entities_filtered{name='roboport'}[1] local inv=rp.get_inventory(defines.inventory.roboport_robot) local a=pi.remove{name='construction-robot',count=30} local b=pi.remove{name='logistic-robot',count=20} "
-                           "local x=inv.insert{name='construction-robot',count=a} local y=inv.insert{name='logistic-robot',count=b} rcon.print('robots into the roboport: construction '..x..', logistic '..y)"))
+    print(tools["run_lua"](PAD + "local rp=s.find_entities_filtered{name='roboport'}[1] local inv=rp.get_inventory(defines.inventory.roboport_robot) local x,y=0,0 "
+                           "for _,it in pairs(pi.get_contents()) do if it.name=='construction-robot' or it.name=='logistic-robot' then local n=pi.remove{name=it.name,count=it.count,quality=it.quality} local k=inv.insert{name=it.name,count=n,quality=it.quality} if it.name=='construction-robot' then x=x+k else y=y+k end end end "
+                           "rcon.print('robots into the roboport (any quality): construction '..x..', logistic '..y)"))
 
 
 def icebergs(n):

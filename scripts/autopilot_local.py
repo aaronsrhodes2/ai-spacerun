@@ -18,6 +18,13 @@ CHART = ("local f=game.forces.player local n,c=0,0 for _,s in pairs(game.surface
          "local cx,cy=math.floor(e.position.x/32),math.floor(e.position.y/32) local k=cx*100000+cy if not seen[k] then seen[k]=true n=n+1 if n<=3000 then local ok=pcall(function() f.chart(s,{{(cx-1)*32,(cy-1)*32},{(cx+2)*32,(cy+2)*32}}) end) if ok then c=c+1 end end end end end end rcon.print('charted '..c..' of '..n..' chunks with our things')")
 CHART_EVERY = 3
 
+# The Aquilo reactor burns a fuel cell at full power (76 MW) whatever is drawn: a cell is gone in 105 seconds and what the network cannot
+# hold (16 MJ a degree, 1,000 degrees at most) is lost (measured 2026-11-13: 12 cells in 40 minutes for 0.5 MW of use). So the fuel is fed one cell
+# at a time, only when the reactor has cooled below 500 degrees; the chest and inserter that fed it freely are gone.
+REACTOR = ("local s=game.surfaces.aquilo if not s then return end local rx=s.find_entities_filtered{name='nuclear-reactor'}[1] if not rx then rcon.print('no reactor') return end local pad=s.find_entities_filtered{type='cargo-landing-pad'}[1] "
+           "local pi=pad.get_inventory(defines.inventory.cargo_landing_pad_main) if rx.temperature<500 and rx.get_fuel_inventory().get_item_count()==0 and pi.get_item_count('uranium-fuel-cell')>0 then local n=pi.remove{name='uranium-fuel-cell',count=1} rx.get_fuel_inventory().insert{name='uranium-fuel-cell',count=n} "
+           "rcon.print('reactor fed one cell at '..string.format('%.0f',rx.temperature)..' degrees') else rcon.print('reactor '..string.format('%.0f',rx.temperature)..' degrees, cells on the pad '..pi.get_item_count('uranium-fuel-cell')) end")
+
 # Robots cannot be upgraded in the air (the Captain, 2026-11-13: swap them when they go to charge). Every cycle, each robot resting in a
 # roboport below the best researched quality is replaced by the same robot at that quality, on every surface. Over a few hours every
 # robot has docked once. The same swap as scripts/upgrade_quality.py --items, which only catches the robots resting at that moment.
@@ -37,6 +44,9 @@ def main():
             guard = tools["run_lua"](ap.SILO_GUARD)
             ships = tools["run_lua"](ap.SHIPS)
             bots = tools["run_lua"](ROBOTS).strip()
+            reac = tools["run_lua"](REACTOR).strip()
+            if "fed one cell" in reac:
+                ap.log(reac, LOG)
             if cyc % CHART_EVERY == 0:
                 tools["run_lua"](CHART)
             tools["run_lua"](module_mall.LABS)                                               # speed modules into the Gleba labs first
