@@ -32,7 +32,8 @@ wheel does not depend on it) gets its `max` lifted above the cap, or everything 
   8 Water. With the old stock of oxide chunks gone, the oxide tap (it yields to the spiral) brings about 5 chunks a minute: 25 ice, 500
     water, about 12 processing units a minute. `water`: the reshuffler turns spare carbonic chunks into oxide (and metallic) ones while
     the melter is short of ice (see WATER_ENTS).
-Steps: check | tap | em [--apply] | crusher [--apply] | ec2 [--apply] | water [--apply] | trim | modules | config | status | rate [seconds]      [--only PLANET]
+  9 The coal plant's one long-handed inserter lifted about 190 carbon a minute off a loop that carried 420 past it. `coal`: a second one at 18,25.
+Steps: check | tap | em [--apply] | crusher [--apply] | ec2 [--apply] | water [--apply] | coal [--apply] | trim | modules | config | status | rate [seconds]      [--only PLANET]
 Order on a wheel: tap, em (dry run), em --apply, crusher (dry run), crusher --apply, ec2 (dry run), ec2 --apply, water (dry run), water --apply, config. `em --apply` refuses a second run. After a quality upgrade and after any
 `wheel_rocket.py config`: `wheel_export_fulgora.py config` (wheel_rocket.py sets every cap back to 2,000 and its own targets).
 Never run `wheel_rocket.py build` or `refit` on a wheel that has the plants: it would try to put the three assemblers back."""
@@ -79,7 +80,9 @@ EM_ENTS = ([ent("electromagnetic-plant", x, 12, d, 4) for x, r, d in PLANTS] + [
     ent("fast-inserter", 28, 13, W),                                                                         # electronic circuits to the advanced circuit plant
     ent("fast-inserter", 29, 16, S), ent("fast-inserter", 31, 16, S), ent("fast-inserter", 30, 16, N),       # plastic, cable in; advanced circuits out
 ])
-EXTRA_ENTS = [ent("bulk-inserter", 37, 28, S), ent("bulk-inserter", 41, 20, E)]                              # second cable out, second carbon lift
+EXTRA_ENTS = [ent("bulk-inserter", 37, 28, S), ent("bulk-inserter", 41, 20, E)]
+COAL_ENTS = [ent("long-handed-inserter", 18, 25, S)]                                                          # second carbon intake of the coal plant
+COAL_FILTERS = [(18, 25, ["carbon"])]                              # second cable out, second carbon lift
 EM_FILTERS = [(20, 16, ["advanced-circuit", "electronic-circuit"]), (24, 16, ["iron-plate"]), (25, 16, ["copper-cable"]), (27, 16, ["copper-cable"]), (29, 16, ["plastic-bar"]),
               (31, 16, ["copper-cable"]), (22, 16, ["processing-unit"]), (30, 16, ["advanced-circuit"]), (23, 13, ["electronic-circuit"]), (28, 13, ["electronic-circuit"]),
               (37, 28, ["copper-cable"]), (41, 20, ["carbon"])]
@@ -102,7 +105,12 @@ EC2_FILTERS = [(13, 14, ["copper-cable"]), (18, 13, ["electronic-circuit"]), (16
 # full: downstream of the intake the returned chunk found no gap and the reshuffler stopped at full output; upstream, every chunk the
 # intake lifts opens the gap), metallic ones onto in2 (long-handed, 7,45);
 # the old relief inserter at 6,42 (chunks onto the ore belt and so into the hub, a slot each) is given a filter that never matches
-WATER_ENTS = [ent("fast-inserter", 5, 45, N), ent("fast-inserter", 6, 45, S), ent("long-handed-inserter", 7, 45, N)]
+WATER_ENTS = [ent("fast-inserter", 5, 45, N), ent("fast-inserter", 6, 45, S), ent("long-handed-inserter", 7, 45, N),
+              {"name": "decider-combinator", "x": 8 + HX, "y": 48.5 + HY, "direction": E, "params": dict(Q)}]
+# the reshuffler's metallic chunks are now ALL the metal the district gets: the spoke's metallic tap is shut (its chunks stood packed on
+# in2 and the by-product found no gap: reshuffler at full output, no oxide, no water, everything stopped) and the metallic crusher takes
+# whatever in2 brings (ore the melters do not want rides out to the hub). So the reshuffler has two reasons to run, joined by the decider
+# at 7..8,48: the melter holds fewer than 20 ice (green wire) OR the copper melter holds fewer than 30 copper ore (red wire).
 WATER_FILTERS = [(5, 45, ["carbonic-asteroid-chunk"]), (6, 45, ["carbonic-asteroid-chunk"]), (7, 45, ["metallic-asteroid-chunk"]), (6, 42, ["carbon"])]
 WATERCLEAR = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local n=0 for _,e in pairs(s.find_entities_filtered{name='long-handed-inserter',position={IX,IY},radius=0.3}) do "
               "if e.held_stack.valid_for_read then hub.insert(e.held_stack) e.held_stack.clear() end e.destroy() n=n+1 end rcon.print('long-handed intake of the reshuffler removed '..n)")
@@ -137,7 +145,16 @@ CONFIG = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=define
           "local rp=s.find_entities_filtered{name='crusher',position={RPX,RPY},radius=0.5}[1] local ri=at('inserter',RIX,RIY) local rr=at('inserter',RIX-1,RIY) if rp and ri and rr then ri.direction=defines.direction.south rr.direction=defines.direction.north rr.get_wire_connector(W.circuit_green,true).disconnect_all() rr.get_or_create_control_behavior().circuit_enable_disable=false "
           "if not rp.get_recipe() or rp.get_recipe().name~='carbonic-asteroid-reprocessing' then for _,st in pairs(rp.set_recipe('carbonic-asteroid-reprocessing')) do hub.insert(st) end end "
           "local melt=s.find_entities_filtered{type='assembling-machine',position={WMX,WMY},radius=0.5}[1] melt.get_or_create_control_behavior().circuit_read_contents=true local c=ri.get_wire_connector(W.circuit_green,true) c.disconnect_all() c.connect_to(melt.get_wire_connector(W.circuit_green,true),false) "
-          "local cb=ri.get_or_create_control_behavior() cb.circuit_enable_disable=true cb.circuit_condition={first_signal={type='item',name='ice'},comparator='<',constant=20} o[#o+1]='reshuffler on carbonic chunks, gated on the melter ice' end "
+          "local dc=s.find_entities_filtered{name='decider-combinator',position={DCX,DCY},radius=0.6}[1] local cu=s.find_entities_filtered{name='foundry',position={CMX,CMY},radius=0.6}[1] cu.get_or_create_control_behavior().circuit_read_contents=true "
+          "for _,id in pairs{W.combinator_input_red,W.combinator_input_green,W.combinator_output_red,W.combinator_output_green} do dc.get_wire_connector(id,true).disconnect_all() end "
+          "dc.get_wire_connector(W.combinator_input_green,true).connect_to(melt.get_wire_connector(W.circuit_green,true),false) dc.get_wire_connector(W.combinator_input_red,true).connect_to(cu.get_wire_connector(W.circuit_red,true),false) "
+          "dc.get_or_create_control_behavior().parameters={conditions={{first_signal={type='item',name='ice'},first_signal_networks={red=false,green=true},comparator='<',constant=20},"
+          "{first_signal={type='item',name='copper-ore'},first_signal_networks={red=true,green=false},comparator='<',constant=30,compare_type='or'}},outputs={{signal={type='virtual',name='signal-A'},copy_count_from_input=false,constant=1}}} "
+          "c.disconnect_all() local cr2=ri.get_wire_connector(W.circuit_red,true) cr2.disconnect_all() cr2.connect_to(dc.get_wire_connector(W.combinator_output_red,true),false) "
+          "local cb=ri.get_or_create_control_behavior() cb.circuit_enable_disable=true cb.circuit_condition={first_signal={type='virtual',name='signal-A'},comparator='>',constant=0} "
+          "local mi=at('inserter',MIX,MIY) if mi then mi.get_or_create_control_behavior().circuit_enable_disable=false end "
+          "local tap=at('inserter',-66.5,0.5) if tap then local tb=tap.get_or_create_control_behavior() tb.circuit_enable_disable=true tb.circuit_condition={first_signal={type='item',name='metallic-asteroid-chunk'},comparator='>',constant=1000000} end "
+          "o[#o+1]='reshuffler on carbonic chunks while ice or copper ore is short; metallic tap shut, metallic crusher ungated' end "
           "local old=s.find_entities_filtered{name='assembling-machine-3',position={OPX,OPY},radius=0.3}[1] if old then old.direction=defines.direction.south o[#o+1]='old processing unit assembler turned south' end "
           "local g=0 for _,q in pairs(GATED) do g=g+cond(at('inserter',q[1],q[2]),q[3],'<',q[4],lb) end local sd=0 for _,q in pairs(SIDE) do sd=sd+cond(at('inserter',q[1],q[2]),q[3],'>=',q[4],lb) end "
           "local x=0 for _,q in pairs(CAPS) do x=x+cond(at('inserter',q[1],q[2]),q[3],'<',q[4],hub) end hub.providing_to_other_platforms=true "
@@ -191,7 +208,7 @@ def has_em(surface):
 def config(surface, export):
     em = has_em(surface)
     gated = [(x, y, item, TARGETS[item]) for x, y, item, t in wr.gated] + [hc(x, y) + (item, TARGETS[item]) for x, y, item in CRUSH_GATES]
-    filt = [hc(x, y) + (names,) for x, y, names in CRUSH_FILTERS]
+    filt = [hc(x, y) + (names,) for x, y, names in CRUSH_FILTERS + COAL_FILTERS]
     if run(HAS_EM.replace("name='electromagnetic-plant'", "name='fast-inserter'"), surface, PX=hc(6, 45)[0], PY=hc(6, 45)[1]) != "0":
         filt += [hc(x, y) + (names,) for x, y, names in WATER_FILTERS]
     rec = []
@@ -206,7 +223,7 @@ def config(surface, export):
     gated.append(hc(1, 45) + ("carbon", TARGETS["carbon"]))                       # the carbonic crusher's intake follows the loop's carbon
     lb = hc(*[(t[0] - HX, t[1] - HY) for t in wr.loop_tiles][0])
     return run(CONFIG, surface, FILT=lua_rows(filt), REC=lua_rows(rec), GATED=lua_rows(gated), SIDE=lua_rows(side), CAPS=lua_rows(caps),
-               LBX=lb[0], LBY=lb[1], RPX=HX + 6.5, RPY=HY + 44, RIX=hc(6, 45)[0], RIY=hc(6, 45)[1], WMX=HX + 45.5, WMY=HY + 27.5, CRX=CRUSH_ENTS[0]["x"], CRY=CRUSH_ENTS[0]["y"], OPX=OLD_MACH[0][0] + HX, OPY=OLD_MACH[0][1] + HY, EXPORT=export, RMIN=REQUEST_MIN)
+               LBX=lb[0], LBY=lb[1], RPX=HX + 6.5, RPY=HY + 44, RIX=hc(6, 45)[0], RIY=hc(6, 45)[1], WMX=HX + 45.5, WMY=HY + 27.5, DCX=8 + HX, DCY=48.5 + HY, CMX=HX + 34.5, CMY=HY + 37.5, MIX=hc(13, 45)[0], MIY=hc(13, 45)[1], CRX=CRUSH_ENTS[0]["x"], CRY=CRUSH_ENTS[0]["y"], OPX=OLD_MACH[0][0] + HX, OPY=OLD_MACH[0][1] + HY, EXPORT=export, RMIN=REQUEST_MIN)
 
 
 def rate(surface, export, secs):
@@ -284,6 +301,14 @@ def main():
             print(run(WATERCLEAR, surface, IX=hc(5, 45)[0], IY=hc(5, 45)[1]))
             print(place(WATER_ENTS, surface, True))
             print(config(surface, export))
+        elif step == "decider":                                                     # one-off for a wheel that got `water` before the decider existed
+            print(place(WATER_ENTS[3:], surface, apply))
+            if apply:
+                print(config(surface, export))
+        elif step == "coal":
+            print(place(COAL_ENTS, surface, apply))
+            if apply:
+                print(config(surface, export))
         elif step == "modules":
             print(run(MODULES, surface, MODA=HX + 17, MODB=HY + 12, MODC=HX + 33, MODD=HY + 16))
             print(run(MODULES, surface, MODA=HX + 17, MODB=HY + 43, MODC=HX + 20, MODD=HY + 45))

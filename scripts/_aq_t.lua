@@ -1,8 +1,7 @@
-local s=game.surfaces.aquilo local o={} local st={} for k,v in pairs(defines.entity_status) do st[v]=k end
-local t=s.find_entities_filtered{name='heating-tower'}[1] o[#o+1]='tick '..game.tick..' tower T'..t.temperature..' '..st[t.status]..' fuel '..t.burner.inventory.get_item_count()..' rem '..math.floor(t.burner.remaining_burning_fuel)
-local c=s.find_entities_filtered{name='requester-chest',position={25.5,-15.5},radius=0.4}[1] o[#o+1]='tower chest '..c.get_inventory(defines.inventory.chest).get_item_count('solid-fuel')
-local ex=s.find_entities_filtered{name='heat-exchanger'}[1] o[#o+1]='exchanger T'..ex.temperature..' '..st[ex.status]
-for _,p in pairs({{-13.5,-25.5},{-8.5,-25.5},{0.5,-25.5},{1.5,-25.5},{11.5,-25.5},{5.5,-23.5}}) do local e=s.find_entities_filtered{name='pipe',position=p,radius=0.3}[1] if e then local fd=e.get_fluid(1) o[#o+1]='pipe '..p[1]..' '..(fd and (fd.name..' '..fd.amount) or 'empty') else o[#o+1]='no pipe '..p[1] end end
-for _,e in pairs(s.find_entities_filtered{name='assembling-machine-3',area={{-12,-32},{16,-24}}}) do local fl='' for i=1,e.fluids_count do local fd=e.get_fluid(i) fl=fl..(fd and (fd.name..fd.amount) or 'nil') end o[#o+1]='am3 '..e.position.x..' d'..e.direction..' '..st[e.status]..' fl '..fl..' ice '..e.get_inventory(defines.inventory.crafter_input).get_item_count('ice') end
-local sub=s.find_entities_filtered{name='substation'}[1] local es=sub.electric_network_statistics local top={} for k,v in pairs(es.input_counts) do top[#top+1]={k,es.get_flow_count{name=k,category='input',precision_index=defines.flow_precision_index.five_seconds}} end table.sort(top,function(a,b) return a[2]>b[2] end) for i=1,math.min(6,#top) do o[#o+1]='use '..top[i][1]..' '..math.floor(top[i][2]*60/1000)..' kW' end
+local s=game.surfaces.aquilo local f=game.forces.player local o={}
+local rp=s.find_entities_filtered{name='roboport',position={4,-11},radius=1}[1]
+local ib=s.find_entities_filtered{type='simple-entity',position={4,-11},radius=55} table.sort(ib,function(a,b) return (a.position.x-4)^2+(a.position.y+11)^2<(b.position.x-4)^2+(b.position.y+11)^2 end)
+local n=0 for i=1,math.min(24,#ib) do local e=ib[i] if e.name:find('lithium',1,true) and not e.to_be_deconstructed() then e.order_deconstruction(f) n=n+1 end end
+o[#o+1]='icebergs in reach '..#ib..' marked '..n
+o[#o+1]='worker cargo bonus '..f.worker_robots_storage_bonus..' speed mod '..f.worker_robots_speed_modifier
 rcon.print(table.concat(o,'\n'))

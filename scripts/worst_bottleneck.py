@@ -83,15 +83,24 @@ def alert_findings():
         data = json.loads(tools["factory_problems"]())
     except Exception:
         return out
-    alerts = data.get("alerts") or {}
-    for kind, val in alerts.items():
-        count = val.get("count", 0) if isinstance(val, dict) else (len(val) if isinstance(val, (list, dict)) else 1)
-        at = val.get("at", []) if isinstance(val, dict) else []
+    alerts = data.get("alerts") or []
+    # Current build returns a list of {type, count, at, what}; older builds returned a dict keyed by type.
+    if isinstance(alerts, dict):
+        alerts = [dict(val, type=kind) if isinstance(val, dict) else {"type": kind, "count": len(val) if isinstance(val, (list, dict)) else 1}
+                  for kind, val in alerts.items()]
+    for entry in alerts:
+        if not isinstance(entry, dict):
+            continue
+        kind = entry.get("type", "unknown")
+        count = int(entry.get("count", 0) or 0)
+        at = entry.get("at") or []
         where = ""
         if at:
             first = at[0]
             where = f" first at ({first.get('x')}, {first.get('y')})" if isinstance(first, dict) else f" first {first}"
-        out.append((count * 25, "alert", f"{kind}: {count} instance(s){where}"))
+        what = entry.get("what")
+        detail = f" [{', '.join(f'{k} {v}' for k, v in what.items())}]" if isinstance(what, dict) and what else ""
+        out.append((count * 25, "alert", f"{kind}: {count} instance(s){where}{detail}"))
     return out
 
 

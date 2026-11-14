@@ -3,8 +3,11 @@ import aquilo_cryo as a
 which = sys.argv[1]
 box = a.BOX_P if which == "platforms" else a.BOX_S
 grid = a.fetch(box); net = a.heat_tiles(box)
-P = a.platform_plan() if which == "platforms" else a.science_plan()
-extra = [(x, a.CY - 5) for x in range(a.CXS[0] - 6, a.CXS[-1] + 4)] if which == "platforms" else []
+if which == "platforms":
+    P = a.platform_plan(); extra = [(x, a.CY - 5) for x in range(a.US[0], a.US[-1] + 12)]
+else:
+    grid[(a.US[0], a.CY + 3)] = "S"; net.discard((a.US[0], a.CY + 3))
+    P, extra = a.science_plan(grid)
 H, cold = a.heat_plan(P, grid, net, extra)
 sym = {"pipe": "=", "pipe-to-ground": "u", "chemical-plant": "c", "cryogenic-plant": "K", "bulk-inserter": "n", "fast-inserter": "n", "substation": "$", "offshore-pump": "o"}
 ov = {}

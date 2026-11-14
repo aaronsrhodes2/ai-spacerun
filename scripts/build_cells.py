@@ -46,25 +46,33 @@ KINDS = {
                "req": [("steel-plate", 40), ("iron-gear-wheel", 40), ("pipe", 80)]},
     "gear": {"machine": "assembling-machine-3", "recipe": "iron-gear-wheel", "bar": 6, "req": [("iron-plate", 400)]},
     "pipe": {"machine": "assembling-machine-3", "recipe": "pipe", "bar": 3, "req": [("iron-plate", 400)]},
+    # cliff explosives (2026-11-14): 10 explosives + 10 calcite + 1 barrel + 1 grenade, 8 s. Calcite is the scarce input (from the Nauvis Wheel
+    # by the landing pad), so the request is 20 crafts (200 + 200 + 20 + 20), not minutes of stock; "bar" 6 slots (stack 20) stops the cell at
+    # about 120 in the chest. "quality" (optional, new) is the quality of the machine and its inserters; kinds without it are unchanged.
+    "cliffx": {"machine": "assembling-machine-3", "recipe": "cliff-explosives", "bar": 6, "quality": "epic",
+               "req": [("explosives", 200), ("calcite", 200), ("barrel", 20), ("grenade", 20)]},
+    "barrel": {"machine": "assembling-machine-3", "recipe": "barrel", "bar": 10, "quality": "epic", "req": [("steel-plate", 100)]},
 }
 # logistic group for the requests of each kind (docs/naming-sop.md)
 GROUPS = {"steel": "Feed: Steel", "cable": "Feed: Copper Cable", "ec": "Feed: Electronic Circuit", "ac": "Feed: Advanced Circuit",
           "foundation": "Feed: Platform Foundation", "robot": "Feed: Logistic Robot", "lds": "Feed: Low Density Structure", "utility": "Feed: Utility Science Pack",
           "production": "Feed: Production Science Pack", "frame": "Feed: Robot Frame (science cell)", "efurnace": "Feed: Electric Furnace",
           "prodmod": "Feed: Productivity Module", "rail": "Feed: Rail (science cell)", "stick": "Feed: Iron Stick", "brick": "Feed: Stone Brick",
-          "engine": "Feed: Engine (science cell)", "gear": "Feed: Iron Gear Wheel", "pipe": "Feed: Pipe"}
+          "engine": "Feed: Engine (science cell)", "gear": "Feed: Iron Gear Wheel", "pipe": "Feed: Pipe",
+          "cliffx": "Feed: Cliff Explosives", "barrel": "Feed: Barrel"}
 
 
 def plan(kind, x0, y0, n):
     k = KINDS[kind]
     ents = []
+    q = {"params": {"quality": k["quality"]}} if k.get("quality") else {}
     for i in range(n):
         yc = y0 + 3 * i + 1.5
         ents += [
             {"name": "requester-chest", "x": x0 + 0.5, "y": yc},
-            {"name": "bulk-inserter", "x": x0 + 1.5, "y": yc, "direction": 12},
-            {"name": k["machine"], "x": x0 + 3.5, "y": yc},
-            {"name": "bulk-inserter", "x": x0 + 5.5, "y": yc, "direction": 12},
+            {"name": "bulk-inserter", "x": x0 + 1.5, "y": yc, "direction": 12, **q},
+            {"name": k["machine"], "x": x0 + 3.5, "y": yc, **q},
+            {"name": "bulk-inserter", "x": x0 + 5.5, "y": yc, "direction": 12, **q},
             {"name": "passive-provider-chest", "x": x0 + 6.5, "y": yc},
         ]
     return ents

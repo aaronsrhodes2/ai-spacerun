@@ -17,9 +17,11 @@ This line takes carbon, sulfur, copper ore, iron ore, ice, calcite and iron plat
   feed     one belt: west along y=-1 (under the bridge bay and the product column), under the chunk loop along y=0, south down
            x=-60, west along y=12 (the free deck row under the district's corridor), south down x=-117 under the corridor's inner
            winding and the out-belt into the heart chamber. In the heart it is a LOOP: past the machines, under the district's
-           out-belt column at (-133,54), north up x=-135 outside the heart's west wall, east along y=23 and back onto the feed at
-           (-117,23) by side-loading. What an inserter misses comes round again; the count on the wire covers feed and loop, so
-           the hub sends exactly what the machines use. (The first version ran into the district's ore belt instead: what the
+           out-belt column at (-133,54), north up x=-135 outside the heart's west wall, east along y=21 and back into the feed
+           through a splitter at (-118..-117,23), lane for lane (inserter A's items keep the east lane, B's the west lane; a
+           side-load there put both lanes on one, which stood full and stopped the loop). What an inserter misses comes round
+           again; the count on the wire covers feed and loop, so the hub sends exactly what the machines use. Each lane of the
+           loop holds about 560; keep each inserter's targets together well under half of that. (The first version ran into the district's ore belt instead: what the
            inserters missed, most of it, rode home on the out-belt, 26 items a second, and stood the out-belt full in five minutes.)
   metals   (heart, north-west): iron melter -130..-126 and copper melter -124..-120 (y 33..37) on the feed row y=39, pipe row y=32,
            casting foundry -127..-123, y 27..31. Its output inserter (-125,26) lays the product straight on the district's out-belt
@@ -33,7 +35,7 @@ This line takes carbon, sulfur, copper ore, iron ore, ice, calcite and iron plat
 One coal plant (C1, 53 coal a minute with three epic productivity modules) is the line's designed ceiling: about 30 a minute.
 Never apply twice on the same wheel. After a quality upgrade: config (belt readers and over-reach wires).
 `wheel_rocket.py config` on this wheel puts the district's own export gate back to 2,000: run `config` here after it.
-Usage: wheel_export_vulcanus.py check | build [--apply] | loop [--apply] | config | off | status   [--only PLANET]   (default: --only vulcanus)"""
+Usage: wheel_export_vulcanus.py check | build [--apply] | loop [--apply] | config | modules | sweep | off | status   [--only PLANET]   (default: --only vulcanus)"""
 import sys
 
 from _game import tools
@@ -41,9 +43,9 @@ from _wheels import place_all, wheels
 
 PRODUCT = "low-density-structure"
 CAP = 4000                    # product in the hub: the export stock (10 a slot: 400 slots)
-RESERVE = 2000                # the line never takes an item the hub holds fewer than this of
-TARGETS_A = {"carbon": 150, "copper-ore": 85, "iron-ore": 32}
-TARGETS_B = {"sulfur": 50, "ice": 45, "calcite": 16, "iron-plate": 4}
+RESERVE = 3000                # the line never takes an item the hub holds fewer than this of
+TARGETS_A = {"carbon": 345, "copper-ore": 110, "iron-ore": 40}       # together under 500: a lane of the loop holds 580
+TARGETS_B = {"sulfur": 80, "ice": 90, "calcite": 24, "iron-plate": 4}
 Q = {"quality": "epic"}
 N, E, S, W = 0, 4, 8, 12
 DIR = {(0, -1): N, (1, 0): E, (0, 1): S, (-1, 0): W}
@@ -124,8 +126,9 @@ def layout():
     p = run(*p, W, 57)                                                     # -60,12 .. -116,12
     p = run(*p, S, 3)                                                      # -117,12 .. 14
     p = under(*p, S, 4)                                                    # 15 > 19 under the inner winding
-    p = run(*p, S, 4)                                                      # 20 .. 23
-    p = under(*p, S, 2)                                                    # 24 > 26 under the out-belt's top row
+    p = run(*p, S, 3)                                                      # 20 .. 22
+    put("express-splitter", -118, 23, 2, 1, d=S)                           # the loop's return (x=-118) joins here, lane for lane
+    p = under(-117, 24, S, 2)                                              # 24 > 26 under the out-belt's top row
     p = run(*p, S, 12)                                                     # -117,27 .. 38
     p = run(*p, W, 13)                                                     # -117,39 .. -129,39
     p = run(*p, S, 4)                                                      # -130,39 .. 42
@@ -133,9 +136,10 @@ def layout():
     p = run(*p, S, 11)                                                     # -110,43 .. 53
     p = run(*p, W, 22)                                                     # -110,54 .. -131,54
     p = under(*p, W, 2)                                                    # -132,54 > -134,54 under the district's out-belt column
-    p = run(*p, N, 31)                                                     # -135,54 .. 24: the return, outside the heart's west wall
-    p = run(*p, E, 18)                                                     # -135,23 .. -118,23: side-loads onto the feed at -117,23
-    assert p == (-117, 23), p
+    p = run(*p, N, 33)                                                     # -135,54 .. 22: the return, outside the heart's west wall
+    p = run(*p, E, 17)                                                     # -135,21 .. -119,21
+    p = run(*p, S, 2)                                                      # -118,21 -118,22 > the splitter
+    assert p == (-118, 23), p
     # ---- control ----
     for x, nm in ((-9, "arithmetic-combinator"), (-10, "decider-combinator"), (-11, "arithmetic-combinator"), (-12, "decider-combinator")):
         put(nm, x, -3, 1, 2)
@@ -144,6 +148,8 @@ def layout():
     # ---- ice ----
     put("chemical-plant", -121, 27, 3, 3, d=N, recipe="ice-melting")
     ins(-118, 28, E, ["ice"])
+    ins(-118, 27, E, ["ice"], name="bulk-inserter")                        # one fast inserter let most of the ice ride past
+    ins(-118, 29, E, ["ice"], name="bulk-inserter")
     pipe("water", (-121, 30), (-120, 30), (-119, 30), *[(-119, y) for y in range(31, 38)])
     ptg("water", -119, 38, N)
     ptg("water", -119, 44, S)
@@ -178,10 +184,12 @@ def layout():
     ins(-112, 52, S, ["iron-plate"], name="long-handed-inserter")
     put("chemical-plant", -114, 46, 3, 3, d=E, recipe="coal-synthesis")    # C1: coal for the refinery
     ins(-113, 45, N, ["carbon"], name="long-handed-inserter")
+    ins(-114, 45, N, ["carbon"], name="long-handed-inserter")              # C1 takes 7 carbon a second with its speed module
     ins(-112, 45, N, ["sulfur"], name="long-handed-inserter")
     ins(-115, 47, E, ["coal"])
     put("chemical-plant", -132, 50, 3, 3, d=N, recipe="coal-synthesis")    # C3: coal for the plastic plant
     ins(-131, 53, S, ["carbon"])
+    ins(-132, 53, S, ["carbon"], name="bulk-inserter")
     ins(-130, 53, S, ["sulfur"])
     ins(-131, 49, S, ["coal"])
     pipe("water", *[(x, 44) for x in range(-132, -110) if x != -119])
@@ -225,6 +233,7 @@ DECK = ("local s=game.surfaces['SURF'] local add={} for _,p in pairs(TILES) do l
 TURN = ("local s=game.surfaces['SURF'] local b=s.find_entities_filtered{type='transport-belt',position={-5.5,-2.5},radius=0.3}[1] b.direction=defines.direction.east rcon.print('product column now ends at -6,-3 facing '..b.direction)")
 CONFIG = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=defines.wire_connector_id local o={} local function at(t,x,y,r) return s.find_entities_filtered{type=t,position={x,y},radius=r or 0.3}[1] end "
           "local function mach(x,y) return s.find_entities_filtered{type='assembling-machine',position={x,y},radius=0.5}[1] end pcall(function() hub.get_or_create_control_behavior().read_contents=true end) "
+          "local nd=0 for _,q in pairs(BELTS) do local b=at('transport-belt',q[1],q[2]) if b and b.direction~=q[3] then b.direction=q[3] nd=nd+1 end end o[#o+1]='belts turned '..nd "
           "local n,r=0,0 for _,q in pairs(FILT) do local i=at('inserter',q[1],q[2]) if i then i.use_filters=true i.inserter_filter_mode='whitelist' for k=1,i.filter_slot_count do i.set_filter(k,q[3][k]) end n=n+1 end end "
           "for _,q in pairs(REC) do local m=mach(q[1],q[2]) if m then if not (m.get_recipe() and m.get_recipe().name==q[3]) then m.set_recipe(q[3]) end if m.name~='foundry' then m.direction=q[4] end r=r+1 end end o[#o+1]='filters '..n..', recipes '..r "
           # the two hub inserters: filters by circuit first, then turned round
@@ -254,9 +263,21 @@ CONFIG = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=define
           "cond(at('inserter',-124.5,26.5),'PRODUCT','<',CAPSIG) local de=at('inserter',-89.5,38.5) local fq=de and de.get_filter(1) if fq and (type(fq)=='table' and fq.name or fq)=='PRODUCT' then cond(de,'PRODUCT','<',CAPSIG) o[#o+1]='district export gate raised too' end "
           "hub.providing_to_other_platforms=true o[#o+1]='hub provides to other platforms: '..tostring(hub.providing_to_other_platforms) rcon.print(table.concat(o,', '))")
 # step `loop` (once, on a wheel built with the first version, whose feed ended on the district's ore belt): takes out that tail
-OLDTAIL = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local n,m=0,0 for _,p in pairs{{-131.5,54.5},{-131.5,55.5},{-130.5,55.5},{-129.5,55.5},{-128.5,55.5}} do local b=s.find_entities_filtered{type='transport-belt',position=p,radius=0.3}[1] "
+OLDTAIL = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local n,m=0,0 for _,p in pairs{OBSOLETE} do local b=s.find_entities_filtered{type='transport-belt',position=p,radius=0.3}[1] "
            "if b then for l=1,2 do for _,it in pairs(b.get_transport_line(l).get_contents()) do m=m+hub.insert{name=it.name,count=it.count,quality=it.quality} end end b.destroy() n=n+1 end end rcon.print('old tail belts removed '..n..', items handed to the hub '..m)")
+OBSOLETE = [(-131.5, 54.5)] + [(x + .5, 55.5) for x in range(-132, -128)] + [(x + .5, 23.5) for x in range(-134, -116)]   # first tail; second return row
+SWEEP = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local m=0 for _,p in pairs(FEED) do local b=s.find_entities_filtered{type='transport-belt',position={p[1],p[2]},radius=0.3}[1] "
+         "if b then for l=1,2 do local tl=b.get_transport_line(l) for _,it in pairs(tl.get_contents()) do m=m+hub.insert{name=it.name,count=it.count,quality=it.quality} end tl.clear() end end end rcon.print('feed and loop swept: items handed back to the hub '..m)")
 HAVE = "local s=game.surfaces['SURF'] local t={} for _,p in pairs({PTS}) do t[#t+1]=s.count_entities_filtered{position=p,radius=0.2} end rcon.print(table.concat(t,','))"
+# step `modules`: C1 makes the coal for the refinery and was the line's limit at 40 crafts a minute (the casting foundry can use 78 coal
+# a minute there). One of its three productivity modules is swapped for a speed module 2 of the best quality the Nauvis network holds
+# (a real module is taken out of that network; the productivity module goes back into it).
+MODULES = ("local s=game.surfaces['SURF'] local f=game.forces.player local m=s.find_entities_filtered{type='assembling-machine',position={-112.5,47.5},radius=0.5}[1] local mi=m.get_module_inventory() "
+           "for i=1,#mi do if mi[i].valid_for_read and mi[i].name=='speed-module-2' then rcon.print('C1 already holds a speed module 2 ('..mi[i].quality.name..'), speed '..m.crafting_speed) return end end "
+           "local net,qn=nil,nil for _,q in pairs{'legendary','epic','rare','uncommon','normal'} do if not net then for _,nw in pairs(f.logistic_networks.nauvis or {}) do if not net and nw.get_item_count({name='speed-module-2',quality=q})>0 then net=nw qn=q end end end end "
+           "if not net then rcon.print('no speed module 2 in the Nauvis networks') return end if net.remove_item{name='speed-module-2',count=1,quality=qn}~=1 then rcon.print('could not take the module') return end "
+           "local old=mi[1] local back=0 if old.valid_for_read then back=net.insert{name=old.name,count=1,quality=old.quality.name} end mi[1].set_stack{name='speed-module-2',count=1,quality=qn} "
+           "rcon.print('C1: one '..qn..' speed module 2 moved in from the Nauvis network, productivity modules handed back '..back..', crafting speed now '..m.crafting_speed..', productivity +'..m.productivity_bonus)")
 OFF = ("local s=game.surfaces['SURF'] for _,y in pairs{-0.5,-1.5} do local i=s.find_entities_filtered{type='inserter',position={-4.5,y},radius=0.3}[1] local cb=i.get_or_create_control_behavior() cb.circuit_enable_disable=true "
        "cb.circuit_condition={first_signal={type='virtual',name='signal-red'},comparator='>',constant=0} end rcon.print('both hub inserters of the export line stopped (condition signal-red > 0); `config` starts them again')")
 STATUS = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local function sn(e) for n,x in pairs(defines.entity_status) do if x==e.status then return n end end return '?' end local o={} "
@@ -296,7 +317,7 @@ def main():
             print("placed" if apply else "dry run", ok, "failed", bad)
         if step == "loop":
             if apply:
-                print(tools["run_lua"](sub(OLDTAIL)).strip())
+                print(tools["run_lua"](sub(OLDTAIL).replace("OBSOLETE", ",".join("{%s,%s}" % q for q in OBSOLETE))).strip())
                 print(tools["run_lua"](sub(DECK).replace("TILES", til_l)).strip())
             have = tools["run_lua"](sub(HAVE).replace("PTS", ",".join("{%s,%s}" % (e["x"], e["y"]) for e in ents))).strip().split(",")
             todo = [e for e, hv in zip(ents, have) if hv == "0"]
@@ -304,9 +325,14 @@ def main():
             print("missing pieces", len(todo), "placed" if apply else "dry run", ok, "failed", bad)
         if step == "config" or (step in ("build", "loop") and apply):
             factor = 1
-            code = (sub(CONFIG).replace("FILT", lua_list([(x, y, fl) for x, y, fl in cfg])).replace("REC", lua_list(recipes)).replace("FEED", lua_list(feed))
+            blt = lua_list([(e["x"], e["y"], e["direction"]) for e in ents if e["name"] == "express-transport-belt"])
+            code = (sub(CONFIG).replace("BELTS", blt).replace("FILT", lua_list([(x, y, fl) for x, y, fl in cfg])).replace("REC", lua_list(recipes)).replace("FEED", lua_list(feed))
                     .replace("TA", lua_map(TARGETS_A)).replace("TB", lua_map(TARGETS_B)).replace("RESERVE", str(RESERVE * factor)).replace("CAPSIG", str(CAP * factor)).replace("PRODUCT", PRODUCT))
             print(tools["run_lua"](code).strip())
+        if step == "sweep":
+            print(tools["run_lua"](sub(SWEEP).replace("FEED", lua_list(feed))).strip())
+        if step == "modules":
+            print(tools["run_lua"](sub(MODULES)).strip())
         if step == "off":
             print(tools["run_lua"](sub(OFF)).strip())
         if step == "status":

@@ -14,16 +14,43 @@ it can serve only one of them): plant recipe, plant requests, A recipe, A barrel
 Machines get RECIPE signals (no ambiguity, and none of them can make another's recipe on its own wire).
 Only recipes whose fluids all have barrels are listed (no steam, ammonia, thruster fuel). Base fluids come from scripts/nauvis_taps.py.
 Steps: build [--more] [--apply] | config | status. Never apply twice (--more places only the second block of the recipe table).
-Usage: omni_fluid.py build [--apply] | config | status"""
+Usage: omni_fluid.py build [--apply] | config | status   [--site old|replicator]
+The Replicator (the Captain's name, 2026-11-14) has its own fluid unit: --site replicator, plant centre (-300,-224) beside the
+launch pad, demand roboport of omni_maker site `replicator`; the old copy is --site old (the default)."""
 import json
 import sys
 
 from _game import tools
 
-CX, CY = 15, -388            # the plant's centre tile
-RX, RY = 4, -398             # top-left tile of the recipe table (two rows of deciders, two columns a recipe)
+SITES = {"old": {"c": (15, -388), "demand": (-28, -398), "maker": "nauvis"},         # the first copy, retired by replicator_move.py
+         "replicator": {"c": (-300, -224), "demand": (-352, -229), "maker": "replicator"}}  # the Replicator (see omni_maker.py)
+SITE = "old"                 # chosen by --site NAME (default old: history keeps working)
+CX, CY = SITES[SITE]["c"]    # the plant's centre tile
+RX, RY = 4, -398             # old site: top-left tile of the recipe table (two rows of deciders, two columns a recipe)
 RY2 = -382                   # its second block, south of the plant
-DEMAND = (-28, -398)         # the roboport of scripts/omni_maker.py that reads missing requests
+DEMAND = SITES[SITE]["demand"]   # the roboport of scripts/omni_maker.py that reads missing requests
+
+
+def use(name):
+    global SITE, CX, CY, DEMAND
+    SITE = name
+    CX, CY = SITES[name]["c"]
+    DEMAND = SITES[name]["demand"]
+
+
+def slots(n):
+    """Top-left tile of the 8 deciders of each of n recipes, index i*8+j (j 0-3 first block, 4-7 second block).
+    Old site: two blocks of 2 x 4 tiles a recipe in a row. Replicator: two free strips of the area (tile rows y -231..-222 east
+    of the furnace unit, and y -215..-212 under the machines), filled 1 x 2 at a time."""
+    if SITE == "old":
+        return [(RX + 2 * i + dx, (RY if j < 4 else RY2) + dy) for i in range(n) for j in range(8) for dx, dy in [((0, 0), (1, 0), (0, 2), (1, 2))[j % 4]]]
+    pool = [(-323 + k, ty) for ty in (-231, -229, -227, -225, -223) for k in range(17)] + [(-350 + k, ty) for ty in (-215, -213) for k in range(36)]
+    assert 8 * n <= len(pool), "fluid recipe table does not fit"
+    return pool[:8 * n]
+
+
+def lua_slots(sl):
+    return "{" + ",".join("{%d,%d}" % t for t in sl) + "}"
 BATCH = 10
 Q = {"quality": "epic"}
 N, E, S, W = 0, 4, 8, 12
@@ -72,14 +99,14 @@ def layout(n, more=False):
     e("constant-combinator", c - 6, y - 6)
     e("decider-combinator", c - 6, y - 4, 1, 2)
     e("selector-combinator", c - 5, y - 4, 1, 2)
-    first = len(ents)
+    sl = slots(n)
     for i in range(n):
-        for dx, dy in ((0, 0), (1, 0), (0, 2), (1, 2)):
-            e("decider-combinator", RX + 2 * i + dx, RY + dy, 1, 2)
+        for j in range(4):
+            e("decider-combinator", sl[8 * i + j][0], sl[8 * i + j][1], 1, 2)
     second = len(ents)
     for i in range(n):                                          # the second block: a decider puts its outputs on both wires, so one
-        for dx, dy in ((0, 0), (1, 0), (0, 2), (1, 2)):         # decider can serve only one machine or chest (eight a recipe)
-            e("decider-combinator", RX + 2 * i + dx, RY2 + dy, 1, 2)
+        for j in range(4, 8):                                   # decider can serve only one machine or chest (eight a recipe)
+            e("decider-combinator", sl[8 * i + j][0], sl[8 * i + j][1], 1, 2)
     return ents[second:] if more else ents
 
 
@@ -99,8 +126,7 @@ CONFIG = ("local s=game.surfaces.nauvis local W=defines.wire_connector_id local 
           "for _,q in pairs{qm,qa,qb} do clr(q,CC) local b=q.get_or_create_control_behavior() b.set_requests=true b.read_contents=false q.get_logistic_point(defines.logistic_member_index.logistic_container).trash_not_requested=true end "
           "for _,q in pairs{qc,qd} do local lp=q.get_logistic_point(defines.logistic_member_index.logistic_container) local se=lp.get_section(1) or lp.add_section() se.set_slot(1,{value={type='item',name='barrel',quality='normal'},min=10}) end "
           "local function R(n) return {type='recipe',name=n} end "
-          "local n=0 for i,r in pairs(rs) do local x0=TX+2*(i-1) local d={} for j,p in pairs{{0,0},{1,0},{0,2},{1,2}} do d[j]=s.find_entities_filtered{name='decider-combinator',position={x0+p[1]+0.5,TY+p[2]+1},radius=0.3}[1] "
-          "d[j+4]=s.find_entities_filtered{name='decider-combinator',position={x0+p[1]+0.5,TY2+p[2]+1},radius=0.3}[1] end local all=true for j=1,8 do if not d[j] then all=false end end "
+          "local FS=FSTAB local n=0 for i,r in pairs(rs) do local d={} for j=1,8 do local sp=FS[(i-1)*8+j] d[j]=s.find_entities_filtered{name='decider-combinator',position={sp[1]+0.5,sp[2]+1},radius=0.3}[1] end local all=true for j=1,8 do if not d[j] then all=false end end "
           "if all then local cond={{first_signal={type='item',name=r.key},comparator='>',constant=0}} local function K(sg,k) return {signal=sg,copy_count_from_input=false,constant=k} end local o={{K(R(r.name),1)},{},{},{},{},{},{},{}} "
           "for _,ing in pairs(r.si) do o[2][#o[2]+1]=K({type='item',name=ing.name},ing.amount*BATCH) end local fa,fb=r.fi[1],r.fi[2] if fa and fb and (fa.fluidbox_index==2 or fb.fluidbox_index==1) then fa,fb=fb,fa end "
           "if fa then o[3]={K(R('empty-'..bar[fa.name]),1)} o[4]={K({type='item',name=bar[fa.name]},math.ceil(fa.amount*BATCH/50))} end if fb then o[5]={K(R('empty-'..bar[fb.name]),1)} o[6]={K({type='item',name=bar[fb.name]},math.ceil(fb.amount*BATCH/50))} end "
@@ -120,15 +146,19 @@ STATUS = ("local s=game.surfaces.nauvis local W=defines.wire_connector_id local 
 
 
 def sub(code):
-    return (code.replace("CX", str(CX)).replace("CY", str(CY)).replace("TY2", str(RY2)).replace("TX", str(RX)).replace("TY", str(RY)).replace("DX", str(DEMAND[0])).replace("DY", str(DEMAND[1])).replace("BATCH", str(BATCH)))
+    if "FSTAB" in code:
+        code = code.replace("FSTAB", lua_slots(slots(int(tools["run_lua"](LIST + "rcon.print(#rs)").strip()))))
+    return (code.replace("CX", str(CX)).replace("CY", str(CY)).replace("DX", str(DEMAND[0])).replace("DY", str(DEMAND[1])).replace("BATCH", str(BATCH)))
 
 
 def main():
     step = sys.argv[1]
     apply = "--apply" in sys.argv
+    if "--site" in sys.argv:
+        use(sys.argv[sys.argv.index("--site") + 1])
     if step == "build":
         n = int(tools["run_lua"](LIST + "rcon.print(#rs)").strip())
-        r = json.loads(tools["place_entities"](json.dumps(layout(n, "--more" in sys.argv)), surface="nauvis", dry_run=not apply))
+        r = json.loads(tools["place_entities"](json.dumps(layout(n, "--more" in sys.argv)), surface="nauvis", dry_run=not apply, clear_trees=apply))
         print("recipes", n, "placed" if apply else "dry run", r.get("placed"), "failed", json.dumps(r.get("failed") or [])[:400])
     if step == "config" or (step == "build" and apply):
         print(tools["run_lua"](sub(CONFIG)))

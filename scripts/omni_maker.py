@@ -23,14 +23,51 @@ Limits: slow; nothing that needs a fluid, a furnace, a foundry or another specia
 network; deeper than DEPTH levels waits; across planets it only sees what a shuttle in orbit asks for.
 Steps: build PLANET [--from K] [--apply] | rom PLANET [--apply] | furnace PLANET [--apply | --config] | config PLANET | status PLANET. SITES: top-left tile of a free 24 x 14 area in the robot
 network. Never apply twice (--from 1 places only machines 2 and up). Run config again after a quality upgrade (over-reach wires).
-Usage: omni_maker.py build nauvis [--apply] | config nauvis | status nauvis"""
+Usage: omni_maker.py build nauvis [--apply] | config nauvis | status nauvis
+THE REPLICATOR (the Captain, 2026-11-14: the make-anything block moved beside the rocket silos, "so we can do compression experiments"):
+site key `replicator` = top-left (-354,-231) of the machines (3 units + furnace unit, 31 x 14 tiles) inside the 78 x 44 area x -366..-288,
+y -234..-190 next to the launch pad. Same design, but the recipe tables (rom_slots) fill two free bands of the area, and the furnace table
+sits between lattice substations; wires are script wires (over-reach). Drive it with scripts/replicator_move.py. The old copy (`nauvis`)
+keeps working until retired."""
 import json
 import sys
 
 from _game import tools
 
-SITES = {"nauvis": (-30, -400)}
+SITES = {"nauvis": (-30, -400), "replicator": (-354, -231)}
 BATCH, DEPTH, PITCH = 5, 3, 7
+FX = 23        # the furnace unit stands at this offset east of machine 1
+OLD_SITE = "nauvis"          # the first copy (retired by scripts/replicator_move.py once the Replicator is proven)
+
+
+def surf(planet):
+    """Site key -> surface name (the Replicator site lives on nauvis)."""
+    return "nauvis" if planet == "replicator" else planet
+
+
+def rom_slots(planet, n):
+    """Top-left tile of every recipe-table decider: DEPTH tables of n entries, unit u entry i at index u*n+i.
+    Old site: 35 to a row, three tables side by side, south of the machines (105 wide). Replicator: the 78 x 44 area has
+    a substation/roboport/solar lattice in it, so the tables fill the two free bands (tile rows y -211..-204 and -199..-192),
+    78 to a row, one long sequence."""
+    x, y = SITES[planet]
+    if planet != "replicator":
+        return [(x + u * 35 + i % 35, y + 25 + (i // 35) * 2) for u in range(DEPTH) for i in range(n)]
+    rows = [-211, -209, -207, -205, -199, -197, -195, -193]
+    assert DEPTH * n <= 78 * len(rows), "recipe table does not fit the bands"
+    return [(-366 + g % 78, rows[g // 78]) for g in range(DEPTH * n)]
+
+
+def furnace_slots(planet, n):
+    """Top-left tile of the furnace unit's n recipe deciders (old: a row 14 south of the unit)."""
+    x, y = SITES[planet]
+    if planet != "replicator":
+        return [(x + FX + i, y + 14) for i in range(n)]
+    return [(-327 + i, -217) for i in range(n)]          # between the lattice substations, east of the furnace unit
+
+
+def lua_slots(slots):
+    return "{" + ",".join("{%d,%d}" % t for t in slots) + "}"
 Q = {"quality": "epic"}
 
 
@@ -71,8 +108,6 @@ def layout(planet, first=0, extra_only=False):
     return out
 
 
-FX = 23        # the furnace unit stands at this offset east of machine 1
-
 
 def furnace_layout(planet, n):
     """A furnace needs no recipe signal (it smelts what it is given): its own item list, decider, selector and a small recipe table
@@ -84,12 +119,12 @@ def furnace_layout(planet, n):
 
     return ([e("substation", 5, 1, 2, 2), e("requester-chest", 2, 6), e("fast-inserter", 2, 7), e("electric-furnace", 1, 8, 3, 3), e("fast-inserter", 2, 11),
              e("passive-provider-chest", 2, 12), e("constant-combinator", 5, 6), e("decider-combinator", 5, 7, 1, 2), e("selector-combinator", 6, 7, 1, 2)]
-            + [e("decider-combinator", i, 14, 1, 2) for i in range(n)])
+            + [{"name": "decider-combinator", "x": tx + 0.5, "y": ty + 1, "direction": 0, "params": dict(Q)} for tx, ty in furnace_slots(planet, n)])
 
 
 SMELT = ("local cats=prototypes.entity['electric-furnace'].crafting_categories local mk,rec={},{} for name,r in pairs(f.recipes) do local p=r.prototype local okc=false for _,c in pairs(p.categories) do if cats[c] then okc=true end end "
          "if r.enabled and okc and not p.hidden and #r.products==1 and r.products[1].type=='item' and #r.ingredients==1 and r.ingredients[1].type=='item' and not rec[r.products[1].name] then mk[#mk+1]=r.products[1].name rec[r.products[1].name]=r end end ")
-FURNACE = ("local s=game.surfaces['SURF'] local f=game.forces.player local W=defines.wire_connector_id local X,Y=OX+FX,OY local function at(n,dx,dy) return s.find_entities_filtered{name=n,position={X+dx,Y+dy},radius=0.6}[1] end "
+FURNACE = ("local s=game.surfaces['SURF'] local f=game.forces.player local W=defines.wire_connector_id local X,Y=OX+FX,OY local FT=FTAB local function at(n,dx,dy) return s.find_entities_filtered{name=n,position={X+dx,Y+dy},radius=0.6}[1] end "
            "local function wire(a,ia,b,ib) a.get_wire_connector(ia,true).connect_to(b.get_wire_connector(ib,true),false) end " + SMELT +
            "local rp=s.find_entities_filtered{name='roboport',position={OX+2,OY+2},radius=0.6}[1] local rq,cc,dec,sel=at('requester-chest',2.5,6.5),at('constant-combinator',5.5,6.5),at('decider-combinator',5.5,8),at('selector-combinator',6.5,8) "
            "local cb=cc.get_or_create_control_behavior() while cb.sections_count>0 do cb.remove_section(1) end local sec=cb.add_section() for i,it in pairs(mk) do sec.set_slot(i,{value={type='item',name=it,quality='normal'},min=1}) end "
@@ -100,12 +135,12 @@ FURNACE = ("local s=game.surfaces['SURF'] local f=game.forces.player local W=def
            "{first_signal={type='virtual',name='signal-each'},first_signal_networks={red=false,green=true},comparator='>',constant=0,compare_type='and'}},outputs={{signal={type='virtual',name='signal-each'},copy_count_from_input=true,networks={red=true,green=false}}}} "
            "wire(sel,W.combinator_input_red,dec,W.combinator_output_red) sel.get_or_create_control_behavior().parameters={operation='select',select_max=true,index_constant=0} "
            "local qb=rq.get_or_create_control_behavior() qb.set_requests=true qb.read_contents=false rq.get_logistic_point(defines.logistic_member_index.logistic_container).trash_not_requested=true local n=0 "
-           "for i,it in pairs(mk) do local d=at('decider-combinator',i-0.5,15) if d then local ing=rec[it].ingredients[1] d.get_or_create_control_behavior().parameters={conditions={{first_signal={type='item',name=it},comparator='>',constant=0}},"
+           "for i,it in pairs(mk) do local fp=FT[i] local d=s.find_entities_filtered{name='decider-combinator',position={fp[1]+0.5,fp[2]+1},radius=0.4}[1] if d then local ing=rec[it].ingredients[1] d.get_or_create_control_behavior().parameters={conditions={{first_signal={type='item',name=it},comparator='>',constant=0}},"
            "outputs={{signal={type='item',name=ing.name},copy_count_from_input=false,constant=ing.amount*BATCH*4}}} for _,id in pairs{W.combinator_input_red,W.combinator_input_green,W.combinator_output_red,W.combinator_output_green} do d.get_wire_connector(id,true).disconnect_all() end "
            "wire(d,W.combinator_input_green,sel,W.combinator_output_green) wire(d,W.combinator_output_green,rq,W.circuit_green) n=n+1 end end rcon.print('furnace unit: smeltable items '..#mk..' ('..table.concat(mk,', ')..'), table entries wired '..n)").replace("BATCH", str(BATCH))
 HEAD = ("local s=game.surfaces['SURF'] local f=game.forces.player local W=defines.wire_connector_id local X,Y,P,D=OX,OY,PITCH,DEPTH "
         "local function at(n,dx,dy) return s.find_entities_filtered{name=n,position={X+dx,Y+dy},radius=0.6}[1] end local o={} "
-        "local function wire(a,ia,b,ib) a.get_wire_connector(ia,true).connect_to(b.get_wire_connector(ib,true),false) end ")
+        "local function wire(a,ia,b,ib) a.get_wire_connector(ia,true).connect_to(b.get_wire_connector(ib,true),false) end local RT=ROMTAB ")
 CONFIG = HEAD + (
     "local rp,cc=at('roboport',2,2),at('constant-combinator',5.5,6.5) "
     "local cats=prototypes.entity['assembling-machine-3'].crafting_categories local seen,list,rec={},{},{} for name,r in pairs(f.recipes) do local p=r.prototype local okc=false for _,c in pairs(p.categories) do if cats[c] then okc=true end end "
@@ -137,7 +172,7 @@ CONFIG = HEAD + (
     "wire(sel,W.combinator_input_red,dec,W.combinator_output_red) sel.get_or_create_control_behavior().parameters={operation='select',select_max=true,index_constant=0} "
     "wire(am,W.circuit_green,sel,W.combinator_output_green) local ab=am.get_or_create_control_behavior() ab.circuit_set_recipe=true ab.circuit_read_ingredients=false "
     "local qb=rq.get_or_create_control_behavior() qb.set_requests=true qb.read_contents=false rq.get_logistic_point(defines.logistic_member_index.logistic_container).trash_not_requested=true "
-    "for i,it in pairs(mk) do local d=s.find_entities_filtered{name='decider-combinator',position={X+u*35+(i-1)%35+0.5,Y+25+math.floor((i-1)/35)*2+1},radius=0.3}[1] if d then local outs={} "
+    "for i,it in pairs(mk) do local sp=RT[u*#mk+i] local d=s.find_entities_filtered{name='decider-combinator',position={sp[1]+0.5,sp[2]+1},radius=0.3}[1] if d then local outs={} "
     "for _,ing in pairs(rec[it].ingredients) do outs[#outs+1]={signal={type='item',name=ing.name},copy_count_from_input=false,constant=ing.amount*BATCH} end "
     "d.get_or_create_control_behavior().parameters={conditions={{first_signal={type='item',name=it},comparator='>',constant=0}},outputs=outs} "
     "for _,id in pairs{W.combinator_input_red,W.combinator_input_green,W.combinator_output_red,W.combinator_output_green} do d.get_wire_connector(id,true).disconnect_all() end "
@@ -145,7 +180,7 @@ CONFIG = HEAD + (
 ROM = HEAD + ("local cats=prototypes.entity['assembling-machine-3'].crafting_categories local seen,list={},{} for name,r in pairs(f.recipes) do local p=r.prototype local okc=false for _,c in pairs(p.categories) do if cats[c] then okc=true end end "
               "if r.enabled and okc and not p.hidden and #r.products==1 and r.products[1].type=='item' and not name:find('science%-pack') and not name:find('recycling') then local solid=true for _,i in pairs(r.ingredients) do if i.type~='item' then solid=false end end local it=r.products[1].name "
               "if solid then if seen[it] then seen[it]=2 else seen[it]=1 list[#list+1]=it end end end end local n=0 for _,it in pairs(list) do if seen[it]==1 then n=n+1 end end "
-              "local made,had,bad=0,0,0 if not f.recipes['decider-combinator'].enabled then rcon.print('decider not researched') return end for u=0,D-1 do for i=1,n do local pos={X+u*35+(i-1)%35+0.5,Y+25+math.floor((i-1)/35)*2+1} "
+              "local made,had,bad=0,0,0 if not f.recipes['decider-combinator'].enabled then rcon.print('decider not researched') return end for u=0,D-1 do for i=1,n do local sp=RT[u*n+i] local pos={sp[1]+0.5,sp[2]+1} "
               "if s.find_entities_filtered{name='decider-combinator',position=pos,radius=0.3}[1] then had=had+1 elseif s.can_place_entity{name='decider-combinator',position=pos,force=f,build_check_type=defines.build_check_type.manual} then "
               "if APPLY then s.create_entity{name='decider-combinator',position=pos,force=f,quality='epic'} end made=made+1 else bad=bad+1 end end end rcon.print('recipe table: '..n..' entries a machine, placed '..made..', already there '..had..', blocked '..bad)")
 STATUS = HEAD + (
@@ -157,25 +192,41 @@ STATUS = HEAD + (
     "o[#o+1]='machine '..(u+1)..': '..(r and r.name or 'no recipe')..', '..k..', made '..am.products_finished..' | chosen: '..sig(sel,W.combinator_output_green,1)..' | wants: '..sig(rq,W.circuit_green,6)..' | blue chest: '..inv(rq)..' | red chest: '..inv(pv) end rcon.print(table.concat(o,' ;; '))")
 
 
+COUNT = ("local f=game.forces.player local cats=prototypes.entity['assembling-machine-3'].crafting_categories local seen,list={},{} for name,r in pairs(f.recipes) do local p=r.prototype local okc=false for _,c in pairs(p.categories) do if cats[c] then okc=true end end "
+         "if r.enabled and okc and not p.hidden and #r.products==1 and r.products[1].type=='item' and not name:find('science%-pack') and not name:find('recycling') then local solid=true for _,i in pairs(r.ingredients) do if i.type~='item' then solid=false end end local it=r.products[1].name "
+         "if solid then if seen[it] then seen[it]=2 else seen[it]=1 list[#list+1]=it end end end end local n=0 for _,it in pairs(list) do if seen[it]==1 then n=n+1 end end rcon.print(n)")
+
+
+def standing(planet):
+    """True when the site's first roboport already stands (never apply twice)."""
+    x, y = SITES[planet]
+    r = tools["run_lua"]("rcon.print(#game.surfaces['%s'].find_entities_filtered{name='roboport',position={%s,%s},radius=0.6})" % (surf(planet), x + 2, y + 2))
+    return r.strip() != "0"
+
+
 def main():
     step, planet = sys.argv[1], sys.argv[2]
     apply = "--apply" in sys.argv
     x, y = SITES[planet]
 
     def run(code):
-        return tools["run_lua"](code.replace("SURF", planet).replace("OX", str(x)).replace("OY", str(y)).replace("PITCH", str(PITCH)).replace("DEPTH", str(DEPTH)))
+        if "ROMTAB" in code:
+            code = code.replace("ROMTAB", lua_slots(rom_slots(planet, int(tools["run_lua"](COUNT).strip()))))
+        return tools["run_lua"](code.replace("SURF", surf(planet)).replace("OX", str(x)).replace("OY", str(y)).replace("PITCH", str(PITCH)).replace("DEPTH", str(DEPTH)))
 
     if step == "build":
         first = int(sys.argv[sys.argv.index("--from") + 1]) if "--from" in sys.argv else 0
+        if apply and first == 0 and "--stock" not in sys.argv and standing(planet):
+            sys.exit("site %s already built (first roboport stands): never apply twice; use --from K or --stock" % planet)
         ents = stock_stage(planet) if "--stock" in sys.argv else layout(planet, first) + (stock_stage(planet) if first == 0 else [])
-        r = json.loads(tools["place_entities"](json.dumps(ents), surface=planet, dry_run=not apply))
+        r = json.loads(tools["place_entities"](json.dumps(ents), surface=surf(planet), dry_run=not apply, clear_trees=apply))
         print("placed" if apply else "dry run", r.get("placed"), "failed", json.dumps(r.get("failed") or [])[:400])
     if step == "furnace":
         n = int(run("local f=game.forces.player " + SMELT + "rcon.print(#mk)").strip())
-        r = json.loads(tools["place_entities"](json.dumps(furnace_layout(planet, n)), surface=planet, dry_run=not apply)) if "--config" not in sys.argv else {}
+        r = json.loads(tools["place_entities"](json.dumps(furnace_layout(planet, n)), surface=surf(planet), dry_run=not apply, clear_trees=apply)) if "--config" not in sys.argv else {}
         print("placed" if apply else "dry run", r.get("placed"), "failed", json.dumps(r.get("failed") or [])[:400])
         if apply or "--config" in sys.argv:
-            print(run(FURNACE.replace("FX", str(FX))))
+            print(run(FURNACE.replace("FX", str(FX)).replace("FTAB", lua_slots(furnace_slots(planet, n)))))
     if step == "rom":
         print(run(ROM.replace("APPLY", "true" if apply else "false")))
     if step == "config" or (step in ("build", "rom") and apply):

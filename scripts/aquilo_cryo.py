@@ -201,36 +201,41 @@ def build(P, grid, net, apply, extra=()):
 
 # ---------------------------------------------------------------- ice platform works
 CY = -29
-CXS = [-8, 2, 12]
+US = [-15, -3, 9]          # unit origins (pitch 12): assembler u..u+2 | inserter | separation u+4..u+6 | inserter | assembler u+8..u+10 | heat column
 RX = 4
 
 
 def platform_plan():
     P = Plan()
     cy = CY
-    for cx in CXS:
-        J = cx - 6
-        P.add("chemical-plant", cx - 6, cy, 3, 3, N, recipe="ammoniacal-solution-separation")
-        P.add("assembling-machine-3", cx - 2, cy, 3, 3, S, recipe="ice-platform")   # crafting-with-fluid: an assembler, its fluid port (cx-1, cy+3) on the main
+    for u in US:
+        J = u + 4
+        P.add("chemical-plant", u + 4, cy, 3, 3, N, recipe="ammoniacal-solution-separation")
         for y in (cy - 4, cy - 3, cy - 2, cy - 1):
-            P.pipe(J, y)
-        if cx != CXS[-1]:
-            P.add("pipe-to-ground", J + 1, cy - 4, d=W)
-            P.add("pipe-to-ground", J + 9, cy - 4, d=E)
-        P.add("bulk-inserter", cx - 3, cy + 1, d=W)           # ice: separation -> cryogenic plant (direction = the side it picks up from)
-        P.add("fast-inserter", cx - 1, cy - 1, d=S)           # platforms out
-        P.add("passive-provider-chest", cx - 1, cy - 2)
-        P.add("substation", cx - 5, cy - 2, 2, 2)
-    c1 = CXS[0]
-    P.add("offshore-pump", c1 - 8, cy - 4, d=W)                # needs ocean 3 wide and 2 deep in front: the inlet at -20..-17, -34..-31
-    P.pipe(c1 - 7, cy - 4)
-    for x in range(c1 - 6, CXS[-1] - 1):
+            P.pipe(J, y)                                       # junction on the solution main and the stub down into the plant
+        if u != US[-1]:
+            P.add("pipe-to-ground", J + 1, cy - 4, d=W)        # the main dives so the heat line can cross it
+            P.add("pipe-to-ground", J + 11, cy - 4, d=E)
+        for a, pick in ((u, E), (u + 8, W)):
+            # ice-platform is crafting-with-fluid: an assembler; facing south its fluid port (a+1, cy+3) sits on the ammonia main
+            P.add("assembling-machine-3", a, cy, 3, 3, S, recipe="ice-platform")
+            P.add("bulk-inserter", u + 3 if pick == E else u + 7, cy + 1, d=pick)     # ice straight from the separation plant
+            P.add("fast-inserter", a + 1, cy - 1, d=S)         # platforms out
+            P.add("passive-provider-chest", a + 1, cy - 2)
+    for u in US[1:]:
+        P.add("substation", u + 5, cy - 2, 2, 2)
+    P.add("substation", US[0] + 2, cy - 7, 2, 2)
+    P.add("fast-inserter", US[0] + 6, cy - 1, d=S)             # ice for the rest of the base (gated in config)
+    P.add("passive-provider-chest", US[0] + 6, cy - 2)
+    P.add("offshore-pump", US[0] - 1, cy - 4, d=W)             # needs ocean 3 wide and 2 deep in front: the inlet at -20..-17, -34..-31
+    for x in range(US[0], US[0] + 4):
+        P.pipe(x, cy - 4)
+    for x in range(US[0] + 1, US[-1] + 10):
         P.pipe(x, cy + 3)                                      # the ammonia main
-    P.add("bulk-inserter", c1 - 7, cy + 1, d=E)                # ice for the rest of the base (gated in config)
-    P.add("passive-provider-chest", c1 - 8, cy + 1)
     rx = RX
-    for y in (cy + 4, cy + 5, cy + 6, cy + 7):
-        P.pipe(rx + 1, y)                                      # ammonia branch down into the rocket fuel plant
+    bx = US[1] + 11                                            # the branch leaves the main under a heat column (a T under a machine has no heat)
+    for t in [(bx, cy + 4), (bx, cy + 5)] + [(x, cy + 5) for x in range(rx + 1, bx)] + [(rx + 1, cy + 6), (rx + 1, cy + 7)]:
+        P.pipe(*t)                                             # ammonia branch down into the rocket fuel plant
     P.pipe(rx - 1, cy + 7)                                     # water: melter -> rocket fuel plant (one tile, both ports)
     P.add("chemical-plant", rx - 1, cy + 8, 3, 3, N, recipe="ammonia-rocket-fuel")
     P.add("chemical-plant", rx - 4, cy + 5, 3, 3, W, recipe="ice-melting")
@@ -238,9 +243,21 @@ def platform_plan():
     P.add("requester-chest", rx - 6, cy + 6)
     P.add("fast-inserter", rx - 2, cy + 9, d=W)                # solid fuel for the rocket fuel plant
     P.add("requester-chest", rx - 3, cy + 9)
+    P.add("substation", rx - 4, cy + 11, 2, 2)                 # without it the three inserters here stood at no_power and the whole works starved
     P.add("fast-inserter", rx, cy + 11, d=N)                   # rocket fuel out (south side: the landing pad is east)
     P.add("passive-provider-chest", rx, cy + 12)
     return P
+
+
+def clear_first_layout():
+    """One-off (2026-11-14): the first layout (pitch 10, one maker a separation plant) is taken down for the pitch 12 one. Only pieces this
+    script placed stand in the box; chest contents go to the ice chest at (-15.5,-27.5), which stays."""
+    print(lua("local s=game.surfaces.aquilo local keep=s.find_entities_filtered{name='passive-provider-chest',position={-15.5,-27.5},radius=0.4}[1] local n=0 "
+              "local names={'heat-pipe','pipe','pipe-to-ground','chemical-plant','assembling-machine-3','bulk-inserter','fast-inserter','substation','passive-provider-chest'} "
+              "for _,a in pairs({{{-15.1,-34.5},{20,-25.6}},{{5.2,-24.8},{6.8,-23.2}}}) do for _,e in pairs(s.find_entities_filtered{area=a,name=names,force='player'}) do "
+              "if e.type=='logistic-container' and keep then for _,it in pairs(e.get_inventory(defines.inventory.chest).get_contents()) do keep.insert{name=it.name,count=it.count,quality=it.quality} end end "
+              "if e.type=='assembling-machine' then for _,inv in pairs({defines.inventory.crafter_input,defines.inventory.crafter_output}) do for _,it in pairs(e.get_inventory(inv).get_contents()) do if keep then keep.insert{name=it.name,count=it.count,quality=it.quality} end end end end "
+              "e.destroy{raise_destroy=true} n=n+1 end end rcon.print('removed '..n)"))
 
 
 BOX_P = (-24, -40, 34, -8)
@@ -250,8 +267,121 @@ def platforms(apply):
     grid = fetch(BOX_P)
     net = heat_tiles(BOX_P)
     P = platform_plan()
-    extra = [(x, CY - 5) for x in range(CXS[0] - 6, CXS[-1] + 4)]
+    extra = [(x, CY - 5) for x in range(US[0], US[-1] + 12)]
     build(P, grid, net, apply, extra)
+
+
+# ---------------------------------------------------------------- cryogenic science line
+# North-west field. Stack facing north: science plant (-27..-23, -41..-37) straight on top of the cooling plant (-27..-23, -36..-32): the
+# cooler's cold output (top, x-2) meets the science plant's input (bottom, x-2) with no pipe. The hot fluoroketone returns by the pipe
+# column x=-28 (science top-left -> cooler bottom-left); the fluoroketone plant (-35..-31, -42..-38, facing east) feeds the top of that
+# column. Fluorine comes down the column x=-36 from the pumpjack on the vent (-36..-34, -72..-70) over an ice platform causeway
+# (x -36..-35, y -64..-49) with its heat pipe at x=-35; ammonia comes by pipe from the west end of the platform works' main.
+SX, SY = -25, -39          # centre tile of the science plant
+FLX = -36                  # fluorine column
+CAUSEWAY = [(x, y) for y in range(-64, -48) for x in (FLX, FLX + 1)]
+BOX_S = (-46, -76, -8, -20)
+
+
+def route(grid, start, goal, blocked, shy):
+    """Cheapest 4-connected pipe path over usable free tiles; never beside a tile in `shy` (other fluids) except at its two ends."""
+    import heapq
+    shy_adj = {n for t in shy for n in adj(t)} | set(shy)
+    best, prev, heap = {start: 0}, {start: None}, [(0, start)]
+    while heap:
+        d, u = heapq.heappop(heap)
+        if u == goal:
+            break
+        if d > best[u]:
+            continue
+        for n in adj(u):
+            c = grid.get(n)
+            if n != goal and (c not in USABLE or n in blocked or n in shy_adj):
+                continue
+            nd = d + (1.3 if c == "i" else 1)
+            if nd < best.get(n, 1e9):
+                best[n] = nd
+                prev[n] = u
+                heapq.heappush(heap, (nd, n))
+    if goal not in prev:
+        return []
+    out, c = [], goal
+    while c is not None:
+        out.append(c)
+        c = prev[c]
+    return out[::-1]
+
+
+def science_plan(grid):
+    P = Plan()
+    sx, sy = SX, SY
+    P.add("cryogenic-plant", sx - 2, sy - 2, 5, 5, N, recipe="cryogenic-science-pack")
+    P.add("cryogenic-plant", sx - 2, sy + 3, 5, 5, N, recipe="fluoroketone-cooling")
+    fx, fy = sx - 8, sy - 1
+    P.add("cryogenic-plant", fx - 2, fy - 2, 5, 5, E, recipe="fluoroketone")
+    hot = [(x, sy - 3) for x in range(fx + 3, sx - 1)] + [(sx - 3, y) for y in range(sy - 2, sy + 9)] + [(sx - 2, sy + 8)]
+    for t in hot:
+        P.pipe(*t)
+    P.add("fast-inserter", sx + 3, sy, d=E)                    # ice and lithium plate in (rows sy-2, sy-1 stay open for the heat line)
+    P.add("requester-chest", sx + 4, sy)
+    P.add("fast-inserter", sx + 3, sy + 2, d=W)                # packs out
+    P.add("passive-provider-chest", sx + 4, sy + 2)
+    P.add("fast-inserter", fx, fy + 3, d=S)                    # solid fuel and lithium for the fluoroketone
+    P.add("requester-chest", fx, fy + 4)
+    P.add("heating-tower", fx - 1, fy + 7, 3, 3)               # a second heat source at this end of the network
+    P.add("fast-inserter", fx + 2, fy + 8, d=E)
+    P.add("requester-chest", fx + 3, fy + 8)
+    P.add("roboport", sx - 3, sy + 10, 4, 4)
+    P.add("substation", sx - 1, sy - 5, 2, 2)
+    P.add("substation", sx + 2, sy + 10, 2, 2)
+    P.add("substation", FLX + 2, -47, 2, 2)
+    P.add("substation", FLX + 2, -68, 2, 2)
+    P.add("pumpjack", FLX, -72, 3, 3, S)                       # the vent at (-34.5,-70.5); facing south its output is the tile (-36,-69)
+    fl = [(FLX, y) for y in range(-69, fy - 1)]
+    for t in fl:
+        P.pipe(*t)
+    start, goal = (US[0], CY + 3), (fx - 3, fy)
+    path = route(grid, start, goal, P.occupied() | {(US[0], CY + 4)}, set(hot) | set(fl))
+    if not path:
+        print("no ammonia route")
+    for t in path:
+        P.pipe(*t)
+    extra = [(FLX + 1, y) for y in range(-69, fy - 2)]
+    return P, extra
+
+
+def causeway(apply):
+    """Lay the Captain's own ice platform ghosts on the causeway tiles, paying one ice platform from the works' chests for each."""
+    tiles = ",".join("{%d,%d}" % t for t in CAUSEWAY)
+    print(lua("local s=game.surfaces.aquilo local src={} for _,e in pairs(s.find_entities_filtered{name={'passive-provider-chest','assembling-machine-3'},area={{%d,%d},{%d,%d}}}) do "
+              "src[#src+1]=e.type=='assembling-machine' and e.get_inventory(defines.inventory.crafter_output) or e.get_inventory(defines.inventory.chest) end "
+              "local function take() for _,inv in pairs(src) do if inv.remove({name='ice-platform',count=1})==1 then return true end end return false end "
+              "local done,nog,short=0,0,0 for _,p in pairs({%s}) do local t=s.get_tile(p[1],p[2]) if t.name=='ice-platform' then done=done+1 else "
+              "local g=s.find_entities_filtered{type='tile-ghost',position={p[1]+0.5,p[2]+0.5},radius=0.3}[1] if not g then nog=nog+1 "
+              "elseif %s and take() then g.revive{raise_revive=true} done=done+1 else short=short+1 end end end "
+              "rcon.print('causeway tiles laid '..done..' of %d, no ghost '..nog..', waiting for platforms '..short)"
+              % (US[0], CY - 3, US[-1] + 11, CY + 3, tiles, "true" if apply else "false", len(CAUSEWAY))))
+
+
+def science(apply):
+    lua("local h=game.surfaces.aquilo.find_entities_filtered{name='heat-pipe',position={%s,%s},radius=0.3}[1] if h and %s then h.destroy{raise_destroy=true} end rcon.print('ok')" % (US[0] + .5, CY + 3.5, "true" if apply else "false"))
+    grid = fetch(BOX_S)
+    grid[(US[0], CY + 3)] = "S"
+    net = heat_tiles(BOX_S)
+    net.discard((US[0], CY + 3))
+    P, extra = science_plan(grid)
+    build(P, grid, net, apply, extra)
+
+
+def science_config():
+    sx, sy = SX, SY
+    fx, fy = sx - 8, sy - 1
+    code = "local s=game.surfaces.aquilo local o={} "
+    code += ask(sx + 4.5, sy + .5, {"ice": 100, "lithium-plate": 40})
+    code += ask(fx + .5, fy + 4.5, {"solid-fuel": 10, "lithium": 6})
+    code += ask(fx + 3.5, fy + 8.5, {"solid-fuel": 100})
+    code += "rcon.print(table.concat(o,' | '))"
+    print(lua(code))
 
 
 def cond(x, y, item, comp, n):
@@ -266,13 +396,14 @@ def ask(x, y, reqs):
 
 
 def config():
-    c1 = CXS[0]
     rx = RX
     code = "local s=game.surfaces.aquilo local o={} "
     code += ask(rx - 5.5, CY + 6.5, {"ice": 50})
     code += ask(rx - 2.5, CY + 9.5, {"solid-fuel": 100})
-    code += cond(c1 - 6.5, CY + 1.5, "ice", "<", 1500)
+    code += cond(US[0] + 6.5, CY - .5, "ice", "<", 1500)
     code += cond(40.5, -3.5, "ice", ">", 4000)             # the recycler ice sink runs on true surplus only
+    code += ("for _,e in pairs(s.find_entities_filtered{name='assembling-machine-3',area={{%d,%d},{%d,%d}}}) do e.direction=defines.direction.south o[#o+1]='assembler '..e.position.x..' faces '..e.direction end "
+             % (US[0], CY, US[-1] + 11, CY + 3))            # place_entities leaves a fluid assembler facing north: turn it after the recipe is set
     code += "rcon.print(table.concat(o,' | '))"
     print(lua(code))
 
@@ -297,10 +428,18 @@ def status():
 def main():
     step = sys.argv[1]
     apply = "--apply" in sys.argv
-    if step == "platforms":
+    if step == "clear_first_layout":
+        clear_first_layout()
+    elif step == "platforms":
         platforms(apply)
     elif step == "config":
         config()
+    elif step == "causeway":
+        causeway(apply)
+    elif step == "science":
+        science(apply)
+    elif step == "science_config":
+        science_config()
     elif step == "status":
         status()
 
