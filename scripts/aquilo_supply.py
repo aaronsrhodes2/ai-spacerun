@@ -11,7 +11,8 @@ import sys
 
 from _game import tools
 
-RELAY = {"processing-unit": 300, "refined-concrete": 60}
+RELAY = {"processing-unit": 300, "refined-concrete": 60,
+         "construction-robot": 40, "uranium-fuel-cell": 30, "ice": 500}      # robots to mine the lithium icebergs, fuel for the reactor, water to start the steam
 CARGO = dict(RELAY, **{"holmium-plate": 400, "superconductor": 100, "concrete": 100, "rocket-fuel": 100})
 FN = ("local f=game.forces.player local function fill(ent,items,imp,tag) for _,pt in pairs(ent.get_logistic_point()) do if pt.mode==defines.logistic_mode.requester then local sec=nil "
       "for _,x in pairs(pt.sections) do if x.filters_count>0 and x.filters[1] and x.filters[1].value and x.filters[1].value.name==tag then sec=x end end sec=sec or pt.add_section() local i=0 "
