@@ -29,8 +29,11 @@ wheel does not depend on it) gets its `max` lifted above the cap, or everything 
   7 Copper cable for circuits (400 a minute) crowded the loop's inner lane, where everything from outside the loop lands, and iron plate
     could not get on. `ec2`: a second circuit plant west of the processing unit plant with its own cable caster (see EC2_ENTS); the
     loop's cable target drops from 120 to 30 (advanced circuits only), carbon rises to 80.
-Steps: check | tap | em [--apply] | crusher [--apply] | ec2 [--apply] | trim | modules | config | status | rate [seconds]      [--only PLANET]
-Order on a wheel: tap, em (dry run), em --apply, crusher (dry run), crusher --apply, ec2 (dry run), ec2 --apply, config. `em --apply` refuses a second run. After a quality upgrade and after any
+  8 Water. With the old stock of oxide chunks gone, the oxide tap (it yields to the spiral) brings about 5 chunks a minute: 25 ice, 500
+    water, about 12 processing units a minute. `water`: the reshuffler turns spare carbonic chunks into oxide (and metallic) ones while
+    the melter is short of ice (see WATER_ENTS).
+Steps: check | tap | em [--apply] | crusher [--apply] | ec2 [--apply] | water [--apply] | trim | modules | config | status | rate [seconds]      [--only PLANET]
+Order on a wheel: tap, em (dry run), em --apply, crusher (dry run), crusher --apply, ec2 (dry run), ec2 --apply, water (dry run), water --apply, config. `em --apply` refuses a second run. After a quality upgrade and after any
 `wheel_rocket.py config`: `wheel_export_fulgora.py config` (wheel_rocket.py sets every cap back to 2,000 and its own targets).
 Never run `wheel_rocket.py build` or `refit` on a wheel that has the plants: it would try to put the three assemblers back."""
 import json
@@ -93,6 +96,14 @@ EC2_ENTS = ([ent("foundry", 8, 12, N, 5), ent("electromagnetic-plant", 14, 12, N
              ent("pipe-to-ground", 30, 34, E), ent("pipe-to-ground", 20, 34, W)] + [ent("pipe", x, y) for x, y in EC2_PIPES])
 EC2_REC = [(8 + HX + 2.5, 12 + HY + 2.5, "casting-copper-cable", N, "foundry"), (14 + HX + 2, 12 + HY + 2, "electronic-circuit", N, "electromagnetic-plant")]
 EC2_FILTERS = [(13, 14, ["copper-cable"]), (18, 13, ["electronic-circuit"]), (16, 16, ["iron-plate"])]
+# water: the reshuffler (5..7,43..44) reprocesses CARBONIC chunks, the kind the west spoke has to spare, instead of metallic ones:
+# intake 5,45 from in1 (a fast inserter in place of the long-handed one that reached in2), oxide chunks straight into the oxide crusher (8,43, as before),
+# carbonic ones into the first carbonic crusher (4,43, as before) or back onto in1 (6,45), metallic ones onto in2 (long-handed, 7,45);
+# the old relief inserter at 6,42 (chunks onto the ore belt and so into the hub, a slot each) is given a filter that never matches
+WATER_ENTS = [ent("fast-inserter", 5, 45, S), ent("fast-inserter", 6, 45, N), ent("long-handed-inserter", 7, 45, N)]
+WATER_FILTERS = [(5, 45, ["carbonic-asteroid-chunk"]), (6, 45, ["carbonic-asteroid-chunk"]), (7, 45, ["metallic-asteroid-chunk"]), (6, 42, ["carbon"])]
+WATERCLEAR = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local n=0 for _,e in pairs(s.find_entities_filtered{name='long-handed-inserter',position={IX,IY},radius=0.3}) do "
+              "if e.held_stack.valid_for_read then hub.insert(e.held_stack) e.held_stack.clear() end e.destroy() n=n+1 end rcon.print('long-handed intake of the reshuffler removed '..n)")
 CRUSH_FILTERS = [(17, 45, ["carbonic-asteroid-chunk"])]
 CRUSH_GATES = [(17, 45, "carbon")]
 
@@ -121,6 +132,10 @@ CONFIG = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=define
           "local nf=0 for _,q in pairs(FILT) do local i=at('inserter',q[1],q[2]) if i then i.use_filters=true i.inserter_filter_mode='whitelist' for k=1,i.filter_slot_count do i.set_filter(k,q[3][k]) end nf=nf+1 end end "
           "local nr=0 for _,q in pairs(REC) do local m=s.find_entities_filtered{name=q[5],position={q[1],q[2]},radius=0.5}[1] if m then if not m.get_recipe() or m.get_recipe().name~=q[3] then for _,st in pairs(m.set_recipe(q[3])) do hub.insert(st) end end m.direction=q[4] nr=nr+1 end end "
           "local cr=s.find_entities_filtered{name='crusher',position={CRX,CRY},radius=0.5}[1] if cr then if not cr.get_recipe() then cr.set_recipe('advanced-carbonic-asteroid-crushing') end cr.direction=defines.direction.east o[#o+1]='second carbonic crusher set' end "
+          "local rp=s.find_entities_filtered{name='crusher',position={RPX,RPY},radius=0.5}[1] local ri=at('inserter',RIX,RIY) if rp and ri and at('inserter',RIX+1,RIY) then "
+          "if not rp.get_recipe() or rp.get_recipe().name~='carbonic-asteroid-reprocessing' then for _,st in pairs(rp.set_recipe('carbonic-asteroid-reprocessing')) do hub.insert(st) end end "
+          "local melt=s.find_entities_filtered{type='assembling-machine',position={WMX,WMY},radius=0.5}[1] melt.get_or_create_control_behavior().circuit_read_contents=true local c=ri.get_wire_connector(W.circuit_green,true) c.disconnect_all() c.connect_to(melt.get_wire_connector(W.circuit_green,true),false) "
+          "local cb=ri.get_or_create_control_behavior() cb.circuit_enable_disable=true cb.circuit_condition={first_signal={type='item',name='ice'},comparator='<',constant=20} o[#o+1]='reshuffler on carbonic chunks, gated on the melter ice' end "
           "local old=s.find_entities_filtered{name='assembling-machine-3',position={OPX,OPY},radius=0.3}[1] if old then old.direction=defines.direction.south o[#o+1]='old processing unit assembler turned south' end "
           "local g=0 for _,q in pairs(GATED) do g=g+cond(at('inserter',q[1],q[2]),q[3],'<',q[4],lb) end local sd=0 for _,q in pairs(SIDE) do sd=sd+cond(at('inserter',q[1],q[2]),q[3],'>=',q[4],lb) end "
           "local x=0 for _,q in pairs(CAPS) do x=x+cond(at('inserter',q[1],q[2]),q[3],'<',q[4],hub) end hub.providing_to_other_platforms=true "
@@ -175,6 +190,8 @@ def config(surface, export):
     em = has_em(surface)
     gated = [(x, y, item, TARGETS[item]) for x, y, item, t in wr.gated] + [hc(x, y) + (item, TARGETS[item]) for x, y, item in CRUSH_GATES]
     filt = [hc(x, y) + (names,) for x, y, names in CRUSH_FILTERS]
+    if run(HAS_EM.replace("name='electromagnetic-plant'", "name='fast-inserter'"), surface, PX=hc(6, 45)[0], PY=hc(6, 45)[1]) != "0":
+        filt += [hc(x, y) + (names,) for x, y, names in WATER_FILTERS]
     rec = []
     if em:
         gated += [hc(x, y) + (item, TARGETS[item]) for x, y, item in EM_GATES]
@@ -187,7 +204,7 @@ def config(surface, export):
     gated.append(hc(1, 45) + ("carbon", TARGETS["carbon"]))                       # the carbonic crusher's intake follows the loop's carbon
     lb = hc(*[(t[0] - HX, t[1] - HY) for t in wr.loop_tiles][0])
     return run(CONFIG, surface, FILT=lua_rows(filt), REC=lua_rows(rec), GATED=lua_rows(gated), SIDE=lua_rows(side), CAPS=lua_rows(caps),
-               LBX=lb[0], LBY=lb[1], CRX=CRUSH_ENTS[0]["x"], CRY=CRUSH_ENTS[0]["y"], OPX=OLD_MACH[0][0] + HX, OPY=OLD_MACH[0][1] + HY, EXPORT=export, RMIN=REQUEST_MIN)
+               LBX=lb[0], LBY=lb[1], RPX=HX + 6.5, RPY=HY + 44, RIX=hc(5, 45)[0], RIY=hc(5, 45)[1], WMX=HX + 45.5, WMY=HY + 27.5, CRX=CRUSH_ENTS[0]["x"], CRY=CRUSH_ENTS[0]["y"], OPX=OLD_MACH[0][0] + HX, OPY=OLD_MACH[0][1] + HY, EXPORT=export, RMIN=REQUEST_MIN)
 
 
 def rate(surface, export, secs):
@@ -254,6 +271,17 @@ def main():
             print(place(EC2_ENTS, surface, apply))
             if apply:
                 print(config(surface, export))
+        elif step == "water":
+            if run(HAS_EM.replace("name='electromagnetic-plant'", "name='fast-inserter'"), surface, PX=hc(6, 45)[0], PY=hc(6, 45)[1]) != "0":
+                print("the reshuffler already runs on carbonic chunks here: nothing done (run config)")
+                continue
+            if not apply:
+                print("dry run: would swap the reshuffler's long-handed intake for a fast inserter and add two return inserters")
+                print(place(WATER_ENTS[1:], surface, False))
+                continue
+            print(run(WATERCLEAR, surface, IX=hc(5, 45)[0], IY=hc(5, 45)[1]))
+            print(place(WATER_ENTS, surface, True))
+            print(config(surface, export))
         elif step == "modules":
             print(run(MODULES, surface, MODA=HX + 17, MODB=HY + 12, MODC=HX + 33, MODD=HY + 16))
             print(run(MODULES, surface, MODA=HX + 17, MODB=HY + 43, MODC=HX + 20, MODD=HY + 45))

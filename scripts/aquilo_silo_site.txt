@@ -8,5 +8,5 @@ heat link corridor (pipes only, 1 tile wide): from (-3,-4) east/north to the bas
   printed by `scripts/aquilo_silo.py check`
 why: the big clean land field west of the landing pad (no ghosts of ice platforms on land, none in the footprint), ~35 tiles from the
   power block, 17 tiles from roboport (4,-11) (inside its logistic area, network 3635)
-status: planned, not yet placed
+status: PLACED 2026-11-14 (silo, 3 inserters, 3 requester chests, substation, 4+4+7 heat pipes in the yard and 17 on the link: (9,-9)(9,-6)(8..1,-6)(1,-5)(1,-4)(0..-2,-4))
 NOTES
