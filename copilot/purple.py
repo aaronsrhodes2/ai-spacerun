@@ -10,6 +10,7 @@ long jobs: a run takes seconds to minutes and it does one at a time, so as the s
 turns a plain model source suits better, with purple called for a task by /purple in the game (copilot/loop.py)."""
 import time
 
+from .agent import PROMPT
 from .purple_client import DEFAULT_URL, PurpleClient, PurpleError
 
 
@@ -55,6 +56,7 @@ class PurpleAgent:
     def __init__(self, game, purple, toolbox, conv=None):
         self.game, self.purple, self.toolbox = game, purple, toolbox
         self.conv = conv or ("factorio-" + time.strftime("%Y%m%d-%H%M%S"))
+        self.skill_sent = False                         # purple may not see .claude/skills here, so the first turn carries the skill itself
         self.model = type("M", (), {"model": "purple Skippy in workspace '%s'" % purple.workspace})()
         self.tools = toolbox.offered
         self.names = toolbox.names
@@ -83,7 +85,11 @@ class PurpleAgent:
         alert_text, _ = self.alerts()
         answer, outcome = None, "answered"
         try:
-            got = self.purple.ask(TURN % (text + ((chr(10) * 2 + alert_text) if alert_text else "")), self.conv)
+            message = TURN % (text + ((chr(10) * 2 + alert_text) if alert_text else ""))
+            if not self.skill_sent:
+                message = "Your instructions for this game (the factorio-copilot skill):" + chr(10) * 2 + PROMPT + chr(10) * 2 + "---" + chr(10) * 2 + message
+            got = self.purple.ask(message, self.conv)
+            self.skill_sent = True                      # later turns of the same conversation already have it
             stats["calls"] = got["steps"]
             answer = got["text"] or None
             if not got["ok"]:

@@ -11,6 +11,7 @@ import pytest
 from copilot.agent import Agent
 from copilot.loop import PURPLE_TASK, Bridge
 from copilot.purple_client import MIN_POLL, PurpleClient, PurpleError
+from copilot.toolbox import Toolbox
 from copilot.tools import LocalTools
 from fake_purple import FakePurple
 from fakes import FakeModel
@@ -314,3 +315,15 @@ def test_on_plain_chat_purple_decides_whether_it_is_the_game_or_the_code():
     assert "You decide what kind of request it is" in TURN and "factorio-copilot skill" in TURN and "skippy-copilot MCP server" in TURN
     assert "mods/skippy-copilot, copilot/ and tests/copilot_tests" in TURN and "do not restart, reload or stop the game server" in TURN
     assert "ask the player in one sentence before changing anything" in TURN and TURN.count("%s") == 1
+
+
+def test_the_first_turn_carries_the_skill_itself_and_later_turns_do_not_repeat_it():
+    from copilot.agent import PROMPT
+    from copilot.purple import PurpleAgent
+    fake = FakePurple(script=[{"text": "Fine.", "done": True, "ok": True}])
+    agent = PurpleAgent(LoopGame(), __import__("copilot.purple", fromlist=["Purple"]).Purple(None, "", "f-ai-factorio", client=fake.client()), Toolbox(LoopGame()), conv="factorio-20261113-000000")
+    agent.handle("what is in my inventory?", light=False)
+    agent.handle("and now?", light=False)
+    first, second = fake.asked[0]["message"], fake.asked[1]["message"]
+    assert PROMPT in first and "what is in my inventory?" in first and first.index(PROMPT) < first.index("what is in my inventory?")
+    assert PROMPT not in second and "and now?" in second and fake.asked[1]["conv"] == "factorio-20261113-000000"
