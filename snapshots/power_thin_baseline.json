@@ -1,1 +1,1 @@
-{"nauvis": {"no_power": 32, "low_power": 0, "consumers": 22981, "nets": {"1": 8634}, "t": 1794698140.3220723}}
+{"nauvis": {"no_power": 32, "low_power": 0, "consumers": 22981, "nets": {"1": 8634}, "t": 1794698140.3220723}, "vulcanus": {"no_power": 0, "low_power": 0, "consumers": 1082, "nets": {"11949": 253}, "t": 1794700056.6881928}, "gleba": {"no_power": 0, "low_power": 0, "consumers": 1060, "nets": {"11943": 168}, "t": 1794700066.9838912}}

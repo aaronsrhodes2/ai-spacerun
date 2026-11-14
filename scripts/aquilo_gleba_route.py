@@ -14,7 +14,7 @@ Steps (dry run unless --apply):
   gleba-side [--apply] [--off]   cryogenic requests on the Gleba pad and lab chests (read back)
   ammo [--apply]         bar the five explosive-rocket cell chests at 4 slots (400 each) and re-add the rocket request the cells lost; with --apply only
   load R M               move R explosive rockets and M uranium-round magazines from the Nauvis ammunition chests into the ship's hub
-  route [--go] [--rockets=N] [--mags=N] [--packs=N] [--wait=TICKS]   the schedule (paused unless --go)
+  route [--go] [--rockets=N] [--mags=N] [--packs=N] [--reserve=N] [--wait=TICKS]   (--reserve: the ship leaves Aquilo once its explosive rockets fall to N, packs or not: it burns ~9 a minute parked and the return needs ~800; default 900)   the schedule (paused unless --go)
   lds on|off             ask the Gleba Wheel for low density structure (150) to carry to the Aquilo pad (the silo needs it)
   verify                 the checks that must be green before a flight
 Usage: aquilo_gleba_route.py status | build [--apply] | gleba-side [--apply] | ammo [--apply] | load R M | route [--go] | lds on|off | verify"""
@@ -98,7 +98,7 @@ local function tm(k,cmp) return {type='time',compare_type=cmp or 'and',ticks=k} 
 local fuel,ox=c('fluid','thruster-fuel',40000),c('fluid','thruster-oxidizer',40000)
 p.schedule={current=CUR,records={
 {station='gleba',wait_conditions={fuel,ox,c('item','carbon',3000),c('item','iron-ore',3000),c('item','explosive-rocket',RK),c('item','uranium-rounds-magazine',MG),c('item','cryogenic-science-pack',40,'and','<'),tm(1800)}},
-{station='aquilo',wait_conditions={c('fluid','thruster-fuel',15000),c('fluid','thruster-oxidizer',15000),c('item','cryogenic-science-pack',PK)}}}}
+{station='aquilo',wait_conditions={c('fluid','thruster-fuel',15000),c('fluid','thruster-oxidizer',15000),c('item','cryogenic-science-pack',PK),c('item','explosive-rocket',RES,'or','<=')}}}}
 if 'SIMPLE'=='yes' then p.schedule={current=CUR,records={p.schedule.records[1],{station='aquilo',wait_conditions={c('fluid','thruster-fuel',15000),c('fluid','thruster-oxidizer',15000),TESTGATE}}}} end
 p.paused=PAUSED if p.space_location then p.space_location=p.space_location.name end
 rcon.print('schedule gleba <-> aquilo set for '..p.name..', paused='..tostring(p.paused)..', state '..p.state)"""
@@ -140,7 +140,7 @@ def main():
     elif step == "route":
         cur = run(lua_find() + "rcon.print(p.space_location and p.space_location.name or 'none')")
         r = ROUTE.replace("CUR", "2" if cur == "aquilo" else "1").replace("PAUSED", "false" if "--go" in sys.argv else "true")
-        r = r.replace("RK", str(2 * int(arg("rockets", 1800)))).replace("MG", str(2 * int(arg("mags", 1500)))).replace("PK", str(2 * int(arg("packs", 400)))).replace("WAIT", arg("wait", "36000")).replace("SIMPLE", "yes" if "--simple" in sys.argv else "no").replace("TESTGATE", "c('item','iron-plate',190)" if "--testgate" in sys.argv else "tm(%s)" % arg("wait", "36000"))
+        r = r.replace("RK", str(2 * int(arg("rockets", 1800)))).replace("MG", str(2 * int(arg("mags", 1500)))).replace("PK", str(2 * int(arg("packs", 400)))).replace("RES", str(2 * int(arg("reserve", 900)))).replace("WAIT", arg("wait", "36000")).replace("SIMPLE", "yes" if "--simple" in sys.argv else "no").replace("TESTGATE", "c('item','iron-plate',190)" if "--testgate" in sys.argv else "tm(%s)" % arg("wait", "36000"))
         print(run(lua_find() + r))
     elif step in ("create", "build", "config", "check", "requests", "hold", "targets", "fit", "watch", "rename"):
         sys.argv[0] = "aquilo_ship3.py"
