@@ -1,0 +1,3 @@
+rod: 138 on the map, 378 strikes seen, mean 250 MJ, total 94470 MJ over 2.34 game minutes = 40444 MJ/min
+collector: 0 on the map, 0 strikes seen, mean 0 MJ, total 0 MJ over 2.34 game minutes = 0 MJ/min
+accumulators MJ min/max over the window: 21746 22100

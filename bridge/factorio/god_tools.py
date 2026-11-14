@@ -51,6 +51,17 @@ def _lua_json(value) -> str:
     return "helpers.json_to_table([==[" + json.dumps(value, separators=(",", ":")) + "]==])"
 
 
+
+def _ghost_surface(surface: str) -> bool:
+    """True when snapshots/build_mode.json lists `surface` under "ghost_surfaces" (read on every call so the mode can be flipped live)."""
+    import json as _json
+    import os as _os
+    p = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))), "snapshots", "build_mode.json")
+    try:
+        return surface in (_json.load(open(p)).get("ghost_surfaces") or [])
+    except Exception:
+        return False
+
 def register(mcp, q: Callable[[str], str]) -> None:
     """Add the god-mode tools to the FastMCP server. `q` runs Lua and returns its output."""
 
@@ -287,19 +298,31 @@ def register(mcp, q: Callable[[str], str]) -> None:
         """)
 
     @mcp.tool()
-    def place_entities(entities: str, surface: str = "nauvis", dry_run: bool = False, clear_trees: bool = True) -> str:
+    def place_entities(entities: str, surface: str = "nauvis", dry_run: bool = False, clear_trees: bool = True, ghost: bool = False) -> str:
         """Place entities for free, refusing anything whose recipe isn't researched.
         `entities` is a JSON list of {"name","x","y"} with optional "direction" (0=N, 4=E,
         8=S, 12=W), "recipe", and "params" (extra create_entity arguments such as
         {"type":"input"} for an underground belt). Reports placed and failed with a reason
         for each. Trees and rocks in the way are removed unless clear_trees is false.
-        dry_run checks everything and changes nothing. Keep calls to ~500 entities."""
+        dry_run checks everything and changes nothing. Keep calls to ~500 entities.
+        GHOST MODE (the Captain, 2026-11-14, "non-builder mode"): with ghost=true (or when the surface is
+        listed in snapshots/build_mode.json under "ghost_surfaces", read on every call) the same checks run
+        but entity GHOSTS are created instead of entities: construction robots then build them from items
+        the logistic network holds (the Replicator makes what is missing), so machines cost to build.
+        The research check still applies."""
+        ghost = ghost or _ghost_surface(surface)
         try:
             parsed = json.loads(entities)
         except ValueError as e:
             return json.dumps({"error": f"entities is not valid JSON: {e}"})
         if not isinstance(parsed, list) or not parsed:
             return json.dumps({"error": "entities must be a non-empty JSON list"})
+        if ghost:
+            # items made by the Replicator and held in the network are normal quality: a ghost asks for exactly its quality,
+            # so ghosts are normal and scripts/upgrade_quality.py raises what stands to the researched quality afterwards.
+            for spec in parsed:
+                if isinstance(spec, dict) and isinstance(spec.get("params"), dict):
+                    spec["params"].pop("quality", None)
         # No `--` comments in the Lua below: it is sent as one line. Why `twin` exists: can_place_entity (manual)
         # says yes over anything it could fast-replace, and create_entity then stacks a second entity on the first.
         return run(_UNLOCK + f"""
@@ -344,13 +367,13 @@ def register(mcp, q: Callable[[str], str]) -> None:
                        and o.type ~= 'logistic-robot' and o.type ~= 'construction-robot' then can = false end
                   end
                 else
-                  can = s.can_place_entity(check)
+                  if {str(ghost).lower()} then check.build_check_type = defines.build_check_type.ghost_place end can = s.can_place_entity(check)
                 end
                 if twin then fail(i, spec, 'already occupied by ' .. twin)
                 elseif not can then fail(i, spec, 'blocked at this position')
                 elseif dry then placed = placed + 1
                 else
-                  local args = {{name=spec.name, position=pos, direction=spec.direction or 0, force=f, raise_built=true, move_stuck_players=true}}
+                  local args = {{name=spec.name, position=pos, direction=spec.direction or 0, force=f, raise_built=true, move_stuck_players=true}} if {str(ghost).lower()} then args.name='entity-ghost' args.inner_name=spec.name args.raise_built=nil args.expires=false end
                   if spec.params then for k, v in pairs(spec.params) do args[k] = v end end
                   local e = s.create_entity(args)
                   if not e then fail(i, spec, 'create_entity returned nothing')

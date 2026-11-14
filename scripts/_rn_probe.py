@@ -1,0 +1,5 @@
+from _game import tools
+L = ("local n=game.surfaces.nauvis.find_entities_filtered{name='roboport'}[1].logistic_network local out={} for _,k in ipairs({'logistic-robot','construction-robot','flying-robot-frame','electric-engine-unit','engine-unit','battery','advanced-circuit','electronic-circuit','steel-plate','lubricant-barrel','sulfuric-acid-barrel','heavy-oil-barrel','plastic-bar','copper-cable'}) do out[#out+1]=k..'='..n.get_item_count{name=k} end rcon.print(n.network_id..' '..table.concat(out,' '))")
+print(tools["run_lua"](L))
+L2 = ("local s=game.surfaces.nauvis local r={} for _,a in pairs(s.find_entities_filtered{type='assembling-machine',force=game.forces.player}) do local rc=a.get_recipe() if rc and (rc.name=='logistic-robot' or rc.name=='construction-robot' or rc.name=='flying-robot-frame' or rc.name=='electric-engine-unit' or rc.name=='battery') then r[#r+1]=rc.name..'@'..math.floor(a.position.x)..','..math.floor(a.position.y)..' '..a.status end end table.sort(r) rcon.print(#r..' '..table.concat(r,' | '))")
+print(tools["run_lua"](L2))

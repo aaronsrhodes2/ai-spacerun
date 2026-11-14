@@ -10,6 +10,7 @@ from _game import tools
 import autopilot_server as ap
 import factory_wall
 import replicator_viz
+import ghost_demand
 import module_mall
 
 LOG = str(Path(__file__).resolve().parent.parent / "docs" / "autopilot.log")
@@ -78,6 +79,11 @@ def main():
                     replicator_viz.update()
                 except Exception as exc:  # noqa: BLE001
                     ap.log("replicator console error: " + repr(exc), LOG)
+            if cyc % 3 == 2:                                                                 # ghost demand (non-builder mode, scripts/ghost_demand.py)
+                try:
+                    ghost_demand.update()
+                except Exception as exc:  # noqa: BLE001
+                    ap.log("ghost demand error: " + repr(exc), LOG)
             tools["run_lua"](module_mall.LABS)                                               # speed modules into the Gleba labs first
             mods = tools["run_lua"](module_mall.sub(module_mall.INSTALL, True)).strip()      # finished productivity modules go into the wheels
             ap.log(snap + " | queue " + queue + " | " + fix + " | " + guard + " | " + ships + ("" if bots.endswith(" 0") else " | " + bots) + ("" if "installed 0 / 0" in mods else " | " + mods), LOG)
