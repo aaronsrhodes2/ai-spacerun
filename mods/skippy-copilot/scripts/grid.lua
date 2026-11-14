@@ -205,7 +205,8 @@ R.register {
     if not surface then return err end
     local w, h = math.max(1, math.floor(a.width)), math.max(1, math.floor(a.height))
     if w > 100 or h > 100 then return { error = "at most 100 by 100 tiles" } end
-    local cx, cy = math.floor(a.x - w / 2), math.floor(a.y - h / 2)
+    -- the rectangle is centred on the tile asked for (for an even size, the tile asked for is just left of centre)
+    local cx, cy = math.floor(a.x) - math.floor((w - 1) / 2), math.floor(a.y) - math.floor((h - 1) / 2)
     local radius = math.max(0, math.min(math.floor(a.radius), 64))
     local function empty(x, y)
       local area = { { x + 0.05, y + 0.05 }, { x + w - 0.05, y + h - 0.05 } }

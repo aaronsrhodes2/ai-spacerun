@@ -69,7 +69,8 @@ R.register {
     name = { type = "string", description = "player name; leave out for the first player in the game" },
   },
   run = function(a)
-    local p = a.name and game.get_player(a.name) or any_player()
+    local p
+    if a.name then p = game.get_player(a.name) else p = any_player() end          -- a name that is not in the game is an error, not somebody else
     if not p then return { error = "no such player is in the game" } end
     local sel = p.selected
     return {

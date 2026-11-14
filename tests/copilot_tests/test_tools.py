@@ -68,7 +68,8 @@ def test_production_plan_refusals():
     t = LocalTools(game())
     assert "raw input" in t.call("plan_production", {"item": "iron-ore", "per_minute": 10})["error"]
     assert "above zero" in t.call("plan_production", {"item": "iron-gear-wheel", "per_minute": 0})["error"]
-    assert "needs the parameter 'per_minute'" in t.call("plan_production", {"item": "iron-gear-wheel"})["error"]
+    assert "one of the two" in t.call("plan_production", {"item": "iron-gear-wheel"})["error"]
+    assert "one of the two" in t.call("plan_production", {"item": "iron-gear-wheel", "per_minute": 60, "per_second": 1})["error"]
     r = t.call("plan_production", {"item": "iron-gear-wheel", "per_minut": 5})
     assert "no parameter 'per_minut'" in r["error"] and r["tool"]["name"] == "plan_production"
 
@@ -231,3 +232,9 @@ def test_locate_turns_words_into_tiles_from_the_frames_the_game_gives():
     assert "not a part I know" in t.call("locate", {"frame": "view", "part": "yonder"})["error"]
     assert "frame must be one of" in t.call("locate", {"frame": "screen"})["error"]
     assert "no player" in LocalTools(FakeGame({"frames": {"ok": False, "error": "no player is in the game"}})).call("locate", {"frame": "view"})["error"]
+
+
+def test_a_rate_per_second_is_the_same_plan_as_sixty_times_it_per_minute():
+    a = LocalTools(game()).call("plan_production", {"item": "automation-science-pack", "per_second": 1})["result"]
+    b = LocalTools(game()).call("plan_production", {"item": "automation-science-pack", "per_minute": 60})["result"]
+    assert a == b and a["per_second"] == 1 and a["per_minute"] == 60

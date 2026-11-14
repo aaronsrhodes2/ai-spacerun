@@ -108,7 +108,12 @@ R.register {
           or ("find what takes " .. g.item .. " away and why it has stopped"),
       }
     end
-    table.sort(list, function(p, q) return p.machines_waiting > q.machines_waiting end)
+    -- most machines first; on a tie a shortage comes before a backlog (a shortage is usually the cause), then by name
+    table.sort(list, function(p, q)
+      if p.machines_waiting ~= q.machines_waiting then return p.machines_waiting > q.machines_waiting end
+      if p.kind ~= q.kind then return p.kind == "starved of" end
+      return p.item < q.item
+    end)
     local top = math.max(1, math.min(a.top, 20))
     local out = {}
     for i = 1, math.min(top, #list) do

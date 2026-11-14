@@ -20,9 +20,10 @@ SPECS = [
      "parameters": {"frame": _param("string", "view, base, map or player", True),
                     "part": _param("string", "middle, a side (north, top, left...) or a corner (upper right, south-west...)", default="middle")}},
     {"name": "plan_production",
-     "description": "Work out everything needed to make an item at a rate: for each recipe in the chain how many machines, and the raw inputs and belts needed. Reads recipes and machine speeds from the game. Use it before building any production line; never work these numbers out yourself.",
+     "description": "The whole factory behind one product: for a target such as 'two per second' or '90 a minute' it gives, for each recipe in the chain, how many machines, and the raw inputs and belts needed. Answers 'how many assemblers do I need to make this many of that'. Reads recipes and machine speeds from the game. Use it before building any production line; never work these numbers out yourself.",
      "parameters": {"item": _param("string", "internal name of the item to make", True),
-                    "per_minute": _param("number", "how many per minute", True),
+                    "per_minute": _param("number", "how many per minute (give this or per_second)"),
+                    "per_second": _param("number", "how many per second (give this or per_minute)"),
                     "machine": _param("string", "machine to use for assembling recipes, such as assembling-machine-2; leave out for the slowest that can make each recipe"),
                     "stop_at": _param("string", "comma-separated items to treat as supplied, not made here, such as 'iron-plate,copper-plate'")}},
     {"name": "plan_row",
@@ -109,9 +110,13 @@ class LocalTools:
         out["surface"] = r["result"].get("surface")
         return out
 
-    def plan_production(self, item, per_minute, machine=None, stop_at=None):
+    def plan_production(self, item, per_minute=None, per_second=None, machine=None, stop_at=None):
+        if (per_minute is None) == (per_second is None):
+            raise ToolError("give the rate as per_minute or as per_second, one of the two")
+        if per_second is not None:
+            per_minute = per_second * 60.0
         if per_minute <= 0:
-            raise ToolError("per_minute must be above zero")
+            raise ToolError("the rate must be above zero")
         stop = {s.strip() for s in (stop_at or "").split(",") if s.strip()}
         recipes, machines = {}, {}
 
@@ -150,7 +155,7 @@ class LocalTools:
                           "inputs_per_minute": {k: round(v * 60, 2) for k, v in s["inputs_per_second"].items()}})
         raw = {k: round(v * 60, 2) for k, v in plan["raw_per_second"].items()}
         belts = {k: calc.belts_for(v / 60.0)["fills_one_belt"] for k, v in raw.items()}
-        return {"item": item, "per_minute": per_minute, "steps": steps, "supplied_per_minute": raw,
+        return {"item": item, "per_minute": round(per_minute, 2), "per_second": round(per_minute / 60.0, 3), "steps": steps, "supplied_per_minute": raw,
                 "basic_belts_needed": {k: round(v, 2) for k, v in belts.items()},
                 "not_yet_researched": [s["recipe"] for s in steps if not s["available_now"]] or None}
 

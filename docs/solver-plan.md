@@ -19,8 +19,9 @@ Built so far:
   kind of alert makes the model look into it and offer one suggestion.
 - **The bridge** (`copilot/`): game chat in, model with tools, answer out, working light, a log of every call, and a
   scorer for those logs. Providers: Ollama and any OpenAI-compatible server. An Anthropic adapter is not written.
-- **Tests**: 133 unit tests that need no game and no model; `scripts/modcheck.py` for the mod on a local headless test
-  server.
+- **Tests**: 185 unit tests that need no game and no model, including the mod's own Lua run under Lua 5.2 against a
+  stand-in game; `scripts/modcheck.py` for the mod on a local headless test server. The Lua tests found three bugs on
+  their first run (a search centred one tile off, a wrong player returned for an unknown name, an unstable ranking).
 - **First run with a local model** (qwen3:8b on Ollama, 2026-11-13, mod 0.2.0): three questions through the bridge, all
   answered correctly from tool results, 4 tool calls, 1 miss that the tool's error message corrected in one retry, 35 to
   44 seconds each once the model was loaded.
@@ -28,9 +29,9 @@ Built so far:
 Where the code lives: the mod holds everything that touches the game; the bridge holds the planning. The split was made so
 the planning could be unit-tested with no game running. Both ship together.
 
-Not yet run in a game: everything added in mod 0.3.0 (alerts, player, bottlenecks, occupancy, build, frames, reveal_map).
-Live runs are for late at night, when the Captain is not playing (2026-11-13). Unit tests of the Lua itself need a Lua
-interpreter on this PC; installing one was refused by the permission system and is the Captain's call.
+Not yet run in a real game: everything added in mod 0.3.0 (alerts, player, bottlenecks, occupancy, build, frames,
+reveal_map). They pass against the stand-in game only. Live runs are for late at night, when the Captain is not playing
+(2026-11-13).
 
 Next: a night run of `modcheck.py` and of a first build through the bridge, then the walking avatar.
 

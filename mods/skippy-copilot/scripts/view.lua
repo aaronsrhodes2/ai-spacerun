@@ -51,8 +51,11 @@ R.register {
     name = { type = "string", description = "player name; leave out for the first player in the game" },
   },
   run = function(a)
-    local p = a.name and game.get_player(a.name) or A.any_player()
-    if not p then return { error = "no player is in the game, so there is no view to point in" } end
+    local p
+    if a.name then p = game.get_player(a.name) else p = A.any_player() end          -- a name that is not in the game is an error, not somebody else
+    if not p then
+      return { error = a.name and ("no player named '" .. a.name .. "' is in the game") or "no player is in the game, so there is no view to point in" }
+    end
     local s = p.surface
     return {
       surface = s.name, view = view_of(p), base = base_of(s), map = map_of(s),

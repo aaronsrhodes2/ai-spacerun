@@ -65,13 +65,14 @@ server that speaks the OpenAI chat API). `python -m copilot --ask "..."` asks on
 
 ## Testing
 
-- `python -m pytest tests/copilot_tests` runs with no game and no model: 133 tests of the bridge, the planning code, the
-  scorer and static checks of the Lua (blocks closed, files present, tool names agreed between mod and bridge).
+- `python -m pytest tests/copilot_tests` runs with no game and no model: 185 tests. They cover the bridge, the planning
+  code, the scorer, and the mod's own Lua run under Lua 5.2 against a stand-in game (`tests/copilot_tests/fake_game.lua`).
+  Needs `pip install lupa`.
 - `scripts/modserver.sh start` runs a second, headless copy of the Steam install with its own data folder (`.testserver/`),
   so the live game is never touched. `scripts/modcheck.py` builds a small known scene there and checks what every tool
   says about it. `scripts/modtest.py <tool> '<json>'` calls one tool by hand.
 - `python -m copilot.score runs/` scores the bridge's logs: tool misses, repeats, stalls.
 
-Not yet run in a game (written 2026-11-13 while the test server was off): `alerts`, `player`, `bottlenecks`, `occupancy`,
-`build`, `frames`, `reveal_map`, and the checks for them in `modcheck.py`. The working light and chat have not been seen
-with a real player.
+Not yet run in a real game (written 2026-11-13 while the test server was off): `alerts`, `player`, `bottlenecks`,
+`occupancy`, `build`, `frames`, `reveal_map`, and the checks for them in `modcheck.py`. They pass against the stand-in game,
+which models what the mod calls, not the game itself. The working light and chat have not been seen with a real player.
