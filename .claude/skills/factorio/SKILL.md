@@ -908,3 +908,12 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - The machines choose the largest missing count, so a big order preempts a half-made small one and its parts are flushed to the red chest.
 - Aquilo: buildings need concrete under them (ice refuses a landing pad); the pad needs no heat. Never hold a ship in Aquilo orbit: no metallic or carbonic chunks there, the turrets ate 2,800 ore of magazines in 45 minutes and it came home unarmed with nine parts shot off.
 - The inner laser turrets of the Gleba Wheel had 0 kills and 0 damage (the Captain: asteroids only come from outside); removed. Do not put turrets inside a closed rim.
+
+## Spiral foundry district on the wheels (2026-11-13)
+- `scripts/wheel_spiral.py` (check | build [--apply] | config | status, --only gleba|nauvis): a two-belt corridor of 2 3/4 turns in the north-west quadrant of each wheel (x -126..-55, y -77..-14) curling into a heart chamber (x -108..-73, y -59..-26) where foundries melt ore and cast plates, gears and cable for green science: about 47 packs a minute a wheel. Never apply twice. After a quality upgrade run `wheel_spiral.py config`.
+- Feed: bulk inserters at -54,-2 (metallic) and -55,-2 (oxide) take chunks off the west spoke belt; everything unused and the packs ride the out-belt along y=1 onto the west product belt at -40,1 into the hub.
+- Space platforms need no electric poles: everything on the deck is powered.
+- Foundry facing north: fluid inputs on the south edge at centre x-1 and x+1, outputs on the north edge at the same columns; a single-fluid recipe uses x-1. Recipes `iron-ore-melting`, `copper-ore-melting`.
+- Two items on one dead-end belt: a stub that turns into the belt keeps its lane, a stub that side-loads lands on the near lane.
+- A counted loop needs no combinators: wire every loop belt (read, hold) on one red wire and give each producer's output inserter the condition "item < target".
+- Gates there: metallic intakes on molten iron < 15,000 in the tank; oxide intake on calcite < 6 read from the two melters (`circuit_read_contents`).

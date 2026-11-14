@@ -19,7 +19,7 @@ Status words: **open** (unlocked, not applied), **applied**, **waiting** (not re
 |---|---|---|---|
 | asteroid-reprocessing | a crusher turns one chunk kind into the others | wheels: stop crushing a surplus kind and reshuffle it (`wheel_reprocess.py balance`); Aquilo shuttle: one crusher, recipe by circuit | applied 2026-11-13. **Open:** the eight old inner shuttles get it with the new hull (`inner_shuttle.py`) |
 | advanced-asteroid-processing | advanced crushing gives a second product (copper, sulfur, calcite) | wheels make blue science from sulfur and carbon. Inner shuttles use basic carbonic crushing: they have no use for sulfur | applied |
-| foundry (works in space, ore melting too) | 50 ore + 1 calcite gives 500 molten metal | **open:** foundries on the wheels instead of furnaces for the plate-bound pack lines; calcite sits at its cap there | open |
+| foundry (works in space, ore melting too) | 50 ore + 1 calcite gives 500 molten metal | green science on both wheels from cast plates, gears and cable (`wheel_spiral.py`, about 47 a minute a wheel). **Open:** the space and red science lines still smelt in furnaces | applied 2026-11-13 |
 | coal-liquefaction | oil products from coal, coal from carbon and sulfur | blue science on the wheels with no oil import (`wheel_blue.py`) | applied |
 | heating-tower | burns anything, 250% heat | Gleba: all seven spoilage burners feed exchangers and turbines (`gleba_heat.py`). Aquilo: heats the base | applied on Gleba, waiting on Aquilo |
 | epic-quality | epic machines, bays, tanks | `upgrade_quality.py --items --apply`, then rerun every `config` (the upgrade drops over-reach wires and belt readers) | applied. **Open:** robots that were in the air at the time |
