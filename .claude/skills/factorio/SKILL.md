@@ -859,5 +859,5 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 
 ## Gleba heat to power (2026-11-13)
 - `scripts/gleba_heat.py`: the four western heating towers share a heat pipe row (y=6) with two heat exchangers and two turbines; water from a second offshore pump at 98,54. Exchangers need 500 degrees: joining the towers dropped them from 1000 to about 400, and they only climb while spoilage burns.
-- The three eastern towers (125,20  127,45  131,18) are not connected.
+- The three eastern towers (125,20  127,45  131,18) each have their own exchanger and turbine (`gleba_heat.py build --east`): belts lie between them and heat pipes cannot go under a belt. Turbines only make power when solar and accumulators fall short, so 'working, 0 MW' by day is normal.
 - An offshore pump on Gleba is placeable only on some shore spots and facings; `place_entities` dry run does not check that. Test with `can_place_entity` and `build_check_type.manual`.
