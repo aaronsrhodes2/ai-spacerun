@@ -1037,3 +1037,10 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - A hub request filter takes `request_from = 'planet' | 'platforms' | 'all'` (default planet) and `import_from` (a planet). A platform only gives items away when its hub has `providing_to_other_platforms = true` (default false, writable). Same orbit only.
 - Tested: Nauvis Wheel provide=true, the Nauvis-Gleba 1 Shuttle asked for production-science-pack with request_from='platforms': the wheel's count fell 105 to 84 and the ship's rose by the same 21 within a minute. Test section removed, wheel set back to provide=false.
 - Plan: Nauvis rockets goods up once; wheels/shuttles pass them on in orbit; the far wheel is fed by the arriving shuttle (provide=true on the shuttle), never touching the far planet's ground.
+
+## Orbit ferry, flank grabbers, laser priority (2026-11-14)
+- `scripts/orbit_ferry.py apply|off|status`: Nauvis Wheel provides; the Gleba/Fulgora/Vulcanus 1 shuttles ask it for packs the far wheels lack and give them to those wheels in the far orbit. A logistic section `group` name is shared by every hub using it (it copied one hub's requests onto the others): the group carries the platform index.
+- `scripts/aquilo_grabbers.py`: belt from each flank collector (+-24.5,-6.5) up the rim column to the nose collector's chunk belt. A belt side-loading onto an underground ENTRANCE stalls: end beside the plain belt before it (the join is at (+-7.5,-21.5) into (+-6.5,-21.5)).
+- `scripts/ship_map.py "<ship name>" [x0 y0 x1 y1]` prints an ASCII map of a platform.
+- Laser priority: `t.set_priority_target(i, 'small-...-asteroid')` for i=1..4 and `t.ignore_unprioritised_targets=true` (`priority_targets` is read only). Set on all 26 lasers of the Fulgora-Aquilo 2 Shuttle; wheels not changed. New lasers need it again.
+- Platform names contain `-`: find them with `name:find(s,1,true)` (plain), not a pattern.
