@@ -22,9 +22,8 @@ LDS = "low-density-structure"
 TC = "tungsten-carbide"
 # ship -> {item: (amount, request_from)}
 JOBS = {
-    "Nauvis-Vulcanus 1 Shuttle": {LDS: (150, "platforms"), TC: (1000, "planet")},
-    "Nauvis-Vulcanus 2 Shuttle": {LDS: (150, "platforms")},
-    "Nauvis-Vulcanus 3 Shuttle": {LDS: (150, "platforms")},
+    "Nauvis-Vulcanus 1 Shuttle": {TC: (1000, "planet")},
+    "Nauvis-Vulcanus 3 Shuttle": {LDS: (150, "platforms")},     # V2 left alone: the Nauvis pad is nearly full (see SKILL.md), LDS only on one ship
 }
 PAD_TC = 1000      # the Vulcanus pad asks for this much carbide from its network
 SHORT = {LDS: "lds", TC: "tc"}

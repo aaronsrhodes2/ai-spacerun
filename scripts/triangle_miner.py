@@ -22,9 +22,17 @@ crusher runs when its mode is on, the reprocessor when it is off, so every chunk
              are lifted by 1000 so they are skipped; the running mode is lowered by HYST so it does not thrash. Other platforms draw on the
              hub (providing_to_other_platforms), so the one they drain is the one the strip turns to. It does NOT read the other hubs' requests.
   MANUAL     constant combinator OVERRIDE, signal M: 0 = automatic, 1 = iron, 2 = carbon, 3 = ice (`mode iron|carbon|ice|auto`).
-Steps (never apply a step twice; each refuses when its first entity already stands):
-  check | station [--apply] | config | stage1 [--apply] | stage2 [--apply] | mode [iron|carbon|ice|auto] | status | panels [--apply]
-Usage: triangle_miner.py check|station|config|stage1|stage2|panels|mode|status [--apply]"""
+Steps (each refuses when its first entity already stands; run `check` first, `--apply` builds, saves the game first):
+  check | panels [--apply] | panels2 [--apply] | station [--apply] | config | stage1 | stage2 [--apply] (base side, 34 collectors) |
+  stage3 | stage4 [--apply] (left / right slanted side, 32 collectors each) | mode [iron|carbon|ice|auto] | status
+Strip: 98 collectors in all (COLLECT=30), ~2,700 express belts. The slanted sides are a staircase belt one tile inside the outer edge (the same predicate triangle.py
+laid the deck with), an inserter on the edge tile, a collector outside facing west / east, deck only under its back two columns; they flow down to the base belt and
+side-load it at x=+-497. Substations every DSUB rows keep one network (16 rows was 18.4 tiles: islands; sub_tile() skips belt steps).
+A COPY ELSEWHERE needs: other orbits spawn medium/big asteroids (turrets: wheel_round.py's ammunition loop and lasers), the surface name, the hub's quality, and for
+a different spawn mix the machine counts (iron needs the most). The ring/mode code is orbit-independent. Parameters: T_STOCK, HYST, LRING, COLLECT, SUB, DSUB, DROWS.
+Usage: triangle_miner.py check|panels|panels2|station|config|stage1|stage2|stage3|stage4|mode|status [--apply]
+Helpers (read-only unless noted): _triangle_watch.py (live line; --draw removes product from the hub as a test), _triangle_rate.py (catch and product rates),
+_triangle_drain.py (machine-limited rate per mode; removes product), _triangle_soak.py (long run with draws), _triangle_demand.py (what other platforms request)."""
 import json
 import math
 import sys
@@ -279,7 +287,7 @@ def panel_ents(bands=(12, 17, 20, 23), subs=((-22, 15), (-10, 15), (8, 15), (20,
 def base_ents(x0, x1, with_spoke):
     """Base side belt y=288 for x in [x0,x1) (flowing to x=0), collectors on the south, substations; the spoke belt up to the station."""
     ents, tiles = [], set()
-    for x in range(x0, x1):
+    for x in range(max(x0, -499), min(x1, 500)):         # the deck ends at x=+-499 on row 288
         if x == 0:
             ents.append(T("express-transport-belt", 0, BASE_Y, 0))
         else:
@@ -411,9 +419,15 @@ def main():
     surf = surface()
     if step == "check":
         for nm, (ents, tiles) in {"station": station_ents(), "panels": panel_ents()}.items():
-            print(nm, len(ents), "entities", len(tiles), "deck tiles", place(ents, False, surf))
+            print(nm, len(ents), "entities", len(tiles), "deck tiles;", "ALREADY STANDING" if first_standing(ents) else "not built")
         e, t, n = base_ents(-150, 151, True)
-        print("stage1", len(e), "entities", n, "collectors", len(t), "deck tiles")
+        print("stage1", len(e), "entities", n, "collectors", len(t), "deck tiles;", "ALREADY STANDING" if first_standing(e) else "not built")
+        e, t, n = base_ents(-500, 501, False)
+        e2 = [x for x in e if not (-150 <= x["x"] < 151)]
+        print("stage2 (rest of the base)", len(e2), "entities", n, "collectors in all", len(t), "deck tiles;", "ALREADY STANDING" if first_standing(e2) else "not built")
+        for side in (-1, 1):
+            e, t, n = diag_ents(side)
+            print("stage%d slanted side" % (3 if side < 0 else 4), len(e), "entities", n, "collectors", len(t), "deck tiles;", "ALREADY STANDING" if first_standing(e) else "not built")
     elif step == "station":
         ents, tiles = station_ents()
         if apply and first_standing(ents):
