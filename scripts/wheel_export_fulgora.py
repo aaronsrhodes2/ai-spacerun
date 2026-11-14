@@ -209,7 +209,8 @@ def config(surface, export):
     em = has_em(surface)
     gated = [(x, y, item, TARGETS[item]) for x, y, item, t in wr.gated] + [hc(x, y) + (item, TARGETS[item]) for x, y, item in CRUSH_GATES]
     filt = [hc(x, y) + (names,) for x, y, names in CRUSH_FILTERS + COAL_FILTERS]
-    if run(HAS_EM.replace("name='electromagnetic-plant'", "name='fast-inserter'"), surface, PX=hc(6, 45)[0], PY=hc(6, 45)[1]) != "0":
+    water = run(HAS_EM.replace("name='electromagnetic-plant'", "name='fast-inserter'"), surface, PX=hc(6, 45)[0], PY=hc(6, 45)[1]) != "0"
+    if water:
         filt += [hc(x, y) + (names,) for x, y, names in WATER_FILTERS]
     rec = []
     if em:
@@ -220,7 +221,9 @@ def config(surface, export):
     sig, k = SURPLUS[export]
     side = [hc(*SIDE_INTAKE[p]) + (sig, k) for p in wr.PRODUCTS if p != export]
     caps = [hc(*EXPORT_INS[p]) + (p, CAP_EXPORT if p == export else CAP_SIDE) for p in wr.PRODUCTS]
-    gated.append(hc(1, 45) + ("carbon", TARGETS["carbon"]))                       # the carbonic crusher's intake follows the loop's carbon
+    # the first carbonic crusher's belt intake follows the loop's carbon; with the reshuffler on carbonic chunks it is shut (carbon < 0), so
+    # that crusher is free for the chunks the reshuffler hands back (two in five crafts): they were what held the reshuffler at full output
+    gated.append(hc(1, 45) + ("carbon", 0 if water else TARGETS["carbon"]))
     lb = hc(*[(t[0] - HX, t[1] - HY) for t in wr.loop_tiles][0])
     return run(CONFIG, surface, FILT=lua_rows(filt), REC=lua_rows(rec), GATED=lua_rows(gated), SIDE=lua_rows(side), CAPS=lua_rows(caps),
                LBX=lb[0], LBY=lb[1], RPX=HX + 6.5, RPY=HY + 44, RIX=hc(6, 45)[0], RIY=hc(6, 45)[1], WMX=HX + 45.5, WMY=HY + 27.5, DCX=8 + HX, DCY=48.5 + HY, CMX=HX + 34.5, CMY=HY + 37.5, MIX=hc(13, 45)[0], MIY=hc(13, 45)[1], CRX=CRUSH_ENTS[0]["x"], CRY=CRUSH_ENTS[0]["y"], OPX=OLD_MACH[0][0] + HX, OPY=OLD_MACH[0][1] + HY, EXPORT=export, RMIN=REQUEST_MIN)

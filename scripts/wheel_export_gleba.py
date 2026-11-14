@@ -14,9 +14,12 @@ stands on the free deck south of the blue block and takes carbon, sulfur and cal
            full of carbon; blue's coal plants eat every carbon that reaches K's loop, and the loop holds blue's sulfur and
            calcite. K's hub inserter loads an item only while K as a whole holds less than its target, and the taps stand
            upstream of blue (unchecked they strip the queue of sulfur and calcite: blue's loop fell from about 30 calcite to 8).
-           ask    two deciders (56,-10 / -12) put sulfur +80 and calcite +60 on the red wire of K's hub inserter (4.5,-2.5)
-                  while this loop holds fewer than DEMAND of the item, so the hub sends that much more than blue's targets.
-                  Bounded: K never carries more than that above its own targets.
+           ask    two deciders (56,-10 / -12) put sulfur +500 / calcite +500 on the red wire of K's hub inserter (4.5,-2.5)
+                  while this loop holds fewer than DEMAND of the item AND K's loop holds fewer than the bound (sulfur 200,
+                  calcite 60): the hub then loads the item whatever K's own count says. What the taps miss rides on to K's
+                  loop, so the bound keeps blue's lane from filling with it. (An ask of +40 on top of K's target failed: the
+                  missed items piled up on K's loop, K's count stood at target + ask and nothing more was sent.)
+                  Three taps an item for sulfur and calcite: the hub inserter drops 12 at a time, a tap lifts 4.
            take   three deciders (56,-4 / -6 / -8) block an item's taps (they add 1000 to its signal):
                   carbon   while the 20 feed tiles north of the taps (53,-14..-33, what blue gets next) hold fewer than FULL
                            items of 80 places, all kinds together (an arithmetic combinator at 56,-2 sums them into signal T):
@@ -60,7 +63,7 @@ DECS = [(56.5, -4.0, "carbon", "signal-T", FULL, 1), (56.5, -6.0, "sulfur", "sul
 STRETCH = [(53, y) for y in range(-14, -34, -1)]
 SUM = (56.5, -2.0)                   # arithmetic combinator: each -> T
 KFEED, KLOOP = [], []                # every tile of belt K (scripts/wheel_blue.py), filled by layout()
-DEMAND = [(56.5, -10.0, "sulfur", 60, 80), (56.5, -12.0, "calcite", 20, 60)]      # x, y, item, ask while the loop holds fewer, extra on K's filter signal
+DEMAND = [(56.5, -10.0, "sulfur", 60, 500, 200), (56.5, -12.0, "calcite", 20, 500, 60)]      # x, y, item, ask while the loop holds fewer, extra on K's filter signal, and only while K's loop holds fewer than this
 KHUB = (4.5, -2.5)                   # belt K's hub inserter (scripts/wheel_blue.py)
 EXPORT = (71, -14)
 ents, cfg, recipes, occ, fluid, opening = [], [], [], {}, {}, {}
@@ -78,7 +81,7 @@ def put(name, tx, ty, w=1, h=1, d=N, filt=None, recipe=None, local=True, **param
     if filt:
         cfg.append((e["x"], e["y"], filt))
     if recipe:
-        recipes.append((e["x"], e["y"], recipe))
+        recipes.append((e["x"], e["y"], recipe, d))
     if w >= 3:
         machines.append((e["x"], e["y"], name, recipe or "iron plate"))
     return e
@@ -165,7 +168,7 @@ def layout():
     put("electric-furnace", 89, -9, 3, 3, local=False)
     gate(ins(88, -8, E, ["iron-plate"], local=False), "iron-plate")
     # ---- taps on K's feed column (wheel x 53), reaching over belt O ----
-    for y, item in ((-12, "carbon"), (-11, "carbon"), (-10, "sulfur"), (-6, "calcite")):
+    for y, item in ((-12, "carbon"), (-11, "carbon"), (-10, "sulfur"), (-9, "sulfur"), (-8, "sulfur"), (-6, "calcite"), (-5, "calcite"), (-4, "calcite")):
         e = gate(ins(55, y, W, [item], name=LONG, local=False), item)
         taps.append((e["x"], e["y"]))
     put("arithmetic-combinator", 56, -3, 1, 2, local=False)
@@ -192,9 +195,9 @@ HEAD = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=defines.
         "local function mach(x,y) return s.find_entities_filtered{type={'assembling-machine','furnace'},position={x,y},radius=0.5}[1] end ")
 CONFIG = (HEAD + "local n,r=0,0 pcall(function() hub.get_or_create_control_behavior().read_contents=true end) "
           "for _,q in pairs(FILT) do local i=at('inserter',q[1],q[2]) if i then i.use_filters=true i.inserter_filter_mode='whitelist' for k,name in pairs(q[3]) do i.set_filter(k,name) end n=n+1 end end "
-          "for _,q in pairs(REC) do local m=mach(q[1],q[2]) if m then m.set_recipe(q[3]) r=r+1 end end o[#o+1]='filters '..n..', recipes '..r "
+          "for _,q in pairs(REC) do local m=mach(q[1],q[2]) if m then if not (m.get_recipe() and m.get_recipe().name==q[3]) then m.set_recipe(q[3]) end if m.direction~=q[4] then m.direction=q[4] end r=r+1 end end o[#o+1]='filters '..n..', recipes '..r "
           "local prev,nb=nil,0 for _,p in pairs(LOOP) do local b=at('transport-belt',p[1]+0.5,p[2]+0.5) if b then local bc=b.get_or_create_control_behavior() bc.read_contents=true bc.read_contents_mode=defines.control_behavior.transport_belt.content_read_mode.hold "
-          "if prev then b.get_wire_connector(W.circuit_red,true).connect_to(prev.get_wire_connector(W.circuit_red,true),false) end prev=b nb=nb+1 end end o[#o+1]='loop belts read '..nb "
+          "if prev then b.get_wire_connector(W.circuit_red,true).connect_to(prev.get_wire_connector(W.circuit_red,true),false) b.get_wire_connector(W.circuit_green,true).connect_to(prev.get_wire_connector(W.circuit_green,true),false) end prev=b nb=nb+1 end end o[#o+1]='loop belts read '..nb "
           "local function cond(i,sig,cmp,k,wire,target,twire) i.get_wire_connector(wire,true).connect_to(target.get_wire_connector(twire or wire,true),false) local cb=i.get_or_create_control_behavior() cb.circuit_enable_disable=true cb.circuit_condition={first_signal={type='item',name=sig},comparator=cmp,constant=k} end "
           "local g=0 for _,q in pairs(GATED) do local i=at('inserter',q[1],q[2]) if i then cond(i,q[3],'<',q[4],W.circuit_red,prev) g=g+1 end end o[#o+1]='gated on the loop '..g "
           "for _,p in pairs(KALL) do local b=at('transport-belt',p[1]+0.5,p[2]+0.5) if b then b.get_wire_connector(W.circuit_red,true).disconnect_all() end end "
@@ -210,9 +213,10 @@ CONFIG = (HEAD + "local n,r=0,0 pcall(function() hub.get_or_create_control_behav
           "local ir=dec.get_wire_connector(W.combinator_input_red,true) ir.disconnect_all() ir.connect_to(src,false) "
           "if d0 then dec.get_wire_connector(W.combinator_output_green,true).connect_to(d0.get_wire_connector(W.combinator_output_green,true),false) else d0=dec end dn=dn+1 end end "
           "local t=0 if d0 then for _,q in pairs(TAPS) do local i=at('inserter',q[1],q[2]) if i then i.get_wire_connector(W.circuit_green,true).connect_to(d0.get_wire_connector(W.combinator_output_green,true),false) t=t+1 end end end o[#o+1]='deciders '..dn..', taps behind them '..t "
-          "local kh=at('inserter',KX,KY) local an=0 for _,q in pairs(ASKS) do local dec=s.find_entities_filtered{name='decider-combinator',position={q[1],q[2]},radius=0.6}[1] if dec and kh then local X={type='item',name=q[3]} "
-          "dec.get_or_create_control_behavior().parameters={conditions={{first_signal=X,comparator='<',constant=q[4]}},outputs={{signal=X,copy_count_from_input=false,constant=q[5]}}} "
-          "dec.get_wire_connector(W.combinator_input_red,true).connect_to(prev.get_wire_connector(W.circuit_red,true),false) dec.get_wire_connector(W.combinator_output_red,true).connect_to(kh.get_wire_connector(W.circuit_red,true),false) an=an+1 end end o[#o+1]='demand deciders on K '..an "
+          "local kh=at('inserter',KX,KY) local an=0 for _,q in pairs(ASKS) do local dec=s.find_entities_filtered{name='decider-combinator',position={q[1],q[2]},radius=0.6}[1] if dec and kh and sL then local X={type='item',name=q[3]} "
+          "dec.get_or_create_control_behavior().parameters={conditions={{first_signal=X,comparator='<',constant=q[4],first_signal_networks={red=false,green=true}},{first_signal=X,comparator='<',constant=q[6],first_signal_networks={red=true,green=false},compare_type='and'}},outputs={{signal=X,copy_count_from_input=false,constant=q[5]}}} "
+          "local ir=dec.get_wire_connector(W.combinator_input_red,true) ir.disconnect_all() ir.connect_to(sL.get_wire_connector(W.circuit_red,true),false) local ig=dec.get_wire_connector(W.combinator_input_green,true) ig.disconnect_all() ig.connect_to(prev.get_wire_connector(W.circuit_green,true),false) "
+          "dec.get_wire_connector(W.combinator_output_red,true).connect_to(kh.get_wire_connector(W.circuit_red,true),false) an=an+1 end end o[#o+1]='demand deciders on K '..an "
           "local ex=at('inserter',EX,EY) if ex then cond(ex,'rocket-fuel','<',CAP,W.circuit_red,hub) o[#o+1]='export gated on the hub at CAP' end rcon.print(table.concat(o,', '))")
 SWEEP = (HEAD + "local keep={} for _,n in pairs(KEEP) do keep[n]=true end local moved={} local function back(name,count,quality) if count>0 then hub.insert{name=name,count=count,quality=quality} moved[name]=(moved[name] or 0)+count end end "
          "for _,p in pairs(LOOP) do local b=at('transport-belt',p[1]+0.5,p[2]+0.5) if b then for l=1,2 do local tl=b.get_transport_line(l) for _,it in pairs(tl.get_contents()) do if not keep[it.name] then back(it.name,tl.remove_item{name=it.name,count=it.count,quality=it.quality},it.quality) end end end end end "
