@@ -115,6 +115,29 @@ A local text model can do the same with no vision model at all, if the tool is s
 - **It is measured.** The harness quizzes the model on grids with known answers (where is the gap, what blocks this spot)
   to find how large a window it reads reliably, before the solve depends on it.
 
+## Working habits from the Fable run, to build into the skill
+
+These are what got designs working in practice (2026-11-13). Each becomes a tool or a rule, so a local model gets the habit
+without having to think of it.
+
+| Habit | What it replaces | In the skill as |
+|---|---|---|
+| Ask the game for facts: recipe inputs, machine speed, item weight, where a machine's pipe and heat connections sit | Remembering them, often wrongly | Lookup tools; the rule "never state a game number you did not look up" |
+| Wrap the game's scripting: the model calls named tools, it does not write raw Lua | Most errors of the run (wrong field names, one-line limits, silent empty replies) | The tool library itself; raw Lua only as a last resort |
+| Check a layout in code before the game sees it: every piece claims its tiles, two claims on one tile stop the build | Overlaps found one failed placement at a time | A layout checker under every placement call |
+| Dry run, then apply, then read back what each machine is doing | "Placed" mistaken for "working" | Every build tool returns machine states a minute later |
+| Build one unit, see it work, then repeat it | A whole block built on one wrong assumption | The rule, and a "repeat this cell N times" tool |
+| Probe when the rule is unclear: try every position or direction and keep what the game accepts | Reasoning about placement rules | A "where can this go near here" tool |
+| Copy a working example: look at one the player or an earlier step already built | Guessing an orientation | An "inspect and describe" tool |
+| Measure before sizing: production and use per minute, per item | Building for a guessed rate | The diagnostics; no sizing call without a measured rate |
+| Design for one side, turn it in code | Four hand-made copies with four chances to slip | Rotation and mirroring inside the placement tool |
+| Steps safe to run again: check, build, configure, status | A half-finished build nobody can resume | The shape of every tool |
+| Wait outside the conversation: a watcher that wakes the model on an event | Polling, and filling the context with waiting | The harness |
+| Keep the mistakes: every trap written down as a rule the day it is met | Meeting it again | The mistakes list, loaded with the skill |
+
+What does not transfer as a habit: long chains of reasoning about circuit logic and ratios across a whole factory. Those
+go into calculators and a small set of named control patterns (cap a stock, gate an inserter on a count, loop a mixed belt).
+
 ## Increments
 
 Each has an exit test. None starts before the one above it passes, except where marked parallel.
