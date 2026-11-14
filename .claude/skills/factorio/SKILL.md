@@ -1032,3 +1032,8 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - The game advances only while a player is connected: with nobody online it runs at about 3 ticks in 10 seconds (the server's auto-pause). Ships, robots and research all stop.
 
 - Auto-pause is OFF (the Captain, 2026-11-14): `auto_pause: false` in /srv/games/data/factorio/config/server-settings.json on the VM, so the game runs with nobody online. Set by sed over ssh, then `docker restart factorio`. Re-check after a SkippyTel rebuild of the data dir.
+
+## Platform-to-platform logistics (2.1, tested 2026-11-14)
+- A hub request filter takes `request_from = 'planet' | 'platforms' | 'all'` (default planet) and `import_from` (a planet). A platform only gives items away when its hub has `providing_to_other_platforms = true` (default false, writable). Same orbit only.
+- Tested: Nauvis Wheel provide=true, the Nauvis-Gleba 1 Shuttle asked for production-science-pack with request_from='platforms': the wheel's count fell 105 to 84 and the ship's rose by the same 21 within a minute. Test section removed, wheel set back to provide=false.
+- Plan: Nauvis rockets goods up once; wheels/shuttles pass them on in orbit; the far wheel is fed by the arriving shuttle (provide=true on the shuttle), never touching the far planet's ground.
