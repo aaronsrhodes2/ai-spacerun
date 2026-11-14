@@ -1,0 +1,4 @@
+REPLICATOR CONSOLE footprint (replicator_viz.py, claimed 2026-11-14). Keep out please.
+North row: tile row y -234, x -366..-289 (text floats above it, into the wall zone).
+South row: tile row y -192, x -366..-289 (text floats above it, tiles y -194..-193 stay free of new building).
+Entities: display-panel and small-lamp only (no poles, no wires). Read-only: Lua reads, no combinators.

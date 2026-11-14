@@ -214,17 +214,17 @@ def compute():
     t["p_ful"] = pw("fulgora", "Ful")
     rx, a_aq = num(d, "rx"), num(d, "acc_aquilo")
     c = "grey" if rx < 0 and a_aq < 0 else ("red" if (0 <= rx < 300) or (0 <= a_aq < 20) else ("amber" if 0 <= a_aq < 50 else "green"))
-    t["p_aqu"] = ("Aqu %dC %d%%" % (rx, a_aq), c)
+    t["p_aqu"] = ("%dC %d%%" % (rx, a_aq), c)
     v, g = num(d, "acc_vulcanus"), num(d, "acc_gleba")
-    t["p_oth"] = ("V%d%% G%d%%" % (v, g), "grey" if min(v, g) < 0 else ("red" if min(v, g) < 20 else ("amber" if min(v, g) < 50 else "green")))
+    t["p_oth"] = ("V%d G%d" % (v, g), "grey" if min(v, g) < 0 else ("red" if min(v, g) < 20 else ("amber" if min(v, g) < 50 else "green")))
 
     # metal
     for key, it, label in (("m_cu", "copper-plate", "Cu"), ("m_fe", "iron-plate", "Fe"), ("m_st", "steel-plate", "Steel")):
         made, used = (float(x) for x in d.get(it, "0,0").split(","))
         c = "red" if used > 1.2 * made and used > 1 else ("amber" if used > made and used > 1 else "green")
-        t[key] = ("%s %s/%s" % (label, short(made), short(used)), c)
+        t[key] = ("%s/%s" % (short(made), short(used)), c)
     fu, ft = (float(x) for x in d.get("furn", "0,1").split(","))
-    t["m_fu"] = ("full %d/%d" % (fu, ft), "amber" if fu > ft / 2 else "green")
+    t["m_fu"] = ("%d/%d" % (fu, ft), "amber" if fu > ft / 2 else "green")
 
     # science
     rates = {p: num(d, "pack_" + p, 0) * 1.0 for p in PACKS}
@@ -235,8 +235,8 @@ def compute():
     lw, lt = (float(x) for x in d.get("labs", "0,0").split(","))
     t["k_labs"] = ("labs %d/%d" % (lw, lt), "red" if lw == 0 else ("amber" if lw < .8 * lt else "green"))
     rn, rp = d.get("res", "none,0").split(",")
-    t["k_res"] = (("%s%% %s" % (rp, rn.replace("-", " ")[:14])) if rn != "none" else "no research", "green" if rn != "none" else "red")
-    t["k_units"] = ("%s units/min" % short(num(d, "units", 0)), "green" if num(d, "units", 0) > 0.05 else "red")
+    t["k_res"] = (("%s%% %s" % (rp, rn.replace("-", " ")[:5])) if rn != "none" else "no res", "green" if rn != "none" else "red")
+    t["k_units"] = ("%s/min" % short(num(d, "units", 0)), "green" if num(d, "units", 0) > 0.05 else "red")
 
     # space
     ships = [p for p in plats if p[0].endswith("Shuttle")]
@@ -245,14 +245,14 @@ def compute():
     stl = {"6": "W", "2": "T", "7": "P", "4": "S"}
     if aq:
         mags, ghosts, paused = int(aq[5]), int(aq[4]), aq[3] == "1"
-        t["s_aq"] = ("%s %s m%s" % (aq[2][:3], stl.get(aq[1], "?") if not paused else "P", short(mags)), "red" if mags < 150 else ("amber" if mags < 400 or paused or ghosts > 0 else "green"))
+        t["s_aq"] = ("%s %s m%s" % (aq[2][:1].upper(), stl.get(aq[1], "?") if not paused else "P", short(mags)), "red" if mags < 150 else ("amber" if mags < 400 or paused or ghosts > 0 else "green"))
         a = float(aq[11])
-        t["s_aqacc"] = ("ship acc %d%%" % a if a >= 0 else "ship acc n/a", lvl(a, 20, 50))
+        t["s_aqacc"] = ("acc %d%%" % a if a >= 0 else "acc n/a", lvl(a, 20, 50))
     nt = sum(1 for p in ships if p[1] == "2")
     nw = sum(1 for p in ships if p[1] == "6" and p[3] == "0")
     npz = sum(1 for p in ships if p[3] == "1")
     nd = sum(1 for p in ships if int(p[4]) > 0)
-    t["s_cnt"] = ("T%d W%d P%d D%d" % (nt, nw, npz, nd), "red" if nd >= 3 else ("amber" if nd > 0 else "green"))
+    t["s_cnt"] = ("T%d W%d P%d" % (nt, nw, npz), "red" if nd >= 3 else ("amber" if nd > 0 else "green"))
     tri = next((p for p in plats if "Triangle" in p[0]), None)
     prev = {}
     try:
@@ -272,13 +272,13 @@ def compute():
         else:
             prev_rate = prev.get("rate", 0)
         t["s_tri"] = ("t%s g%d" % (short(tiles), gh), "green" if gh == 0 else ("red" if prev_rate <= 0 else "amber"))
-        t["s_trim"] = ("%+.0f fnd/min" % prev_rate, "green" if prev_rate > 0 else ("grey" if gh == 0 else "red"))
+        t["s_trim"] = ("%+.0f/min" % prev_rate, "green" if prev_rate > 0 else ("grey" if gh == 0 else "red"))
     wheels = [p for p in plats if "Wheel" in p[0]]
     for key, idx, label in (("w_foundation", 7, "fnd"), ("w_pu", 8, "PU"), ("w_rf", 9, "RF"), ("w_lds", 10, "LDS")):
         n = sum(int(p[idx]) for p in wheels)
         t[key] = ("%s %s" % (label, short(n)), "red" if n == 0 else ("amber" if n < 100 else "green"))
     ht, sf = num(d, "ht"), num(d, "sf")
-    t["a_ht"] = ("tower %dC" % ht if ht >= 0 else "tower n/a", "grey" if ht < 0 else ("red" if ht < 15 else "green"))
+    t["a_ht"] = ("%dC" % ht if ht >= 0 else "n/a", "grey" if ht < 0 else ("red" if ht < 15 else "green"))
     t["a_sf"] = ("fuel %s" % short(max(sf, 0)), "red" if sf <= 0 else ("amber" if sf < 500 else "green"))
     t["a_ice"] = ("ice %s" % short(max(num(d, "ice", 0), 0)), "grey")
     t["a_cryo"] = ("cryo %s" % short(max(num(d, "cryo", 0), 0)), "grey")
@@ -296,9 +296,10 @@ def compute():
     ghs = sum(int(p[4]) for p in plats)
     t["x_dmg"] = ("damage %d" % ghs, "red" if ghs >= 20 else ("amber" if ghs > 0 else "green"))
     full = [p[0] for p in plats if int(p[6]) <= 2]
-    t["x_hub"] = ("hubs full %d" % len(full), "amber" if full else "green")
+    t["x_hub"] = ("full %d" % len(full), "amber" if full else "green")
     nps = {n: int(num(d, "np_" + n, 0)) for n in ("nauvis", "fulgora", "vulcanus", "gleba", "aquilo")}
-    t["x_np"] = ("noP N%d F%d V%d G%d A%d" % (nps["nauvis"], nps["fulgora"], nps["vulcanus"], nps["gleba"], nps["aquilo"]), "red" if any(nps.values()) else "green")
+    bad = "".join(n[0].upper() for n in ("nauvis", "fulgora", "vulcanus", "gleba", "aquilo") if nps[n] > 0)
+    t["x_np"] = (("np " + bad) if bad else "power ok", "red" if bad else "green")
     return t, secs, {"full_hubs": full}
 
 

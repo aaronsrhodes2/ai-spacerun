@@ -12,7 +12,7 @@ import time
 
 import os
 CYCLE = int(os.environ.get("AUTOPILOT_CYCLE", "180"))
-PRIORITY = ["epic-quality", "advanced-asteroid-processing", "rocket-turret", "planet-discovery-aquilo", "space-platform-thruster", "planet-discovery-vulcanus", "planet-discovery-fulgora", "planet-discovery-gleba",
+PRIORITY = ["biter-egg-handling", "productivity-module-3", "epic-quality", "advanced-asteroid-processing", "rocket-turret", "planet-discovery-aquilo", "space-platform-thruster", "planet-discovery-vulcanus", "planet-discovery-fulgora", "planet-discovery-gleba",
             "logistic-system", "landing-pad-unloading-bay"]
 
 
@@ -47,7 +47,7 @@ class Rcon:
 # those are queued, so the Nauvis labs (no agricultural packs there) sit idle and stop eating the packs that are shipped to Gleba.
 TOPUP = (
     "local f=game.forces.player local s=game.surfaces.nauvis local seven={['automation-science-pack']=1,['logistic-science-pack']=1,['military-science-pack']=1,"
-    "['chemical-science-pack']=1,['production-science-pack']=1,['utility-science-pack']=1,['space-science-pack']=1,['electromagnetic-science-pack']=1,['metallurgic-science-pack']=1,['agricultural-science-pack']=1} "
+    "['chemical-science-pack']=1,['production-science-pack']=1,['utility-science-pack']=1,['space-science-pack']=1,['electromagnetic-science-pack']=1,['metallurgic-science-pack']=1,['agricultural-science-pack']=1,['cryogenic-science-pack']=1} "
     "local stock={} for _,l in pairs(s.find_entities_filtered{type='lab'}) do local inv=l.get_inventory(defines.inventory.lab_input) for p,_ in pairs(seven) do stock[p]=(stock[p] or 0)+inv.get_item_count(p) end end "
     "local net=s.find_logistic_network_by_position({-40,42},f) local ps=f.get_item_production_statistics(s) for p,_ in pairs(seven) do stock[p]=(stock[p] or 0)+(net and net.get_item_count(p) or 0) "
     "if ps.get_flow_count{name=p,category='input',precision_index=defines.flow_precision_index.ten_minutes}>0 then stock[p]=stock[p]+1000 end end "

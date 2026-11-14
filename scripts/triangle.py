@@ -5,7 +5,7 @@ rides belts to the hub, where a reprocessing loop turns any chunk into the kind 
 platforms in the same orbit request the goods from the hub. It is NOT a filled triangle (the first try laid 433,000 ghosts).
 Geometry (tiles): the hub at 0,0 is the centroid. Apex (0,-577), base y=+289 from x=-500 to 500. Strip width T. One spoke, W wide, from the
 hub straight south to the base (a platform must be one piece). Never clear tiles under the hub: that destroys it (it happened to the test platform).
-Steps: ghosts (lays tile ghosts for strip and spoke, skips what is laid) | status
+Steps: ghosts (lays tile ghosts for strip and spoke, skips what is laid) | spokes (the two spokes to the left and right edge middles) | status
 Usage: triangle.py ghosts | status"""
 import sys
 
@@ -13,6 +13,7 @@ from _game import tools
 
 NAME = "Nauvis Triangle 1"
 APEX, H, T, W = -577, 866, 4, 4
+SW = 4                          # width of the two later spokes
 
 FIND = "local p for _,q in pairs(game.forces.player.platforms) do if q.name:find('%s',1,true) then p=q end end local s=p.surface " % NAME
 
@@ -32,12 +33,43 @@ def ghosts():
     print("ghosts laid", total)
 
 
+def spokes():
+    """Two more spokes (the Captain, 2026-11-14): from the hub to the MIDDLES of the left and right edges, like the south spoke to the base.
+    Edge midpoints: (-250,-144) and (250,-144). Tiles within SW/2 of the segment from the hub's edge to the midpoint."""
+    import math
+    out = []
+    for ex, ey in ((-250.0, -144.0), (250.0, -144.0)):
+        tiles = set()
+        L = math.hypot(ex, ey)
+        ux, uy = ex / L, ey / L
+        for i in range(0, int(L) + 2):
+            cx, cy = ux * i, uy * i
+            for dx in range(-4, 5):
+                for dy in range(-4, 5):
+                    x, y = int(math.floor(cx)) + dx, int(math.floor(cy)) + dy
+                    px, py = x + 0.5 - 0.0, y + 0.5
+                    t = max(0.0, min(L, px * ux + py * uy))
+                    d = math.hypot(px - ux * t, py - uy * t)
+                    if d <= SW / 2.0 + 0.5:
+                        tiles.add((x, y))
+        out.append(sorted(tiles))
+    for tiles in out:
+        for a in range(0, len(tiles), 600):
+            part = ",".join("{%d,%d}" % t for t in tiles[a:a + 600])
+            lua = (FIND + "local n=0 for _,p in pairs({%s}) do if s.get_tile(p[1],p[2]).name~='space-platform-foundation' and s.count_entities_filtered{name='tile-ghost',position={p[1]+0.5,p[2]+0.5},radius=0.3}==0 then "
+                   "if s.create_entity{name='tile-ghost',inner_name='space-platform-foundation',position={p[1],p[2]},force='player'} then n=n+1 end end end rcon.print(n)" % part)
+            print("spoke ghosts", tools["run_lua"](lua).strip(), flush=True)
+
+
 def status():
     print(tools["run_lua"](FIND + "local h=p.hub rcon.print(p.name..' '..s.name..' hub '..tostring(h and h.valid)..' tiles '..#s.find_tiles_filtered{name='space-platform-foundation'}"
                            "..' ghosts '..s.count_entities_filtered{name='tile-ghost'}..' foundation aboard '..(h and h.get_inventory(defines.inventory.hub_main).get_item_count('space-platform-foundation') or 0))"))
 
 
 if __name__ == "__main__":
-    if (sys.argv[1] if len(sys.argv) > 1 else "status") == "ghosts":
+    step = sys.argv[1] if len(sys.argv) > 1 else "status"
+    if step == "ghosts":
         ghosts()
+    elif step == "spokes":
+        spokes()
     status()

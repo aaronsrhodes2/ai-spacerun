@@ -17,6 +17,13 @@ stands on the free deck south of the blue block and is fed out of the hub over b
                     everything else leaves west, round and under the three columns (51,-11 -> 56,-11) and side-loads the
                     loop's west column. W's dead end can never fill with the cell's goods. W's green count wire is bridged
                     across the splitter.
+           overflow THE BRANCH MUST NEVER STAND STILL: a carbon waiting at the first splitter holds up all the ice behind it,
+                    and blue's melters run dry (seen within twenty minutes of the first build: the loop's west lane stood
+                    full of sulfur and calcite, the branch backed up, one blue melter had no ice). So a second splitter on
+                    the branch (49..50,-12, facing south) prefers the loop and hands whatever the loop cannot take to the
+                    pack belt (49,-11 side-loads x 48), which carries it back into the hub.
+                    W's count wire does not see undergrounds or the branch, so more than the asked number can be under way
+                    (seen: 149 sulfur on the loop against an ask below 50): the asks are kept small.
            flow     W used to be a standing queue of ice (target 250 on 88 tiles), where the cell's goods would wait behind
                     ice that only moves as blue melts it. A constant combinator (55,-13) puts ice ICEOFF on W's filter wire:
                     W now carries about 80 ice and flows freely (80 ice under way is about 5 a second, blue melts 1 to 2).
@@ -52,10 +59,11 @@ LX, LY = 57, -13                     # the loop's top left corner, wheel coordin
 LW, LH = 30, 10                      # loop spans local x 0..LW, y 0..LH
 CAP, RESERVE = 4000, 10000           # rocket fuel in the hub; carbon the hub keeps for blue science
 TARGETS = {"carbon": 150, "sulfur": 80, "calcite": 30, "iron-plate": 8, "coal": 60, "solid-fuel": 40, "rocket-fuel": 8}
-DEMAND = [(55.5, -4.0, "carbon", 100, 140, 1), (55.5, -6.0, "sulfur", 50, 50, 1), (55.5, -8.0, "calcite", 16, 20, 0)]
+DEMAND = [(55.5, -4.0, "carbon", 90, 90, 1), (55.5, -6.0, "sulfur", 30, 24, 1), (55.5, -8.0, "calcite", 8, 8, 0)]
 # x, y, item, ask while the loop holds fewer, how many may be under way on W, 1 = only above the hub's carbon reserve
 WHUB = (4.5, -0.5)                   # belt W's hub inserter (scripts/wheel_blue.py)
 SPLIT = (52.0, -11.5)                # splitter, tiles (51,-12) and (52,-12): ice north, the rest west
+OVER = (50.0, -11.5)                 # overflow splitter on the branch, tiles (49,-12) and (50,-12), facing south: loop first, else the pack belt
 CONST = (55.5, -12.5)                # constant combinator: ice offset on W's filter wire
 ICEOFF, WMAX = -170, 80              # W's ice target is 250 (wheel_blue.TARGETS): 250 - 170 = 80 under way
 WTILES = []                          # every tile of belt W, filled by layout()
@@ -162,7 +170,8 @@ def layout():
     put("express-splitter", 51, -12, 2, 1, d=N, local=False)
     put("express-transport-belt", 51, -13, d=W, local=False)
     put("express-transport-belt", 50, -13, d=S, local=False)
-    put("express-transport-belt", 50, -12, d=S, local=False)
+    put("express-splitter", 49, -12, 2, 1, d=S, local=False)
+    put("express-transport-belt", 49, -11, d=W, local=False)
     put("express-transport-belt", 50, -11, d=E, local=False)
     put("express-underground-belt", 51, -11, d=E, local=False, type="input")
     put("express-underground-belt", 56, -11, d=E, local=False, type="output")
@@ -197,6 +206,7 @@ CONFIG = (HEAD + "local n,r=0,0 pcall(function() hub.get_or_create_control_behav
           "local wh=at('inserter',WHX,WHY) local sp=s.find_entities_filtered{type='splitter',position={SPX,SPY},radius=0.6}[1] "
           "if sp then sp.splitter_filter={name='ice'} sp.splitter_output_priority='right' local a=at('transport-belt',SPX+0.5,SPY+1) local b=at('transport-belt',SPX+0.5,SPY-1) "
           "if a and b then a.get_wire_connector(W.circuit_green,true).connect_to(b.get_wire_connector(W.circuit_green,true),false) end o[#o+1]='splitter: ice north, W count wire bridged' else o[#o+1]='NO splitter' end "
+          "local ov=s.find_entities_filtered{type='splitter',position={OVX,OVY},radius=0.6}[1] if ov then ov.splitter_output_priority='left' o[#o+1]='overflow splitter: loop first' else o[#o+1]='NO overflow splitter' end "
           "local cc=s.find_entities_filtered{name='constant-combinator',position={CCX,CCY},radius=0.4}[1] if cc and wh and sp then local cb=cc.get_or_create_control_behavior() local sec=cb.get_section(1) or cb.add_section() sec.set_slot(1,{value={type='item',name='ice',quality='normal'},min=ICEOFF}) "
           "cc.get_wire_connector(W.circuit_red,true).connect_to(wh.get_wire_connector(W.circuit_red,true),false) o[#o+1]='ice offset ICEOFF on W' end "
           "local an=0 for _,q in pairs(ASKS) do local dec=s.find_entities_filtered{name='decider-combinator',position={q[1],q[2]},radius=0.6}[1] if dec and wh and sp then local X={type='item',name=q[3]} "
@@ -223,7 +233,8 @@ STATUS = (HEAD + "local w={} for _,q in pairs(MACH) do local e=mach(q[1],q[2]) i
           "local al={} for _,q in pairs(ASKS) do local dec=s.find_entities_filtered{name='decider-combinator',position={q[1],q[2]},radius=0.6}[1] if dec then local function sig(id,name) local v=0 for _,x in pairs(dec.get_signals(id) or {}) do if x.signal.name==name then v=x.count end end return v end "
           "al[#al+1]=q[3]..' (loop '..sig(W.combinator_input_red,q[3])..', asks below '..q[4]..', W filter signal '..sig(W.combinator_output_red,q[3])..')' end end "
           "local sp=s.find_entities_filtered{type='splitter',position={SPX,SPY},radius=0.6}[1] local wh=at('inserter',WHX,WHY) local ws='?' if wh then for n,v in pairs(defines.entity_status) do if v==wh.status then ws=n end end end "
-          "local ds='ON BELT W: '..table.concat(wq,', ')..'; hub inserter '..ws..'; splitter '..(sp and ('filter '..(sp.splitter_filter and sp.splitter_filter.name or 'NONE')..' to the '..sp.splitter_output_priority) or 'MISSING')..'@@asks: '..table.concat(al,' ; ')..'; carbon reserve in the hub RESERVE' "
+          "local ov=s.find_entities_filtered{type='splitter',position={OVX,OVY},radius=0.6}[1] local br=0 for _,p in pairs{{51,-13},{50,-13},{50,-11},{51,-11},{56,-11}} do local e=s.find_entities_filtered{type={'transport-belt','underground-belt'},position={p[1]+0.5,p[2]+0.5},radius=0.3}[1] if e then for l=1,2 do br=br+e.get_transport_line(l).get_item_count() end end end "
+          "local ds='ON BELT W: '..table.concat(wq,', ')..'; on the branch '..br..' (5 tiles, 40 places); overflow splitter '..(ov and 'stands' or 'MISSING')..'; hub inserter '..ws..'; splitter '..(sp and ('filter '..(sp.splitter_filter and sp.splitter_filter.name or 'NONE')..' to the '..sp.splitter_output_priority) or 'MISSING')..'@@asks: '..table.concat(al,' ; ')..'; carbon reserve in the hub RESERVE' "
           "local f=game.forces.player.get_item_production_statistics(s) local inv=hub.get_inventory(defines.inventory.hub_main) local function fl(n,cat,pr) return string.format('%.1f',f.get_flow_count{name=n,category=cat,precision_index=pr}) end local P=defines.flow_precision_index "
           "local ex=at('inserter',EX,EY) local es='?' if ex then for n,v in pairs(defines.entity_status) do if v==ex.status then es=n end end end "
           "rcon.print(table.concat(w,'@@')..'@@on the loop: '..table.concat(q,', ')..'@@'..ds..'@@export inserter '..es..' (cap CAP), providing to other platforms '..tostring(hub.providing_to_other_platforms)"
@@ -237,7 +248,7 @@ def fill(code, surface):
             .replace("LOOP", lua_list(loop_tiles)).replace("GATED", lua_list(gated)).replace("WTILES", lua_list(WTILES))
             .replace("MACH", lua_list([(x, y) for x, y, _, _ in machines])).replace("KEEP", "{" + ",".join("'%s'" % k for k in TARGETS) + "}")
             .replace("CAP", str(CAP)).replace("RESERVE", str(RESERVE)).replace("ASKS", lua_list(DEMAND)).replace("WHX", str(WHUB[0])).replace("WHY", str(WHUB[1]))
-            .replace("SPX", str(SPLIT[0])).replace("SPY", str(SPLIT[1])).replace("CCX", str(CONST[0])).replace("CCY", str(CONST[1])).replace("ICEOFF", str(ICEOFF)).replace("WMAX", str(WMAX))
+            .replace("OVX", str(OVER[0])).replace("OVY", str(OVER[1])).replace("SPX", str(SPLIT[0])).replace("SPY", str(SPLIT[1])).replace("CCX", str(CONST[0])).replace("CCY", str(CONST[1])).replace("ICEOFF", str(ICEOFF)).replace("WMAX", str(WMAX))
             .replace("EX", str(EXPORT[0] + .5)).replace("EY", str(EXPORT[1] + .5)))
 
 
@@ -265,15 +276,22 @@ def main():
             have = tools["run_lua"]("local s=game.surfaces['%s'] local t={} for _,p in pairs({%s}) do t[#t+1]=s.count_entities_filtered{position=p,radius=0.2} end rcon.print(table.concat(t,','))"
                                     % (surface, ",".join("{%s,%s}" % (e["x"], e["y"]) for e in ents))).strip().split(",")
             todo = [e for e, hv in zip(ents, have) if hv == "0" and e["name"] != "express-splitter"]          # only what does not stand yet: safe to run again
+            over = tools["run_lua"]("rcon.print(game.surfaces['%s'].count_entities_filtered{type='splitter',position={%s,%s},radius=0.6})" % (surface, OVER[0], OVER[1])).strip() != "0"
+            if not over:
+                if apply:
+                    print(tools["run_lua"](fill(SPLICE, surface).replace(str(SPLIT[0]), str(OVER[0]))))      # same step, at the overflow splitter's belt tile (50,-12)
+                    todo.append([e for e in ents if e["name"] == "express-splitter" and e["x"] == OVER[0]][0])
+                else:
+                    print("the overflow splitter replaces the branch belt at (50,-12): not in the dry run")
             if not stands:
                 if apply:
                     print(tools["run_lua"](fill(SPLICE, surface)))
-                    todo.append([e for e in ents if e["name"] == "express-splitter"][0])
+                    todo.append([e for e in ents if e["name"] == "express-splitter" and e["x"] == SPLIT[0]][0])
                 else:
                     print("the splitter replaces the W belt tile at (52,-12): not in the dry run")
             ok, bad = place_all(todo, surface, apply)
             print("missing pieces", len(todo), "placed" if apply else "dry run", ok, "failed", bad)
-            if apply and not stands:
+            if apply and not (stands and over):
                 print(tools["run_lua"](fill(CONFIG, surface)))
                 print(tools["run_lua"](fill(TRIMW, surface)))
         if step == "config" or (step == "build" and apply):

@@ -1,0 +1,1550 @@
+{
+"accumulator": {
+"ing": {
+"battery": 5,
+"iron-plate": 2
+},
+"recipe": "accumulator",
+"yield": 1
+},
+"active-provider-chest": {
+"ing": {
+"advanced-circuit": 1,
+"electronic-circuit": 3,
+"steel-chest": 1
+},
+"recipe": "active-provider-chest",
+"yield": 1
+},
+"advanced-circuit": {
+"ing": {
+"copper-cable": 4,
+"electronic-circuit": 2,
+"plastic-bar": 2
+},
+"recipe": "advanced-circuit",
+"yield": 1
+},
+"agricultural-tower": {
+"ing": {
+"electronic-circuit": 3,
+"landfill": 1,
+"spoilage": 20,
+"steel-plate": 10
+},
+"recipe": "agricultural-tower",
+"yield": 1
+},
+"arithmetic-combinator": {
+"ing": {
+"copper-cable": 5,
+"electronic-circuit": 5
+},
+"recipe": "arithmetic-combinator",
+"yield": 1
+},
+"artificial-jellynut-soil": {
+"ing": {
+"jellynut-seed": 2,
+"landfill": 5,
+"nutrients": 50
+},
+"recipe": "artificial-jellynut-soil",
+"yield": 10
+},
+"artificial-yumako-soil": {
+"ing": {
+"landfill": 5,
+"nutrients": 50,
+"yumako-seed": 2
+},
+"recipe": "artificial-yumako-soil",
+"yield": 10
+},
+"artillery-shell": {
+"ing": {
+"calcite": 1,
+"explosives": 8,
+"radar": 1,
+"tungsten-plate": 4
+},
+"recipe": "artillery-shell",
+"yield": 1
+},
+"artillery-turret": {
+"ing": {
+"iron-gear-wheel": 40,
+"processing-unit": 10,
+"refined-concrete": 60,
+"tungsten-plate": 60
+},
+"recipe": "artillery-turret",
+"yield": 1
+},
+"artillery-wagon": {
+"ing": {
+"engine-unit": 60,
+"iron-gear-wheel": 40,
+"processing-unit": 10,
+"refined-concrete": 60,
+"tungsten-plate": 60
+},
+"recipe": "artillery-wagon",
+"yield": 1
+},
+"assembling-machine-1": {
+"ing": {
+"electronic-circuit": 3,
+"iron-gear-wheel": 5,
+"iron-plate": 9
+},
+"recipe": "assembling-machine-1",
+"yield": 1
+},
+"assembling-machine-2": {
+"ing": {
+"assembling-machine-1": 1,
+"electronic-circuit": 3,
+"iron-gear-wheel": 5,
+"steel-plate": 2
+},
+"recipe": "assembling-machine-2",
+"yield": 1
+},
+"assembling-machine-3": {
+"ing": {
+"assembling-machine-2": 2,
+"speed-module": 4
+},
+"recipe": "assembling-machine-3",
+"yield": 1
+},
+"asteroid-collector": {
+"ing": {
+"electric-engine-unit": 8,
+"low-density-structure": 20,
+"processing-unit": 5
+},
+"recipe": "asteroid-collector",
+"yield": 1
+},
+"atomic-bomb": {
+"ing": {
+"explosives": 10,
+"processing-unit": 10,
+"uranium-235": 100
+},
+"recipe": "atomic-bomb",
+"yield": 1
+},
+"barrel": {
+"ing": {
+"steel-plate": 1
+},
+"recipe": "barrel",
+"yield": 1
+},
+"battery-equipment": {
+"ing": {
+"battery": 5,
+"steel-plate": 10
+},
+"recipe": "battery-equipment",
+"yield": 1
+},
+"battery-mk2-equipment": {
+"ing": {
+"battery-equipment": 10,
+"low-density-structure": 5,
+"processing-unit": 15
+},
+"recipe": "battery-mk2-equipment",
+"yield": 1
+},
+"battery-mk3-equipment": {
+"ing": {
+"battery-mk2-equipment": 5,
+"supercapacitor": 10
+},
+"recipe": "battery-mk3-equipment",
+"yield": 1
+},
+"beacon": {
+"ing": {
+"advanced-circuit": 20,
+"copper-cable": 10,
+"electronic-circuit": 20,
+"steel-plate": 10
+},
+"recipe": "beacon",
+"yield": 1
+},
+"belt-immunity-equipment": {
+"ing": {
+"advanced-circuit": 5,
+"steel-plate": 10
+},
+"recipe": "belt-immunity-equipment",
+"yield": 1
+},
+"big-electric-pole": {
+"ing": {
+"copper-cable": 4,
+"iron-stick": 8,
+"steel-plate": 5
+},
+"recipe": "big-electric-pole",
+"yield": 1
+},
+"biochamber": {
+"ing": {
+"electronic-circuit": 5,
+"iron-plate": 20,
+"landfill": 1,
+"nutrients": 5,
+"pentapod-egg": 1
+},
+"recipe": "biochamber",
+"yield": 1
+},
+"boiler": {
+"ing": {
+"pipe": 4,
+"stone-furnace": 1
+},
+"recipe": "boiler",
+"yield": 1
+},
+"buffer-chest": {
+"ing": {
+"advanced-circuit": 1,
+"electronic-circuit": 3,
+"steel-chest": 1
+},
+"recipe": "buffer-chest",
+"yield": 1
+},
+"bulk-inserter": {
+"ing": {
+"advanced-circuit": 1,
+"electronic-circuit": 15,
+"fast-inserter": 1,
+"iron-gear-wheel": 15
+},
+"recipe": "bulk-inserter",
+"yield": 1
+},
+"burner-inserter": {
+"ing": {
+"iron-gear-wheel": 1,
+"iron-plate": 1
+},
+"recipe": "burner-inserter",
+"yield": 1
+},
+"burner-mining-drill": {
+"ing": {
+"iron-gear-wheel": 3,
+"iron-plate": 3,
+"stone-furnace": 1
+},
+"recipe": "burner-mining-drill",
+"yield": 1
+},
+"cannon-shell": {
+"ing": {
+"explosives": 1,
+"plastic-bar": 2,
+"steel-plate": 2
+},
+"recipe": "cannon-shell",
+"yield": 1
+},
+"capture-robot-rocket": {
+"ing": {
+"bioflux": 20,
+"flying-robot-frame": 1,
+"processing-unit": 2,
+"steel-plate": 2
+},
+"recipe": "capture-robot-rocket",
+"yield": 1
+},
+"car": {
+"ing": {
+"engine-unit": 8,
+"iron-plate": 20,
+"steel-plate": 5
+},
+"recipe": "car",
+"yield": 1
+},
+"cargo-bay": {
+"ing": {
+"low-density-structure": 20,
+"processing-unit": 5,
+"steel-plate": 20
+},
+"recipe": "cargo-bay",
+"yield": 1
+},
+"cargo-landing-pad": {
+"ing": {
+"concrete": 200,
+"processing-unit": 10,
+"steel-plate": 25
+},
+"recipe": "cargo-landing-pad",
+"yield": 1
+},
+"cargo-wagon": {
+"ing": {
+"iron-gear-wheel": 10,
+"iron-plate": 20,
+"steel-plate": 20
+},
+"recipe": "cargo-wagon",
+"yield": 1
+},
+"centrifuge": {
+"ing": {
+"advanced-circuit": 100,
+"concrete": 100,
+"iron-gear-wheel": 100,
+"steel-plate": 50
+},
+"recipe": "centrifuge",
+"yield": 1
+},
+"chemical-plant": {
+"ing": {
+"electronic-circuit": 5,
+"iron-gear-wheel": 5,
+"pipe": 5,
+"steel-plate": 5
+},
+"recipe": "chemical-plant",
+"yield": 1
+},
+"cliff-explosives": {
+"ing": {
+"barrel": 1,
+"calcite": 10,
+"explosives": 10,
+"grenade": 1
+},
+"recipe": "cliff-explosives",
+"yield": 1
+},
+"cluster-grenade": {
+"ing": {
+"explosives": 5,
+"grenade": 7,
+"steel-plate": 5
+},
+"recipe": "cluster-grenade",
+"yield": 1
+},
+"combat-shotgun": {
+"ing": {
+"copper-plate": 10,
+"iron-gear-wheel": 5,
+"steel-plate": 15,
+"wood": 10
+},
+"recipe": "combat-shotgun",
+"yield": 1
+},
+"constant-combinator": {
+"ing": {
+"copper-cable": 5,
+"electronic-circuit": 2
+},
+"recipe": "constant-combinator",
+"yield": 1
+},
+"construction-robot": {
+"ing": {
+"electronic-circuit": 2,
+"flying-robot-frame": 1
+},
+"recipe": "construction-robot",
+"yield": 1
+},
+"copper-cable": {
+"ing": {
+"copper-plate": 1
+},
+"recipe": "copper-cable",
+"yield": 2
+},
+"crusher": {
+"ing": {
+"electric-engine-unit": 10,
+"low-density-structure": 20,
+"steel-plate": 10
+},
+"recipe": "crusher",
+"yield": 1
+},
+"cryogenic-plant": {
+"ing": {
+"lithium-plate": 20,
+"processing-unit": 20,
+"refined-concrete": 40,
+"superconductor": 20
+},
+"recipe": "cryogenic-plant",
+"yield": 1
+},
+"decider-combinator": {
+"ing": {
+"copper-cable": 5,
+"electronic-circuit": 5
+},
+"recipe": "decider-combinator",
+"yield": 1
+},
+"defender-capsule": {
+"ing": {
+"electronic-circuit": 3,
+"iron-gear-wheel": 3,
+"piercing-rounds-magazine": 3
+},
+"recipe": "defender-capsule",
+"yield": 1
+},
+"destroyer-capsule": {
+"ing": {
+"distractor-capsule": 4,
+"processing-unit": 1,
+"steel-plate": 4
+},
+"recipe": "destroyer-capsule",
+"yield": 1
+},
+"discharge-defense-equipment": {
+"ing": {
+"laser-turret": 10,
+"processing-unit": 5,
+"steel-plate": 20
+},
+"recipe": "discharge-defense-equipment",
+"yield": 1
+},
+"display-panel": {
+"ing": {
+"electronic-circuit": 1,
+"iron-plate": 1
+},
+"recipe": "display-panel",
+"yield": 1
+},
+"distractor-capsule": {
+"ing": {
+"advanced-circuit": 3,
+"defender-capsule": 4
+},
+"recipe": "distractor-capsule",
+"yield": 1
+},
+"efficiency-module": {
+"ing": {
+"advanced-circuit": 5,
+"electronic-circuit": 5
+},
+"recipe": "efficiency-module",
+"yield": 1
+},
+"efficiency-module-2": {
+"ing": {
+"advanced-circuit": 5,
+"efficiency-module": 4,
+"processing-unit": 5
+},
+"recipe": "efficiency-module-2",
+"yield": 1
+},
+"efficiency-module-3": {
+"ing": {
+"advanced-circuit": 5,
+"efficiency-module-2": 4,
+"processing-unit": 5,
+"spoilage": 5
+},
+"recipe": "efficiency-module-3",
+"yield": 1
+},
+"electric-furnace": {
+"ing": {
+"advanced-circuit": 5,
+"steel-plate": 10,
+"stone-brick": 10
+},
+"recipe": "electric-furnace",
+"yield": 1
+},
+"electric-mining-drill": {
+"ing": {
+"electronic-circuit": 3,
+"iron-gear-wheel": 5,
+"iron-plate": 10
+},
+"recipe": "electric-mining-drill",
+"yield": 1
+},
+"electromagnetic-plant": {
+"ing": {
+"holmium-plate": 150,
+"processing-unit": 50,
+"refined-concrete": 50,
+"steel-plate": 50
+},
+"recipe": "electromagnetic-plant",
+"yield": 1
+},
+"electronic-circuit": {
+"ing": {
+"copper-cable": 3,
+"iron-plate": 1
+},
+"recipe": "electronic-circuit",
+"yield": 1
+},
+"energy-shield-equipment": {
+"ing": {
+"advanced-circuit": 5,
+"steel-plate": 10
+},
+"recipe": "energy-shield-equipment",
+"yield": 1
+},
+"energy-shield-mk2-equipment": {
+"ing": {
+"energy-shield-equipment": 10,
+"low-density-structure": 5,
+"processing-unit": 5
+},
+"recipe": "energy-shield-mk2-equipment",
+"yield": 1
+},
+"engine-unit": {
+"ing": {
+"iron-gear-wheel": 1,
+"pipe": 2,
+"steel-plate": 1
+},
+"recipe": "engine-unit",
+"yield": 1
+},
+"exoskeleton-equipment": {
+"ing": {
+"electric-engine-unit": 30,
+"processing-unit": 10,
+"steel-plate": 20
+},
+"recipe": "exoskeleton-equipment",
+"yield": 1
+},
+"explosive-cannon-shell": {
+"ing": {
+"explosives": 2,
+"plastic-bar": 2,
+"steel-plate": 2
+},
+"recipe": "explosive-cannon-shell",
+"yield": 1
+},
+"explosive-rocket": {
+"ing": {
+"explosives": 2,
+"rocket": 1
+},
+"recipe": "explosive-rocket",
+"yield": 1
+},
+"explosive-uranium-cannon-shell": {
+"ing": {
+"explosive-cannon-shell": 1,
+"uranium-238": 1
+},
+"recipe": "explosive-uranium-cannon-shell",
+"yield": 1
+},
+"fast-inserter": {
+"ing": {
+"electronic-circuit": 2,
+"inserter": 1,
+"iron-plate": 2
+},
+"recipe": "fast-inserter",
+"yield": 1
+},
+"fast-splitter": {
+"ing": {
+"electronic-circuit": 10,
+"iron-gear-wheel": 10,
+"splitter": 1
+},
+"recipe": "fast-splitter",
+"yield": 1
+},
+"fast-transport-belt": {
+"ing": {
+"iron-gear-wheel": 5,
+"transport-belt": 1
+},
+"recipe": "fast-transport-belt",
+"yield": 1
+},
+"fast-underground-belt": {
+"ing": {
+"iron-gear-wheel": 40,
+"underground-belt": 2
+},
+"recipe": "fast-underground-belt",
+"yield": 2
+},
+"firearm-magazine": {
+"ing": {
+"iron-plate": 4
+},
+"recipe": "firearm-magazine",
+"yield": 1
+},
+"fission-reactor-equipment": {
+"ing": {
+"low-density-structure": 50,
+"processing-unit": 200,
+"uranium-fuel-cell": 4
+},
+"recipe": "fission-reactor-equipment",
+"yield": 1
+},
+"flamethrower": {
+"ing": {
+"iron-gear-wheel": 10,
+"steel-plate": 5
+},
+"recipe": "flamethrower",
+"yield": 1
+},
+"flamethrower-turret": {
+"ing": {
+"engine-unit": 5,
+"iron-gear-wheel": 15,
+"pipe": 10,
+"steel-plate": 30
+},
+"recipe": "flamethrower-turret",
+"yield": 1
+},
+"fluid-wagon": {
+"ing": {
+"iron-gear-wheel": 10,
+"pipe": 8,
+"steel-plate": 16,
+"storage-tank": 1
+},
+"recipe": "fluid-wagon",
+"yield": 1
+},
+"flying-robot-frame": {
+"ing": {
+"battery": 2,
+"electric-engine-unit": 1,
+"electronic-circuit": 3,
+"steel-plate": 1
+},
+"recipe": "flying-robot-frame",
+"yield": 1
+},
+"gate": {
+"ing": {
+"electronic-circuit": 2,
+"steel-plate": 2,
+"stone-wall": 1
+},
+"recipe": "gate",
+"yield": 1
+},
+"grenade": {
+"ing": {
+"coal": 10,
+"iron-plate": 5
+},
+"recipe": "grenade",
+"yield": 1
+},
+"gun-turret": {
+"ing": {
+"copper-plate": 10,
+"iron-gear-wheel": 10,
+"iron-plate": 20
+},
+"recipe": "gun-turret",
+"yield": 1
+},
+"hazard-concrete": {
+"ing": {
+"concrete": 10
+},
+"recipe": "hazard-concrete",
+"yield": 10
+},
+"heat-exchanger": {
+"ing": {
+"copper-plate": 100,
+"pipe": 10,
+"steel-plate": 10
+},
+"recipe": "heat-exchanger",
+"yield": 1
+},
+"heat-pipe": {
+"ing": {
+"copper-plate": 20,
+"steel-plate": 10
+},
+"recipe": "heat-pipe",
+"yield": 1
+},
+"heating-tower": {
+"ing": {
+"boiler": 2,
+"concrete": 20,
+"heat-pipe": 5
+},
+"recipe": "heating-tower",
+"yield": 1
+},
+"heavy-armor": {
+"ing": {
+"copper-plate": 100,
+"steel-plate": 50
+},
+"recipe": "heavy-armor",
+"yield": 1
+},
+"inserter": {
+"ing": {
+"electronic-circuit": 1,
+"iron-gear-wheel": 1,
+"iron-plate": 1
+},
+"recipe": "inserter",
+"yield": 1
+},
+"iron-chest": {
+"ing": {
+"iron-plate": 8
+},
+"recipe": "iron-chest",
+"yield": 1
+},
+"iron-gear-wheel": {
+"ing": {
+"iron-plate": 2
+},
+"recipe": "iron-gear-wheel",
+"yield": 1
+},
+"iron-stick": {
+"ing": {
+"iron-plate": 1
+},
+"recipe": "iron-stick",
+"yield": 2
+},
+"lab": {
+"ing": {
+"electronic-circuit": 10,
+"iron-gear-wheel": 10,
+"transport-belt": 4
+},
+"recipe": "lab",
+"yield": 1
+},
+"land-mine": {
+"ing": {
+"explosives": 2,
+"steel-plate": 1
+},
+"recipe": "land-mine",
+"yield": 4
+},
+"landfill": {
+"ing": {
+"stone": 50
+},
+"recipe": "landfill",
+"yield": 1
+},
+"landing-pad-unloading-bay": {
+"ing": {
+"cargo-bay": 1,
+"electric-engine-unit": 15,
+"processing-unit": 8,
+"steel-chest": 4
+},
+"recipe": "landing-pad-unloading-bay",
+"yield": 1
+},
+"laser-turret": {
+"ing": {
+"battery": 12,
+"electronic-circuit": 20,
+"steel-plate": 20
+},
+"recipe": "laser-turret",
+"yield": 1
+},
+"light-armor": {
+"ing": {
+"iron-plate": 40
+},
+"recipe": "light-armor",
+"yield": 1
+},
+"lightning-rod": {
+"ing": {
+"copper-cable": 12,
+"steel-plate": 8,
+"stone-brick": 4
+},
+"recipe": "lightning-rod",
+"yield": 1
+},
+"locomotive": {
+"ing": {
+"electronic-circuit": 10,
+"engine-unit": 20,
+"steel-plate": 30
+},
+"recipe": "locomotive",
+"yield": 1
+},
+"logistic-robot": {
+"ing": {
+"advanced-circuit": 2,
+"flying-robot-frame": 1
+},
+"recipe": "logistic-robot",
+"yield": 1
+},
+"long-handed-inserter": {
+"ing": {
+"inserter": 1,
+"iron-gear-wheel": 1,
+"iron-plate": 1
+},
+"recipe": "long-handed-inserter",
+"yield": 1
+},
+"low-density-structure": {
+"ing": {
+"copper-plate": 20,
+"plastic-bar": 5,
+"steel-plate": 2
+},
+"recipe": "low-density-structure",
+"yield": 1
+},
+"mech-armor": {
+"ing": {
+"holmium-plate": 200,
+"power-armor-mk2": 1,
+"processing-unit": 100,
+"supercapacitor": 50,
+"superconductor": 50
+},
+"recipe": "mech-armor",
+"yield": 1
+},
+"medium-electric-pole": {
+"ing": {
+"copper-cable": 2,
+"iron-stick": 4,
+"steel-plate": 2
+},
+"recipe": "medium-electric-pole",
+"yield": 1
+},
+"modular-armor": {
+"ing": {
+"advanced-circuit": 30,
+"steel-plate": 50
+},
+"recipe": "modular-armor",
+"yield": 1
+},
+"night-vision-equipment": {
+"ing": {
+"advanced-circuit": 5,
+"steel-plate": 10
+},
+"recipe": "night-vision-equipment",
+"yield": 1
+},
+"nuclear-reactor": {
+"ing": {
+"advanced-circuit": 500,
+"concrete": 500,
+"copper-plate": 500,
+"steel-plate": 500
+},
+"recipe": "nuclear-reactor",
+"yield": 1
+},
+"offshore-pump": {
+"ing": {
+"iron-gear-wheel": 2,
+"pipe": 3
+},
+"recipe": "offshore-pump",
+"yield": 1
+},
+"oil-refinery": {
+"ing": {
+"electronic-circuit": 10,
+"iron-gear-wheel": 10,
+"pipe": 10,
+"steel-plate": 15,
+"stone-brick": 10
+},
+"recipe": "oil-refinery",
+"yield": 1
+},
+"passive-provider-chest": {
+"ing": {
+"advanced-circuit": 1,
+"electronic-circuit": 3,
+"steel-chest": 1
+},
+"recipe": "passive-provider-chest",
+"yield": 1
+},
+"personal-laser-defense-equipment": {
+"ing": {
+"laser-turret": 5,
+"low-density-structure": 5,
+"processing-unit": 20
+},
+"recipe": "personal-laser-defense-equipment",
+"yield": 1
+},
+"personal-roboport-equipment": {
+"ing": {
+"advanced-circuit": 10,
+"battery": 45,
+"iron-gear-wheel": 40,
+"steel-plate": 20
+},
+"recipe": "personal-roboport-equipment",
+"yield": 1
+},
+"personal-roboport-mk2-equipment": {
+"ing": {
+"personal-roboport-equipment": 5,
+"processing-unit": 50,
+"superconductor": 50
+},
+"recipe": "personal-roboport-mk2-equipment",
+"yield": 1
+},
+"piercing-rounds-magazine": {
+"ing": {
+"copper-plate": 2,
+"firearm-magazine": 2,
+"steel-plate": 1
+},
+"recipe": "piercing-rounds-magazine",
+"yield": 2
+},
+"piercing-shotgun-shell": {
+"ing": {
+"copper-plate": 2,
+"shotgun-shell": 2,
+"steel-plate": 1
+},
+"recipe": "piercing-shotgun-shell",
+"yield": 2
+},
+"pipe": {
+"ing": {
+"iron-plate": 1
+},
+"recipe": "pipe",
+"yield": 1
+},
+"pipe-to-ground": {
+"ing": {
+"iron-plate": 5,
+"pipe": 10
+},
+"recipe": "pipe-to-ground",
+"yield": 2
+},
+"poison-capsule": {
+"ing": {
+"coal": 10,
+"electronic-circuit": 3,
+"steel-plate": 3
+},
+"recipe": "poison-capsule",
+"yield": 1
+},
+"power-armor": {
+"ing": {
+"electric-engine-unit": 20,
+"processing-unit": 40,
+"steel-plate": 40
+},
+"recipe": "power-armor",
+"yield": 1
+},
+"power-armor-mk2": {
+"ing": {
+"efficiency-module": 100,
+"electric-engine-unit": 40,
+"low-density-structure": 30,
+"processing-unit": 60,
+"speed-module": 100
+},
+"recipe": "power-armor-mk2",
+"yield": 1
+},
+"power-switch": {
+"ing": {
+"copper-cable": 5,
+"electronic-circuit": 2,
+"iron-plate": 5
+},
+"recipe": "power-switch",
+"yield": 1
+},
+"productivity-module": {
+"ing": {
+"advanced-circuit": 5,
+"electronic-circuit": 5
+},
+"recipe": "productivity-module",
+"yield": 1
+},
+"productivity-module-2": {
+"ing": {
+"advanced-circuit": 5,
+"processing-unit": 5,
+"productivity-module": 4
+},
+"recipe": "productivity-module-2",
+"yield": 1
+},
+"programmable-speaker": {
+"ing": {
+"copper-cable": 5,
+"electronic-circuit": 4,
+"iron-plate": 3,
+"iron-stick": 4
+},
+"recipe": "programmable-speaker",
+"yield": 1
+},
+"pump": {
+"ing": {
+"engine-unit": 1,
+"pipe": 1,
+"steel-plate": 1
+},
+"recipe": "pump",
+"yield": 1
+},
+"pumpjack": {
+"ing": {
+"electronic-circuit": 5,
+"iron-gear-wheel": 10,
+"pipe": 10,
+"steel-plate": 5
+},
+"recipe": "pumpjack",
+"yield": 1
+},
+"quality-module": {
+"ing": {
+"advanced-circuit": 5,
+"electronic-circuit": 5
+},
+"recipe": "quality-module",
+"yield": 1
+},
+"quality-module-2": {
+"ing": {
+"advanced-circuit": 5,
+"processing-unit": 5,
+"quality-module": 4
+},
+"recipe": "quality-module-2",
+"yield": 1
+},
+"quality-module-3": {
+"ing": {
+"advanced-circuit": 5,
+"processing-unit": 5,
+"quality-module-2": 4,
+"superconductor": 1
+},
+"recipe": "quality-module-3",
+"yield": 1
+},
+"radar": {
+"ing": {
+"electronic-circuit": 5,
+"iron-gear-wheel": 5,
+"iron-plate": 10
+},
+"recipe": "radar",
+"yield": 1
+},
+"rail": {
+"ing": {
+"iron-stick": 1,
+"steel-plate": 1,
+"stone": 1
+},
+"recipe": "rail",
+"yield": 2
+},
+"rail-chain-signal": {
+"ing": {
+"electronic-circuit": 1,
+"iron-plate": 5
+},
+"recipe": "rail-chain-signal",
+"yield": 1
+},
+"rail-ramp": {
+"ing": {
+"rail": 8,
+"refined-concrete": 100,
+"steel-plate": 10
+},
+"recipe": "rail-ramp",
+"yield": 1
+},
+"rail-signal": {
+"ing": {
+"electronic-circuit": 1,
+"iron-plate": 5
+},
+"recipe": "rail-signal",
+"yield": 1
+},
+"rail-support": {
+"ing": {
+"refined-concrete": 20,
+"steel-plate": 10
+},
+"recipe": "rail-support",
+"yield": 1
+},
+"recycler": {
+"ing": {
+"concrete": 20,
+"iron-gear-wheel": 40,
+"processing-unit": 6,
+"steel-plate": 20
+},
+"recipe": "recycler",
+"yield": 1
+},
+"refined-hazard-concrete": {
+"ing": {
+"refined-concrete": 10
+},
+"recipe": "refined-hazard-concrete",
+"yield": 10
+},
+"repair-pack": {
+"ing": {
+"electronic-circuit": 2,
+"iron-gear-wheel": 2
+},
+"recipe": "repair-pack",
+"yield": 1
+},
+"requester-chest": {
+"ing": {
+"advanced-circuit": 1,
+"electronic-circuit": 3,
+"steel-chest": 1
+},
+"recipe": "requester-chest",
+"yield": 1
+},
+"roboport": {
+"ing": {
+"advanced-circuit": 45,
+"iron-gear-wheel": 45,
+"steel-plate": 45
+},
+"recipe": "roboport",
+"yield": 1
+},
+"rocket": {
+"ing": {
+"explosives": 1,
+"iron-plate": 2
+},
+"recipe": "rocket",
+"yield": 1
+},
+"rocket-launcher": {
+"ing": {
+"electronic-circuit": 5,
+"iron-gear-wheel": 5,
+"iron-plate": 5
+},
+"recipe": "rocket-launcher",
+"yield": 1
+},
+"rocket-silo": {
+"ing": {
+"concrete": 1000,
+"electric-engine-unit": 200,
+"pipe": 100,
+"processing-unit": 200,
+"steel-plate": 1000
+},
+"recipe": "rocket-silo",
+"yield": 1
+},
+"rocket-turret": {
+"ing": {
+"carbon-fiber": 20,
+"iron-gear-wheel": 20,
+"processing-unit": 4,
+"rocket-launcher": 4,
+"steel-plate": 20
+},
+"recipe": "rocket-turret",
+"yield": 1
+},
+"selector-combinator": {
+"ing": {
+"advanced-circuit": 2,
+"decider-combinator": 5
+},
+"recipe": "selector-combinator",
+"yield": 1
+},
+"shotgun": {
+"ing": {
+"copper-plate": 10,
+"iron-gear-wheel": 5,
+"iron-plate": 15,
+"wood": 5
+},
+"recipe": "shotgun",
+"yield": 1
+},
+"shotgun-shell": {
+"ing": {
+"copper-plate": 2,
+"iron-plate": 2
+},
+"recipe": "shotgun-shell",
+"yield": 1
+},
+"slowdown-capsule": {
+"ing": {
+"coal": 5,
+"electronic-circuit": 2,
+"steel-plate": 2
+},
+"recipe": "slowdown-capsule",
+"yield": 1
+},
+"small-electric-pole": {
+"ing": {
+"copper-cable": 2,
+"wood": 1
+},
+"recipe": "small-electric-pole",
+"yield": 2
+},
+"small-lamp": {
+"ing": {
+"copper-cable": 3,
+"electronic-circuit": 1,
+"iron-plate": 1
+},
+"recipe": "small-lamp",
+"yield": 1
+},
+"solar-panel": {
+"ing": {
+"copper-plate": 5,
+"electronic-circuit": 15,
+"steel-plate": 5
+},
+"recipe": "solar-panel",
+"yield": 1
+},
+"solar-panel-equipment": {
+"ing": {
+"advanced-circuit": 2,
+"solar-panel": 1,
+"steel-plate": 5
+},
+"recipe": "solar-panel-equipment",
+"yield": 1
+},
+"space-platform-foundation": {
+"ing": {
+"copper-cable": 20,
+"steel-plate": 20
+},
+"recipe": "space-platform-foundation",
+"yield": 1
+},
+"space-platform-starter-pack": {
+"ing": {
+"processing-unit": 20,
+"space-platform-foundation": 60,
+"steel-plate": 20
+},
+"recipe": "space-platform-starter-pack",
+"yield": 1
+},
+"speed-module": {
+"ing": {
+"advanced-circuit": 5,
+"electronic-circuit": 5
+},
+"recipe": "speed-module",
+"yield": 1
+},
+"speed-module-2": {
+"ing": {
+"advanced-circuit": 5,
+"processing-unit": 5,
+"speed-module": 4
+},
+"recipe": "speed-module-2",
+"yield": 1
+},
+"speed-module-3": {
+"ing": {
+"advanced-circuit": 5,
+"processing-unit": 5,
+"speed-module-2": 4,
+"tungsten-carbide": 1
+},
+"recipe": "speed-module-3",
+"yield": 1
+},
+"spidertron": {
+"ing": {
+"exoskeleton-equipment": 4,
+"fission-reactor-equipment": 2,
+"radar": 2,
+"raw-fish": 1,
+"rocket-turret": 1
+},
+"recipe": "spidertron",
+"yield": 1
+},
+"splitter": {
+"ing": {
+"electronic-circuit": 5,
+"iron-plate": 5,
+"transport-belt": 4
+},
+"recipe": "splitter",
+"yield": 1
+},
+"stack-inserter": {
+"ing": {
+"bulk-inserter": 1,
+"carbon-fiber": 2,
+"jelly": 10,
+"processing-unit": 1
+},
+"recipe": "stack-inserter",
+"yield": 1
+},
+"steam-engine": {
+"ing": {
+"iron-gear-wheel": 8,
+"iron-plate": 10,
+"pipe": 5
+},
+"recipe": "steam-engine",
+"yield": 1
+},
+"steam-turbine": {
+"ing": {
+"copper-plate": 50,
+"iron-gear-wheel": 50,
+"pipe": 20
+},
+"recipe": "steam-turbine",
+"yield": 1
+},
+"steel-chest": {
+"ing": {
+"steel-plate": 8
+},
+"recipe": "steel-chest",
+"yield": 1
+},
+"steel-furnace": {
+"ing": {
+"steel-plate": 6,
+"stone-brick": 10
+},
+"recipe": "steel-furnace",
+"yield": 1
+},
+"stone-furnace": {
+"ing": {
+"stone": 5
+},
+"recipe": "stone-furnace",
+"yield": 1
+},
+"stone-wall": {
+"ing": {
+"stone-brick": 5
+},
+"recipe": "stone-wall",
+"yield": 1
+},
+"storage-chest": {
+"ing": {
+"advanced-circuit": 1,
+"electronic-circuit": 3,
+"steel-chest": 1
+},
+"recipe": "storage-chest",
+"yield": 1
+},
+"storage-tank": {
+"ing": {
+"iron-plate": 20,
+"steel-plate": 5
+},
+"recipe": "storage-tank",
+"yield": 1
+},
+"submachine-gun": {
+"ing": {
+"copper-plate": 5,
+"iron-gear-wheel": 10,
+"iron-plate": 10
+},
+"recipe": "submachine-gun",
+"yield": 1
+},
+"substation": {
+"ing": {
+"advanced-circuit": 5,
+"copper-cable": 6,
+"steel-plate": 10
+},
+"recipe": "substation",
+"yield": 1
+},
+"tank": {
+"ing": {
+"advanced-circuit": 10,
+"engine-unit": 32,
+"iron-gear-wheel": 15,
+"steel-plate": 50
+},
+"recipe": "tank",
+"yield": 1
+},
+"thruster": {
+"ing": {
+"electric-engine-unit": 5,
+"processing-unit": 10,
+"steel-plate": 10
+},
+"recipe": "thruster",
+"yield": 1
+},
+"toolbelt-equipment": {
+"ing": {
+"advanced-circuit": 3,
+"carbon-fiber": 10
+},
+"recipe": "toolbelt-equipment",
+"yield": 1
+},
+"train-stop": {
+"ing": {
+"electronic-circuit": 5,
+"iron-plate": 6,
+"iron-stick": 6,
+"steel-plate": 3
+},
+"recipe": "train-stop",
+"yield": 1
+},
+"transport-belt": {
+"ing": {
+"iron-gear-wheel": 1,
+"iron-plate": 1
+},
+"recipe": "transport-belt",
+"yield": 2
+},
+"tree-seed": {
+"ing": {
+"wood": 2
+},
+"recipe": "tree-seed",
+"yield": 1
+},
+"underground-belt": {
+"ing": {
+"iron-plate": 10,
+"transport-belt": 5
+},
+"recipe": "underground-belt",
+"yield": 2
+},
+"uranium-cannon-shell": {
+"ing": {
+"cannon-shell": 1,
+"uranium-238": 1
+},
+"recipe": "uranium-cannon-shell",
+"yield": 1
+},
+"uranium-fuel-cell": {
+"ing": {
+"iron-plate": 10,
+"uranium-235": 1,
+"uranium-238": 19
+},
+"recipe": "uranium-fuel-cell",
+"yield": 10
+},
+"uranium-rounds-magazine": {
+"ing": {
+"piercing-rounds-magazine": 1,
+"uranium-238": 1
+},
+"recipe": "uranium-rounds-magazine",
+"yield": 1
+},
+"wooden-chest": {
+"ing": {
+"wood": 2
+},
+"recipe": "wooden-chest",
+"yield": 1
+}
+}
