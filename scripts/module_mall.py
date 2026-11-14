@@ -7,9 +7,9 @@ input; every crushing recipe accepts it.
            productivity module 2 (the best researched). Red chests barred: module 1 to 2 slots, module 2 to 10 slots.
   install  takes finished modules out of the Nauvis network and puts them into the wheels' machines at the best researched quality
            (the standing order: everything at researched quality, as scripts/upgrade_quality.py --items does). Factory-made modules
-           are moved, none is created. Order: crushers on a crushing recipe first (all raw materials), then foundries, then the space
+           are moved, none is created. Order: the agricultural science biochambers first (research is the end product), , then crushers on a crushing recipe (all raw materials), then foundries, then the space
            science assemblers. Reprocessing does not accept productivity and is skipped. Safe to run again: it fills what is empty.
-Steps: build [--apply] | config | install [--apply] | status
+Steps: build [--apply] | speed [--apply] | config | install [--apply] | labs | status
 Usage: module_mall.py build --apply ; module_mall.py install --apply"""
 import json
 import sys
@@ -20,33 +20,43 @@ X0, Y0 = 34, -386
 Q = {"quality": "epic"}
 UNITS = ["productivity-module"] * 4 + ["productivity-module-2"] * 2
 MODULE = "productivity-module-2"
+# Second block (step `speed`): speed module 3 for the Gleba labs. Ten labs are what limits research (agricultural packs are made
+# faster than the labs use them), and with few labs speed beats productivity: research = packs used x (1 + productivity).
+SX0, SY0 = 34, -418
+SUNITS = ["speed-module"] * 4 + ["speed-module-2"] * 2 + ["speed-module-3"]
 
 
-def layout():
+def layout(x0=None, y0=None, units=None):
+    x0, y0, units = (X0, Y0, UNITS) if x0 is None else (x0, y0, units)
     ents = []
 
     def e(name, tx, ty, w=1, h=1):
         ents.append({"name": name, "x": tx + w / 2, "y": ty + h / 2, "direction": 0, "params": dict(Q)})
 
-    for i in range(len(UNITS)):
-        ux = X0 + 3 * i
-        e("requester-chest", ux + 1, Y0)
-        e("fast-inserter", ux + 1, Y0 + 1)
-        e("assembling-machine-3", ux, Y0 + 2, 3, 3)
-        e("fast-inserter", ux + 1, Y0 + 5)
-        e("passive-provider-chest", ux + 1, Y0 + 6)
-    e("substation", X0 + 3 * len(UNITS), Y0 + 2, 2, 2)
+    for i in range(len(units)):
+        ux = x0 + 3 * i
+        e("requester-chest", ux + 1, y0)
+        e("fast-inserter", ux + 1, y0 + 1)
+        e("assembling-machine-3", ux, y0 + 2, 3, 3)
+        e("fast-inserter", ux + 1, y0 + 5)
+        e("passive-provider-chest", ux + 1, y0 + 6)
+    e("substation", x0 + 3 * len(units), y0 + 2, 2, 2)
     return ents
 
 
 CONFIG = ("local s=game.surfaces.nauvis local f=game.forces.player local n=0 for i,rec in pairs(UNITS) do local ux=X0+3*(i-1) local m=s.find_entities_filtered{name='assembling-machine-3',position={ux+1.5,Y0+3.5},radius=0.6}[1] "
           "local rq=s.find_entities_filtered{name='requester-chest',position={ux+1.5,Y0+0.5},radius=0.3}[1] local pv=s.find_entities_filtered{name='passive-provider-chest',position={ux+1.5,Y0+6.5},radius=0.3}[1] "
           "m.set_recipe(rec) local lp=rq.get_logistic_point(defines.logistic_member_index.logistic_container) local sec=lp.get_section(1) or lp.add_section() for k,ing in pairs(f.recipes[rec].ingredients) do sec.set_slot(k,{value={type='item',name=ing.name,quality='normal'},min=ing.amount*6}) end "
-          "pv.get_inventory(defines.inventory.chest).set_bar((rec=='MODULE') and 11 or 3) n=n+1 end rcon.print('units set '..n)")
+          "pv.get_inventory(defines.inventory.chest).set_bar((rec=='MODULE' or rec=='speed-module-3') and 11 or 3) n=n+1 end rcon.print('units set '..n)")
+LABS = ("local f=game.forces.player local best=nil for n,q in pairs(prototypes.quality) do if n~='quality-unknown' and f.is_quality_unlocked(n) and (best==nil or q.level>best.level) then best=q end end "
+        "local net=game.surfaces.nauvis.find_logistic_network_by_position({-27.5,-393.5},'player') local put,back,want=0,0,0 for _,l in pairs(game.surfaces.gleba.find_entities_filtered{type='lab'}) do local mi=l.get_module_inventory() for i=1,#mi do local st=mi[i] "
+        "if not (st.valid_for_read and st.name=='speed-module-3') then want=want+1 if net.get_item_count('speed-module-3')>0 and net.remove_item{name='speed-module-3',count=1}==1 then if st.valid_for_read then back=back+net.insert{name=st.name,count=1,quality='normal'} end "
+        "st.set_stack{name='speed-module-3',count=1,quality=best.name} put=put+1 end end end end rcon.print('lab slots without a speed module 3: '..want..', installed '..put..', other modules handed back '..back)")
 INSTALL = ("local f=game.forces.player local best=nil for n,q in pairs(prototypes.quality) do if n~='quality-unknown' and f.is_quality_unlocked(n) and (best==nil or q.level>best.level) then best=q end end "
            "local net=game.surfaces.nauvis.find_logistic_network_by_position({-27.5,-393.5},'player') local have=net.get_item_count('MODULE') local put,want=0,0 local o={} "
-           "local function fill(e) local r=e.get_recipe() if not r or not r.prototype.allowed_effects.productivity then return end local mi=e.get_module_inventory() if not mi then return end "
+           "local function fill(e,any) local r=(not any) and e.get_recipe() if not any and (not r or not r.prototype.allowed_effects.productivity) then return end local mi=e.get_module_inventory() if not mi then return end "
            "for i=1,#mi do if not mi[i].valid_for_read then want=want+1 if APPLY and put<have and net.remove_item{name='MODULE',count=1}==1 then mi[i].set_stack{name='MODULE',count=1,quality=best.name} put=put+1 end end end end "
+           "local g=game.surfaces.gleba for _,e in pairs(g.find_entities_filtered{name='biochamber'}) do local r=e.get_recipe() if r and r.name=='agricultural-science-pack' then fill(e) end end "
            "for pass=1,3 do for _,p in pairs(f.platforms) do if p.name:find('Wheel$') then local s=p.surface "
            "if pass==1 then for _,e in pairs(s.find_entities_filtered{name='crusher'}) do fill(e) end elseif pass==2 then for _,e in pairs(s.find_entities_filtered{name='foundry'}) do fill(e) end "
            "else for _,e in pairs(s.find_entities_filtered{name='assembling-machine-3'}) do local r=e.get_recipe() if r and r.name=='space-science-pack' then fill(e) end end end end end end "
@@ -69,6 +79,13 @@ def main():
     if step == "build":
         r = json.loads(tools["place_entities"](json.dumps(layout()), surface="nauvis", dry_run=not apply))
         print("placed" if apply else "dry run", r.get("placed"), "failed", json.dumps(r.get("failed") or [])[:300])
+    if step == "speed":
+        r = json.loads(tools["place_entities"](json.dumps(layout(SX0, SY0, SUNITS)), surface="nauvis", dry_run=not apply)) if "--config" not in sys.argv else {}
+        print("placed" if apply else "dry run", r.get("placed"), "failed", json.dumps(r.get("failed") or [])[:300])
+        if apply or "--config" in sys.argv:
+            print(tools["run_lua"](CONFIG.replace("UNITS", "{" + ",".join("'%s'" % u for u in SUNITS) + "}").replace("X0", str(SX0)).replace("Y0", str(SY0)).replace("MODULE", MODULE)))
+    if step == "labs":
+        print(tools["run_lua"](LABS))
     if step == "config" or (step == "build" and apply):
         print(tools["run_lua"](sub(CONFIG)))
     elif step == "install":
