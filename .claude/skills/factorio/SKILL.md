@@ -990,3 +990,14 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 ## Shared view: chart everything we build (2026-11-13)
 - The Captain's rule: wherever anything of ours stands on a planet, by me or by the assistant or by anyone, that area must be charted so the Captain sees it. A planet that was never charted shows a black map (Aquilo, after the first landing), and the alert for the arrival pod could not be reached.
 - `autopilot_local.py` runs a CHART step every 3 cycles (a chart is refreshed, not only made once: the Captain saw areas go stale when nobody was there): every planet surface, every chunk holding one of our roboports, machines, poles, pipes, panels, tanks and so on, plus a chunk round it (`force.chart`). After building on a planet for the first time also run `f.chart(s, area)` by hand at once, and empty the arrival pod container (`cargo-pod-container`) into the pad.
+
+## Fuel for Aquilo: the arithmetic (2026-11-13, from the game's item prototypes)
+| Item | Energy | Weight | Per rocket (1,000 kg) | Burns in |
+|---|---|---|---|---|
+| uranium fuel cell | 8,000 MJ | 100 kg | 80 GJ (10 cells) | reactor only |
+| nuclear fuel (the train rod) | 1,210 MJ | 100 kg | 12 GJ | heating tower, locomotive (chemical category) |
+| rocket fuel | 100 MJ | 10 kg | 10 GJ | heating tower |
+| solid fuel | 12 MJ | 1 kg | 12 GJ | heating tower |
+- Ship cells, not rods: a cell carries 6.6 times the energy of a rod for the same weight, and a reactor takes only cells. A rocket of 10 cells is 80 GJ: about 4 hours at a steady 5 MW. Nauvis holds 13,650 cells and 59,800 uranium 235.
+- A reactor burns fuel only for the heat that is drawn, but it soaks 10 MJ per degree when first joined to a cold network: join it only with fuel in it.
+- The lasting answer is local: ammonia (from the ocean) plus crude oil (9 wells at 35..51,-3..9) make solid fuel for the towers (`solid-fuel-from-ammonia`: 15 ammonia + 6 crude -> 1 solid fuel); cells are the bootstrap and the backup.
