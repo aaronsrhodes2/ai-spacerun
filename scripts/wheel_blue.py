@@ -31,7 +31,7 @@ Q = {"quality": "epic"}
 N, E, S, W = 0, 4, 8, 12
 OX, OY = 57, -29
 DIR = {(0, -1): N, (1, 0): E, (0, 1): S, (-1, 0): W}
-TARGETS = {"K": {"carbon": 300, "sulfur": 100, "calcite": 30}, "O": {"iron-ore": 200, "copper-ore": 130}, "W": {"ice": 250}}   # on the whole belt
+TARGETS = {"K": {"carbon": 300, "sulfur": 140, "calcite": 30, "iron-plate": 150, "copper-plate": 100}, "O": {"iron-ore": 200, "copper-ore": 130}, "W": {"ice": 250}}   # on the whole belt; the plates on K feed scripts/wheel_battery.py
 ents, cfg, recipes, occ, fluid, lines = [], [], [], {}, {}, {}
 
 
@@ -232,7 +232,7 @@ CONFIG = ("local s=game.surfaces['SURF'] local n,r=0,0 for _,q in pairs(FILT) do
           "for _,q in pairs(REC) do local m=s.find_entities_filtered{type='assembling-machine',position={q[1],q[2]},radius=0.5}[1] if m then m.set_recipe(q[3]) r=r+1 end end rcon.print('inserters filtered '..n..', recipes '..r)")
 CIRCUIT = ("local s=game.surfaces['SURF'] local W=defines.wire_connector_id local o={} local function at(t,x,y) return s.find_entities_filtered{type=t,position={x,y},radius=0.3}[1] end "
            "for _,q in pairs(SETS) do local i=at('inserter',4.5,q.iy) local ar=at('arithmetic-combinator',q.ax,-3) local cc=at('constant-combinator',q.ax,-1.5) "
-           "local sec=cc.get_or_create_control_behavior().get_section(1) or cc.get_or_create_control_behavior().add_section() local k=0 for name,c in pairs(q.t) do k=k+1 sec.set_slot(k,{value={type='item',name=name,quality='normal'},min=c}) end "
+           "local ccb=cc.get_or_create_control_behavior() while ccb.sections_count>0 do ccb.remove_section(1) end local sec=ccb.add_section() local k=0 for name,c in pairs(q.t) do k=k+1 sec.set_slot(k,{value={type='item',name=name,quality='normal'},min=c}) end "
            "ar.get_or_create_control_behavior().parameters={first_signal={type='virtual',name='signal-each'},second_constant=-1,operation='*',output_signal={type='virtual',name='signal-each'}} "
            "local prev=nil local nb=0 for _,p in pairs(q.tiles) do local b=at('transport-belt',p[1],p[2]) if b then local bc=b.get_or_create_control_behavior() bc.read_contents=true bc.read_contents_mode=defines.control_behavior.transport_belt.content_read_mode.hold "
            "if prev then b.get_wire_connector(W.circuit_green,true).connect_to(prev.get_wire_connector(W.circuit_green,true),false) else ar.get_wire_connector(W.combinator_input_green,true).connect_to(b.get_wire_connector(W.circuit_green,true)) end prev=b nb=nb+1 end end "
@@ -244,7 +244,7 @@ REFIT = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local need={} l
          "for _,p in pairs(OLDT) do for _,e in pairs(s.find_entities_filtered{type={'transport-belt','underground-belt'},position=p,radius=0.3}) do out(e) end end "
          "for i,q in pairs(WANT) do local e=s.find_entities_filtered{type={'transport-belt','underground-belt'},position={q[1],q[2]},radius=0.3}[1] "
          "if e and e.name==q[3] and e.direction==q[4] and (e.type~='underground-belt' or e.belt_to_ground_type==q[5]) then else if e then out(e) end need[#need+1]=i end end rcon.print(gone..';'..table.concat(need,','))")
-ALLOWED = {"K": ["carbon", "sulfur", "calcite", "coal"], "O": ["iron-ore", "copper-ore"], "W": ["ice"]}
+ALLOWED = {"K": ["carbon", "sulfur", "calcite", "coal", "iron-plate", "copper-plate"], "O": ["iron-ore", "copper-ore"], "W": ["ice"]}
 SWEEP = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local ok={} for _,n in pairs(ALLOW) do ok[n]=true end local t={} local junk=0 for _,p in pairs(TILES) do local e=s.find_entities_filtered{type={'transport-belt','underground-belt'},position=p,radius=0.3}[1] "
          "if e then for l=1,e.get_max_transport_line_index() do local tl=e.get_transport_line(l) for _,it in pairs(tl.get_contents()) do if ok[it.name] then t[it.name]=(t[it.name] or 0)+it.count else junk=junk+tl.remove_item{name=it.name,count=it.count,quality=it.quality} hub.insert{name=it.name,count=it.count,quality=it.quality} end end end end end "
          "local o={} for k,v in pairs(t) do o[#o+1]=k..' '..v end rcon.print('LINE: '..table.concat(o,', ')..' | strays returned to the hub '..junk)")

@@ -22,6 +22,8 @@ from _wheels import place_all, wheels
 
 Q = {"quality": "epic"}
 N, E, S, W = 0, 4, 8, 12
+RESERVE = 8000          # the iron caster works only while the spiral's tank holds more molten iron than this: green science has first call
+# (on the Gleba Wheel, short of metallic chunks, the steel caster drained the tank and green science stood at 0)
 CAPS = {"steel-plate": 4000, "iron-plate": 4000, "iron-gear-wheel": 2000, "copper-plate": 4000, "copper-cable": 2000}
 RULES = [(-100, -44, "steel-plate", "casting-steel", "iron"), (-100, -42, "iron-plate", "casting-iron", "iron"), (-100, -40, "iron-gear-wheel", "casting-iron-gear-wheel", "iron"),
          (-100, -38, "copper-plate", "casting-copper", "copper"), (-100, -36, "copper-cable", "casting-copper-cable", "copper")]
@@ -50,11 +52,11 @@ def layout():
 
 
 CONFIG = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=defines.wire_connector_id local function f(x,y) return s.find_entities_filtered{name='foundry',position={x,y},radius=0.6}[1] end "
-          "local fi,fc,mc=f(-96.5,-41.5),f(-102.5,-41.5),f(-102.5,-35.5) mc.set_recipe('copper-ore-melting') local i=s.find_entities_filtered{type='inserter',position={-105.5,-35.5},radius=0.3}[1] i.use_filters=true i.inserter_filter_mode='whitelist' i.set_filter(1,'copper-ore') i.set_filter(2,'calcite') "
+          "local fi,fc,mc=f(-96.5,-41.5),f(-102.5,-41.5),f(-102.5,-35.5) local tank=s.find_entities_filtered{name='storage-tank',position={-84.5,-36.5},radius=0.5}[1] mc.set_recipe('copper-ore-melting') local i=s.find_entities_filtered{type='inserter',position={-105.5,-35.5},radius=0.3}[1] i.use_filters=true i.inserter_filter_mode='whitelist' i.set_filter(1,'copper-ore') i.set_filter(2,'calcite') "
           "pcall(function() hub.get_or_create_control_behavior().read_contents=true end) for _,m in pairs{fi,fc} do for _,id in pairs{W.circuit_red,W.circuit_green} do m.get_wire_connector(id,true).disconnect_all() end m.get_or_create_control_behavior().circuit_set_recipe=true end local n=0 "
           "for _,q in pairs(RULES) do local d=s.find_entities_filtered{name='decider-combinator',position={q[1]+0.5,q[2]+1},radius=0.3}[1] for _,id in pairs{W.combinator_input_red,W.combinator_input_green,W.combinator_output_red,W.combinator_output_green} do d.get_wire_connector(id,true).disconnect_all() end "
-          "d.get_or_create_control_behavior().parameters={conditions={{first_signal={type='item',name=q[3]},comparator='<',constant=q[5]}},outputs={{signal={type='recipe',name=q[4]},copy_count_from_input=false,constant=1}}} "
-          "d.get_wire_connector(W.combinator_input_red,true).connect_to(hub.get_wire_connector(W.circuit_red,true),false) local m=(q[6]=='iron') and fi or fc d.get_wire_connector(W.combinator_output_green,true).connect_to(m.get_wire_connector(W.circuit_green,true),false) n=n+1 end "
+          "local cond={{first_signal={type='item',name=q[3]},first_signal_networks={red=true,green=false},comparator='<',constant=q[5]}} if q[6]=='iron' then cond[2]={first_signal={type='fluid',name='molten-iron'},first_signal_networks={red=false,green=true},comparator='>',constant=RESERVE,compare_type='and'} d.get_wire_connector(W.combinator_input_green,true).connect_to(tank.get_wire_connector(W.circuit_green,true),false) end d.get_or_create_control_behavior().parameters={conditions=cond,outputs={{signal={type='recipe',name=q[4]},copy_count_from_input=false,constant=1}}} "
+          "d.get_wire_connector(W.combinator_input_red,true).connect_to(hub.get_wire_connector(W.circuit_red,true),false) d.get_wire_connector(W.combinator_output_green,true).disconnect_all() local m=(q[6]=='iron') and fi or fc d.get_wire_connector(W.combinator_output_green,true).connect_to(m.get_wire_connector(W.circuit_green,true),false) n=n+1 end "
           "rcon.print('rules wired '..n)")
 STATUS = ("local s=game.surfaces['SURF'] local inv=s.platform.hub.get_inventory(defines.inventory.hub_main) local o={} for _,q in pairs{{-96.5,-41.5,'iron caster'},{-102.5,-41.5,'copper caster'},{-102.5,-35.5,'copper melter'}} do local m=s.find_entities_filtered{name='foundry',position={q[1],q[2]},radius=0.6}[1] "
           "local k='?' for a,v in pairs(defines.entity_status) do if v==m.status then k=a end end local r=m.get_recipe() o[#o+1]=q[3]..': '..(r and r.name or 'no recipe')..', '..k..', made '..m.products_finished end "
@@ -76,7 +78,7 @@ def main():
             ok, bad = place_all(ents, surface, apply)
             print("placed" if apply else "dry run", ok, "failed", bad)
         if step == "config" or (step == "build" and apply):
-            print(tools["run_lua"](CONFIG.replace("SURF", surface).replace("RULES", rules)))
+            print(tools["run_lua"](CONFIG.replace("SURF", surface).replace("RULES", rules).replace("RESERVE", str(RESERVE))))
         elif step == "status":
             print(tools["run_lua"](STATUS.replace("SURF", surface)))
 
