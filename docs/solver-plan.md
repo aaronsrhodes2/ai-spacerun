@@ -19,7 +19,9 @@ Start when all three hold:
 2. The finish is verified in the game, not inferred: the win condition is read back from the save.
 3. Every step of the run is in git and in the session transcripts.
 
-Open: the Captain has not yet said which event counts as "solved" (reaching the solar system edge is the game's own).
+"Solved" is the game's own win: a platform reaches the solar system edge (the Captain, 2026-11-13). The Captain has never
+been there and wants to see what lies past it, the promethium science made out there, so the run should carry on to
+that after the win.
 
 ## Principles
 
@@ -80,7 +82,7 @@ Each has an exit test. None starts before the one above it passes, except where 
 | 5d | Quality only from quality modules | Full solve (parallel) |
 | 6 | 5a to 5d folded together, no mods but ours | Full solve |
 | 7 | Fresh vanilla seed, purple Skippy, Lua through a model only | Full solve with a clean score |
-| 8 | Optional: stock qwen coder on ollama, our skill, nothing else | Full solve |
+| 8 | Last, for people without a strong machine at home: stock qwen coder on ollama, our skill, nothing else | Full solve |
 
 On "no mods but ours": our mod and RCON are how the model reaches the game, so the end state is vanilla rules with one
 mod, not zero mods. Achievements stay off for that reason.
@@ -135,6 +137,8 @@ A clean run has zero of the first four.
 
 ## Open questions for the Captain
 
-1. Which event counts as the verified solve?
-2. Send the walking avatar upstream early, or keep everything for one pull request at the end?
-3. Does increment 8 (stock qwen coder, our skill, nothing else) belong on the ladder?
+1. Offer the walking avatar to the ai-player-v3 author as a small contribution of its own once it works, or keep all our
+   work together and offer it once at the end? To be decided when increment 1 is done.
+
+Settled 2026-11-13: the solve is the solar system edge; the stock qwen coder run is the very last step. Our own runs use
+purple Skippy with our skill and tuning, to get the most out of the machines at home without paying for tokens.
