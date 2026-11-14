@@ -850,3 +850,14 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 ## Rocket turrets: big asteroids only (2026-11-13)
 - A rocket turret left free fires at small and medium asteroids too. The Aquilo shuttle burned about 5,600 rockets parked in Fulgora orbit and all its carbon with them. Set `set_priority_target(i, '<big|huge>-<metallic|carbonic|oxide>-asteroid')` and `ignore_unprioritised_targets=true` (in `aquilo_shuttle.py config`).
 - Artillery is no answer in space: it does not target asteroids. The next step up is the railgun, which needs Aquilo research.
+
+## Building kit between planets (2026-11-13)
+- The game has no cross-planet signal for ghosts. `scripts/kit_shipping.py` keeps a stock instead: one shuttle per planet (Fulgora 2, Gleba 3, Vulcanus 2) asks Nauvis for one rocket load of each of 30 building items, and the planet's landing pad asks for the same, so the shuttle drops them and robots build from the pad. `kit_shipping.py status` shows fill.
+- Fulgora (150,-155) and Vulcanus (-31,-63) had no landing pad; both were placed for this.
+- `scripts/nauvis_mall.py`: 26 robot-fed units at -70,-394 on Nauvis (requester chest -> assembler -> barred provider chest) make the kit items Nauvis lacked. Belt items that need lubricant (underground belt, splitter) are not made there: only the old stock ships.
+- Revive the Captain's ghosts on other planets with `ghost.revive()` when asked: robots there have no item to build them with.
+
+## Gleba heat to power (2026-11-13)
+- `scripts/gleba_heat.py`: the four western heating towers share a heat pipe row (y=6) with two heat exchangers and two turbines; water from a second offshore pump at 98,54. Exchangers need 500 degrees: joining the towers dropped them from 1000 to about 400, and they only climb while spoilage burns.
+- The three eastern towers (125,20  127,45  131,18) are not connected.
+- An offshore pump on Gleba is placeable only on some shore spots and facings; `place_entities` dry run does not check that. Test with `can_place_entity` and `build_check_type.manual`.
