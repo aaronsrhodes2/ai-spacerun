@@ -203,6 +203,25 @@ def verify_bench(items=None):
     return not bad
 
 
+def generate():
+    """Counts, before and after, for the compact design (the Lua that emits it is CFG2: one ring + one rank list, four combinators a machine)."""
+    n = len(game_recipes())
+    machines = 3
+    before = machines * n
+    after = machines * 4
+    print("solid recipe tables: %d deciders (%d machines x %d items)" % (before, machines, n))
+    print("compact: %d combinators (%d machines x [D1 intersect, A1 sum, D2 ring decode, A2 x BATCH]) + 1 ring constant combinator" % (after, machines))
+    print("                the rank list is the demand-filter constant combinator that already exists (min=rank instead of min=1)")
+    print("whole Replicator combinators: 653 deciders + 6 arithmetic -> %d deciders + %d arithmetic (fluid 112 and furnace 5 untouched)"
+          % (653 - before + machines * 2, 6 + machines * 2))
+
+
+def status():
+    from _game import tools
+    print(tools["run_lua"]("local s=game.surfaces.nauvis local c={} for _,e in pairs(s.find_entities_filtered{area={{%s,%s},{%s,%s}},force='player'}) do c[e.name]=(c[e.name] or 0)+1 end local t={} for k,v in pairs(c) do t[#t+1]=k..' '..v end rcon.print('bench: '..table.concat(t,', '))" % (BX, BY, BX + 12, BY + 7)))
+    print("chest wire:", bench_read())
+
+
 def main():
     step = sys.argv[1] if len(sys.argv) > 1 else "study"
     if step == "study":
@@ -211,6 +230,10 @@ def main():
         bench_build("--apply" in sys.argv)
     elif step == "bench" and sys.argv[2] == "stage2":
         bench_stage2("--apply" in sys.argv)
+    elif step == "generate":
+        generate()
+    elif step == "status":
+        status()
     elif step == "verify":
         verify_bench()
     elif step == "bench" and sys.argv[2] == "config2":

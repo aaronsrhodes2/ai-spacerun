@@ -58,9 +58,15 @@ for _, s in pairs(game.surfaces) do
   local rp = #s.find_entities_filtered{name = 'roboport'}
   if rp > 0 then
     local bots = #s.find_entities_filtered{name = 'logistic-robot'}
+    local nets = {}
     for _, p in pairs(s.find_entities_filtered{name = 'roboport'}) do
       local inv = p.get_inventory(defines.inventory.roboport_robot)
       if inv then bots = bots + inv.get_item_count('logistic-robot') end
+      local n = p.logistic_network
+      if n and not nets[n.network_id] then
+        nets[n.network_id] = true
+        bots = bots + n.all_logistic_robots
+      end
     end
     agg['ROBOTS|' .. s.name .. '|' .. rp .. '|' .. bots] = 1
   end

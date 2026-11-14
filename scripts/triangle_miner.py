@@ -260,17 +260,17 @@ def config_lua():
 
 
 # ------------------------------------------------------------------ solar field
-def panel_ents(bands=(12, 17, 20, 23)):
+def panel_ents(bands=(12, 17, 20, 23), subs=((-22, 15), (-10, 15), (8, 15), (20, 15)), gap=15):
     ents, tiles = [], set()
     for y0 in bands:
         for x0 in list(range(-30, -3, 3)) + list(range(3, 30, 3)):
             ents.append(T("solar-panel", x0, y0, 0, 3, 3))
             tiles |= {(x0 + i, y0 + j) for i in range(3) for j in range(3)}
-    for (cx, cy) in [(-22, 15), (-10, 15), (8, 15), (20, 15)]:
+    for (cx, cy) in subs:
         ents.append(T("substation", cx, cy, 0, 2, 2))
         tiles |= {(cx + i, cy + j) for i in range(2) for j in range(2)}
     for x in list(range(-30, -3)) + list(range(3, 30)):
-        for y in (15, 16):
+        for y in (gap, gap + 1):
             tiles.add((x, y))
     return ents, tiles
 
@@ -426,8 +426,8 @@ def main():
             print(lua(config_lua()))
     elif step == "config":
         print(lua(config_lua()))
-    elif step == "panels":
-        ents, tiles = panel_ents()
+    elif step in ("panels", "panels2"):
+        ents, tiles = panel_ents() if step == "panels" else panel_ents((29, 32), ((-22, 26), (-10, 26), (8, 26), (20, 26)), 26)
         if apply and first_standing(ents):
             sys.exit("panels already built")
         if apply:

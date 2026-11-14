@@ -98,7 +98,7 @@ p.schedule={current=CUR,records={
  c('fluid','thruster-fuel',40000,'or'),c('fluid','thruster-oxidizer',40000),c('item','carbon',3000),c('item','iron-ore',3000),c('item','explosive-rocket',RK),c('item','uranium-rounds-magazine',MG),tm(18000)}},
 {station='aquilo',wait_conditions={c('fluid','thruster-fuel',15000),c('fluid','thruster-oxidizer',15000),tm(5400),c('item','cryogenic-science-pack',PK),
  c('fluid','thruster-fuel',15000,'or'),c('fluid','thruster-oxidizer',15000),tm(WAIT)}}}}
-if 'SIMPLE'=='yes' then p.schedule={current=CUR,records={p.schedule.records[1],{station='aquilo',wait_conditions={c('fluid','thruster-fuel',15000),c('fluid','thruster-oxidizer',15000),tm(WAIT)}}}} end
+if 'SIMPLE'=='yes' then p.schedule={current=CUR,records={p.schedule.records[1],{station='aquilo',wait_conditions={c('fluid','thruster-fuel',15000),c('fluid','thruster-oxidizer',15000),TESTGATE}}}} end
 p.paused=PAUSED if p.space_location then p.space_location=p.space_location.name end
 rcon.print('schedule gleba <-> aquilo set for '..p.name..', paused='..tostring(p.paused)..', state '..p.state)"""
 
@@ -139,7 +139,7 @@ def main():
     elif step == "route":
         cur = run(lua_find() + "rcon.print(p.space_location and p.space_location.name or 'none')")
         r = ROUTE.replace("CUR", "2" if cur == "aquilo" else "1").replace("PAUSED", "false" if "--go" in sys.argv else "true")
-        r = r.replace("RK", str(2 * int(arg("rockets", 1800)))).replace("MG", str(2 * int(arg("mags", 1500)))).replace("PK", str(2 * int(arg("packs", 400)))).replace("WAIT", arg("wait", "36000")).replace("SIMPLE", "yes" if "--simple" in sys.argv else "no")
+        r = r.replace("RK", str(2 * int(arg("rockets", 1800)))).replace("MG", str(2 * int(arg("mags", 1500)))).replace("PK", str(2 * int(arg("packs", 400)))).replace("WAIT", arg("wait", "36000")).replace("SIMPLE", "yes" if "--simple" in sys.argv else "no").replace("TESTGATE", "c('item','iron-plate',190)" if "--testgate" in sys.argv else "tm(%s)" % arg("wait", "36000"))
         print(run(lua_find() + r))
     elif step in ("create", "build", "config", "check", "requests", "hold", "targets", "fit", "watch", "rename"):
         sys.argv[0] = "aquilo_ship3.py"
