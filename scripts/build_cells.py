@@ -23,6 +23,8 @@ KINDS = {
     "ec": {"machine": "assembling-machine-3", "recipe": "electronic-circuit", "bar": 4, "req": [("copper-cable", 300), ("iron-plate", 100)]},
     "ac": {"machine": "assembling-machine-3", "recipe": "advanced-circuit", "req": [("electronic-circuit", 40), ("plastic-bar", 40), ("copper-cable", 80)]},
     "foundation": {"machine": "assembling-machine-3", "recipe": "space-platform-foundation", "req": [("steel-plate", 100), ("copper-cable", 100)]},
+    # logistic robots: the robot pool is fixed (7,053 on Nauvis, none made anywhere), so the other planets have none (2026-11-14)
+    "robot": {"machine": "assembling-machine-3", "recipe": "logistic-robot", "bar": 20, "req": [("advanced-circuit", 80), ("flying-robot-frame", 40)]},
     "lds": {"machine": "assembling-machine-3", "recipe": "low-density-structure",
             "req": [("copper-plate", 200), ("steel-plate", 20), ("plastic-bar", 50)]},
     # science cell kinds (docs/science-target.md). "bar" limits the output chest to that many slots so a cell does not hoard.
@@ -47,7 +49,7 @@ KINDS = {
 }
 # logistic group for the requests of each kind (docs/naming-sop.md)
 GROUPS = {"steel": "Feed: Steel", "cable": "Feed: Copper Cable", "ec": "Feed: Electronic Circuit", "ac": "Feed: Advanced Circuit",
-          "foundation": "Feed: Platform Foundation", "lds": "Feed: Low Density Structure", "utility": "Feed: Utility Science Pack",
+          "foundation": "Feed: Platform Foundation", "robot": "Feed: Logistic Robot", "lds": "Feed: Low Density Structure", "utility": "Feed: Utility Science Pack",
           "production": "Feed: Production Science Pack", "frame": "Feed: Robot Frame (science cell)", "efurnace": "Feed: Electric Furnace",
           "prodmod": "Feed: Productivity Module", "rail": "Feed: Rail (science cell)", "stick": "Feed: Iron Stick", "brick": "Feed: Stone Brick",
           "engine": "Feed: Engine (science cell)", "gear": "Feed: Iron Gear Wheel", "pipe": "Feed: Pipe"}
@@ -68,29 +70,29 @@ def plan(kind, x0, y0, n):
     return ents
 
 
-def clear_box(x0, y0, n, infra=False):
+def clear_box(x0, y0, n, infra=False, surface="nauvis"):
     """Natural pieces go. Power and roboports in the box only go with infra=True (the old solar-field sites)."""
     box = f"{{{{{x0 + 0.1},{y0 + 0.1}}},{{{x0 + 6.9},{y0 + 3 * n - 0.1}}}}}"
     if infra:
         box = f"{{{{{x0 - 1},{y0 - 1}}},{{{x0 + 8},{y0 + 3 * n + 1}}}}}"
-    return _clear(box, infra)
+    return _clear(box, infra, surface)
 
 
-def _clear(box, infra):
+def _clear(box, infra, surface="nauvis"):
     cond = "n=='substation' or n=='roboport' or n=='solar-panel' or n=='accumulator' or n=='medium-electric-pole' or n=='small-electric-pole'" if infra else "false"
     return fx.lua(
-        f"local s=game.surfaces.nauvis local f=game.forces.player local A={box} local t,g=0,{{}} "
+        f"local s=game.surfaces.{surface} local f=game.forces.player local A={box} local t,g=0,{{}} "
         "for _,e in pairs(s.find_entities_filtered{area=A,type={'tree','cliff','simple-entity','item-entity','corpse','fish'}}) do if e.force.name~='player' then e.destroy() t=t+1 end end "
         "for _,e in pairs(s.find_entities_filtered{area=A,force=f}) do local n=e.name if " + cond + " then g[n]=(g[n] or 0)+1 e.destroy() end end "
         "local o={} for k,v in pairs(g) do o[#o+1]=k..'='..v end rcon.print('cleared '..t..' natural pieces, removed '..table.concat(o,', '))")
 
 
-def configure(kind, x0, y0, n):
+def configure(kind, x0, y0, n, surface="nauvis"):
     k = KINDS[kind]
     req = ",".join("{'%s',%d}" % r for r in k["req"])
     recipe = f"e.set_recipe('{k['recipe']}')" if k["recipe"] else ""
     return fx.lua(
-        f"local s=game.surfaces.nauvis local f=game.forces.player local R={{{req}}} local n,m=0,0 local G='{GROUPS[kind]}' local B={k.get('bar') or 0} "
+        f"local s=game.surfaces.{surface} local f=game.forces.player local R={{{req}}} local n,m=0,0 local G='{GROUPS[kind]}' local B={k.get('bar') or 0} "
         f"for i=0,{n - 1} do local yc={y0}+3*i+1.5 "
         f"local c=s.find_entities_filtered{{name='requester-chest',position={{{x0}+0.5,yc}},radius=0.4}}[1] "
         "if c then local sec=c.get_logistic_sections().add_section() for j,r in ipairs(R) do sec.set_slot(j,{value={name=r[1],quality='normal'},min=r[2]}) end sec.group=G n=n+1 end "
@@ -105,19 +107,20 @@ def main():
     ap.add_argument("--origin", nargs=2, type=int, required=True)
     ap.add_argument("--count", type=int, required=True)
     ap.add_argument("--apply", action="store_true")
+    ap.add_argument("--surface", default="nauvis", help="planet surface to build on (nauvis, fulgora, ...)")
     ap.add_argument("--remove-infra", action="store_true", help="also remove substations, roboports, solar panels and accumulators in the box")
     a = ap.parse_args()
     x0, y0 = a.origin
     ents = plan(a.kind, x0, y0, a.count)
     if not a.apply:
-        res = json.loads(tools["place_entities"](json.dumps(ents), dry_run=True))
+        res = json.loads(tools["place_entities"](json.dumps(ents), surface=a.surface, dry_run=True))
         print("dry run:", {k: v for k, v in res.items() if k in ("failed", "placed")})
         return
-    print(clear_box(x0, y0, a.count, a.remove_infra))
+    print(clear_box(x0, y0, a.count, a.remove_infra, a.surface))
     for part in batches(ents):
-        r = json.loads(tools["place_entities"](json.dumps(part)))
+        r = json.loads(tools["place_entities"](json.dumps(part), surface=a.surface))
         print("placed", r.get("placed"), "failed", r.get("failed"))
-    print(configure(a.kind, x0, y0, a.count))
+    print(configure(a.kind, x0, y0, a.count, a.surface))
 
 
 if __name__ == "__main__":

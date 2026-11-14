@@ -232,6 +232,11 @@ def lua_list(rows):
 # and once took every chunk the spiral needed (green science fell to 0 on three wheels). They now work only while the last tile of the
 # spiral's in-belt (the dead end by the crusher intakes, read in hold mode over a long wire) holds 4 or more of their chunk: the spiral's belt is
 # full to the end, so what the district takes is surplus. Carbon (hub stock over SPARE) is unchanged.
+# 2026-11-14: the METALLIC tap must not read the dead end. The in-belt (y=-27, flowing east) passes the two metallic intakes (x=-105, -101) and
+# ends at the oxide intake (x=-97); metallic chunks that slip past x=-101 lie on the last four tiles for ever (16 of them on every wheel), so
+# 'metallic >= 4 at the dead end' was always true, the district took every metallic chunk off the spoke and the spiral crushed 0 to 5 a minute
+# of the 23 to 57 passing (green science 11 a minute on two wheels, tank at 0 on all four). It now reads the tile before the first metallic
+# intake (x=-107): four metallic chunks standing there mean the spiral's crushers are fed and the lane is backed up.
 # Step `refit` (once, on wheels built before the reshuffler): takes out the old oxide and metallic crushers and their inserters (what
 # they hold goes into the hub) and places everything of the layout that is not standing yet.
 REFIT = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local n=0 for _,p in pairs(OLD) do for _,e in pairs(s.find_entities_filtered{position=p,radius=0.3,type={'assembling-machine','inserter'}}) do "
@@ -249,7 +254,8 @@ CONFIG = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=define
           "cond(at('inserter',-65.5,0.5),'carbon','>',SPARE,W.circuit_red,hub) "
           "local ib=nil for x=-90,-112,-1 do ib=ib or s.find_entities_filtered{type='transport-belt',position={x+0.5,-26.5},radius=0.3}[1] end if ib then local bc=ib.get_or_create_control_behavior() bc.read_contents=true bc.read_contents_mode=defines.control_behavior.transport_belt.content_read_mode.hold "
           "for _,x in pairs{-66.5,-64.5} do at('inserter',x,0.5).get_wire_connector(W.circuit_red,true).disconnect_all() end "
-          "cond(at('inserter',-66.5,0.5),'metallic-asteroid-chunk','>=',4,W.circuit_red,ib) cond(at('inserter',-64.5,0.5),'oxide-asteroid-chunk','>=',4,W.circuit_red,ib) o[#o+1]='metallic and oxide taps follow the spiral in-belt end' else o[#o+1]='NO in-belt end found' end "
+          "local ibm=at('transport-belt',-106.5,-26.5) local bm=ibm.get_or_create_control_behavior() bm.read_contents=true bm.read_contents_mode=defines.control_behavior.transport_belt.content_read_mode.hold ibm.get_wire_connector(W.circuit_red,true).disconnect_all() "
+          "cond(at('inserter',-66.5,0.5),'metallic-asteroid-chunk','>=',4,W.circuit_red,ibm) cond(at('inserter',-64.5,0.5),'oxide-asteroid-chunk','>=',4,W.circuit_red,ib) o[#o+1]='oxide tap follows the spiral in-belt end, metallic tap the tile before the first metallic intake' else o[#o+1]='NO in-belt end found' end "
           "cond(at('inserter',CX,CY),'carbon','<',CARBON,W.circuit_red,prev) cond(at('inserter',RX,RY),'ice','<',20,W.circuit_green,mach(WX,WY)) "
           "local melt=mach(WX,WY) melt.get_or_create_control_behavior().circuit_read_contents=true cond(at('inserter',OX,OY),'ice','<',20,W.circuit_green,melt) "
           "local cu=mach(MX,MY) cu.get_or_create_control_behavior().circuit_read_contents=true cond(at('inserter',TX,TY),'copper-ore','<',50,W.circuit_green,cu) o[#o+1]='tap and crusher gates set' rcon.print(table.concat(o,', '))")

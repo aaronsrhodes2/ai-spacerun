@@ -33,6 +33,17 @@ ROBOTS = ("local f=game.forces.player local best=nil for n,q in pairs(prototypes
           "if st.valid_for_read and st.quality.level<best.level then n=n+st.count st.set_stack{name=st.name,count=st.count,quality=best.name} end end end end end rcon.print('robots swapped '..n)")
 
 
+# Shuttle guard (2026-11-14): a shuttle parked at a far planet with fewer than GUARD_MAGS magazines in its hub is sent straight home to Nauvis
+# to refill, instead of waiting there unarmed while asteroids take its entities. Only shuttles on a far stop are touched; ships in transit are left alone.
+GUARD_MAGS = 150
+SHIP_GUARD = (
+    "local f=game.forces.player local n=0 local o={} for _,p in pairs(f.platforms) do if p.valid and p.name:find('Shuttle$') and p.hub and p.schedule and p.schedule.records and #p.schedule.records>1 then "
+    "local loc=p.space_location and p.space_location.name or nil "
+    "if loc and loc~='nauvis' and p.state==6 then local inv=p.hub.get_inventory(defines.inventory.hub_main) local m=inv.get_item_count('firearm-magazine') "
+    "if m<" + str(GUARD_MAGS) + " and p.schedule.current~=1 then local sch=p.schedule sch.current=1 p.schedule=sch n=n+1 o[#o+1]=p.name..' mags='..m..' at '..loc..' sent home' end end end end "
+    "rcon.print('shuttle guard sent '..n..' home'..(#o>0 and ': '..table.concat(o,'; ') or ''))"
+)
+
 def main():
     n = int(sys.argv[1]) if len(sys.argv) > 1 else 10**9
     ap.log("autopilot (local) started", LOG)
@@ -43,6 +54,7 @@ def main():
             fix = tools["run_lua"](ap.REPAIR)
             guard = tools["run_lua"](ap.SILO_GUARD)
             ships = tools["run_lua"](ap.SHIPS)
+            ships = ships + " | " + tools["run_lua"](SHIP_GUARD)
             bots = tools["run_lua"](ROBOTS).strip()
             reac = tools["run_lua"](REACTOR).strip()
             if "fed one cell" in reac:
