@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """Pack delivery between Nauvis and Gleba, both ways (2026-11-14).
   stops     every "Nauvis-Gleba" shuttle that is parked: the Nauvis stop becomes
-              fuel AND oxidizer AND magazines AND all requests satisfied   OR   fuel AND oxidizer AND magazines AND 5 minutes since arrival
+              fuel AND oxidizer AND magazines AND all requests satisfied   OR   fuel AND oxidizer AND magazines AND 15 minutes since arrival
             so one scarce pack (chemical, production) no longer holds a ship with the other packs aboard while Gleba's labs starve.
-            The Gleba stop is fuel, oxidizer, magazines and 60 quiet seconds, OR fuel, oxidizer, magazines and 800 agricultural packs
-            aboard (constant 1600: hub items count double on the wires): a ship drips packs to the Gleba pad for a long time and is
-            never quiet, and the agricultural packs aboard rot meanwhile. Ships in transit are skipped: run again.
-            Quiet seconds do not work at Nauvis: the ship's own inserters touch the hub (plates, magazines), so the fallback is a time wait.
-  agri      every "Nauvis-Gleba" shuttle asks Gleba for 800 agricultural packs with minimum_delivery_count 800. The Gleba silo only
+            The Gleba stop is fuel, oxidizer, magazines and 60 quiet seconds, OR fuel, oxidizer, magazines and 3 minutes since
+            arrival: a ship drips packs to the Gleba pad as the labs use them and is never quiet, so ships sat there as warehouses
+            without the one pack Gleba lacked. Leftovers stay aboard and come back. Ships in transit are skipped: run again.
+            Quiet seconds do not work at Nauvis: the ship's own inserters touch the hub (plates, magazines), so the fallback is a time wait
+            (15 minutes: the Nauvis silos need several minutes to load a ship; 5 sent ships away empty).
+  agri      SWITCHED OFF 2026-11-14 (the Captain: all labs on Gleba, the Nauvis labs are gone; `agri-off` was run). What it did:
+            every "Nauvis-Gleba" shuttle asks Gleba for 800 agricultural packs with minimum_delivery_count 800. The Gleba silo only
             launches when the network holds a whole delivery, i.e. when the science chest (gate at 1,000) has piled up 800 that Gleba's
             own labs did not use. So Nauvis gets the surplus only. The Nauvis pad asks for 1,600; the lab chests already ask for 100 each.
   agri-off  remove those requests again (ships and pad).
@@ -29,8 +31,8 @@ local function base(fuel,mags,first) return c('fluid','thruster-fuel',fuel,first
 for _,q in pairs(ships('Nauvis-Gleba')) do local i,p=q[1],q[2] if not p.space_location then o[#o+1]='#'..i..' in transit, skipped' else
 local a1,a2,a3=base(20000,800) local b1,b2,b3=base(20000,800,'or') local g1,g2,g3=base(32000,500) local h1,h2,h3=base(32000,500,'or')
 local sch=p.schedule or {} local cur=sch.current or 1 if p.space_location.name=='gleba' then cur=2 else cur=1 end
-sch.records={{station='nauvis',wait_conditions={a1,a2,a3,{type='all_requests_satisfied',compare_type='and'},b1,b2,b3,{type='time',compare_type='and',ticks=18000}}},
-{station='gleba',wait_conditions={g1,g2,g3,{type='inactivity',compare_type='and',ticks=3600},h1,h2,h3,c('item','agricultural-science-pack',1600)}}} sch.current=cur p.schedule=sch p.paused=false settle(p)
+sch.records={{station='nauvis',wait_conditions={a1,a2,a3,{type='all_requests_satisfied',compare_type='and'},b1,b2,b3,{type='time',compare_type='and',ticks=54000}}},
+{station='gleba',wait_conditions={g1,g2,g3,{type='inactivity',compare_type='and',ticks=3600},h1,h2,h3,{type='time',compare_type='and',ticks=10800}}}} sch.current=cur p.schedule=sch p.paused=false settle(p)
 local w={} for _,x in pairs(p.schedule.records[1].wait_conditions) do w[#w+1]=(x.compare_type or '?')..' '..x.type end
 o[#o+1]='#'..i..' at '..p.space_location.name..' current '..p.schedule.current..' state '..p.state..' nauvis stop: '..table.concat(w,', ') end end
 rcon.print(table.concat(o,'|'))

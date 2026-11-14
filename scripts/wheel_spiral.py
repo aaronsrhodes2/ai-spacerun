@@ -21,8 +21,9 @@ product belt.
            (x=-46) and side-loads onto the west product belt at -40,1. Two inserters at -52,0 and -50,0 lift returned chunks from it
            back onto the spoke belt.
 Space platforms need no poles. The in-belt holds about 2,300 chunks a lane before it backs up: the first fill takes a while.
-Steps on every wheel (--only gleba|nauvis): check | build [--apply] | config | status. Never apply twice on the same wheel.
-Usage: wheel_spiral.py check | build [--apply] | config | status  [--only PLANET]"""
+  cap      the science assemblers' intakes stop above 20,000 logistic packs in the hub (step `cap`, also part of `config`)
+Steps on every wheel (--only gleba|nauvis): check | build [--apply] | config | cap | status. Never apply twice on the same wheel.
+Usage: wheel_spiral.py check | build [--apply] | config | cap | status  [--only PLANET]"""
 import sys
 
 from _game import tools
@@ -180,6 +181,14 @@ CONFIG = ("local s=game.surfaces['SURF'] local W=defines.wire_connector_id local
           "local ox=at('inserter',-96.5,-27.5) for _,q in pairs{{-90.5,-35.5},{-78.5,-35.5}} do local m=s.find_entities_filtered{name='foundry',position=q,radius=0.5}[1] m.get_or_create_control_behavior().circuit_read_contents=true "
           "m.get_wire_connector(W.circuit_red,true).connect_to(ox.get_wire_connector(W.circuit_red,true),false) end local cb=ox.get_or_create_control_behavior() cb.circuit_enable_disable=true "
           "cb.circuit_condition={first_signal={type='item',name='calcite'},comparator='<',constant=CALCITE} o[#o+1]='crusher gates set' rcon.print(table.concat(o,', '))").replace("IRON", str(IRON)).replace("CALCITE", str(CALCITE))
+# 2026-11-14: green science had no stop. With the rocket district's tap fixed it runs at about 115 a minute, and two hubs already stood at the
+# valve's 36,000, so packs went overboard. The two science assemblers' intake inserters (-88.5,-52.5 and -82.5,-52.5) are wired (red, over reach)
+# to the hub and stop above PACKS stored packs, like every other pack line; the molten iron then goes to the goods caster (wheel_goods.py).
+PACKS = 20000
+CAPL = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=defines.wire_connector_id local n=0 pcall(function() hub.get_or_create_control_behavior().read_contents=true end) "
+        "for _,x in pairs{-88.5,-82.5} do local i=s.find_entities_filtered{type='inserter',position={x,-52.5},radius=0.3}[1] if i then local c=i.get_wire_connector(W.circuit_red,true) c.disconnect_all() c.connect_to(hub.get_wire_connector(W.circuit_red,true),false) "
+        "local cb=i.get_or_create_control_behavior() cb.circuit_enable_disable=true cb.circuit_condition={first_signal={type='item',name='logistic-science-pack'},comparator='<',constant=PACKS} n=n+1 end end "
+        "rcon.print('green science intakes capped at PACKS in the hub: '..n)").replace("PACKS", str(PACKS))
 STATUS = ("local s=game.surfaces['SURF'] local st={} for _,c in pairs(s.find_entities_filtered{type='assembling-machine',area={{-109,-60},{-72,-25}}}) do local k='?' for n,v in pairs(defines.entity_status) do if v==c.status then k=n end end "
           "local rc=c.get_recipe() k=(rc and rc.name or c.name)..' '..k st[k]=(st[k] or 0)+1 end local o={} for k,v in pairs(st) do o[#o+1]=k..' '..v end table.sort(o) "
           "local b={} for _,e in pairs(s.find_entities_filtered{type={'transport-belt','underground-belt'},area={{-127,-78},{-55,-10}}}) do for l=1,2 do for _,it in pairs(e.get_transport_line(l).get_contents()) do b[it.name]=(b[it.name] or 0)+it.count end end end "
@@ -208,6 +217,9 @@ def main():
             code = (CONFIG.replace("SURF", surface).replace("FILT", lua_list([(x, y, fl) for x, y, fl in cfg])).replace("REC", lua_list(recipes))
                     .replace("LOOP", lua_list(loop_tiles)).replace("GATED", lua_list([(x, y, it, TARGETS[it]) for x, y, it in gated])))
             print(tools["run_lua"](code))
+            print(tools["run_lua"](CAPL.replace("SURF", surface)))
+        elif step == "cap":
+            print(tools["run_lua"](CAPL.replace("SURF", surface)))
         elif step == "status":
             print(tools["run_lua"](STATUS.replace("SURF", surface)).replace(" ; ", "\n"))
 
