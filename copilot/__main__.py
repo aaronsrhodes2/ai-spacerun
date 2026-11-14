@@ -53,6 +53,7 @@ from .purple import Purple, PurpleAgent, SourceError
 from .purple_client import DEFAULT_URL as PURPLE_URL, PurpleClient
 from .toolbox import Toolbox
 from .tools import LocalTools
+from .tiered import TieredAgent
 from .voice_door import PORT as VOICE_PORT, VoiceDoor
 
 HERE = pathlib.Path(__file__).parent
@@ -158,6 +159,20 @@ def agent_from(env, game, tools, log_path, max_steps=12):
     return Agent(game, model, log_path, max_steps=max_steps, local=tools)
 
 
+def quick_from(env, game, tools, log_path):
+    """The quick tier: a plain model for short questions and small orders, or None when COPILOT_QUICK_URL is not set (see tiered.py)."""
+    url = env.get("COPILOT_QUICK_URL")
+    if not url:
+        return None
+    kind = (env.get("COPILOT_QUICK_SOURCE") or "anthropic").strip().lower()
+    if kind not in ("anthropic", "openai", "ollama"):
+        raise SetupError("COPILOT_QUICK_SOURCE is '%s'; it must be anthropic, openai or ollama" % kind)
+    if not env.get("COPILOT_QUICK_MODEL"):
+        raise SetupError("the quick tier needs COPILOT_QUICK_MODEL: the name of the model on %s" % url)
+    model = make(kind, env["COPILOT_QUICK_MODEL"], url, secret(env, "COPILOT_QUICK_KEY"))
+    return Agent(game, model, log_path, max_steps=int(env.get("COPILOT_QUICK_STEPS", "6")), local=tools)
+
+
 def voice_door(env, out=print):
     """The voice door, listening, or None when it is switched off or its port is taken (the bridge still runs)."""
     port = env.get("COPILOT_VOICE_PORT", str(VOICE_PORT)).strip().lower()
@@ -189,7 +204,11 @@ def main():
         logs = pathlib.Path(env.get("COPILOT_LOG_DIR", "runs"))
         logs.mkdir(exist_ok=True)
         tools = LocalTools(game, plan_store=logs / "plans.json")
-        agent = agent_from(env, game, tools, logs / (time.strftime("%Y%m%d-%H%M%S") + ".jsonl"))
+        stamp = time.strftime("%Y%m%d-%H%M%S")
+        agent = agent_from(env, game, tools, logs / (stamp + ".jsonl"))
+        quick = quick_from(env, game, tools, logs / (stamp + "-quick.jsonl"))
+        if quick:
+            agent = TieredAgent(quick, agent)
     except (SetupError, SourceError, RuntimeError) as e:
         print("Skippy cannot start: %s" % e)
         print("Run  python -m copilot --check  to go through the setup step by step.")

@@ -30,6 +30,13 @@ Built so far:
   build, heard through linked custom inputs in `data.lua`) take it back at once; the mode stays. A scored run can lock
   the mode. The default is still builds-on-its-own. Not yet tried in a real game: whether the linked inputs fire as
   the documentation says.
+- **Two speeds** (the Captain, 2026-11-14: a snappy answer for simple things, high reasoning for hard things). The first live
+  turn showed purple at ~6 s a step, wandering through five read-only checks for a one-line question. `copilot/tiered.py`
+  puts a quick tier in front: SkippyCore's always-loaded `chat` slot (Qwen3.6-35B-A3B, thinking off, ~0.2 s for a short
+  hello, anthropic format) answers short questions and small orders; plans, builds, standing goals, news and alerts go to
+  purple, which also answers whenever the quick model is down or silent. Set with `COPILOT_QUICK_*` (unset = one speed).
+  The rule that picks is a keyword-and-length heuristic (`tiered.pick`), unproven on real play. Core can also think
+  (`chat_template_kwargs enable_thinking`, ~6 s) and has a coder slot: a middle rung between the two, not built.
 - **Voice** (the Captain, 2026-11-13: speech to text and text to speech in the game, in purple Skippy's voice, so the
   game can be played with Claude Desktop closed and no keyboard). A mod cannot hear, speak or reach the network, and
   the house's voice gate wants a pass signed from the home token, which must never come here. So the house's own
