@@ -11,7 +11,7 @@ the ore, so the hub stood at 12 carbon while the valve threw ore overboard.
   wires    inserter to hub is far beyond wire reach (connect_to with the reach check off). A quality upgrade drops such wires: run
            `config` again after one.
 The lamps of scripts/wheel_lights.py that stood in the slots are removed by `build --apply`.
-Steps on every wheel (--only gleba|nauvis): check | build [--apply] | config | balance [--apply] | status. Never apply twice on the same wheel.
+Steps on every wheel (--only PLANET): check | build [--apply] | config | balance [--apply] | recipes [--apply] | status. Never apply twice on the same wheel.
 Usage: wheel_reprocess.py check | build [--apply] | config | status  [--only PLANET]"""
 import sys
 
@@ -67,17 +67,38 @@ STATUS = ("local s=game.surfaces['SURF'] local st={} for _,c in pairs(s.find_ent
 # Step `balance` (2026-11-13, after measuring: the 24 normal crushers stand first on the loop, took the chunks and their ore went overboard;
 # only 3 of 8 metallic reprocessors found a chunk). Three deciders at DEC read the hub: a kind is in surplus when BOTH its products are
 # above SURPLUS. While it is, the normal crushers of that kind stop and its reprocessors run; otherwise the other way round.
+# Only the centre's crushers (within 50 tiles of the hub): the spiral's three crushers have gates of their own (scripts/wheel_spiral.py)
+# and a run of this step once took them over.
 # This replaces the single-product gate of `config`: run `balance` after `config`, and again after a quality upgrade (over-reach wires).
 SURPLUS = 32000
 DEC = (-23, -46)
-PAIRS = (("metallic", "M", "iron-ore", "copper-ore"), ("carbonic", "C", "carbon", "sulfur"), ("oxide", "O", "ice", "calcite"))
+PAIRS = (("metallic", "M", "iron-ore", "copper-ore", 10000), ("carbonic", "C", "carbon", "sulfur", 10000), ("oxide", "O", "ice", "calcite", 5000))
+# The second number is the by-product's own mark (2026-11-13, the Captain: turn waste into opportunity). With both at 32,000 the new
+# wheels crushed for copper until iron ore went overboard at 1,000 a minute; now a kind is reshuffled once its main product is over
+# SURPLUS and its by-product merely sufficient, and crushed again when the by-product runs low.
+
+# Step `recipes`: the 16 carbonic and oxide crushers of the centre take their recipe from the hub's stock. Basic crushing gives 10
+# carbon (advanced: 5 carbon + 2 sulfur) and 5 ice (advanced: 3 ice + 2 calcite). So with plenty of the by-product in the hub the
+# crushers switch to basic: twice the carbon, two thirds more ice, and no sulfur or calcite made only to be thrown away. Four deciders
+# at RDEC. Run after `balance`; again after a quality upgrade.
+RDEC = (-20, -48)
+SWITCH = (("carbonic", "sulfur", 20000), ("oxide", "calcite", 5000))
+RECIPES = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=defines.wire_connector_id local n=0 local o={} for k,q in pairs(SWITCH) do local d1=s.find_entities_filtered{name='decider-combinator',position={RX+2*(k-1)+0.5,RY+1},radius=0.3}[1] "
+           "local d2=s.find_entities_filtered{name='decider-combinator',position={RX+2*(k-1)+1.5,RY+1},radius=0.3}[1] for _,d in pairs{d1,d2} do for _,id in pairs{W.combinator_input_red,W.combinator_input_green,W.combinator_output_red,W.combinator_output_green} do d.get_wire_connector(id,true).disconnect_all() end "
+           "d.get_wire_connector(W.combinator_input_red,true).connect_to(hub.get_wire_connector(W.circuit_red,true),false) end "
+           "d1.get_or_create_control_behavior().parameters={conditions={{first_signal={type='item',name=q[2]},comparator='>',constant=q[3]}},outputs={{signal={type='recipe',name=q[1]..'-asteroid-crushing'},copy_count_from_input=false,constant=1}}} "
+           "d2.get_or_create_control_behavior().parameters={conditions={{first_signal={type='item',name=q[2]},comparator='<=',constant=q[3]}},outputs={{signal={type='recipe',name='advanced-'..q[1]..'-asteroid-crushing'},copy_count_from_input=false,constant=1}}} "
+           "d2.get_wire_connector(W.combinator_output_green,true).connect_to(d1.get_wire_connector(W.combinator_output_green,true),false) "
+           "for _,c in pairs(s.find_entities_filtered{name='crusher'}) do local r=c.get_recipe() if r and r.name:find(q[1]..'%-asteroid%-crushing') and math.abs(c.position.x)<50 and math.abs(c.position.y)<50 then "
+           "c.get_wire_connector(W.circuit_green,true).disconnect_all() c.get_wire_connector(W.circuit_green,true).connect_to(d1.get_wire_connector(W.combinator_output_green,true),false) c.get_or_create_control_behavior().circuit_set_recipe=true n=n+1 end end end "
+           "rcon.print('crushers on a recipe wire '..n)")
 BALANCE = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=defines.wire_connector_id local o={} pcall(function() hub.get_or_create_control_behavior().read_contents=true end) "
            "local prev_in,prev_out=nil,nil local last=nil for _,q in pairs(PAIRS) do local d=s.find_entities_filtered{name='decider-combinator',position={q[5],q[6]},radius=0.4}[1] "
-           "d.get_or_create_control_behavior().parameters={conditions={{first_signal={type='item',name=q[3]},comparator='>',constant=SURPLUS},{first_signal={type='item',name=q[4]},comparator='>',constant=SURPLUS,compare_type='and'}},"
+           "d.get_or_create_control_behavior().parameters={conditions={{first_signal={type='item',name=q[3]},comparator='>',constant=SURPLUS},{first_signal={type='item',name=q[4]},comparator='>',constant=q[7],compare_type='and'}},"
            "outputs={{signal={type='virtual',name='signal-'..q[2]},copy_count_from_input=false,constant=1}}} "
            "local i=d.get_wire_connector(W.combinator_input_green,true) if prev_in then i.connect_to(prev_in,false) else i.connect_to(hub.get_wire_connector(W.circuit_green,true),false) end prev_in=i "
            "local u=d.get_wire_connector(W.combinator_output_red,true) if prev_out then u.connect_to(prev_out,false) end prev_out=u end "
-           "local a,b=0,0 for _,c in pairs(s.find_entities_filtered{name='crusher'}) do local r=c.get_recipe() if r then local sig=nil for _,q in pairs(PAIRS) do if r.name:find(q[1],1,true) then sig=q[2] end end "
+           "local a,b=0,0 for _,c in pairs(s.find_entities_filtered{name='crusher'}) do local r=c.get_recipe() if r and math.abs(c.position.x)<50 and math.abs(c.position.y)<50 then local sig=nil for _,q in pairs(PAIRS) do if r.name:find(q[1],1,true) then sig=q[2] end end "
            "for _,i in pairs(s.find_entities_filtered{type='inserter',position=c.position,radius=3}) do if sig and i.drop_target==c then local w=i.get_wire_connector(W.circuit_red,true) w.disconnect_all() w.connect_to(prev_out,false) "
            "local cb=i.get_or_create_control_behavior() cb.circuit_enable_disable=true local rep=r.name:find('reprocessing',1,true) "
            "cb.circuit_condition={first_signal={type='virtual',name='signal-'..sig},comparator=rep and '>' or '=',constant=0} if rep then a=a+1 else b=b+1 end end end end end "
@@ -92,7 +113,7 @@ def balance(surface, apply):
         r = json.loads(tools["place_entities"](json.dumps(decs), surface=surface, dry_run=not apply))
         print("deciders", "placed" if apply else "dry run", r.get("placed"), r.get("failed") or "")
     if apply:
-        pairs = "{" + ",".join("{'%s','%s','%s','%s',%s,%s}" % (k, sg, a, b, DEC[0] + i + .5, DEC[1] + 1) for i, (k, sg, a, b) in enumerate(PAIRS)) + "}"
+        pairs = "{" + ",".join("{'%s','%s','%s','%s',%s,%s,%d}" % (k, sg, a, b, DEC[0] + i + .5, DEC[1] + 1, lo) for i, (k, sg, a, b, lo) in enumerate(PAIRS)) + "}"
         print(tools["run_lua"](BALANCE.replace("SURF", surface).replace("PAIRS", pairs)))
 
 
@@ -120,6 +141,16 @@ def main():
                                    .replace("CHUNKS", "{" + ",".join("'%s'" % c for c in CHUNKS) + "}")))
         elif step == "balance":
             balance(surface, apply)
+        elif step == "recipes":
+            import json
+            decs = [{"name": "decider-combinator", "x": RDEC[0] + i + .5, "y": RDEC[1] + 1, "direction": 0, "params": dict(Q)} for i in range(4)]
+            have = tools["run_lua"]("rcon.print(game.surfaces['%s'].count_entities_filtered{name='decider-combinator',area={{%s,%s},{%s,%s}}})" % (surface, RDEC[0], RDEC[1], RDEC[0] + 4, RDEC[1] + 2)).strip()
+            if have == "0":
+                r = json.loads(tools["place_entities"](json.dumps(decs), surface=surface, dry_run=not apply))
+                print("deciders", "placed" if apply else "dry run", r.get("placed"), r.get("failed") or "")
+            if apply:
+                sw = "{" + ",".join("{'%s','%s',%d}" % q for q in SWITCH) + "}"
+                print(tools["run_lua"](RECIPES.replace("SURF", surface).replace("SWITCH", sw).replace("RX", str(RDEC[0])).replace("RY", str(RDEC[1]))))
         elif step == "status":
             print(tools["run_lua"](STATUS.replace("SURF", surface)))
 
