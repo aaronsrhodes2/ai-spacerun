@@ -293,6 +293,8 @@ def test_the_button_on_the_working_light_switches_the_mode():
     mod.run("fake.click(1, %s)" % button)
     assert mod.result("avatar")["mode"] == "my-character" and mod.lua.eval(button + ".caption") == "moves your character"
     mod.run("fake.click(1, %s)" % button)
+    assert mod.result("avatar")["mode"] == "advise"                                              # the third step; then round again
+    mod.run("fake.click(1, %s)" % button)
     assert mod.result("avatar")["mode"] == "free-hand"
     mod.run("fake.click(1, game.players[1].gui.top.skippy_light.state)")                         # clicking elsewhere does nothing
     assert mod.result("avatar")["mode"] == "free-hand"

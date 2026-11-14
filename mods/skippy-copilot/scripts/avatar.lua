@@ -30,10 +30,13 @@ local DIRS = {                  -- the eight ways a character can walk: {dx, dy,
 
 -- The mode of the mod (the Captain, 2026-11-13): a setting the player can change at any moment, not a choice made
 -- once for a whole game.
+-- The three are steps of one ladder, from playing by hand to being moved, and the player goes up or down it freely:
+--   advise         the player plays by hand; the assistant looks and says what it would do, and changes nothing
 --   free-hand      the assistant builds on its own, placing pieces freely, while the player does their own thing
 --   my-character   the assistant moves the player's character around and builds with its hands and its inventory
 -- With nobody in the game, my-character uses a character the mod keeps for itself, so unattended runs still walk.
-V.MODES = { ["free-hand"] = "builds on its own", ["my-character"] = "moves your character" }
+V.MODES = { advise = "advises only", ["free-hand"] = "builds on its own", ["my-character"] = "moves your character" }
+V.LADDER = { "advise", "free-hand", "my-character" }
 local SETTING = "skippy-copilot-mode"
 
 function V.init()
@@ -350,6 +353,10 @@ end
 
 local function no_avatar()
   if V.executor() ~= "avatar" then
+    if V.mode() == "advise" then
+      return { error = "the mod is in advise mode: the player plays by hand and you only look and advise",
+               hint = "tell the player where to go and what to do; they can say 'take over my character' to let you move it" }
+    end
     return { error = "the mod is in free-hand mode, where the assistant builds on its own and does not move a character",
              hint = "build with plans; or the player can switch to my-character mode" }
   end
@@ -570,7 +577,7 @@ R.register {
 -- Change the mode. Whatever the avatar was doing stops: it must not go on walking the player's character after the
 -- player has taken it back.
 function V.set_mode(mode, by_setting)
-  if not V.MODES[mode] then return { error = "mode must be 'free-hand' or 'my-character'" } end
+  if not V.MODES[mode] then return { error = "mode must be 'advise', 'free-hand' or 'my-character'" } end
   if storage.mode_locked and mode ~= V.mode() then
     return { error = "the mode is locked for this run to '" .. V.mode() .. "'" }
   end
@@ -592,16 +599,35 @@ function V.on_setting(event)
   end
 end
 
--- The other mode from the one in force: what the button on the working light switches to.
+-- The next step of the ladder after the one in force, round again at the end: what the button on the working light
+-- switches to.
 function V.other_mode()
-  return (V.mode() == "free-hand") and "my-character" or "free-hand"
+  for i, m in ipairs(V.LADDER) do
+    if m == V.mode() then return V.LADDER[i % #V.LADDER + 1] end
+  end
+  return "free-hand"
+end
+
+-- The player has touched their own controls (moving, mining, building). If the assistant is moving that player's
+-- character, it lets go at once: the job ends, the mode stays, and the next thing the player asks for moves them again.
+function V.on_player_input(event)
+  local av = storage.avatar
+  if V.mode() ~= "my-character" or not av or not av.job then return end
+  local p = event.player_index and game.get_player(event.player_index)
+  local body = V.body()
+  if not p or not body or p.character ~= body then return end
+  local kind = av.job.kind
+  finish(false, "the player took the controls; wait until they ask before moving their character again",
+         { placed = av.job.placed, of = av.job.pieces and #av.job.pieces or nil })
+  p.print("[color=0,1,0.53][Skippy][/color] You have the controls. I stopped the " .. kind .. "; say the word and I will carry on.")
+  if V.redraw then V.redraw() end
 end
 
 R.register {
   name = "set_mode",
-  description = "Switch how the assistant works, when the player asks for it. 'free-hand': the assistant builds on its own, placing pieces freely, while the player does their own thing. 'my-character': the assistant moves the player's character around and builds by hand from its inventory. Only change it because the player said so.",
+  description = "Switch how the assistant works, when the player asks for it. 'advise': the player plays by hand and you only look and say what you would do. 'free-hand': the assistant builds on its own, placing pieces freely, while the player does their own thing. 'my-character': the assistant moves the player's character around and builds by hand from its inventory. Only change it because the player said so.",
   params = {
-    mode = { type = "string", required = true, description = "'free-hand' or 'my-character'" },
+    mode = { type = "string", required = true, description = "'advise', 'free-hand' or 'my-character'" },
   },
   run = function(a)
     local r = V.set_mode(a.mode)

@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.16.0
+Date: 2026-11-13
+  Features:
+    - A third way of working, "advises only": you play by hand and the assistant looks and says what it would do.
+    - The button on the working light steps through the three: advises only, builds on its own, moves your character.
+    - Touching your own controls while the assistant moves your character takes it back at once.
+---------------------------------------------------------------------------------------------------
 Version: 0.15.0
 Date: 2026-11-13
   Features:

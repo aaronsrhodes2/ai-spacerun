@@ -24,6 +24,10 @@ function R.describe_all()
   return out
 end
 
+-- Tools that change the world. In advise mode the player builds and the assistant only looks and says what it would
+-- do, so these refuse, except as a dry run.
+local HANDS = { build = true, remove = true, set_recipe = true, reveal_map = true }
+
 function R.call(name, args)
   local spec = R.tools[name]
   if not spec then
@@ -45,6 +49,10 @@ function R.call(name, args)
     elseif type(v) ~= p.type then
       return { ok = false, error = "parameter '" .. key .. "' must be a " .. p.type .. ", got a " .. type(v), tool = describe(spec) }
     end
+  end
+  if storage.mode == "advise" and HANDS[name] and not args.dry_run then
+    return { ok = false, error = "the mod is in advise mode: the player plays by hand and you only look and advise",
+             hint = "tell the player exactly what to place and where (a dry run still works, to check it first). They can say 'go do it yourself' to let you build." }
   end
   local ok, res = pcall(spec.run, args)
   if not ok then

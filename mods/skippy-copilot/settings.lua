@@ -6,7 +6,7 @@ data:extend {
     name = "skippy-copilot-mode",
     setting_type = "runtime-global",
     default_value = "free-hand",
-    allowed_values = { "free-hand", "my-character" },
+    allowed_values = { "advise", "free-hand", "my-character" },
     order = "a",
   },
 }

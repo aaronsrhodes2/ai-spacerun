@@ -116,6 +116,9 @@ script.on_event(defines.events.on_gui_click, function(event)
     chat.draw_all()
   end
 end)
+for _, control in ipairs({ "move-up", "move-down", "move-left", "move-right", "mine", "build" }) do
+  script.on_event("skippy-hands-" .. control, avatar.on_player_input)     -- defined in data.lua
+end
 script.on_event(defines.events.on_tick, function(event)
   avatar.on_tick(event)
   stats.on_tick(event)

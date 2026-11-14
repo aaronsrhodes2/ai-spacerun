@@ -29,8 +29,8 @@ local function draw(player)
     frame.add { type = "button", name = "skippy_mode", caption = "" }
   end
   local mode = storage.mode or "free-hand"
-  frame.skippy_mode.caption = (mode == "my-character") and "moves your character" or "builds on its own"
-  frame.skippy_mode.tooltip = "Click to switch: the assistant either builds on its own while you play, or moves your character and builds with its hands."
+  frame.skippy_mode.caption = ({ advise = "advises only", ["my-character"] = "moves your character" })[mode] or "builds on its own"
+  frame.skippy_mode.tooltip = "Click to step on: the assistant only advises while you play by hand, then builds on its own while you play, then moves your character and builds with its hands. Touch your own controls at any time to take your character back."
   if not frame.skippy_prompts then
     frame.add { type = "label", name = "skippy_prompts", caption = "" }
   end

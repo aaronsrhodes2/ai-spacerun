@@ -121,14 +121,18 @@ recipe, how many belts its ingredients need and which joint fits.
 
 ## Modes
 
-The mod has two modes, and the player can switch between them at any time: in the map's mod settings, with the button on
-the working light, or by asking the assistant.
+The mod has three modes, steps of one ladder from playing by hand to being moved. You go up or down it at any time: by
+asking ("just advise me", "go do it yourself", "take over my character"), with the button on the working light, which
+steps through them, or in the map's mod settings.
 
+- **Advises only** (`advise`): you play by hand. The assistant looks, answers and says exactly what it would do and
+  where, and changes nothing.
 - **Builds on its own** (`free-hand`): the assistant places pieces freely while you do your own thing.
 - **Moves your character** (`my-character`): the assistant walks your character around and builds with its hands and its
   inventory. With nobody in the game it uses a character the mod keeps for itself.
 
-Switching modes stops whatever the avatar was doing. A scored run can lock the mode.
+While the assistant is moving your character, touching your own controls (moving, mining, building) takes it back at
+once: the assistant stops, says so, and waits until you ask again. Switching modes stops whatever the avatar was doing. A scored run can lock the mode.
 
 ## Tools in the mod (version 0.14.0)
 
@@ -152,7 +156,7 @@ Switching modes stops whatever the avatar was doing. A scored run can lock the m
 | `reveal_map` | Reveal more map round the known edge |
 | `chat_read`, `say`, `set_state` | The chat channel and the working light (used by the bridge) |
 | `avatar`, `avatar_craft`, `avatar_carry`, `avatar_stop` | The character: where it is and what it carries; craft by hand; move items to and from a chest within reach; stop |
-| `set_mode` | Switch between the two modes, when the player asks |
+| `set_mode` | Switch between the three modes, when the player asks |
 | `avatar_walk`, `avatar_mine`, `avatar_travel`, `progress`, `research_available`, `lock_mode` | For the bridge and the operator: start a walk, a mining job or a trip to another planet; the facts milestones are tested against; fix the mode for a scored run |
 | `occupancy`, `build`, `frames` | For the bridge's planning tools: what is in the way, placing a checked plan (dry run first), the rectangles spoken places refer to |
 
@@ -203,7 +207,7 @@ server that speaks the OpenAI chat API). `python -m copilot --ask "..."` asks on
 
 ## Testing
 
-- `python -m pytest tests/copilot_tests` runs with no game and no model: 487 tests. They cover the bridge, the planning
+- `python -m pytest tests/copilot_tests` runs with no game and no model: 495 tests. They cover the bridge, the planning
   code, the scorer, and the mod's own Lua run under Lua 5.2 against a stand-in game (`tests/copilot_tests/fake_game.lua`).
   Needs `pip install lupa`.
 - `scripts/modserver.sh start` runs a second, headless copy of the Steam install with its own data folder (`.testserver/`),

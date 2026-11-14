@@ -15,9 +15,15 @@ Built so far:
   `avatar`; under free placement nothing changes. The increment's exit test (walk across a base with obstacles, build a
   ten-machine line from the inventory, zero teleports, zero out-of-reach placements) passes against the stand-in game.
   It has not walked in the real game yet.
-- **Two modes, switchable at any time** (the Captain, 2026-11-13: a mode of the mod, not a choice for a whole run):
-  the assistant builds on its own while the player does their own thing, or it moves the player's character. Switched in
-  the map's mod settings, by a button on the working light, or by asking. A scored run can lock it.
+- **Three modes, one ladder, switchable at any time** (the Captain, 2026-11-13: a mode of the mod, not a choice for a
+  whole run; the moves between playing by hand, talking to an assistant and being moved must be smooth, because people
+  start by hand and are uncomfortable until they get the hang of it). Advises only (mod 0.16.0): the player plays, the
+  assistant looks and says what it would do, and every tool that changes the world refuses except as a dry run. Builds
+  on its own. Moves the player's character. Switched by asking, by a button on the working light that steps through
+  them, or in the map's mod settings. While the assistant moves the character, the player's own controls (move, mine,
+  build, heard through linked custom inputs in `data.lua`) take it back at once; the mode stays. A scored run can lock
+  the mode. The default is still builds-on-its-own. Not yet tried in a real game: whether the linked inputs fire as
+  the documentation says.
 - **Planet travel** (mod 0.6.0): the avatar walks to a silo with a rocket ready, rides the rocket to a ship in orbit whose
   schedule already goes there (no ship is re-routed), rides it, and drops to the surface. It must carry nothing. The first
   landing opens a planet that had no surface.
