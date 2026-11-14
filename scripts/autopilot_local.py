@@ -8,6 +8,7 @@ from pathlib import Path
 from _game import tools
 
 import autopilot_server as ap
+import module_mall
 
 LOG = str(Path(__file__).resolve().parent.parent / "docs" / "autopilot.log")
 
@@ -30,7 +31,8 @@ def main():
             guard = tools["run_lua"](ap.SILO_GUARD)
             ships = tools["run_lua"](ap.SHIPS)
             bots = tools["run_lua"](ROBOTS).strip()
-            ap.log(snap + " | queue " + queue + " | " + fix + " | " + guard + " | " + ships + ("" if bots.endswith(" 0") else " | " + bots), LOG)
+            mods = tools["run_lua"](module_mall.sub(module_mall.INSTALL, True)).strip()      # finished productivity modules go into the wheels
+            ap.log(snap + " | queue " + queue + " | " + fix + " | " + guard + " | " + ships + ("" if bots.endswith(" 0") else " | " + bots) + ("" if "installed 0 " in mods else " | " + mods), LOG)
         except Exception as exc:  # noqa: BLE001
             ap.log("error: " + repr(exc), LOG)
         time.sleep(ap.CYCLE)
