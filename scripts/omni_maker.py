@@ -26,7 +26,7 @@ import sys
 from _game import tools
 
 SITES = {"nauvis": (-30, -400)}
-BATCH, DEPTH, PITCH = 20, 3, 7
+BATCH, DEPTH, PITCH = 5, 3, 7
 Q = {"quality": "epic"}
 
 
