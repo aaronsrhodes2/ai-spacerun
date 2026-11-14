@@ -13,6 +13,8 @@ defines = {
   events = { on_player_created = 1, on_player_joined_game = 2, on_console_chat = 3, on_research_finished = 4, on_tick = 5,
              on_script_path_request_finished = 6, on_runtime_mod_setting_changed = 7, on_gui_click = 8 },
   build_check_type = { manual = 1, script = 2 },
+  rocket_silo_status = { building_rocket = 1, rocket_ready = 2, launch_started = 3 },
+  cargo_destination = { invalid = 0, orbit = 1, station = 2, surface = 3 },
   direction = { north = 0, northeast = 2, east = 4, southeast = 6, south = 8, southwest = 10, west = 12, northwest = 14 },
 }
 
@@ -102,6 +104,8 @@ local ENTITIES = {
   ["tree-01"] = ent("tree-01", "tree", 1, 1, { items_to_place_this = {}, mineable_properties = { products = { { name = "wood" } } } }),
   ["cliff"] = ent("cliff", "cliff", 1, 1, { items_to_place_this = {}, mineable_properties = {} }),
   ["wooden-chest"] = ent("wooden-chest", "container", 1, 1),
+  ["rocket-silo"] = ent("rocket-silo", "rocket-silo", 9, 9),
+  ["space-platform-hub"] = ent("space-platform-hub", "space-platform-hub", 8, 8, { items_to_place_this = {} }),
   ["character"] = ent("character", "character", 1, 1, { items_to_place_this = {},
     collision_box = { left_top = { x = -0.2, y = -0.2 }, right_bottom = { x = 0.2, y = 0.2 } }, collision_mask = { layers = { player = true } } }),
 }
@@ -263,6 +267,8 @@ local function new_surface(name, index)
       return n
     end
     if a.name == "character" then fake.make_character(e) end
+    if a.name == "rocket-silo" then fake.make_silo(e, a.rocket_ready) end
+    if a.name == "space-platform-hub" then fake.make_hub(e) end
     s.entities[#s.entities + 1] = e
     return e
   end
@@ -302,6 +308,7 @@ local function new_surface(name, index)
 end
 
 local nauvis = new_surface("nauvis", 1)
+fake.new_surface = new_surface
 
 -- ---------------------------------------------------------------- players and gui
 local function element(spec)
@@ -322,7 +329,19 @@ function fake.add_player(name, x, y, admin)
   if fake.players_have_bodies then                      -- the player's character; the player's position is the character's
     p.character = nauvis.create_entity { name = "character", position = { x, y } }
     p.position = p.character.position
+    function p.land_on_planet()                         -- leave the platform for the planet below
+      local platform = p.character.surface.platform
+      if not platform or not platform.space_location then return false end
+      local ground = game.planets[platform.space_location.name].surface
+      if not ground then return false end
+      p.character.in_flight = true
+      fake.flights[#fake.flights + 1] = { who = p.character, to = ground, x = 0.5, y = 0.5, left = fake.rocket_ticks }
+      return true
+    end
   end
+  setmetatable(p, { __index = function(t, k)             -- where the player really is, character or not
+    if k == "physical_surface" then return t.character and t.character.surface or t.surface end
+  end })
   function p.print(text) p.printed[#p.printed + 1] = text end
   function p.get_alerts() return p.alerts end
   game.players[#game.players + 1] = p
@@ -341,6 +360,8 @@ game = {
       if p.index == key or p.name == key then return p end
     end
   end,
+  planets = {},
+  finished = false, finished_but_continuing = false,
   get_surface = function(index)
     for _, s in pairs(game.surfaces) do
       if s.index == index then return s end
@@ -518,6 +539,7 @@ function fake.tick(n)
     fake.path_requests = waiting
     if fake.handlers[defines.events.on_tick] then fake.handlers[defines.events.on_tick] { tick = game.tick } end
     physics(nauvis)
+    fake.fly()
   end
 end
 
@@ -527,6 +549,126 @@ function fake.command(text, player_index)
   fake.commands["skippy"] { parameter = text, player_index = player_index }
   return fake.rcon[#fake.rcon]
 end
+
+-- ---------------------------------------------------------------- space: planets, platforms, rockets, pods
+fake.rocket_ticks = 120                                  -- how long a rocket or a pod takes
+fake.flights = {}
+force.platforms = {}
+force.rockets_launched = 0
+force.unlocked = {}
+force.is_space_location_unlocked = function(name) return force.unlocked[name] ~= false end
+force.made = {}                                          -- item -> total ever produced, for the progress tool
+force.get_item_production_statistics = function(surface)
+  return { get_input_count = function(item) return (surface == nauvis) and (force.made[item] or 0) or 0 end }
+end
+
+local function move_to(e, surface, x, y)
+  for i, o in ipairs(e.surface.entities) do
+    if o == e then table.remove(e.surface.entities, i) break end
+  end
+  e.surface = surface
+  e.position.x, e.position.y = x, y
+  e.bounding_box = { left_top = { x = x - 0.2, y = y - 0.2 }, right_bottom = { x = x + 0.2, y = y + 0.2 } }
+  surface.entities[#surface.entities + 1] = e
+end
+
+-- A planet, with or without a surface yet. nauvis exists from the start.
+function fake.add_planet(name, with_surface)
+  local planet = { name = name }
+  function planet.create_surface()
+    local index = 1
+    for _, s in pairs(game.surfaces) do index = math.max(index, s.index + 1) end
+    local s = new_surface(name, index)
+    s.planet = planet
+    game.surfaces[name] = s
+    planet.surface = s
+    return s
+  end
+  if name == "nauvis" then
+    planet.surface = nauvis
+    nauvis.planet = planet
+  elseif with_surface then
+    planet.create_surface()
+  end
+  game.planets[name] = planet
+  return planet
+end
+fake.add_planet("nauvis")
+
+-- A platform in orbit over `at`, with a schedule of stations. fake.tick flies it: it leaves after `wait` ticks at a
+-- station and takes `flight` ticks to the next one.
+function fake.add_platform(name, at, stations, wait, flight)
+  local index = 1
+  for _, s in pairs(game.surfaces) do index = math.max(index, s.index + 1) end
+  local surface = new_surface("platform-" .. (#force.platforms + 1), index)
+  game.surfaces[surface.name] = surface
+  local records, current = {}, 1
+  for i, station in ipairs(stations or {}) do
+    records[i] = { station = station }
+    if station == at then current = i end
+  end
+  local p = { name = name, valid = true, surface = surface, paused = false, space_location = { name = at },
+              schedule = (#records > 0) and { current = current, records = records } or nil,
+              wait = wait or 300, flight = flight or 600, clock = 0 }
+  surface.platform = p
+  p.hub = surface.create_entity { name = "space-platform-hub", position = { 0, 0 } }
+  force.platforms[#force.platforms + 1] = p
+  return p
+end
+
+function fake.make_silo(e, ready)
+  e.rocket_silo_status = ready and defines.rocket_silo_status.rocket_ready or defines.rocket_silo_status.building_rocket
+  function e.launch_rocket(destination, character)
+    if e.rocket_silo_status ~= defines.rocket_silo_status.rocket_ready then return false end
+    if fake.silo_refuses then return false end
+    e.rocket_silo_status = defines.rocket_silo_status.building_rocket
+    force.rockets_launched = force.rockets_launched + 1
+    if character then
+      character.in_flight = true
+      fake.flights[#fake.flights + 1] = { who = character, to = destination.station.surface, x = 0.5, y = 6.5, left = fake.rocket_ticks }
+    end
+    return true
+  end
+end
+
+function fake.make_hub(e)
+  function e.create_cargo_pod()
+    if fake.no_pods then return nil end
+    local pod = { passenger = nil }
+    function pod.set_passenger(who) pod.passenger = who end
+    return setmetatable(pod, { __newindex = function(t, k, v)
+      rawset(t, k, v)
+      if k == "cargo_pod_destination" and pod.passenger then
+        pod.passenger.in_flight = true
+        fake.flights[#fake.flights + 1] = { who = pod.passenger, to = v.surface, x = 0.5, y = 0.5, left = fake.rocket_ticks }
+      end
+    end })
+  end
+end
+
+local function fly(n)
+  for i = #fake.flights, 1, -1 do
+    local f = fake.flights[i]
+    f.left = f.left - 1
+    if f.left <= 0 then
+      f.who.in_flight = nil
+      move_to(f.who, f.to, f.x, f.y)
+      table.remove(fake.flights, i)
+    end
+  end
+  for _, p in ipairs(force.platforms) do
+    if p.schedule and not p.paused and not p.stuck then
+      p.clock = p.clock + 1
+      if p.space_location and p.clock >= p.wait and #p.schedule.records > 1 then
+        p.space_location, p.clock = nil, 0
+      elseif not p.space_location and p.clock >= p.flight then
+        p.schedule.current = p.schedule.current % #p.schedule.records + 1
+        p.space_location, p.clock = { name = p.schedule.records[p.schedule.current].station }, 0
+      end
+    end
+  end
+end
+fake.fly = fly
 
 -- The player changes the mod setting in the game's settings window.
 function fake.change_setting(name, value)

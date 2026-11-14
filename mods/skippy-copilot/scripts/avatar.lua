@@ -332,12 +332,13 @@ local function tick_mine(body, job)
 end
 
 local TICKS = { walk = tick_walk, build = tick_build, mine = tick_mine }
+V.TICKS = TICKS                                         -- scripts/travel.lua adds the travel job here
 
 function V.on_tick()
   local av = storage.avatar
   if not av or not av.job then return end
   local body = V.body()
-  if not body then
+  if not body and av.job.kind ~= "travel" then          -- a traveller has no body on a surface while in a rocket or a pod
     av.last = { id = av.job.id, kind = av.job.kind, ok = false, reason = "the avatar's body is gone" }
     av.job = nil
     return
@@ -366,6 +367,10 @@ local function need_body(create)
   end
   return nil
 end
+
+-- What scripts/travel.lua needs of this file.
+V.internals = { start = start, finish = finish, new_walk = new_walk, step_walk = step_walk, stop_moving = stop_moving,
+                busy = busy, need_body = need_body, no_avatar = no_avatar, dist = dist }
 
 -- Called by the build tool when the executor is "avatar": the checked pieces become a build job.
 function V.queue_build(pieces)
@@ -419,7 +424,7 @@ R.register {
     if av.job then
       local j = av.job
       out.job = { id = j.id, kind = j.kind, running_ticks = game.tick - j.started,
-                  placed = j.placed, of = j.pieces and #j.pieces or nil }
+                  placed = j.placed, of = j.pieces and #j.pieces or nil, stage = j.stage }
     end
     if body then
       out.surface, out.x, out.y = body.surface.name, math.floor(body.position.x), math.floor(body.position.y)
