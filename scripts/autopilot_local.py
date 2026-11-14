@@ -33,7 +33,7 @@ def main():
             bots = tools["run_lua"](ROBOTS).strip()
             tools["run_lua"](module_mall.LABS)                                               # speed modules into the Gleba labs first
             mods = tools["run_lua"](module_mall.sub(module_mall.INSTALL, True)).strip()      # finished productivity modules go into the wheels
-            ap.log(snap + " | queue " + queue + " | " + fix + " | " + guard + " | " + ships + ("" if bots.endswith(" 0") else " | " + bots) + ("" if "installed 0 " in mods else " | " + mods), LOG)
+            ap.log(snap + " | queue " + queue + " | " + fix + " | " + guard + " | " + ships + ("" if bots.endswith(" 0") else " | " + bots) + ("" if "installed 0 / 0" in mods else " | " + mods), LOG)
         except Exception as exc:  # noqa: BLE001
             ap.log("error: " + repr(exc), LOG)
         time.sleep(ap.CYCLE)
