@@ -1,0 +1,9 @@
+{
+  "name": "skippy-copilot",
+  "version": "0.1.0",
+  "title": "Skippy Copilot",
+  "author": "Skippy",
+  "factorio_version": "2.1",
+  "dependencies": ["base >= 2.1"],
+  "description": "Play Factorio by talking to an AI model. The mod holds the tools the model uses (live game data, a text map, finders, building with a dry run, diagnostics) and the chat channel between player and model. A small bridge outside the game connects any model."
+}

@@ -1,7 +1,12 @@
 # Space Age solver skill: plan
 
-Written 2026-11-13 from the Captain's brief. **Status: not started.** Work on this plan begins only after the current run on
-Fable reaches a verified Space Age solve under today's easy rules (see Gate). Until then this file is the agreed intent.
+Written 2026-11-13 from the Captain's brief. **Status: the mod is started.** The Captain lifted the gate for the mod the same
+day: one chat builds the mod while the main chat finishes the Fable run. Scored runs on purple Skippy still wait for the
+verified solve (see Gate).
+
+Built so far (`mods/skippy-copilot`, version 0.1.0): the tool registry and the `/skippy` command, and nine tools: lookup,
+search, map, tile, find_free, diagnose, chat_read, say, set_state. Tested with `scripts/modcheck.py` (26 checks) on a local
+headless test server (`scripts/modserver.sh`). Next: the bridge to a model, then placement with a dry run.
 
 ## Goal
 

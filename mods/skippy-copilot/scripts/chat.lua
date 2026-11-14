@@ -1,0 +1,94 @@
+-- The conversation between player and model, held in the game's own chat, and the working light that shows what
+-- the model is doing. The model reads what players typed with 'chat_read' and answers with 'say'.
+local R = require("scripts.registry")
+
+local KEEP = 200            -- chat lines remembered
+local STATES = {
+  idle = { text = "idle", color = { 0.6, 0.6, 0.6 } },
+  thinking = { text = "thinking", color = { 0, 0.8, 1 } },
+  working = { text = "working", color = { 0, 1, 0.53 } },
+  blocked = { text = "needs you", color = { 1, 0.67, 0 } },
+  failed = { text = "failed", color = { 1, 0.27, 0.27 } },
+}
+local C = {}
+
+function C.init()
+  storage.chat = storage.chat or {}
+  storage.chat_next = storage.chat_next or 1
+  storage.state = storage.state or { state = "idle", note = "" }
+end
+
+local function draw(player)
+  local top = player.gui.top
+  local frame = top.skippy_light
+  if not frame then
+    frame = top.add { type = "frame", name = "skippy_light", direction = "horizontal" }
+    frame.add { type = "label", name = "state", caption = "" }
+  end
+  local s = STATES[storage.state.state] or STATES.idle
+  local note = storage.state.note or ""
+  frame.state.caption = "Skippy: " .. s.text .. ((note ~= "") and (" - " .. note) or "")
+  frame.state.style.font_color = s.color
+end
+
+function C.draw_all()
+  for _, p in pairs(game.players) do draw(p) end
+end
+
+function C.on_player(event)
+  local p = game.get_player(event.player_index)
+  if p then draw(p) end
+end
+
+function C.on_chat(event)
+  if not event.message or event.message == "" then return end
+  local p = event.player_index and game.get_player(event.player_index)
+  local line = { id = storage.chat_next, tick = event.tick, player = p and p.name or "server", text = event.message }
+  storage.chat_next = storage.chat_next + 1
+  storage.chat[#storage.chat + 1] = line
+  while #storage.chat > KEEP do table.remove(storage.chat, 1) end
+end
+
+R.register {
+  name = "chat_read",
+  description = "What players have typed in the game chat since a given line. Each line has an id; pass the last id you have seen as 'after' to get only newer lines.",
+  params = {
+    after = { type = "number", default = 0, description = "id of the last line already read; 0 for everything remembered" },
+  },
+  run = function(a)
+    local out = {}
+    for _, line in ipairs(storage.chat) do
+      if line.id > a.after then out[#out + 1] = line end
+    end
+    return { lines = out, last_id = storage.chat_next - 1 }
+  end,
+}
+
+R.register {
+  name = "say",
+  description = "Say something to the players in the game chat. Keep it short and plain: what you are about to do, what you did, or a question.",
+  params = {
+    text = { type = "string", required = true, description = "what to say" },
+  },
+  run = function(a)
+    game.print("[color=0,1,0.53][Skippy][/color] " .. a.text)
+    return { said = a.text }
+  end,
+}
+
+R.register {
+  name = "set_state",
+  description = "Set the working light every player sees at the top of the screen. Set 'thinking' when you start on a request, 'working' while you change the game, 'blocked' when you need the player's answer, 'failed' when you could not do it, 'idle' when done.",
+  params = {
+    state = { type = "string", required = true, description = "idle, thinking, working, blocked or failed" },
+    note = { type = "string", default = "", description = "a few words shown beside the light, such as what you are working on" },
+  },
+  run = function(a)
+    if not STATES[a.state] then return { error = "state must be one of: idle, thinking, working, blocked, failed" } end
+    storage.state = { state = a.state, note = a.note or "" }
+    C.draw_all()
+    return { state = a.state, note = a.note }
+  end,
+}
+
+return C
