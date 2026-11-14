@@ -30,7 +30,7 @@ def main():
     check("scene built", (c.send_command("/sc " + SCENE) or "").strip() == "scene")
     t = call("tools", None, c)
     names = [x["name"] for x in t["result"]]
-    check("tool list", all(n in names for n in ["lookup", "search", "map", "tile", "find_free", "diagnose", "chat_read", "say", "set_state"]), names)
+    check("tool list", all(n in names for n in ["lookup", "search", "map", "tile", "find_free", "diagnose", "chat_read", "say", "set_state", "events_read", "design_note"]), names)
     check("every tool is described", all(x["description"] and isinstance(x["parameters"], (dict, list)) for x in t["result"]))
 
     r = call("lookup", {"name": "electronic-circuit", "kind": "recipe"}, c)["result"][0]
@@ -77,6 +77,16 @@ def main():
     states = {p["state"]: p["count"] for p in r["problems"]}
     check("diagnose: unpowered machines", states.get("no_power") == 2, states)
 
+    before = call("events_read", None, c)["result"]["last_id"]
+    c.send_command("/sc local t=game.forces.player.technologies['automation-2'] t.researched=false t.researched=true")
+    ev = call("events_read", {"after": before}, c)["result"]["events"]
+    check("research news carries unlocks and a design note", len(ev) == 1 and ev[0]["technology"] == "automation-2" and "assembling-machine-2" in ev[0]["unlocks_recipes"] and "half again" in ev[0]["design_note"], ev)
+    r = call("design_note", {"technology": "logistic-robotics"}, c)["result"]
+    check("design note by name", "robots" in r["design_note"], r)
+    import pathlib, re
+    noted = re.findall(r'^  \["([a-z0-9-]+)"\] = ', (pathlib.Path(__file__).resolve().parent.parent / "mods/skippy-copilot/scripts/notes.lua").read_text(encoding="utf-8"), re.M)
+    bad = [n for n in noted if not call("lookup", {"name": n, "kind": "technology"}, c)["ok"]]
+    check("every design note names a real technology (%d notes)" % len(noted), len(noted) > 20 and not bad, bad)
     check("say", call("say", {"text": "check"}, c)["ok"])
     check("set_state", call("set_state", {"state": "working", "note": "check"}, c)["ok"] and not call("set_state", {"state": "napping"}, c)["ok"])
     check("chat_read", "last_id" in call("chat_read", None, c)["result"])

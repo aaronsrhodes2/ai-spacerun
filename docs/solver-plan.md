@@ -4,9 +4,20 @@ Written 2026-11-13 from the Captain's brief. **Status: the mod is started.** The
 day: one chat builds the mod while the main chat finishes the Fable run. Scored runs on purple Skippy still wait for the
 verified solve (see Gate).
 
-Built so far (`mods/skippy-copilot`, version 0.1.0): the tool registry and the `/skippy` command, and nine tools: lookup,
-search, map, tile, find_free, diagnose, chat_read, say, set_state. Tested with `scripts/modcheck.py` (26 checks) on a local
-headless test server (`scripts/modserver.sh`). Next: the bridge to a model, then placement with a dry run.
+Built so far:
+- **The mod** (`mods/skippy-copilot`, version 0.2.0): the tool registry and the `/skippy` command, and eleven tools: lookup,
+  search, map, tile, find_free, diagnose, design_note, events_read, chat_read, say, set_state.
+- **Design notes by technology** (`scripts/notes.lua`, 32 notes): the Captain's idea of 2026-11-13. When a research
+  finishes the model is told what it unlocked and what can now be improved, and offers the player one change, so nobody
+  has to invent the next problem.
+- **The bridge** (`copilot/`): game chat in, model with tools, answer out, working light, a log of every call. Providers:
+  Ollama and any OpenAI-compatible server. An Anthropic adapter is not written.
+- **Tests**: `scripts/modcheck.py` (29 checks) on a local headless test server (`scripts/modserver.sh`).
+- **First run with a local model** (qwen3:8b on Ollama, 2026-11-13): three questions through the bridge, all answered
+  correctly from tool results, 4 tool calls, 1 miss that the tool's error message corrected in one retry, 35 to 44 seconds
+  each once the model was loaded.
+
+Next: placement with a dry run and a layout check, then the walking avatar.
 
 ## Goal
 

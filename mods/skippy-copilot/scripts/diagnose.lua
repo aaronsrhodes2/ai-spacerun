@@ -24,7 +24,7 @@ local ADVICE = {
 
 R.register {
   name = "diagnose",
-  description = "Counts every machine by what it is doing (working, starved, backed up, unpowered and so on) with up to three example positions for each problem, and what that problem usually means. Covers the whole surface unless an area is given.",
+  description = "Counts every machine by what it is doing (working, starved, backed up, unpowered and so on) with up to three example positions for each problem, and what that problem usually means. Call it with no parameters to check everything; give x, y, width and height (all four) only to limit it to one area.",
   params = {
     surface = { type = "string", description = "surface name; leave out for where the player is" },
     x = { type = "number", description = "left of an area to limit the check to" },
