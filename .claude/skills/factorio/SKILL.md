@@ -1030,3 +1030,5 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - Asteroid resistances (read from the prototypes): small laser 20%, explosion 50%; medium laser 90%, explosion 30%, physical 10%; big laser 95%, explosion 10%, physical -2,000 flat; huge laser 99%, explosion 99%, physical -3,000 flat. Electric is 100% on all (tesla useless). So: rockets for medium and big, lasers for small only, nothing kills huge until the railgun. The first laser-only ship died a minute out of Fulgora.
 - A hub returns whatever it holds that is not in its requests, within about 30 seconds: cargo loaded by script must also be requested.
 - The game advances only while a player is connected: with nobody online it runs at about 3 ticks in 10 seconds (the server's auto-pause). Ships, robots and research all stop.
+
+- Auto-pause is OFF (the Captain, 2026-11-14): `auto_pause: false` in /srv/games/data/factorio/config/server-settings.json on the VM, so the game runs with nobody online. Set by sed over ssh, then `docker restart factorio`. Re-check after a SkippyTel rebuild of the data dir.
