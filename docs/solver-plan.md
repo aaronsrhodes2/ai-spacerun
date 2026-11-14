@@ -151,6 +151,17 @@ Four sources, all offline, all reached by lookup so they never fill the context:
 | Playbook | How each planet works and in what order to do things: heat on Aquilo, spoilage on Gleba, scrap on Fulgora, lava on Vulcanus, platforms | Written by us from this run, in our own words |
 | Mistakes list | What not to do, and why | This run's transcripts and git history |
 
+**The game is the source of truth** (the Captain, 2026-11-13). The in-game Factoriopedia is drawn from the game's own
+object library, and a mod can read that same library live: every item, recipe, machine, resource and technology, as the
+installed game and its mods define them. The skill reads it live and never from online knowledge, so a modded game gives
+modded answers.
+
+**What the library does not say is found by experiment.** Behaviour is not in the data: that an inserter cannot reach into
+a cargo bay, that a boiler does nothing in space, that a rocket turret fires at small asteroids. The skill keeps a set of
+small scripted experiments, run in a scratch area, each asking one such question and recording the answer for this game
+version and mod set. This is our own test suite. The game's engine and its makers' tests are not public (only the game's
+data files and the scripting reference are), so there is nothing of theirs to borrow here.
+
 Rules: the model looks things up by topic or by name and gets a short answer; nothing is loaded whole. The playbook is our
 own writing, not copied from the wiki. The web stays available as a last resort when the player asks for it.
 
