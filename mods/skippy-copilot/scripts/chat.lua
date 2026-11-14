@@ -119,6 +119,29 @@ function C.for_purple(event, text)
 end
 
 R.register {
+  name = "hear",
+  description = "For the bridge: a line the player spoke aloud, heard outside the game. It is shown in chat and counts exactly like a line they typed.",
+  params = {
+    text = { type = "string", required = true, description = "what was said" },
+    player = { type = "string", default = "", description = "who said it; leave out for the player in the game" },
+  },
+  run = function(a)
+    local text = string.match(a.text, "^%s*(.-)%s*$")
+    if text == "" then return { error = "there was nothing said" } end
+    local p = (a.player ~= "" and game.get_player(a.player)) or game.connected_players[1] or game.players[1]
+    local name = p and p.name or ((a.player ~= "") and a.player or "player")
+    local line = { id = storage.chat_next, tick = game.tick, player = name, text = text, by = "voice" }
+    storage.chat_next = storage.chat_next + 1
+    storage.chat[#storage.chat + 1] = line
+    while #storage.chat > KEEP do table.remove(storage.chat, 1) end
+    if storage.run then storage.run.prompts = (storage.run.prompts or 0) + 1 end      -- a spoken line is a prompt too
+    game.print("[color=1,1,1][" .. name .. ", by voice][/color] " .. text)
+    C.draw_all()
+    return { id = line.id, player = name }
+  end,
+}
+
+R.register {
   name = "chat_read",
   description = "What players have typed in the game chat since a given line. Each line has an id; pass the last id you have seen as 'after' to get only newer lines. A line with to = 'purple' was typed as /purple and is a task for purple Skippy, not for you.",
   params = {

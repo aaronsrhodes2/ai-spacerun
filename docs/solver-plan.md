@@ -24,6 +24,16 @@ Built so far:
   build, heard through linked custom inputs in `data.lua`) take it back at once; the mode stays. A scored run can lock
   the mode. The default is still builds-on-its-own. Not yet tried in a real game: whether the linked inputs fire as
   the documentation says.
+- **Voice** (the Captain, 2026-11-13: speech to text and text to speech in the game, in purple Skippy's voice, so the
+  game can be played with Claude Desktop closed and no keyboard). A mod cannot hear, speak or reach the network, and
+  the house's voice gate wants a pass signed from the home token, which must never come here. So the house's own
+  listener (SkippyTel `services/satellite`: wake word "Skippy", Whisper, Skippy's voice) keeps the ears and the mouth,
+  and the bridge offers it a door on loopback, `copilot/voice_door.py`, port 47862: `POST /hear` for a spoken line,
+  `GET /said` (long poll) for everything Skippy says, `GET /health` as the sign that a Factorio session is on. A spoken
+  line enters the game through the mod's `hear` tool (0.17.0) and counts exactly like a typed one. Built and unit-tested
+  on this side. **Not built: the listener's side**, a SkippyTel change: while the door's /health answers, what follows
+  the wake word goes to /hear unless it is a house command, and the lines from /said are spoken (long ones through
+  the gate's /summary). Also not built: starting the bridge by itself when the game starts.
 - **Planet travel** (mod 0.6.0): the avatar walks to a silo with a rocket ready, rides the rocket to a ship in orbit whose
   schedule already goes there (no ship is re-routed), rides it, and drops to the surface. It must carry nothing. The first
   landing opens a planet that had no surface.

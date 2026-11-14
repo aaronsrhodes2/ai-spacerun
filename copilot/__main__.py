@@ -29,6 +29,9 @@ Settings: a file named copilot.env next to this package (copy copilot.env.exampl
     COPILOT_PURPLE_URL         purple's MCP door, default http://127.0.0.1:47860/mcp; set it to "off" to switch /purple off
     COPILOT_PURPLE_PROJECT     the project purple works in for those tasks, default f-ai-factorio
 
+  Voice: the house's listener hands what it hears to a door on this computer and speaks what Skippy says (copilot/voice_door.py).
+    COPILOT_VOICE_PORT         the door's port, default 47862; set it to "off" for no door
+
   Optional
     COPILOT_VAULT              a file of NAME=value lines kept elsewhere (a shared .env). Any setting here may then be written
                                as $NAME and is read from that file, so a key need not be copied into copilot.env.
@@ -50,6 +53,7 @@ from .purple import Purple, PurpleAgent, SourceError
 from .purple_client import DEFAULT_URL as PURPLE_URL, PurpleClient
 from .toolbox import Toolbox
 from .tools import LocalTools
+from .voice_door import PORT as VOICE_PORT, VoiceDoor
 
 HERE = pathlib.Path(__file__).parent
 SOURCES = ("anthropic", "openai", "ollama", "purple")
@@ -154,6 +158,20 @@ def agent_from(env, game, tools, log_path, max_steps=12):
     return Agent(game, model, log_path, max_steps=max_steps, local=tools)
 
 
+def voice_door(env, out=print):
+    """The voice door, listening, or None when it is switched off or its port is taken (the bridge still runs)."""
+    port = env.get("COPILOT_VOICE_PORT", str(VOICE_PORT)).strip().lower()
+    if port == "off":
+        return None
+    try:
+        door = VoiceDoor(port=int(port))
+        out("voice door: %s (spoken lines in at /hear, Skippy's words out at /said)" % door.serve(), flush=True)
+        return door
+    except (ValueError, OSError) as e:
+        out("no voice door: port %s could not be opened (%s). Typing in the game still works." % (port, e), flush=True)
+        return None
+
+
 def main():
     try:
         env = settings()
@@ -165,6 +183,9 @@ def main():
         sys.exit(0 if run_check(env) else 1)
     try:
         game = game_from(env)
+        door = voice_door(env)
+        if door:
+            game = door.wrap(game)
         logs = pathlib.Path(env.get("COPILOT_LOG_DIR", "runs"))
         logs.mkdir(exist_ok=True)
         tools = LocalTools(game, plan_store=logs / "plans.json")
@@ -181,7 +202,7 @@ def main():
     door = env.get("COPILOT_PURPLE_URL", PURPLE_URL)
     helper = None if door.lower() == "off" else PurpleClient(door, secret(env, "COPILOT_PURPLE_KEY"))
     bridge = Bridge(game, agent, tools, stall_hours=float(env.get("COPILOT_STALL_HOURS", "2")), goal_pause=float(env.get("COPILOT_GOAL_PAUSE", "20")),
-                    out=lambda *a: print(*a, flush=True), purple=helper, purple_project=env.get("COPILOT_PURPLE_PROJECT", "f-ai-factorio"))
+                    out=lambda *a: print(*a, flush=True), voice=door, purple=helper, purple_project=env.get("COPILOT_PURPLE_PROJECT", "f-ai-factorio"))
     print("listening: %s, %d tools" % (agent.model.model, len(agent.tools)), flush=True)
     while True:
         bridge.step()

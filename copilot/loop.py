@@ -4,6 +4,7 @@
   3. brings up alerts that are new
   4. once a minute, notes milestones done and whether the run has stalled
   5. if a standing goal is set and nobody is waiting, takes one turn toward it on its own
+  0. passes on what the player said aloud (the voice door), so it is answered like a typed line
   6. passes a task typed as /purple to purple Skippy and, between its other work, brings back what purple says
 
 Purple's work is a job that takes seconds to minutes. The loop never waits on it: it starts the run, remembers it, and
@@ -88,7 +89,8 @@ class AlertWatch:
 
 class Bridge:
     def __init__(self, game, agent, tools, clock=time.time, stall_hours=2.0, goal_pause=20.0, progress_every=60.0, max_idle_turns=3, out=print,
-                 bottleneck_every=180.0, bottleneck_machines=5, purple=None, purple_project=None, purple_poll=3.0, purple_timeout=1800.0):
+                 bottleneck_every=180.0, bottleneck_machines=5, purple=None, purple_project=None, purple_poll=3.0, purple_timeout=1800.0, voice=None):
+        self.voice = voice                                      # the voice door, or None: lines heard outside the game
         self.purple, self.purple_project = purple, purple_project
         self.purple_poll, self.purple_timeout = max(purple_poll, MIN_POLL), purple_timeout
         self.purple_job = None                                  # the one run in flight: {task, next, at, started, who}
@@ -110,6 +112,7 @@ class Bridge:
 
     # ---- one step ----------------------------------------------------------------------------------------------------
     def step(self):
+        self._heard()
         spoke = self._chat()
         self._news()
         self._new_alerts()
@@ -118,6 +121,17 @@ class Bridge:
         self._purple()
         if not spoke:
             self._goal()
+
+    def _heard(self):
+        """What the player said aloud goes into the game as a line of theirs; the chat step then answers it."""
+        if self.voice is None:
+            return
+        for line in self.voice.take():
+            r = self.game.call("hear", dict({"text": line["text"]}, **({"player": line["who"]} if line.get("who") else {})))
+            if not r.get("ok"):                                 # a game that cannot take it (an older mod): answer it directly
+                answer, outcome, stats = self.agent.handle(line["text"], line.get("who") or "player")
+                say(self.game, answer or "I could not finish that (%s)." % outcome)
+                self.out("(voice)", line["text"], "->", outcome, stats)
 
     def _lines(self, result, key):
         got = (result.get("result") or {}).get(key)

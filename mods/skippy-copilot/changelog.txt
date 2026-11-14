@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.17.0
+Date: 2026-11-13
+  Features:
+    - A line spoken aloud, heard outside the game and passed in by the bridge, counts exactly like a typed one.
+---------------------------------------------------------------------------------------------------
 Version: 0.16.0
 Date: 2026-11-13
   Features:

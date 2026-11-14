@@ -4,7 +4,7 @@ loop with a plain model, or an outside agent over MCP (copilot/mcp_server.py).""
 import json
 import time
 
-BRIDGE_ONLY = {"chat_read", "say", "set_state", "events_read", "goal_state"}      # the bridge runs the channel; the model gets the rest
+BRIDGE_ONLY = {"chat_read", "say", "set_state", "events_read", "goal_state", "hear"}      # the bridge runs the channel; the model gets the rest
 PLAN_ONLY = {"build", "occupancy", "frames", "avatar_walk", "avatar_mine", "avatar_travel", "progress", "lock_mode",
              "research_available"}                                              # reached through the planning tools, never called raw
 

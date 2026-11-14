@@ -44,6 +44,22 @@ and it runs one at a time, so it suits a standing goal better than quick chat. F
 `anthropic` source at Skippy Core, which serves that model directly. Any other agent that speaks MCP can be connected the
 same way.
 
+### Voice
+
+The game has no microphone, speaker or network, so hearing and speaking happen outside it. While the bridge runs it
+keeps a small door open on this computer only (`http://127.0.0.1:47862`, no key):
+
+| Call | What it does |
+|---|---|
+| `POST /hear {"text", "who"?}` | A line spoken aloud. It appears in the game's chat as yours ("by voice") and is answered like a typed one. Returns `after`, where to start reading the answer. |
+| `GET /said?after=N&wait=S` | Everything Skippy has said since N, waiting up to S seconds (at most 30) for news. Each line names its voice: `skippy` or `purple`. |
+| `GET /health` | Answers while a Factorio session is on. |
+
+A listener with a microphone and a voice uses those three calls: it turns speech into text, posts it, and speaks what
+comes back. The bridge itself holds no key to any voice service. In the Captain's house the listener is SkippyTel's
+(`services/satellite`), which wakes on "Skippy" and speaks in Skippy's voice; its side of this is not written yet.
+`COPILOT_VOICE_PORT` moves the door or switches it off.
+
 ### /purple: a task for the development agent
 
 Purple Skippy can read and change this project, run its tests and deploy. With its MCP door open on the same computer
@@ -207,7 +223,7 @@ server that speaks the OpenAI chat API). `python -m copilot --ask "..."` asks on
 
 ## Testing
 
-- `python -m pytest tests/copilot_tests` runs with no game and no model: 495 tests. They cover the bridge, the planning
+- `python -m pytest tests/copilot_tests` runs with no game and no model: 509 tests. They cover the bridge, the planning
   code, the scorer, and the mod's own Lua run under Lua 5.2 against a stand-in game (`tests/copilot_tests/fake_game.lua`).
   Needs `pip install lupa`.
 - `scripts/modserver.sh start` runs a second, headless copy of the Steam install with its own data folder (`.testserver/`),
