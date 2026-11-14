@@ -73,14 +73,24 @@ def layout():
     put("fast-inserter", 31.5, -11.5, E)
     put("steel-chest", 32.5, -11.5)
     put("assembling-machine-3", 11.5, -11.5)
-    put("roboport", 16.0, -11.0)
-    put("electric-furnace", 20.5, -11.5)
+    put("roboport", 4.0, -11.0)
+    put("electric-furnace", 15.5, -11.5)
     put("substation", 23.0, -20.0)
+    # the cell: the cryogenic plant is crafted in the assembler, the lithium is smelted in the furnace, robots carry between the chests
+    put("fast-inserter", 11.5, -9.5, S)                 # requester chest below -> assembler
+    put("requester-chest", 11.5, -8.5)
+    put("fast-inserter", 12.5, -9.5, N)                 # assembler -> provider chest below
+    put("passive-provider-chest", 12.5, -8.5)
+    put("fast-inserter", 14.5, -9.5, S)                 # lithium from a requester chest below the furnace
+    put("requester-chest", 14.5, -8.5)
+    put("fast-inserter", 15.5, -9.5, N)                 # plates out into a provider chest
+    put("passive-provider-chest", 15.5, -8.5)
+    put("storage-chest", 17.5, -8.5)                    # where the robots put what they mine
     return {"entities": len(ents)}
 
 
 def free_grid(x0, y0, x1, y1):
-    lua = ("local s=game.surfaces['%s'] local ok={['snow-crests']=1,['snow-flat']=1,['snow-lumpy']=1,['snow-patchy']=1,['frozen-concrete']=1} local rows={} for y=%d,%d do local r={} for x=%d,%d do local t=s.get_tile(x,y).name "
+    lua = ("local s=game.surfaces['%s'] local ok={['snow-crests']=1,['snow-flat']=1,['snow-lumpy']=1,['snow-patchy']=1,['frozen-concrete']=1,['concrete']=1,['refined-concrete']=1} local rows={} for y=%d,%d do local r={} for x=%d,%d do local t=s.get_tile(x,y).name "
            "local c=ok[t] and '.' or 'x' if c=='.' and s.count_entities_filtered{area={{x+0.05,y+0.05},{x+0.95,y+0.95}}}>0 then c='#' end r[#r+1]=c end rows[#rows+1]=table.concat(r) end rcon.print(table.concat(rows,'|'))" % (SURF, y0, y1, x0, x1))
     rows = tools["run_lua"](lua).strip().split("|")
     return {(x0 + i, y0 + j) for j, row in enumerate(rows) for i, c in enumerate(row) if c == "."}
@@ -94,6 +104,8 @@ def heat_all(box=(5, -24, 36, 2)):
         occupied |= tiles_of(e)
     free -= occupied
     net = {t for e in ents if e["name"] == "heat-pipe" for t in tiles_of(e)}
+    got = tools["run_lua"]("local s=game.surfaces['%s'] local t={} for _,e in pairs(s.find_entities_filtered{name={'heat-pipe','heating-tower','nuclear-reactor'},area={{%d,%d},{%d,%d}}}) do local bb=e.bounding_box for y=math.floor(bb.left_top.y+0.01),math.ceil(bb.right_bottom.y-0.01)-1 do for x=math.floor(bb.left_top.x+0.01),math.ceil(bb.right_bottom.x-0.01)-1 do t[#t+1]=x..','..y end end end rcon.print(table.concat(t,' '))" % ((SURF,) + tuple(box[:2]) + tuple(box[2:]))).split()
+    net |= {tuple(int(v) for v in g.split(",")) for g in got}
     sources = [e for e in ents if e["name"] in ("heating-tower", "nuclear-reactor")]
     def adj(t):
         x, y = t
@@ -133,11 +145,21 @@ def heat_all(box=(5, -24, 36, 2)):
     return len(added)
 
 
+def drop_existing():
+    """Leave out what already stands (same name within 0.3 tiles), so the script can be run again to add the new parts."""
+    lst = ",".join("{'%s',%s,%s}" % (e["name"], e["x"], e["y"]) for e in ents)
+    have = tools["run_lua"]("local s=game.surfaces['%s'] local t={} for i,q in pairs({%s}) do t[i]=#s.find_entities_filtered{name=q[1],position={q[2],q[3]},radius=0.3} end rcon.print(table.concat(t,','))" % (SURF, lst)).strip().split(",")
+    keep = [e for e, h in zip(ents, have) if h == "0"]
+    ents[:] = keep
+    return len(keep)
+
+
 def main():
     step = sys.argv[1]
     apply = "--apply" in sys.argv
     print(layout())
     print("heat pipes added by heat_all:", heat_all())
+    print("new pieces (not yet standing):", drop_existing())
     if step == "build":
         r = json.loads(tools["place_entities"](json.dumps(ents), surface=SURF, dry_run=not apply))
         print("placed" if apply else "dry run", r.get("placed"), "failed", json.dumps(r.get("failed") or [])[:900])

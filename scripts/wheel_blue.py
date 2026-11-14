@@ -31,7 +31,7 @@ Q = {"quality": "epic"}
 N, E, S, W = 0, 4, 8, 12
 OX, OY = 57, -29
 DIR = {(0, -1): N, (1, 0): E, (0, 1): S, (-1, 0): W}
-TARGETS = {"K": {"carbon": 300, "sulfur": 140, "calcite": 30, "iron-plate": 150, "copper-plate": 100}, "O": {"iron-ore": 200, "copper-ore": 130}, "W": {"ice": 250}}   # on the whole belt; the plates on K feed scripts/wheel_battery.py
+TARGETS = {"K": {"carbon": 300, "sulfur": 160, "calcite": 30, "iron-plate": 150, "copper-plate": 100}, "O": {"iron-ore": 150, "copper-ore": 100, "stone": 30, "steel-plate": 30}, "W": {"ice": 250}}   # on the whole belt; the plates on K feed scripts/wheel_battery.py; stone and steel plate on O feed scripts/wheel_grey_purple.py. A line's hub inserter has FIVE filter slots: seven items on K starved sulfur and blue science fell by half. The ore loop round the cluster runs on ONE lane of about 400 places: with 200+130 ore and 50+50 stone and steel standing on it the lane filled completely, stopped moving and the furnaces starved (blue science at 0); keep O's targets together well under 350
 ents, cfg, recipes, occ, fluid, lines = [], [], [], {}, {}, {}
 
 
@@ -244,7 +244,7 @@ REFIT = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local need={} l
          "for _,p in pairs(OLDT) do for _,e in pairs(s.find_entities_filtered{type={'transport-belt','underground-belt'},position=p,radius=0.3}) do out(e) end end "
          "for i,q in pairs(WANT) do local e=s.find_entities_filtered{type={'transport-belt','underground-belt'},position={q[1],q[2]},radius=0.3}[1] "
          "if e and e.name==q[3] and e.direction==q[4] and (e.type~='underground-belt' or e.belt_to_ground_type==q[5]) then else if e then out(e) end need[#need+1]=i end end rcon.print(gone..';'..table.concat(need,','))")
-ALLOWED = {"K": ["carbon", "sulfur", "calcite", "coal", "iron-plate", "copper-plate"], "O": ["iron-ore", "copper-ore"], "W": ["ice"]}
+ALLOWED = {"K": ["carbon", "sulfur", "calcite", "coal", "iron-plate", "copper-plate"], "O": ["iron-ore", "copper-ore", "stone", "steel-plate"], "W": ["ice"]}
 SWEEP = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local ok={} for _,n in pairs(ALLOW) do ok[n]=true end local t={} local junk=0 for _,p in pairs(TILES) do local e=s.find_entities_filtered{type={'transport-belt','underground-belt'},position=p,radius=0.3}[1] "
          "if e then for l=1,e.get_max_transport_line_index() do local tl=e.get_transport_line(l) for _,it in pairs(tl.get_contents()) do if ok[it.name] then t[it.name]=(t[it.name] or 0)+it.count else junk=junk+tl.remove_item{name=it.name,count=it.count,quality=it.quality} hub.insert{name=it.name,count=it.count,quality=it.quality} end end end end end "
          "local o={} for k,v in pairs(t) do o[#o+1]=k..' '..v end rcon.print('LINE: '..table.concat(o,', ')..' | strays returned to the hub '..junk)")
