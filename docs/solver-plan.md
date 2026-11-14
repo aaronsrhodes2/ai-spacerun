@@ -68,8 +68,9 @@ Built so far:
   - Settings name exactly one source: `anthropic`, `openai`, `ollama` or `purple`, with one address and one key.
   - `anthropic` is any server that speaks the Anthropic Messages API. Skippy Core serves purple's model that way, with
     tool use, so the bridge's own loop can run every turn on it in seconds: one address, one key. Not yet tried live.
-    The Captain chose this for turns (2026-11-13); purple stays for long goals. `copilot/copilot.env` on skippy-pc names
-    the dev-root vault (`COPILOT_VAULT`) and takes address, key and model from it by name (`$SKIPPY_CORE_URL` and so on).
+    The Captain's final choice (2026-11-13) is purple for all turns: `copilot/copilot.env` on skippy-pc sets
+    `COPILOT_SOURCE=purple` with workspace `f-ai-factorio`. The Core settings are kept there, commented out, read from
+    the dev-root vault by name (`COPILOT_VAULT`, `$SKIPPY_CORE_URL` and so on), for comparison runs.
   - Purple Skippy is the development agent, reached through its MCP door on skippy-pc (`127.0.0.1:47860/mcp`,
     SkippyTel's purple-mcp; no key on loopback, and the home token never comes near this repository). Every call is a
     task; the work is a job of seconds to minutes, one at a time. `copilot/purple_client.py` is the client (plain
