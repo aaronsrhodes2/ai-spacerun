@@ -1,7 +1,7 @@
 {
   "name": "skippy-copilot",
   "version": "0.15.0",
-  "title": "Skippy",
+  "title": "Skippy the Foreman",
   "author": "Skippy",
   "factorio_version": "2.1",
   "dependencies": ["base >= 2.1"],

@@ -1,4 +1,4 @@
-# Skippy
+# Skippy the Foreman
 
 Play Factorio by talking to an AI. You say what you want in the game's chat; the AI looks at your factory, plans, builds,
 and tells you what it did. The mod holds the tools the AI uses. A small program outside the game, the bridge
