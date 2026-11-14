@@ -62,6 +62,26 @@ science". Your words become the prompt; whichever model you configured plans the
 - **Two ways to run.** Co-op: the player talks, the model works, both build. Solo: the harness feeds the milestone list
   as the prompts and nobody speaks. The scored runs are solo; the mod people play with is co-op.
 
+### The aim: a whole game with no mouse, keyboard or controller
+
+The Captain, 2026-11-13: the player sees a problem, says what to do about it, and the model reasons as far as it can and
+uses every tool it has to do the best job of it. The player never has to touch an input device.
+
+What that asks for beyond building:
+
+- **A working light.** Always visible in the game: idle, thinking, working, blocked, failed. The player can read the
+  model's text as it goes or ignore it and wait.
+- **A spoken summary.** Short and friendly, of what was done and what was not. Speech is made by the companion, not the
+  mod (a mod can only play sounds shipped with it).
+- **The camera by voice.** "Show me the copper line", "go to Gleba", "zoom out": the mod moves the player's view and
+  tags the spot.
+- **Stop and undo by voice.** "Stop" halts the work at once. Anything that removes or replaces working machines is
+  said aloud first and waits for a yes.
+- **The game's own menus.** Starting, saving, loading and joining are outside any mod; the companion does those.
+
+This is a second product goal beside the scored solve. The solve proves the model can play; this makes it a game someone
+plays.
+
 ## Parts to build
 
 | Part | What it is |
@@ -76,7 +96,8 @@ science". Your words become the prompt; whichever model you configured plans the
 | Mistakes list | The traps of the Fable run as rules ("a mixed-item belt must be a loop"). |
 | Milestones | A fixed list from first plate to the win, each with a test code can run. |
 | Harness | Runs a model against a save, scores it, saves at each milestone, resumes after a crash. |
-| Voice companion | Push-to-talk speech to text into the game chat. Optional; outside the mod. |
+| Voice companion | Speech to text into the game chat, spoken summaries back, and the game's menus. Outside the mod. |
+| View control | Camera moves, map tags and the working light, driven by the model. In the mod. |
 | Provider plugin | Paid API, local model, or a local server that speaks the Anthropic API. Upstream's two providers are the base. |
 
 ## Increments
