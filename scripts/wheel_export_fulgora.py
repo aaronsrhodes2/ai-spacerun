@@ -97,10 +97,12 @@ EC2_ENTS = ([ent("foundry", 8, 12, N, 5), ent("electromagnetic-plant", 14, 12, N
 EC2_REC = [(8 + HX + 2.5, 12 + HY + 2.5, "casting-copper-cable", N, "foundry"), (14 + HX + 2, 12 + HY + 2, "electronic-circuit", N, "electromagnetic-plant")]
 EC2_FILTERS = [(13, 14, ["copper-cable"]), (18, 13, ["electronic-circuit"]), (16, 16, ["iron-plate"])]
 # water: the reshuffler (5..7,43..44) reprocesses CARBONIC chunks, the kind the west spoke has to spare, instead of metallic ones:
-# intake 5,45 from in1 (a fast inserter in place of the long-handed one that reached in2), oxide chunks straight into the oxide crusher (8,43, as before),
-# carbonic ones into the first carbonic crusher (4,43, as before) or back onto in1 (6,45), metallic ones onto in2 (long-handed, 7,45);
+# intake 6,45 from in1 (the long-handed one at 5,45 that reached in2 is gone), oxide chunks straight into the oxide crusher (8,43, as before),
+# carbonic ones into the first carbonic crusher (4,43, as before) or back onto in1 at 5,45, ONE TILE UPSTREAM of the intake (in1 stands
+# full: downstream of the intake the returned chunk found no gap and the reshuffler stopped at full output; upstream, every chunk the
+# intake lifts opens the gap), metallic ones onto in2 (long-handed, 7,45);
 # the old relief inserter at 6,42 (chunks onto the ore belt and so into the hub, a slot each) is given a filter that never matches
-WATER_ENTS = [ent("fast-inserter", 5, 45, S), ent("fast-inserter", 6, 45, N), ent("long-handed-inserter", 7, 45, N)]
+WATER_ENTS = [ent("fast-inserter", 5, 45, N), ent("fast-inserter", 6, 45, S), ent("long-handed-inserter", 7, 45, N)]
 WATER_FILTERS = [(5, 45, ["carbonic-asteroid-chunk"]), (6, 45, ["carbonic-asteroid-chunk"]), (7, 45, ["metallic-asteroid-chunk"]), (6, 42, ["carbon"])]
 WATERCLEAR = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local n=0 for _,e in pairs(s.find_entities_filtered{name='long-handed-inserter',position={IX,IY},radius=0.3}) do "
               "if e.held_stack.valid_for_read then hub.insert(e.held_stack) e.held_stack.clear() end e.destroy() n=n+1 end rcon.print('long-handed intake of the reshuffler removed '..n)")
@@ -132,7 +134,7 @@ CONFIG = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=define
           "local nf=0 for _,q in pairs(FILT) do local i=at('inserter',q[1],q[2]) if i then i.use_filters=true i.inserter_filter_mode='whitelist' for k=1,i.filter_slot_count do i.set_filter(k,q[3][k]) end nf=nf+1 end end "
           "local nr=0 for _,q in pairs(REC) do local m=s.find_entities_filtered{name=q[5],position={q[1],q[2]},radius=0.5}[1] if m then if not m.get_recipe() or m.get_recipe().name~=q[3] then for _,st in pairs(m.set_recipe(q[3])) do hub.insert(st) end end m.direction=q[4] nr=nr+1 end end "
           "local cr=s.find_entities_filtered{name='crusher',position={CRX,CRY},radius=0.5}[1] if cr then if not cr.get_recipe() then cr.set_recipe('advanced-carbonic-asteroid-crushing') end cr.direction=defines.direction.east o[#o+1]='second carbonic crusher set' end "
-          "local rp=s.find_entities_filtered{name='crusher',position={RPX,RPY},radius=0.5}[1] local ri=at('inserter',RIX,RIY) if rp and ri and at('inserter',RIX+1,RIY) then "
+          "local rp=s.find_entities_filtered{name='crusher',position={RPX,RPY},radius=0.5}[1] local ri=at('inserter',RIX,RIY) local rr=at('inserter',RIX-1,RIY) if rp and ri and rr then ri.direction=defines.direction.south rr.direction=defines.direction.north rr.get_wire_connector(W.circuit_green,true).disconnect_all() rr.get_or_create_control_behavior().circuit_enable_disable=false "
           "if not rp.get_recipe() or rp.get_recipe().name~='carbonic-asteroid-reprocessing' then for _,st in pairs(rp.set_recipe('carbonic-asteroid-reprocessing')) do hub.insert(st) end end "
           "local melt=s.find_entities_filtered{type='assembling-machine',position={WMX,WMY},radius=0.5}[1] melt.get_or_create_control_behavior().circuit_read_contents=true local c=ri.get_wire_connector(W.circuit_green,true) c.disconnect_all() c.connect_to(melt.get_wire_connector(W.circuit_green,true),false) "
           "local cb=ri.get_or_create_control_behavior() cb.circuit_enable_disable=true cb.circuit_condition={first_signal={type='item',name='ice'},comparator='<',constant=20} o[#o+1]='reshuffler on carbonic chunks, gated on the melter ice' end "
@@ -204,7 +206,7 @@ def config(surface, export):
     gated.append(hc(1, 45) + ("carbon", TARGETS["carbon"]))                       # the carbonic crusher's intake follows the loop's carbon
     lb = hc(*[(t[0] - HX, t[1] - HY) for t in wr.loop_tiles][0])
     return run(CONFIG, surface, FILT=lua_rows(filt), REC=lua_rows(rec), GATED=lua_rows(gated), SIDE=lua_rows(side), CAPS=lua_rows(caps),
-               LBX=lb[0], LBY=lb[1], RPX=HX + 6.5, RPY=HY + 44, RIX=hc(5, 45)[0], RIY=hc(5, 45)[1], WMX=HX + 45.5, WMY=HY + 27.5, CRX=CRUSH_ENTS[0]["x"], CRY=CRUSH_ENTS[0]["y"], OPX=OLD_MACH[0][0] + HX, OPY=OLD_MACH[0][1] + HY, EXPORT=export, RMIN=REQUEST_MIN)
+               LBX=lb[0], LBY=lb[1], RPX=HX + 6.5, RPY=HY + 44, RIX=hc(6, 45)[0], RIY=hc(6, 45)[1], WMX=HX + 45.5, WMY=HY + 27.5, CRX=CRUSH_ENTS[0]["x"], CRY=CRUSH_ENTS[0]["y"], OPX=OLD_MACH[0][0] + HX, OPY=OLD_MACH[0][1] + HY, EXPORT=export, RMIN=REQUEST_MIN)
 
 
 def rate(surface, export, secs):

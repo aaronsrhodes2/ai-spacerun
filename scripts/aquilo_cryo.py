@@ -190,7 +190,9 @@ def build(P, grid, net, apply, extra=()):
         r = json.loads(tools["place_entities"](json.dumps(out[i:i + 150]), surface=SURF, dry_run=not apply, clear_trees=apply))
         placed += r.get("placed") or 0
         failed += r.get("failed") or []
-    print("placed" if apply else "dry run ok", placed, "failed", json.dumps(failed)[:1500])
+    pv = set(pave)
+    failed = [f for f in failed if apply or (int(f["x"] // 1), int(f["y"] // 1)) not in pv]
+    print("placed" if apply else "dry run ok", placed, "failed (ice tiles to be paved left out)", json.dumps(failed)[:1500])
     if apply:
         xs = [t[0] for t in P.occupied()]
         ys = [t[1] for t in P.occupied()]
@@ -200,7 +202,7 @@ def build(P, grid, net, apply, extra=()):
 # ---------------------------------------------------------------- ice platform works
 CY = -29
 CXS = [-8, 2, 12]
-RX = 2
+RX = 4
 
 
 def platform_plan():
@@ -209,15 +211,15 @@ def platform_plan():
     for cx in CXS:
         J = cx - 6
         P.add("chemical-plant", cx - 6, cy, 3, 3, N, recipe="ammoniacal-solution-separation")
-        P.add("cryogenic-plant", cx - 2, cy - 2, 5, 5, N, recipe="ice-platform")
+        P.add("assembling-machine-3", cx - 2, cy, 3, 3, S, recipe="ice-platform")   # crafting-with-fluid: an assembler, its fluid port (cx-1, cy+3) on the main
         for y in (cy - 4, cy - 3, cy - 2, cy - 1):
             P.pipe(J, y)
         if cx != CXS[-1]:
             P.add("pipe-to-ground", J + 1, cy - 4, d=W)
             P.add("pipe-to-ground", J + 9, cy - 4, d=E)
         P.add("bulk-inserter", cx - 3, cy + 1, d=W)           # ice: separation -> cryogenic plant (direction = the side it picks up from)
-        P.add("bulk-inserter", cx + 1, cy - 3, d=S)           # platforms out
-        P.add("passive-provider-chest", cx + 1, cy - 4)
+        P.add("fast-inserter", cx - 1, cy - 1, d=S)           # platforms out
+        P.add("passive-provider-chest", cx - 1, cy - 2)
         P.add("substation", cx - 5, cy - 2, 2, 2)
     c1 = CXS[0]
     P.add("offshore-pump", c1 - 8, cy - 4, d=W)                # needs ocean 3 wide and 2 deep in front: the inlet at -20..-17, -34..-31
@@ -227,17 +229,17 @@ def platform_plan():
     P.add("bulk-inserter", c1 - 7, cy + 1, d=E)                # ice for the rest of the base (gated in config)
     P.add("passive-provider-chest", c1 - 8, cy + 1)
     rx = RX
-    for y in (cy + 4, cy + 5, cy + 6):
+    for y in (cy + 4, cy + 5, cy + 6, cy + 7):
         P.pipe(rx + 1, y)                                      # ammonia branch down into the rocket fuel plant
-    P.pipe(rx - 1, cy + 6)                                     # water: melter -> rocket fuel plant (one tile, both ports)
-    P.add("chemical-plant", rx - 1, cy + 7, 3, 3, N, recipe="ammonia-rocket-fuel")
-    P.add("chemical-plant", rx - 4, cy + 4, 3, 3, W, recipe="ice-melting")
-    P.add("fast-inserter", rx - 5, cy + 5, d=W)                # ice for the melter
-    P.add("requester-chest", rx - 6, cy + 5)
-    P.add("fast-inserter", rx - 2, cy + 8, d=W)                # solid fuel for the rocket fuel plant
-    P.add("requester-chest", rx - 3, cy + 8)
-    P.add("fast-inserter", rx + 2, cy + 8, d=W)                # rocket fuel out
-    P.add("passive-provider-chest", rx + 3, cy + 8)
+    P.pipe(rx - 1, cy + 7)                                     # water: melter -> rocket fuel plant (one tile, both ports)
+    P.add("chemical-plant", rx - 1, cy + 8, 3, 3, N, recipe="ammonia-rocket-fuel")
+    P.add("chemical-plant", rx - 4, cy + 5, 3, 3, W, recipe="ice-melting")
+    P.add("fast-inserter", rx - 5, cy + 6, d=W)                # ice for the melter
+    P.add("requester-chest", rx - 6, cy + 6)
+    P.add("fast-inserter", rx - 2, cy + 9, d=W)                # solid fuel for the rocket fuel plant
+    P.add("requester-chest", rx - 3, cy + 9)
+    P.add("fast-inserter", rx, cy + 11, d=N)                   # rocket fuel out (south side: the landing pad is east)
+    P.add("passive-provider-chest", rx, cy + 12)
     return P
 
 
@@ -254,7 +256,7 @@ def platforms(apply):
 
 def cond(x, y, item, comp, n):
     return ("do local e=s.find_entities_filtered{type='inserter',position={%s,%s},radius=0.4}[1] local cb=e.get_or_create_control_behavior() cb.connect_to_logistic_network=true "
-            "cb.logistic_condition={comparator='%s',first_signal={type='item',name='%s'},constant=%d} o[#o+1]=e.name..' %s%s%d' end " % (x, y, comp, item, item, comp, n))
+            "cb.logistic_condition={comparator='%s',first_signal={type='item',name='%s'},constant=%d} o[#o+1]=e.name..' %s %s %d' end " % (x, y, comp, item, n, item, comp, n))
 
 
 def ask(x, y, reqs):
@@ -267,8 +269,8 @@ def config():
     c1 = CXS[0]
     rx = RX
     code = "local s=game.surfaces.aquilo local o={} "
-    code += ask(rx - 5.5, CY + 5.5, {"ice": 50})
-    code += ask(rx - 2.5, CY + 8.5, {"solid-fuel": 100})
+    code += ask(rx - 5.5, CY + 6.5, {"ice": 50})
+    code += ask(rx - 2.5, CY + 9.5, {"solid-fuel": 100})
     code += cond(c1 - 6.5, CY + 1.5, "ice", "<", 1500)
     code += cond(40.5, -3.5, "ice", ">", 4000)             # the recycler ice sink runs on true surplus only
     code += "rcon.print(table.concat(o,' | '))"

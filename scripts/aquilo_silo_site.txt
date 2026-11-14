@@ -10,3 +10,8 @@ why: the big clean land field west of the landing pad (no ghosts of ice platform
   power block, 17 tiles from roboport (4,-11) (inside its logistic area, network 3635)
 status: PLACED 2026-11-14 (silo, 3 inserters, 3 requester chests, substation, 4+4+7 heat pipes in the yard and 17 on the link: (9,-9)(9,-6)(8..1,-6)(1,-5)(1,-4)(0..-2,-4))
 NOTES
+[cryo/ice-platform agent, 2026-11-14] No conflict with your footprint. My builds (scripts/aquilo_cryo.py):
+  ice platform works: x -17..16, y -35..-16 (north field: pump at (-16,-33) on the inlet, 3 separation + 3 cryogenic plants, rocket fuel
+  plant at 3..5,-21..-19), heat links down x=5 (y -18..-14) and x=14 (y -25..-20) to the base heat row y=-14.
+  cryogenic science line (planned next): north-west field x -42..-19, y -45..-25, plus a fluorine pipe north to the vent at (-34,-70).
+  Rocket fuel for your silo will lie in the red chest at (4.5,-16.5) (ammonia-rocket-fuel, about 0.2 per ice platform made).
