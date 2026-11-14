@@ -61,7 +61,8 @@ def test_a_factory_that_makes_no_science_yet(mod):
 def test_prompts_are_counted_and_shown_on_the_working_light(mod):
     mod.run("fake.add_player('captain', 0, 0)")
     label = "game.players[1].gui.top.skippy_light.skippy_prompts.caption"
-    assert mod.result("run_stats") == {"prompts": 0, "hours_played": 0, "won": False} and mod.lua.eval(label) == "0 prompts"
+    assert mod.result("run_stats") == {"prompts": 0, "hours_played": 0, "won": False, "placed_freely": 0, "placed_by_character": 0,
+                                       "built_by_hand_only": True} and mod.lua.eval(label) == "0 prompts"
     mod.run("fake.chat(1, 'lets get to red science')")
     assert mod.lua.eval(label) == "1 prompt"
     mod.run("fake.chat(1, 'and now green') fake.chat(1, '')")

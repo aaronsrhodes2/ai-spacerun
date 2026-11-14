@@ -22,7 +22,7 @@ def test_the_three_kinds_describe_themselves():
 
 
 def test_bad_goals_are_refused_with_the_choices():
-    with pytest.raises(GoalError, match="'win', 'milestone' or 'science'"):
+    with pytest.raises(GoalError, match="'win', 'place', 'milestone' or 'science'"):
         Goal("conquer")
     with pytest.raises(GoalError, match="no milestone 'moon'.*first-plates"):
         Goal("milestone", "moon")

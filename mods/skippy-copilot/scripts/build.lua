@@ -165,6 +165,7 @@ R.register {
           failed[#failed + 1] = { name = piece.name, x = piece.x, y = piece.y, why = "the game refused it at the moment of placing" }
         end
       end
+      if storage.run then storage.run.placed_freely = (storage.run.placed_freely or 0) + placed end
       return { placed = placed, failed_count = n - placed, failed = (#failed > 0) and failed or nil, surface = surface.name, executor = mode }
     end
     return { would_place = ok_count, failed_count = failures, failed = (#failed > 0) and failed or nil, surface = surface.name, executor = mode,

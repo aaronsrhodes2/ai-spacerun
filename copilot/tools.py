@@ -70,8 +70,9 @@ AVATAR_SPECS = [
      "parameters": {"planet": _param("string", "internal name of the planet, such as 'vulcanus'", True),
                     "ship": _param("string", "name of the platform to ride; leave out for any ship in orbit that goes there")}},
     {"name": "set_goal",
-     "description": "Take on a standing goal: something the player asks for once that you then keep working toward on your own, turn after turn, without further prompts, until it is reached or the player says stop. kind 'win' plays the game to its end; 'milestone' reaches one milestone (give its id, from the milestones tool); 'science' makes at least per_minute of every science pack a minute. Use it when the player says things like 'finish the game', 'get us to blue science', or 'I want 1,000 science a minute'.",
-     "parameters": {"kind": _param("string", "'win', 'milestone' or 'science'", True),
+     "description": "Take on a standing goal: something the player asks for once that you then keep working toward on your own, turn after turn, without further prompts, until it is reached or the player says stop. kind 'win' plays the game to its end; 'place' finishes everything for one place (give place: nauvis, space, vulcanus, fulgora, gleba, aquilo or edge); 'milestone' reaches one milestone (give its id, from the milestones tool); 'science' makes at least per_minute of every science pack a minute. Use it when the player says things like 'solve Nauvis', 'finish the game', 'get us to blue science', or 'I want 1,000 science a minute'.",
+     "parameters": {"kind": _param("string", "'win', 'place', 'milestone' or 'science'", True),
+                    "place": _param("string", "for kind place: nauvis, space (the first platform), vulcanus, fulgora, gleba, aquilo or edge"),
                     "milestone": _param("string", "for kind milestone: its id, such as 'rocket-silo'"),
                     "per_minute": _param("number", "for kind science: packs a minute wanted of each science")}},
     {"name": "clear_goal",
@@ -331,8 +332,8 @@ class LocalTools:
             out["standing_goal"] = self.goal.describe()
         return out
 
-    def set_goal(self, kind, milestone=None, per_minute=None):
-        goal = Goal(kind, milestone if kind == "milestone" else per_minute)
+    def set_goal(self, kind, place=None, milestone=None, per_minute=None):
+        goal = Goal(kind, {"place": place, "milestone": milestone, "science": per_minute}.get(kind))
         self.goal, self.goal_paused = goal, False
         return {"goal": goal.describe(), "note": "you will be asked to carry on by yourself until it is reached; say so to the player in one sentence"}
 

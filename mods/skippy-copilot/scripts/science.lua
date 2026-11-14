@@ -85,6 +85,17 @@ local S = {}
 
 function S.init()
   storage.run = storage.run or { prompts = 0 }
+  storage.run.placed_freely = storage.run.placed_freely or 0
+  storage.run.placed_by_character = storage.run.placed_by_character or 0
+end
+
+-- An honest record of how things got built (the Captain, 2026-11-13: the best job we can, without cheating). Pieces
+-- the assistant placed freely are counted apart from pieces a character carried and placed by hand, so nobody can
+-- mistake a free-hand run for a hand-built one.
+function S.count_placed(how, n)
+  local run = storage.run
+  if not run then return end
+  if how == "god" then run.placed_freely = run.placed_freely + n else run.placed_by_character = run.placed_by_character + n end
 end
 
 -- A line a player typed in chat is a prompt.
@@ -106,12 +117,14 @@ end
 
 R.register {
   name = "run_stats",
-  description = "The run so far: how many prompts the player has typed, hours played, and if the game is won, how many prompts and hours it took. For players who try to finish in as few prompts as they can.",
+  description = "The run so far: how many prompts the player has typed, hours played, how many pieces the assistant placed freely and how many a character placed by hand, and if the game is won, how many prompts and hours it took. For players who try to finish in as few prompts as they can.",
   params = {},
   run = function()
     local run = storage.run
     return {
       prompts = run.prompts, hours_played = math.floor(game.tick / 216000 * 10) / 10,
+      placed_freely = run.placed_freely, placed_by_character = run.placed_by_character,
+      built_by_hand_only = run.placed_freely == 0,
       won = run.won_tick ~= nil,
       prompts_to_win = run.prompts_at_win, hours_to_win = run.won_tick and math.floor(run.won_tick / 216000 * 10) / 10 or nil,
     }

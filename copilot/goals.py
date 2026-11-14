@@ -2,8 +2,9 @@
 until it is reached or the player says stop. This is what lets a whole game be played in a handful of prompts, and what a
 target such as "1,000 science a minute of each science" needs.
 
-Three kinds:
+Four kinds:
   win         play to the win (the edge of the solar system)
+  place       finish everything the list holds for one place: "solve Nauvis", "solve Vulcanus", "the first platform"
   milestone   reach one milestone of the list, by its id
   science     make at least N of every researched science pack a minute
 
@@ -17,8 +18,12 @@ class GoalError(Exception):
 
 class Goal:
     def __init__(self, kind, value=None, said=""):
-        if kind not in ("win", "milestone", "science"):
-            raise GoalError("a goal is 'win', 'milestone' or 'science'")
+        if kind not in ("win", "place", "milestone", "science"):
+            raise GoalError("a goal is 'win', 'place', 'milestone' or 'science'")
+        if kind == "place":
+            value = str(value or "").strip().lower()
+            if not ms.of_place(value):
+                raise GoalError("there is no place '%s'; places are: %s" % (value, ", ".join(ms.PLACES)))
         if kind == "milestone":
             ids = [m["id"] for m in ms.MILESTONES]
             if value not in ids:
@@ -37,6 +42,9 @@ class Goal:
     def describe(self):
         if self.kind == "win":
             return "win the game"
+        if self.kind == "place":
+            names = {"space": "get the first platform working", "edge": "reach the edge of the solar system", "beyond": "make promethium science"}
+            return names.get(self.value) or "solve %s" % self.value.capitalize()
         if self.kind == "milestone":
             title = next(m["title"] for m in ms.MILESTONES if m["id"] == self.value)
             return "reach the milestone: %s" % title
@@ -50,6 +58,10 @@ class Goal:
         if self.kind == "win":
             state = ms.summary(facts)
             return bool(facts.get("won")), "%d of %d milestones done" % (state["done"], state["of"])
+        if self.kind == "place":
+            mine = ms.of_place(self.value)
+            left = [m for m in mine if ms.missing(m["test"], facts)]
+            return not left, "%d of %d steps done%s" % (len(mine) - len(left), len(mine), (", next: " + left[0]["title"]) if left else "")
         if self.kind == "milestone":
             m = next(m for m in ms.MILESTONES if m["id"] == self.value)
             lacks = ms.missing(m["test"], facts)
@@ -74,11 +86,16 @@ class Goal:
             if state["next"] and not facts.get("won"):
                 lines.append("Science you cannot make yet needs research first; the next milestone is: %s." % state["next"][0]["goal"])
         else:
-            state = ms.summary(facts)
+            state = ms.summary(facts, ms.of_place(self.value)) if self.kind == "place" else ms.summary(facts)
             if state["next"]:
                 n = state["next"][0]
                 lines.append("The next milestone is: %s. It still needs: %s. Hint: %s." % (n["goal"], "; ".join(n["still_needs"]), n["hint"]))
+                if self.kind == "place":                 # a step that belongs to an earlier place may have to come first
+                    earlier = ms.summary(facts)
+                    if earlier["next"] and earlier["next"][0]["id"] not in [m["id"] for m in ms.of_place(self.value)]:
+                        lines.append("An earlier step is not done yet and may be needed first: %s." % earlier["next"][0]["goal"])
         lines.append("Do the one most useful thing toward it now, using your tools: find what limits progress (alerts, bottlenecks, "
-                     "what the next step needs), then plan it, dry-run it and build it. Then say in one or two sentences what you did. "
+                     "what the next step needs), then plan it, dry-run it and build it. Then say in one or two sentences what you did, "
+                     "honestly: if something failed or is not working yet, say so. "
                      "If you cannot go on without the player, say exactly what you need and begin your answer with the word BLOCKED.")
         return "\n".join(lines)

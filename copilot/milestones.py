@@ -12,53 +12,63 @@ A test is a dict; every key in it must hold:
   platform_at a space location with a platform at it
   won         the game reports the win
 
-The order is the order a game is normally played in. A milestone counts as done whenever its test holds, in any order."""
+The order is the order a game is normally played in. A milestone counts as done whenever its test holds, in any order.
+
+Each milestone belongs to a place: a planet, "space" (the first platform), "edge" (the run to the win) or "beyond". "Solve
+Nauvis" means every milestone of that place."""
+
+PLACES = ("nauvis", "space", "vulcanus", "fulgora", "gleba", "aquilo", "edge", "beyond")
+
+
+def of_place(place, milestones=None):
+    """The milestones that belong to a place, in order."""
+    return [m for m in (milestones or MILESTONES) if m.get("place") == place]
 
 MILESTONES = [
     # ---- Nauvis: by hand, then machines
-    {"id": "first-plates", "title": "Smelt the first iron and copper plates", "test": {"produced": {"iron-plate": 50, "copper-plate": 10}},
+    {"id": "first-plates", "place": "nauvis", "title": "Smelt the first iron and copper plates", "test": {"produced": {"iron-plate": 50, "copper-plate": 10}},
      "hint": "mine ore and coal by hand, place stone furnaces"},
-    {"id": "power", "title": "Make electricity", "test": {"researched": ["steam-power"], "built": {"steam-engine": 1}},
+    {"id": "power", "place": "nauvis", "title": "Make electricity", "test": {"researched": ["steam-power"], "built": {"steam-engine": 1}},
      "hint": "an offshore pump, a boiler and a steam engine by water, burning coal"},
-    {"id": "first-machines", "title": "Automate mining and assembling", "test": {"researched": ["automation"], "built": {"electric-mining-drill": 2, "assembling-machine-1": 2}},
+    {"id": "first-machines", "place": "nauvis", "title": "Automate mining and assembling", "test": {"researched": ["automation"], "built": {"electric-mining-drill": 2, "assembling-machine-1": 2}},
      "hint": "drills on ore feeding furnaces; assemblers for gears and science"},
-    {"id": "red-science", "title": "Research with red science", "test": {"produced": {"automation-science-pack": 20}, "built": {"lab": 1}},
+    {"id": "red-science", "place": "nauvis", "title": "Research with red science", "test": {"produced": {"automation-science-pack": 20}, "built": {"lab": 1}},
      "hint": "automation science packs into a lab"},
-    {"id": "green-science", "title": "Make green science", "test": {"researched": ["logistic-science-pack"], "produced": {"logistic-science-pack": 20}},
+    {"id": "green-science", "place": "nauvis", "title": "Make green science", "test": {"researched": ["logistic-science-pack"], "produced": {"logistic-science-pack": 20}},
      "hint": "inserters and belts made by machines, then logistic science packs"},
-    {"id": "steel", "title": "Make steel", "test": {"researched": ["steel-processing"], "produced": {"steel-plate": 50}},
+    {"id": "steel", "place": "nauvis", "title": "Make steel", "test": {"researched": ["steel-processing"], "produced": {"steel-plate": 50}},
      "hint": "furnaces fed with iron plates"},
-    {"id": "oil", "title": "Process oil into plastic", "test": {"researched": ["oil-processing", "plastics"], "produced": {"plastic-bar": 50}},
+    {"id": "oil", "place": "nauvis", "title": "Process oil into plastic", "test": {"researched": ["oil-processing", "plastics"], "produced": {"plastic-bar": 50}},
      "hint": "pumpjacks, a refinery, a chemical plant"},
-    {"id": "blue-science", "title": "Make blue science", "test": {"researched": ["chemical-science-pack"], "produced": {"chemical-science-pack": 20}},
+    {"id": "blue-science", "place": "nauvis", "title": "Make blue science", "test": {"researched": ["chemical-science-pack"], "produced": {"chemical-science-pack": 20}},
      "hint": "engines, red circuits and sulfur"},
-    {"id": "robots", "title": "Get robots building and carrying", "test": {"researched": ["construction-robotics", "logistic-robotics"], "built": {"roboport": 1}},
+    {"id": "robots", "place": "nauvis", "title": "Get robots building and carrying", "test": {"researched": ["construction-robotics", "logistic-robotics"], "built": {"roboport": 1}},
      "hint": "roboports and robots; from here plans can be built as ghosts"},
-    {"id": "rocket-silo", "title": "Build a rocket silo", "test": {"researched": ["rocket-silo"], "built": {"rocket-silo": 1}},
+    {"id": "rocket-silo", "place": "nauvis", "title": "Build a rocket silo", "test": {"researched": ["rocket-silo"], "built": {"rocket-silo": 1}},
      "hint": "the silo's three rocket ingredients are each a large line"},
-    {"id": "first-rocket", "title": "Launch a rocket", "test": {"launched": 1}, "hint": "fill the silo with rocket parts"},
+    {"id": "first-rocket", "place": "nauvis", "title": "Launch a rocket", "test": {"launched": 1}, "hint": "fill the silo with rocket parts"},
     # ---- space
-    {"id": "platform", "title": "Put a platform in orbit", "test": {"researched": ["space-platform"], "platforms": 1},
+    {"id": "platform", "place": "space", "title": "Put a platform in orbit", "test": {"researched": ["space-platform"], "platforms": 1},
      "hint": "launch a platform starter pack, then build the platform out"},
-    {"id": "space-science", "title": "Make space science on a platform", "test": {"researched": ["space-science-pack"], "produced": {"space-science-pack": 20}},
+    {"id": "space-science", "place": "space", "title": "Make space science on a platform", "test": {"researched": ["space-science-pack"], "produced": {"space-science-pack": 20}},
      "hint": "asteroid collectors, crushers and assemblers on the platform"},
     # ---- the inner planets, in any order
-    {"id": "vulcanus", "title": "Land on Vulcanus and make metallurgic science", "test": {"researched": ["planet-discovery-vulcanus"], "reached": ["vulcanus"], "produced": {"metallurgic-science-pack": 20}},
+    {"id": "vulcanus", "place": "vulcanus", "title": "Land on Vulcanus and make metallurgic science", "test": {"researched": ["planet-discovery-vulcanus"], "reached": ["vulcanus"], "produced": {"metallurgic-science-pack": 20}},
      "hint": "lava and calcite give metal in foundries; tungsten needs big mining drills"},
-    {"id": "fulgora", "title": "Land on Fulgora and make electromagnetic science", "test": {"researched": ["planet-discovery-fulgora"], "reached": ["fulgora"], "produced": {"electromagnetic-science-pack": 20}},
+    {"id": "fulgora", "place": "fulgora", "title": "Land on Fulgora and make electromagnetic science", "test": {"researched": ["planet-discovery-fulgora"], "reached": ["fulgora"], "produced": {"electromagnetic-science-pack": 20}},
      "hint": "everything comes from recycling scrap; lightning gives power and needs rods"},
-    {"id": "gleba", "title": "Land on Gleba and make agricultural science", "test": {"researched": ["planet-discovery-gleba"], "reached": ["gleba"], "produced": {"agricultural-science-pack": 20}},
+    {"id": "gleba", "place": "gleba", "title": "Land on Gleba and make agricultural science", "test": {"researched": ["planet-discovery-gleba"], "reached": ["gleba"], "produced": {"agricultural-science-pack": 20}},
      "hint": "everything spoils: build so nothing sits still, and research where the packs are made"},
     # ---- the outer system
-    {"id": "aquilo", "title": "Land on Aquilo and make cryogenic science", "test": {"researched": ["planet-discovery-aquilo"], "reached": ["aquilo"], "produced": {"cryogenic-science-pack": 20}},
+    {"id": "aquilo", "place": "aquilo", "title": "Land on Aquilo and make cryogenic science", "test": {"researched": ["planet-discovery-aquilo"], "reached": ["aquilo"], "produced": {"cryogenic-science-pack": 20}},
      "hint": "everything freezes without heat pipes; the ship there must break big asteroids with rockets"},
-    {"id": "railgun-and-fusion", "title": "Research railguns and fusion power", "test": {"researched": ["railgun", "fusion-reactor"]},
+    {"id": "railgun-and-fusion", "place": "edge", "title": "Research railguns and fusion power", "test": {"researched": ["railgun", "fusion-reactor"]},
      "hint": "both need cryogenic science and quantum processors"},
-    {"id": "edge", "title": "Reach the edge of the solar system", "test": {"platform_at": "solar-system-edge"},
+    {"id": "edge", "place": "edge", "title": "Reach the edge of the solar system", "test": {"platform_at": "solar-system-edge"},
      "hint": "a ship with railguns for the huge asteroids past Aquilo"},
-    {"id": "won", "title": "The game is won", "test": {"won": True}, "hint": "arriving at the edge is the win"},
+    {"id": "won", "place": "edge", "title": "The game is won", "test": {"won": True}, "hint": "arriving at the edge is the win"},
     # ---- beyond the win
-    {"id": "promethium", "title": "Make promethium science beyond the edge", "test": {"researched": ["promethium-science-pack"], "produced": {"promethium-science-pack": 1}},
+    {"id": "promethium", "place": "beyond", "title": "Make promethium science beyond the edge", "test": {"researched": ["promethium-science-pack"], "produced": {"promethium-science-pack": 1}},
      "hint": "promethium asteroids lie past the edge; the science is made on the ship"},
 ]
 

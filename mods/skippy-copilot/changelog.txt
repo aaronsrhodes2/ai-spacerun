@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.8.0
+Date: 2026-11-13
+  Features:
+    - The run's record says how many pieces were placed freely and how many by a character's hands.
+---------------------------------------------------------------------------------------------------
 Version: 0.7.0
 Date: 2026-11-13
   Features:

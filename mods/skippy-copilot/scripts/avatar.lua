@@ -289,6 +289,7 @@ local function tick_build(body, job)
     local ok, why = place_one(body, piece)
     if not ok then return finish(false, why, { placed = job.placed, of = #job.pieces, stopped_at = { name = piece.name, x = piece.x, y = piece.y } }) end
     job.placed = job.placed + 1
+    if storage.run then storage.run.placed_by_character = (storage.run.placed_by_character or 0) + 1 end
     job.k = job.k + 1
     job.steps_aside = 0
     return
