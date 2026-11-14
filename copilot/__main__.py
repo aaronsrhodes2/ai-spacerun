@@ -199,8 +199,8 @@ def main():
         print(answer or "(no answer: %s)" % outcome)
         print(stats)
         return
-    door = env.get("COPILOT_PURPLE_URL", PURPLE_URL)
-    helper = None if door.lower() == "off" else PurpleClient(door, secret(env, "COPILOT_PURPLE_KEY"))
+    purple_url = env.get("COPILOT_PURPLE_URL", PURPLE_URL)
+    helper = None if purple_url.lower() == "off" else PurpleClient(purple_url, secret(env, "COPILOT_PURPLE_KEY"))
     bridge = Bridge(game, agent, tools, stall_hours=float(env.get("COPILOT_STALL_HOURS", "2")), goal_pause=float(env.get("COPILOT_GOAL_PAUSE", "20")),
                     out=lambda *a: print(*a, flush=True), voice=door, purple=helper, purple_project=env.get("COPILOT_PURPLE_PROJECT", "f-ai-factorio"))
     print("listening: %s, %d tools" % (agent.model.model, len(agent.tools)), flush=True)
