@@ -1044,3 +1044,7 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - `scripts/ship_map.py "<ship name>" [x0 y0 x1 y1]` prints an ASCII map of a platform.
 - Laser priority: `t.set_priority_target(i, 'small-...-asteroid')` for i=1..4 and `t.ignore_unprioritised_targets=true` (`priority_targets` is read only). Set on all 26 lasers of the Fulgora-Aquilo 2 Shuttle; wheels not changed. New lasers need it again.
 - Platform names contain `-`: find them with `name:find(s,1,true)` (plain), not a pattern.
+
+## Why a platform will not leave (2.1) - found 2026-11-14
+- A platform waits to clear its TRASH (`hub_trash`, 10 slots) before leaving; `can_leave_current_location()` stays false and the state shows a misleading `no_schedule`/stuck at the station. Cause here: a request with `max` below the stock (ice min=max=500 with 1,510 aboard) pushes the surplus into trash and the pod never clears. Fix: raise `max` (ice now 3,000), or move the trash back into `hub_main`.
+- After `p.schedule = ...` re-writes the schedule the state can sit at 4 (`no_schedule`); writing `p.space_location = p.space_location.name` re-arrives it (state 6). aquilo_ship2.py route now does that.
