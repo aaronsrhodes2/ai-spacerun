@@ -89,6 +89,7 @@ plays.
 | Executor | One layer under every tool that places, removes or configures. Two modes: god hand (today) and avatar. Tools never know which. |
 | Avatar | The character walks, reaches, mines, crafts and builds under the game's own limits. Increment 1. |
 | Calculators | Target rate and recipe in; machines, inputs and power out. |
+| Map grid | A labelled text grid of any window of the map, with a legend. The model's eyes; no screenshots. |
 | Finders | Free land, ore, water, robot coverage, nearest pole. Three ad hoc ones exist from 2026-11-13. |
 | Routers | Belt, pipe, heat pipe and rail from A to B around what stands there. |
 | Cells | The small generic patterns: belt-fed machine, robot-fed machine, fluid machine, direct insertion pair, train stop, miner on ore, crusher on a platform loop. |
@@ -99,6 +100,20 @@ plays.
 | Voice companion | Speech to text into the game chat, spoken summaries back, and the game's menus. Outside the mod. |
 | View control | Camera moves, map tags and the working light, driven by the model. In the mod. |
 | Provider plugin | Paid API, local model, or a local server that speaks the Anthropic API. Upstream's two providers are the base. |
+
+## How the model sees the map: text grids, not screenshots
+
+Settled 2026-11-13 (the Captain: essential, and much better than screenshots, which are costly and need a different model).
+The Fable run found room for every build this way: the game prints one character per tile and the model reads the layout.
+A local text model can do the same with no vision model at all, if the tool is strict:
+
+- **The grid is for orientation only.** It carries a legend, labelled rows and columns and a small fixed window (about 40
+  tiles wide). The model never works out a coordinate by counting characters.
+- **Exact questions go to code.** "A free 3 by 5 rectangle near here", "what stands on this tile", "a path from A to B"
+  each return coordinates. The model chooses among answers; it does not measure.
+- **Every placement is dry-run first**, so a misread costs one retry and breaks nothing.
+- **It is measured.** The harness quizzes the model on grids with known answers (where is the gap, what blocks this spot)
+  to find how large a window it reads reliably, before the solve depends on it.
 
 ## Increments
 
