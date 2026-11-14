@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.12.0
+Date: 2026-11-13
+  Features:
+    - The working light says "not connected" when no assistant is talking to the game, and how to check the setup.
+    - The standing goal is kept in the save.
+---------------------------------------------------------------------------------------------------
 Version: 0.11.0
 Date: 2026-11-13
   Features:

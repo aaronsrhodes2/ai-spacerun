@@ -39,9 +39,57 @@ local function draw(player)
   frame.skippy_prompts.tooltip = "How many things you have asked the assistant in this game."
   local s = STATES[storage.state.state] or STATES.idle
   local note = storage.state.note or ""
-  frame.state.caption = "Skippy: " .. s.text .. ((note ~= "") and (" - " .. note) or "")
-  frame.state.style.font_color = s.color
+  if C.connected() then
+    frame.state.caption = "Skippy: " .. s.text .. ((note ~= "") and (" - " .. note) or "")
+    frame.state.style.font_color = s.color
+    frame.state.tooltip = ""
+  else                                                    -- a newcomer's first question: is it even on?
+    frame.state.caption = "Skippy: not connected"
+    frame.state.style.font_color = { 0.6, 0.6, 0.6 }
+    frame.state.tooltip = "The assistant is not connected. Outside the game, run:  python -m copilot --check  and it will say what is missing."
+  end
 end
+
+-- Has anything outside the game called a tool lately? The bridge asks for chat every couple of seconds, so half a
+-- minute of silence means nobody is there.
+local QUIET_TICKS = 60 * 30
+
+function C.heard()
+  local was = C.connected()
+  storage.last_call_tick = game.tick
+  if not was then                                       -- the assistant has just connected: say so on the light at once
+    storage.was_connected = true
+    C.draw_all()
+  end
+end
+
+function C.connected()
+  return storage.last_call_tick ~= nil and game.tick - storage.last_call_tick <= QUIET_TICKS
+end
+
+-- Redraw when the connection comes or goes, checked a few times a second at most.
+function C.on_tick(event)
+  if event.tick % 120 ~= 0 then return end
+  local now = C.connected()
+  if now ~= storage.was_connected then
+    storage.was_connected = now
+    C.draw_all()
+  end
+end
+
+R.register {
+  name = "goal_state",
+  description = "For the bridge: the standing goal, kept in the game so that everything talking to the game sees the same one. With 'set' it stores a goal ({kind, value}) or clears it ({kind = 'none'}); without, it returns the goal.",
+  params = {
+    set = { type = "table", description = "a goal {kind, value}, or {kind = 'none'} to clear" },
+  },
+  run = function(a)
+    if a.set then
+      if a.set.kind == "none" or a.set.kind == nil then storage.goal = nil else storage.goal = { kind = a.set.kind, value = a.set.value } end
+    end
+    return { goal = storage.goal or { kind = "none" } }
+  end,
+}
 
 function C.draw_all()
   for _, p in pairs(game.players) do draw(p) end

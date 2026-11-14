@@ -7,8 +7,7 @@ import time
 from .models import schema
 
 PROMPT = (pathlib.Path(__file__).parent / "prompt.md").read_text(encoding="utf-8")
-BRIDGE_ONLY = {"chat_read", "say", "set_state", "events_read"}      # the bridge runs the channel; the model gets the rest
-PLAN_ONLY = {"build", "occupancy", "frames", "avatar_walk", "avatar_mine", "avatar_travel", "progress", "lock_mode", "research_available"}                                  # reached through the planning tools, never called raw
+from .toolbox import BRIDGE_ONLY, PLAN_ONLY          # noqa: F401  (kept here for callers that import them from this module)
 MAX_RESULT = 6000                                                   # characters of one tool result shown to the model
 
 

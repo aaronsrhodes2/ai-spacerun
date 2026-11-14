@@ -183,6 +183,7 @@ class Bridge:
             self.out(said)
 
     def _goal(self):
+        self.tools.sync_goal()                                  # the goal may have been set or dropped through another door
         goal = self.tools.goal
         if not goal or self.tools.goal_paused:
             return
@@ -204,6 +205,7 @@ class Bridge:
             say(self.game, "Goal reached: %s (%s). It took %d turns of my own." % (goal.describe(), where, goal.turns))
             self.agent.log(event="goal_reached", goal=goal.describe(), turns=goal.turns, hours_played=facts.get("hours_played"))
             self.tools.goal = None
+            self.tools._store_goal()
             self.game.call("set_state", {"state": "idle", "note": ""})
             return
         answer, outcome, stats = self.agent.handle(goal.prompt(facts, science), "goal")

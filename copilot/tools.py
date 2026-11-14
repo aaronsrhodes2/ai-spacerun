@@ -127,15 +127,24 @@ class ToolError(Exception):
 
 
 class LocalTools:
-    def __init__(self, game, sleep=time.sleep, poll=0.5, patience=600):
+    def __init__(self, game, sleep=time.sleep, poll=0.5, patience=600, plan_store=None):
         """sleep and poll set how the bridge waits for the avatar; patience is how many polls before it stops waiting
         (the job itself goes on in the game)."""
         self.game = game
         self.sleep, self.poll, self.patience = sleep, poll, patience
+        self.plan_store = plan_store        # a file that keeps plans across restarts (an agent's tool server restarts every turn)
         self.plans = {}
+        if plan_store is not None:
+            try:
+                import json as _json
+                import pathlib as _pathlib
+                kept = _json.loads(_pathlib.Path(plan_store).read_text(encoding="utf-8"))
+                self.plans = kept.get("plans") or {}
+            except (OSError, ValueError):
+                self.plans = {}
         self.goal = None                    # the standing goal, if the player gave one
         self.goal_paused = False            # true while the assistant is stuck on it and waiting for the player
-        self.next_id = 1
+        self.next_id = 1 + max([int(k.split("-")[1]) for k in self.plans if k.startswith("plan-") and k.split("-")[1].isdigit()] or [0])
         self.names = {s["name"] for s in SPECS}
 
     def specs(self):
@@ -573,11 +582,14 @@ class LocalTools:
     def set_goal(self, kind, place=None, milestone=None, per_minute=None):
         goal = Goal(kind, {"place": place, "milestone": milestone, "science": per_minute}.get(kind))
         self.goal, self.goal_paused = goal, False
+        self._store_goal()
         return {"goal": goal.describe(), "note": "you will be asked to carry on by yourself until it is reached; say so to the player in one sentence"}
 
     def clear_goal(self):
+        self.sync_goal()
         had = self.goal.describe() if self.goal else None
         self.goal, self.goal_paused = None, False
+        self._store_goal()
         return {"cleared": had is not None, "was": had}
 
     def build_plan(self, plan_id, dry_run=True, surface=None):
@@ -593,6 +605,7 @@ class LocalTools:
         if not r.get("ok"):
             raise ToolError(r.get("error") or "the game refused the build", r.get("hint"))
         result = r["result"]
+        self._plans_changed = True
         if dry_run:
             plan["checked"] = not result.get("failed") and not result.get("avatar_lacks")
         elif result.get("job"):                                       # the avatar builds it: wait for the walk and the placing
@@ -605,10 +618,48 @@ class LocalTools:
         else:
             plan["checked"] = False                                   # built: the same plan cannot go down twice
             plan["built"] = True
+        self._save_plans()
         return dict(result, plan=plan["what"], dry_run=bool(dry_run))
 
     def _keep(self, entities, what):
         pid = "plan-%d" % self.next_id
         self.next_id += 1
         self.plans[pid] = {"entities": entities, "what": what, "checked": False}
+        self._save_plans()
         return pid
+
+    def _save_plans(self):
+        if self.plan_store is None:
+            return
+        import json as _json
+        import pathlib as _pathlib
+        keep = dict(list(self.plans.items())[-40:])                    # the last forty are plenty
+        try:
+            _pathlib.Path(self.plan_store).write_text(_json.dumps({"plans": keep}), encoding="utf-8")
+        except OSError:
+            pass
+
+    # ---- the standing goal is kept in the game, so everything that talks to the game sees the same one --------------
+    def _store_goal(self):
+        g = self.goal
+        self.game.call("goal_state", {"set": {"kind": g.kind, "value": g.value} if g else {"kind": "none"}})
+
+    def sync_goal(self):
+        """Take the goal from the game if it was set or dropped somewhere else (an agent's tool server, another bridge)."""
+        r = self.game.call("goal_state", {})
+        if not r.get("ok"):
+            return                                                    # an older mod: the goal lives here only
+        if "goal" not in (r.get("result") or {}):
+            return                                                    # this game keeps no goal: it lives here only
+        kept = r["result"]["goal"]
+        kept = kept if isinstance(kept, dict) and kept.get("kind") not in (None, "none") else None
+        mine = {"kind": self.goal.kind, "value": self.goal.value} if self.goal else None
+        if kept == mine or (kept and mine and kept["kind"] == mine["kind"] and str(kept.get("value")) == str(mine.get("value"))):
+            return
+        if kept is None:
+            self.goal, self.goal_paused = None, False
+            return
+        try:
+            self.goal, self.goal_paused = Goal(kept["kind"], kept.get("value")), False
+        except GoalError:
+            self.goal = None

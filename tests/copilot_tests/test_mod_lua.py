@@ -23,14 +23,14 @@ def test_the_tool_list_describes_every_tool(mod):
     assert {"lookup", "search", "map", "tile", "find_free", "diagnose", "bottlenecks", "alerts", "player", "design_note", "events_read",
             "reveal_map", "chat_read", "say", "set_state", "occupancy", "build", "frames",
             "avatar", "avatar_walk", "avatar_mine", "avatar_stop", "avatar_craft", "avatar_carry", "set_mode", "lock_mode", "avatar_travel", "progress", "science", "run_stats",
-            "research_available", "queue_research", "find_resources", "find_placement", "remove", "set_recipe"} == set(names)
+            "research_available", "queue_research", "find_resources", "find_placement", "remove", "set_recipe", "goal_state"} == set(names)
     assert all(len(t["description"]) > 30 for t in tools)
     lookup = [t for t in tools if t["name"] == "lookup"][0]
     assert lookup["parameters"]["name"]["required"] is True and lookup["parameters"]["kind"]["required"] is False
 
 
 def test_a_bare_command_lists_the_tools_too(mod):
-    assert mod.call("")["ok"] and len(mod.call("")["result"]) == 36
+    assert mod.call("")["ok"] and len(mod.call("")["result"]) == 37
 
 
 def test_bad_calls_are_answered_with_what_would_have_been_right(mod):
@@ -423,6 +423,8 @@ def test_say_prints_in_the_game(mod):
 
 def test_the_working_light_shows_on_every_player_and_on_players_who_join_later(mod):
     mod.run("fake.add_player('captain', 0, 0)")
+    assert mod.lua.eval("game.players[1].gui.top.skippy_light.state.caption") == "Skippy: not connected"       # nothing has called a tool yet
+    mod.result("run_stats")                                                        # the assistant connects
     assert mod.lua.eval("game.players[1].gui.top.skippy_light.state.caption") == "Skippy: idle"
     mod.result("set_state", {"state": "working", "note": "routing a belt"})
     assert mod.lua.eval("game.players[1].gui.top.skippy_light.state.caption") == "Skippy: working - routing a belt"

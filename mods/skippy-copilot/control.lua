@@ -38,6 +38,7 @@ commands.add_command("skippy", "Skippy Copilot tool call: /skippy <tool> <argume
       return
     end
   end
+  if not event.player_index then chat.heard() end       -- a call from outside the game: the assistant is connected
   local text = event.parameter or ""
   local name, rest = string.match(text, "^%s*(%S+)%s*(.*)$")
   if not name or name == "tools" then
@@ -96,6 +97,7 @@ end)
 script.on_event(defines.events.on_tick, function(event)
   avatar.on_tick(event)
   stats.on_tick(event)
+  chat.on_tick(event)
   if event.tick % 600 == 0 then events.check_idle(research.idle()) end        -- research with nothing chosen, noticed within ten seconds
 end)
 script.on_event(defines.events.on_script_path_request_finished, avatar.on_path)
