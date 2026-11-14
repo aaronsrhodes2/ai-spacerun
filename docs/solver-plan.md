@@ -131,8 +131,14 @@ mod, not zero mods. Achievements stay off for that reason.
 - **Build.** The item leaves the inventory and the entity is placed only where the game would let a player place it.
   Ghosts are built by walking to them, nearest first.
 - **Mine and craft.** By the character's mining and crafting states, so they take the time the game says.
-- **Travel.** Vehicles, trains and rockets between planets come after walking works; until then other planets are
-  reached the way the run reaches them.
+- **Travel between planets.** "Now I want to go to Vulcanus" is a routine of its own: empty the inventory (the game lets
+  nobody board a rocket carrying items), board the silo's rocket, ride a platform that is scheduled there, drop to the
+  surface. The first landing on each planet has to be the avatar: nothing can be built there until a roboport stands.
+- **After robots, build as a player does.** Vanilla lets a player place ghosts anywhere through the remote view, other
+  planets included, and robots build them. So under the avatar rule the character builds by hand within reach until
+  robots exist; after that the model places ghosts and the robots do the work, as a human would. That is still vanilla.
+- **The camera is separate from the avatar.** The remote view looks anywhere without moving the character, so the camera
+  director ("show me the copper line", "zoom out") never needs the avatar to walk.
 - **Remove.** `goto`, `/ai-come` and the 16-tile `move` teleport go, or stay behind a debug setting that the harness
   counts as a violation.
 
