@@ -943,3 +943,9 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 ## Platform names carry an icon (2026-11-13)
 - The Captain's convention: every platform name starts with a rich-text icon. Shuttles and the courier `[virtual-signal=signal-rightwards-leftwards-arrow] `, wheels `[virtual-signal=signal-snowflake] `, White Science `[item=space-science-pack] `, Mobile Space Factory `[item=space-platform-hub] `. Give a new platform its icon when it is created.
 - Scripts find a platform by the END of its name (`p.name:sub(-#NAME)==NAME`) or strip a leading tag (`p.name:gsub('^%[.-%]%s*','')`), never by the whole name.
+
+## Goods from the wheels (2026-11-13)
+- `scripts/wheel_goods.py` (check | build [--apply] | config | status, --only PLANET): two foundries in the west part of each spiral heart whose recipe is set by circuit from the hub's stock. Iron caster (-99..-95,-44..-40): steel plate, iron plate, gears while the hub holds fewer than 4,000 / 4,000 / 2,000. Copper caster (-105..-101,-44..-40) with its own copper melter under it: copper plate (4,000), cable (2,000). Five deciders in column x=-100. Never apply twice; run `config` after a quality upgrade.
+- The copper melter is fed from the out-belt (inserter -106,-36): the ore belt south of it never carries calcite that far west.
+- A landing pad whose requests follow the missing requests DOES pull from a wheel standing in that orbit: a test request for 10 red science on Fulgora came down from the Fulgora Wheel within a minute. So a wheel's hub stock is on call for the planet below.
+- A foundry given several recipe signals takes one (iron plate before steel here) and moves on when that item's cap is reached.
