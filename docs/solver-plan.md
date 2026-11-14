@@ -5,19 +5,34 @@ day: one chat builds the mod while the main chat finishes the Fable run. Scored 
 verified solve (see Gate).
 
 Built so far:
-- **The mod** (`mods/skippy-copilot`, version 0.2.0): the tool registry and the `/skippy` command, and eleven tools: lookup,
-  search, map, tile, find_free, diagnose, design_note, events_read, chat_read, say, set_state.
-- **Design notes by technology** (`scripts/notes.lua`, 32 notes): the Captain's idea of 2026-11-13. When a research
-  finishes the model is told what it unlocked and what can now be improved, and offers the player one change, so nobody
-  has to invent the next problem.
-- **The bridge** (`copilot/`): game chat in, model with tools, answer out, working light, a log of every call. Providers:
-  Ollama and any OpenAI-compatible server. An Anthropic adapter is not written.
-- **Tests**: `scripts/modcheck.py` (29 checks) on a local headless test server (`scripts/modserver.sh`).
-- **First run with a local model** (qwen3:8b on Ollama, 2026-11-13): three questions through the bridge, all answered
-  correctly from tool results, 4 tool calls, 1 miss that the tool's error message corrected in one retry, 35 to 44 seconds
-  each once the model was loaded.
+- **The mod** (`mods/skippy-copilot`, version 0.3.0), twenty tools: lookup, search, map, tile, find_free, diagnose,
+  bottlenecks, alerts, player, design_note, events_read, reveal_map, chat_read, say, set_state, and for the planner
+  occupancy, build and frames. `build` is a dry run unless told otherwise, refuses anything not researched, and sits on
+  an executor layer so the walking avatar can replace free placement without changing a tool.
+- **Planning code in the bridge** (`copilot/plan/`, pure and unit-tested): production calculator, layouts with overlap
+  check and turning, the generic cells (belt-fed machine, robot-fed machine, direct pair, rows), a belt and pipe router
+  with underground pairs, and pointing with words. The model reaches them as plan_production, plan_row, plan_route,
+  build_plan and locate.
+- **Design notes by technology** (32 notes): on a finished research the model is told what it unlocked and what can now be
+  improved, and offers the player one change.
+- **Alerts** (the Captain, 2026-11-13): the game's alerts are given to the model at the start of every turn, and a new
+  kind of alert makes the model look into it and offer one suggestion.
+- **The bridge** (`copilot/`): game chat in, model with tools, answer out, working light, a log of every call, and a
+  scorer for those logs. Providers: Ollama and any OpenAI-compatible server. An Anthropic adapter is not written.
+- **Tests**: 133 unit tests that need no game and no model; `scripts/modcheck.py` for the mod on a local headless test
+  server.
+- **First run with a local model** (qwen3:8b on Ollama, 2026-11-13, mod 0.2.0): three questions through the bridge, all
+  answered correctly from tool results, 4 tool calls, 1 miss that the tool's error message corrected in one retry, 35 to
+  44 seconds each once the model was loaded.
 
-Next: placement with a dry run and a layout check, then the walking avatar.
+Where the code lives: the mod holds everything that touches the game; the bridge holds the planning. The split was made so
+the planning could be unit-tested with no game running. Both ship together.
+
+Not yet run in a game: everything added in mod 0.3.0 (alerts, player, bottlenecks, occupancy, build, frames, reveal_map).
+Live runs are for late at night, when the Captain is not playing (2026-11-13). Unit tests of the Lua itself need a Lua
+interpreter on this PC; installing one was refused by the permission system and is the Captain's call.
+
+Next: a night run of `modcheck.py` and of a first build through the bridge, then the walking avatar.
 
 ## Goal
 

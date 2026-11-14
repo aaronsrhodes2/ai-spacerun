@@ -30,7 +30,7 @@ def main():
     check("scene built", (c.send_command("/sc " + SCENE) or "").strip() == "scene")
     t = call("tools", None, c)
     names = [x["name"] for x in t["result"]]
-    check("tool list", all(n in names for n in ["lookup", "search", "map", "tile", "find_free", "diagnose", "chat_read", "say", "set_state", "events_read", "design_note"]), names)
+    check("tool list", all(n in names for n in ["lookup", "search", "map", "tile", "find_free", "diagnose", "chat_read", "say", "set_state", "events_read", "design_note", "alerts", "player", "bottlenecks", "occupancy", "build", "frames", "reveal_map"]), names)
     check("every tool is described", all(x["description"] and isinstance(x["parameters"], (dict, list)) for x in t["result"]))
 
     r = call("lookup", {"name": "electronic-circuit", "kind": "recipe"}, c)["result"][0]
@@ -87,6 +87,40 @@ def main():
     noted = re.findall(r'^  \["([a-z0-9-]+)"\] = ', (pathlib.Path(__file__).resolve().parent.parent / "mods/skippy-copilot/scripts/notes.lua").read_text(encoding="utf-8"), re.M)
     bad = [n for n in noted if not call("lookup", {"name": n, "kind": "technology"}, c)["ok"]]
     check("every design note names a real technology (%d notes)" % len(noted), len(noted) > 20 and not bad, bad)
+    # ---- added with mod 0.3.0, written without a server to run them on: first run is the test of these checks too ----
+    r = call("alerts", None, c)
+    check("alerts: answers with no player in the game", r["ok"] and "alerts" in r["result"], r)
+    r = call("player", None, c)
+    check("player: says so when nobody is in the game", not r["ok"] or "name" in r["result"], r)
+    r = call("frames", None, c)
+    check("frames: says so when nobody is in the game", (not r["ok"] and "no player" in r["error"]) or "view" in r.get("result", {}), r)
+    r = call("occupancy", {"x": -16, "y": -10, "width": 36, "height": 18}, c)["result"]
+    def occ(x, y):
+        return r["rows"][y + 10][x + 16]
+    check("occupancy: machine, belt and water block; ore and free ground do not", occ(3, 1) == "#" and occ(5, 4) == "#" and occ(13, -6) == "#" and occ(-6, -6) == "." and occ(15, 8) == ".", r["rows"])
+    c.send_command("/sc game.surfaces.nauvis.create_entity{name='pipe',position={-14.5,6.5},force='player'}")
+    check("occupancy: a pipe is marked as a pipe", call("occupancy", {"x": -16, "y": -10, "width": 36, "height": 18}, c)["result"]["rows"][16][1] == "p")
+    r = call("bottlenecks", None, c)["result"]
+    check("bottlenecks: unpowered machines are put first", "power_first" in r and "fix power" in r["power_first"], r)
+    piece = [{"name": "transport-belt", "x": 15.5, "y": 8.5, "direction": 4}]
+    r = call("build", {"entities": piece}, c)["result"]
+    check("build: a dry run places nothing", r["would_place"] == 1 and call("tile", {"x": 15, "y": 8}, c)["result"]["free"], r)
+    r = call("build", {"entities": [{"name": "transport-belt", "x": 3.5, "y": 1.5, "direction": 4}]}, c)["result"]
+    check("build: a piece on top of a machine is refused with a reason", r["failed_count"] == 1 and "in the way" in r["failed"][0]["why"], r)
+    r = call("build", {"entities": [{"name": "warp-drive", "x": 15.5, "y": 8.5}]}, c)["result"]
+    check("build: an unknown name is refused", "no building named" in r["failed"][0]["why"], r)
+    r = call("build", {"entities": piece + [{"name": "transport-belt", "x": 3.5, "y": 1.5, "direction": 4}], "dry_run": False}, c)["result"]
+    check("build: nothing is placed when any piece fails", r["placed"] == 0 and call("tile", {"x": 15, "y": 8}, c)["result"]["free"], r)
+    r = call("build", {"entities": piece, "dry_run": False}, c)["result"]
+    t = call("tile", {"x": 15, "y": 8}, c)["result"]
+    check("build: a clean plan is placed, facing the way asked", r["placed"] == 1 and t["things"][0]["name"] == "transport-belt" and t["things"][0]["direction"].lower() == "east", (r, t))
+    c.send_command("/sc local f=game.forces.player f.recipes['lab'].enabled=false")
+    r = call("build", {"entities": [{"name": "lab", "x": 15.5, "y": -1.5}]}, c)["result"]
+    check("build: nothing before it is researched", "not researched" in r["failed"][0]["why"], r)
+    c.send_command("/sc game.forces.player.recipes['lab'].enabled=true")
+    r = call("reveal_map", {"depth": 64}, c)
+    check("reveal_map: the known map grows", r["ok"] and r["result"]["now"][0] < r["result"]["was"][0], r)
+
     check("say", call("say", {"text": "check"}, c)["ok"])
     check("set_state", call("set_state", {"state": "working", "note": "check"}, c)["ok"] and not call("set_state", {"state": "napping"}, c)["ok"])
     check("chat_read", "last_id" in call("chat_read", None, c)["result"])

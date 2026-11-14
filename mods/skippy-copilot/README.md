@@ -17,21 +17,37 @@ The answer is one line of JSON: `{"ok":true,"result":...}` or `{"ok":false,"erro
 answered with what would have been right (the tool names, or that tool's parameters). Admins can type calls in the game
 console; the bridge sends them over RCON. The command is not a script command, so it does not disable achievements.
 
-## Tools (version 0.2.0, all read-only except `say` and `set_state`)
+## Tools in the mod (version 0.3.0)
 
 | Tool | What it does |
 |---|---|
-| `lookup` | Facts about a recipe, item, entity, technology or fluid, read live from the game |
-| `search` | Internal names that contain a piece of text |
-| `map` | A labelled text picture of a window of the map, one character per tile, with a legend |
-| `tile` | Exactly what stands on one tile |
-| `find_free` | The nearest empty rectangle of a given size |
+| `lookup`, `search` | Facts about a recipe, item, entity, technology or fluid, read live from the game |
+| `map`, `tile`, `find_free` | A labelled text picture of the map; exactly what stands on a tile; the nearest empty rectangle |
 | `diagnose` | Every machine by what it is doing, with examples and what each problem means |
-| `design_note` | What a researched technology makes possible, and our note on what can now be improved |
-| `events_read` | News from the game: research that finished, with its unlocks and design note |
-| `chat_read` | What players typed in the game chat |
-| `say` | Say something in the game chat |
-| `set_state` | The working light at the top of the screen: idle, thinking, working, blocked, failed |
+| `bottlenecks` | The worst bottlenecks ranked by the item machines wait for; whole surface or near the player |
+| `alerts` | The game's own alerts by kind, with what each means |
+| `player` | Where the player is and what they point at |
+| `design_note`, `events_read` | What a research makes possible; news of finished research |
+| `reveal_map` | Reveal more map round the known edge |
+| `chat_read`, `say`, `set_state` | The chat channel and the working light (used by the bridge) |
+| `occupancy`, `build`, `frames` | For the bridge's planning tools: what is in the way, placing a checked plan (dry run first), the rectangles spoken places refer to |
+
+`build` keeps the rule that nothing is built before it is researched, and places nothing unless every piece of a plan can
+be placed. How a piece gets placed is decided in one spot (the executor); today that is free placement, later the walking
+avatar.
+
+## Planning tools in the bridge
+
+These are added by the bridge and look the same to the model. They do the arithmetic and geometry in tested code
+(`copilot/plan/`), reading their facts from the game through the mod.
+
+| Tool | What it does |
+|---|---|
+| `plan_production` | Machines per recipe, raw inputs and belts for an item at a rate |
+| `plan_row` | A row of identical machines fed by belt or by robots, from one generic cell per machine |
+| `plan_route` | A belt or pipe from A to B round what stands between, underground where it must |
+| `build_plan` | Send a plan to the game: dry run first, build only after a clean dry run, never twice |
+| `locate` | Words to tiles: "the east of the base", "the upper right of my view" |
 
 ## Design notes
 
@@ -49,8 +65,13 @@ server that speaks the OpenAI chat API). `python -m copilot --ask "..."` asks on
 
 ## Testing
 
-`scripts/modserver.sh start` runs a second, headless copy of the Steam install with its own data folder (`.testserver/`),
-so the live game is never touched. `scripts/modcheck.py` builds a small known scene there and checks what every tool says
-about it (29 checks). `scripts/modtest.py <tool> '<json>'` calls one tool by hand.
+- `python -m pytest tests/copilot_tests` runs with no game and no model: 133 tests of the bridge, the planning code, the
+  scorer and static checks of the Lua (blocks closed, files present, tool names agreed between mod and bridge).
+- `scripts/modserver.sh start` runs a second, headless copy of the Steam install with its own data folder (`.testserver/`),
+  so the live game is never touched. `scripts/modcheck.py` builds a small known scene there and checks what every tool
+  says about it. `scripts/modtest.py <tool> '<json>'` calls one tool by hand.
+- `python -m copilot.score runs/` scores the bridge's logs: tool misses, repeats, stalls.
 
-Not yet tested: the working light and chat with a real player in the game (the test server has no players).
+Not yet run in a game (written 2026-11-13 while the test server was off): `alerts`, `player`, `bottlenecks`, `occupancy`,
+`build`, `frames`, `reveal_map`, and the checks for them in `modcheck.py`. The working light and chat have not been seen
+with a real player.

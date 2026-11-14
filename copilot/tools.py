@@ -3,7 +3,7 @@ its facts from the game through the mod (never from memory), plans in code, and 
 built by planning: a plan gets an id, and `build_plan` sends it to the game, as a dry run unless told otherwise.
 
 The model sees these beside the mod's tools, in the same shape, and cannot tell the difference."""
-from .plan import calc, cells, route
+from .plan import calc, cells, place, route
 from .plan.layout import Layout, LayoutError
 
 FACING = {"north": 0, "east": 1, "south": 2, "west": 3}            # quarter turns from the cell's own facing (inputs north)
@@ -15,6 +15,10 @@ def _param(type_, description, required=False, default=None):
 
 
 SPECS = [
+    {"name": "locate",
+     "description": "Turn a place said in words into tiles. frame is what the words refer to: 'view' (what is on the player's screen), 'base' (where our buildings stand), 'map' (all the revealed map) or 'player' (around the player). part is the part of it: middle, north, south, east, west, or a corner such as 'upper right' or 'south-west'. Example: 'the east of the main base' is frame base, part east. Returns the rectangle and its centre.",
+     "parameters": {"frame": _param("string", "view, base, map or player", True),
+                    "part": _param("string", "middle, a side (north, top, left...) or a corner (upper right, south-west...)", default="middle")}},
     {"name": "plan_production",
      "description": "Work out everything needed to make an item at a rate: for each recipe in the chain how many machines, and the raw inputs and belts needed. Reads recipes and machine speeds from the game. Use it before building any production line; never work these numbers out yourself.",
      "parameters": {"item": _param("string", "internal name of the item to make", True),
@@ -94,8 +98,16 @@ class LocalTools:
             return {"ok": True, "result": getattr(self, name)(**args)}
         except ToolError as e:
             return {"ok": False, "error": e.error, "hint": e.hint}
-        except (calc.PlanError, LayoutError) as e:                 # RouteError is a LayoutError
+        except (calc.PlanError, LayoutError, place.PlaceError) as e:    # RouteError is a LayoutError
             return {"ok": False, "error": str(e)}
+
+    def locate(self, frame, part="middle"):
+        r = self.game.call("frames")
+        if not r.get("ok"):
+            raise ToolError(r.get("error") or "the game could not say where things are", r.get("hint"))
+        out = place.locate(r["result"], frame, part)
+        out["surface"] = r["result"].get("surface")
+        return out
 
     def plan_production(self, item, per_minute, machine=None, stop_at=None):
         if per_minute <= 0:

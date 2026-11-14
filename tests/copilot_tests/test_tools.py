@@ -218,3 +218,16 @@ def test_an_alert_is_raised_once_and_again_only_after_it_cleared():
 def test_alert_prompt_names_the_new_kinds():
     p = main.alert_prompt({("nauvis", "no_power")}, "Alerts showing in the game right now: no_power x3 on nauvis.")
     assert "no_power on nauvis" in p and "x3" in p and "nothing" in p
+
+
+def test_locate_turns_words_into_tiles_from_the_frames_the_game_gives():
+    frames = {"ok": True, "result": {"surface": "nauvis", "view": [-40, -22, 39, 22], "base": [-300, -200, 299, 199], "map": [-1000, -1000, 999, 999], "player": [-3, -22, 27, 8]}}
+    t = LocalTools(FakeGame({"frames": frames}))
+    r = t.call("locate", {"frame": "base", "part": "east"})["result"]
+    assert (r["from_x"], r["to_x"], r["surface"]) == (100, 299, "nauvis")
+    r = t.call("locate", {"frame": "view", "part": "upper right corner"})["result"]
+    assert r["to_x"] == 39 and r["from_y"] == -22
+    assert t.call("locate", {"frame": "view"})["result"]["part"] == "middle"
+    assert "not a part I know" in t.call("locate", {"frame": "view", "part": "yonder"})["error"]
+    assert "frame must be one of" in t.call("locate", {"frame": "screen"})["error"]
+    assert "no player" in LocalTools(FakeGame({"frames": {"ok": False, "error": "no player is in the game"}})).call("locate", {"frame": "view"})["error"]
