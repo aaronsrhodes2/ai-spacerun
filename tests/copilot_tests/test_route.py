@@ -100,9 +100,10 @@ def test_an_entrance_is_never_fed_from_the_side():
 
 def test_the_tile_after_an_exit_lies_straight_ahead():
     # fenced in before the wall, so the dive has to happen on row 0; the goal lies round a corner right behind the wall
-    blocked = {(2, y) for y in range(-30, 31)} | {(0, 1), (1, 1), (0, -1), (1, -1), (-1, 0)}
-    r = route.belt((0, 0), (3, 3), blocked)
-    tiles = follow_belt(r, (0, 0), (3, 3), blocked)
+    fence = {(x, y) for x in (0, 1) for y in (1, 2, -1, -2)} | {(-1, 0), (-2, 0)}        # too thick to dive under with reach 1
+    blocked = {(2, y) for y in range(-30, 31)} | fence
+    r = route.belt((0, 0), (3, 3), blocked, max_gap=1)
+    tiles = follow_belt(r, (0, 0), (3, 3), blocked, max_gap=1)
     exit_piece = [p for p in r["pieces"] if p.get("type") == "output"][0]
     assert (exit_piece["x"], exit_piece["y"]) == (3, 0)             # out right behind the wall
     assert tiles[tiles.index((3, 0)) + 1] == (4, 0)                 # one tile straight on before it may turn

@@ -8,15 +8,30 @@ from .models import schema
 
 PROMPT = (pathlib.Path(__file__).parent / "prompt.md").read_text(encoding="utf-8")
 BRIDGE_ONLY = {"chat_read", "say", "set_state", "events_read"}      # the bridge runs the channel; the model gets the rest
+PLAN_ONLY = {"build", "occupancy"}                                  # reached through the planning tools, never called raw
 MAX_RESULT = 6000                                                   # characters of one tool result shown to the model
 
 
 class Agent:
-    def __init__(self, game, model, log_path=None, max_steps=12):
-        self.game, self.model, self.max_steps = game, model, max_steps
-        self.tools = schema([t for t in game.tools() if t["name"] not in BRIDGE_ONLY])
+    def __init__(self, game, model, log_path=None, max_steps=12, local=None):
+        self.game, self.model, self.max_steps, self.local = game, model, max_steps, local
+        mod_tools = game.tools()
+        self.has_alerts = any(t["name"] == "alerts" for t in mod_tools)
+        offered = [t for t in mod_tools if t["name"] not in BRIDGE_ONLY and t["name"] not in PLAN_ONLY]
+        self.tools = schema(offered + (local.specs() if local else []))
         self.names = {t["function"]["name"] for t in self.tools}
         self.log_path = log_path
+
+    def alerts(self):
+        """The game's alerts right now, as a short text for the model, and the set of alert kinds (for noticing new ones)."""
+        if not self.has_alerts:
+            return "", set()
+        r = self.game.call("alerts")
+        found = (r.get("result") or {}).get("alerts") or [] if r.get("ok") else []
+        if not found:
+            return "", set()
+        parts = ["%s x%d on %s%s" % (a.get("kind"), a.get("count") or 1, a.get("surface"), (" (%s)" % a["means"]) if a.get("means") else "") for a in found]
+        return "Alerts showing in the game right now: " + "; ".join(parts) + ".", {(a.get("surface"), a.get("kind")) for a in found}
 
     def log(self, **entry):
         if self.log_path:
@@ -31,7 +46,8 @@ class Agent:
         self.log(event="request", who=who, text=text)
         if light:
             self.game.call("set_state", {"state": "thinking", "note": text[:40]})
-        messages = [{"role": "system", "content": PROMPT}, {"role": "user", "content": text}]
+        alert_text, _ = self.alerts()                   # every turn starts from what the game itself is warning about
+        messages = [{"role": "system", "content": PROMPT}, {"role": "user", "content": text + ((chr(10) * 2 + alert_text) if alert_text else "")}]
         answer, seen = None, {}
         try:
             for step in range(self.max_steps):
@@ -53,6 +69,8 @@ class Agent:
                         result = {"ok": False, "error": "there is no tool named '%s'" % c["name"], "tools": sorted(self.names)}
                     elif seen[key] > 2:
                         result = {"ok": False, "error": "you have made this exact call %d times; it will not answer differently. Use what you have or try something else." % seen[key]}
+                    elif self.local and c["name"] in self.local.names:
+                        result = self.local.call(c["name"], c["args"])
                     else:
                         result = self.game.call(c["name"], c["args"])
                     if not result.get("ok"):

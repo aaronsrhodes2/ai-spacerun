@@ -21,6 +21,7 @@ import time
 from .agent import Agent
 from .game import Game
 from .models import make
+from .tools import LocalTools
 
 HERE = pathlib.Path(__file__).parent
 
@@ -49,6 +50,26 @@ def news_prompt(ev):
             % (ev.get("technology"), ", ".join(ev.get("unlocks_recipes") or []) or "none", ev.get("design_note") or "none written"))
 
 
+def alert_prompt(new, alert_text):
+    kinds = ", ".join("%s on %s" % (k, s) for s, k in sorted(new))
+    return ("News from the game: a new alert has appeared (%s). %s "
+            "Find out what is behind it with your tools and tell the player in at most two sentences what is wrong and the one thing "
+            "you suggest doing about it. If it needs no action, answer with the single word: nothing." % (kinds, alert_text))
+
+
+class AlertWatch:
+    """Remembers which alert kinds have been raised with the player, so each is brought up once, and again only after it
+    has gone away and come back."""
+
+    def __init__(self):
+        self.raised = set()
+
+    def new(self, current):
+        fresh = current - self.raised
+        self.raised = (self.raised & current) | fresh           # forget kinds that have cleared
+        return fresh
+
+
 def main():
     env = settings()
     pw = env.get("COPILOT_RCON_PASSWORD") or pathlib.Path(env["COPILOT_RCON_PASSWORD_FILE"]).read_text().strip()
@@ -57,7 +78,7 @@ def main():
                  env.get("COPILOT_API_KEY", ""), int(env.get("COPILOT_NUM_CTX", "16384")))
     logs = pathlib.Path(env.get("COPILOT_LOG_DIR", "runs"))
     logs.mkdir(exist_ok=True)
-    agent = Agent(game, model, logs / (time.strftime("%Y%m%d-%H%M%S") + ".jsonl"))
+    agent = Agent(game, model, logs / (time.strftime("%Y%m%d-%H%M%S") + ".jsonl"), local=LocalTools(game))
     if "--ask" in sys.argv:
         answer, outcome, stats = agent.handle(sys.argv[sys.argv.index("--ask") + 1], light=False)
         print(answer or "(no answer: %s)" % outcome)
@@ -66,6 +87,8 @@ def main():
     # start from now, not from lines and news that were there before the bridge came up
     chat_at = (game.call("chat_read", {"after": 10 ** 9}).get("result") or {}).get("last_id", 0)
     news_at = (game.call("events_read", {"after": 10 ** 9}).get("result") or {}).get("last_id", 0)
+    watch = AlertWatch()
+    watch.new(agent.alerts()[1])                                  # alerts already showing when the bridge starts are not news
     print("listening: model %s, %d tools" % (model.model, len(agent.tools)), flush=True)
     while True:
         r = game.call("chat_read", {"after": chat_at})
@@ -82,6 +105,13 @@ def main():
                 if answer and answer.strip().lower().rstrip(".") != "nothing":
                     say(game, answer)
                 print("news", ev.get("technology"), "->", outcome, stats, flush=True)
+        alert_text, kinds = agent.alerts()
+        fresh = watch.new(kinds)
+        if fresh:
+            answer, outcome, stats = agent.handle(alert_prompt(fresh, alert_text), "game")
+            if answer and answer.strip().lower().rstrip(".") != "nothing":
+                say(game, answer)
+            print("alert", sorted(fresh), "->", outcome, stats, flush=True)
         time.sleep(2)
 
 
