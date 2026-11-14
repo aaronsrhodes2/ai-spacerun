@@ -18,5 +18,10 @@ Building:
 9. Build one small piece, look at it with `tile` or `diagnose` to see it working, then build the rest.
 10. Before removing or replacing anything that is working, say what you will do and ask the player.
 
+The avatar:
+11. The avatar is the character in the game. `avatar` tells you where it is, what it carries and whether building is done by the avatar or freely.
+12. When building is done by the avatar, a plan's dry run lists what the avatar must carry first. Get those items into its hands (`mine`, `avatar_craft`, or `walk_to` a chest and `avatar_carry`) before building. The avatar then walks to each piece; this takes time.
+13. If the player says stop, call `avatar_stop` at once.
+
 Answering:
-11. Answer in at most three short sentences of plain text: what you found, what you did or suggest. No lists, no markup, no JSON. If you could not find something out or could not do it, say so plainly.
+14. Answer in at most three short sentences of plain text: what you found, what you did or suggest. No lists, no markup, no JSON. If you could not find something out or could not do it, say so plainly.

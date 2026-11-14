@@ -30,7 +30,7 @@ def main():
     check("scene built", (c.send_command("/sc " + SCENE) or "").strip() == "scene")
     t = call("tools", None, c)
     names = [x["name"] for x in t["result"]]
-    check("tool list", all(n in names for n in ["lookup", "search", "map", "tile", "find_free", "diagnose", "chat_read", "say", "set_state", "events_read", "design_note", "alerts", "player", "bottlenecks", "occupancy", "build", "frames", "reveal_map"]), names)
+    check("tool list", all(n in names for n in ["lookup", "search", "map", "tile", "find_free", "diagnose", "chat_read", "say", "set_state", "events_read", "design_note", "alerts", "player", "bottlenecks", "occupancy", "build", "frames", "reveal_map", "avatar", "avatar_walk", "avatar_mine", "avatar_stop", "avatar_craft", "avatar_carry", "set_executor"]), names)
     check("every tool is described", all(x["description"] and isinstance(x["parameters"], (dict, list)) for x in t["result"]))
 
     r = call("lookup", {"name": "electronic-circuit", "kind": "recipe"}, c)["result"][0]
@@ -120,6 +120,34 @@ def main():
     c.send_command("/sc game.forces.player.recipes['lab'].enabled=true")
     r = call("reveal_map", {"depth": 64}, c)
     check("reveal_map: the known map grows", r["ok"] and r["result"]["now"][0] < r["result"]["was"][0], r)
+
+    # ---- the avatar (mod 0.4.0): real pathfinder, real walking; these wait in real time ----
+    import time
+    def wait_job(limit=90):
+        for _ in range(limit * 2):
+            st = call("avatar", None, c)["result"]
+            if not st.get("job"):
+                return st
+            time.sleep(0.5)
+        return call("avatar", None, c)["result"]
+    r = call("avatar_walk", {"x": 15, "y": 9}, c)
+    check("avatar: a walk starts", r["ok"] and "job" in r["result"], r)
+    st = wait_job()
+    check("avatar: it arrives on foot", st["last_job"]["ok"] and abs(st["x"] - 15) <= 2 and abs(st["y"] - 9) <= 2 and st["last_job"]["ticks"] > 30, st)
+    check("avatar: reach is the game's own", st["reach"]["build"] > 0 and st["reach"]["mine"] > 0, st.get("reach"))
+    r = call("avatar_mine", {"x": -6, "y": -2, "count": 2}, c)
+    check("avatar: mining starts on ore", r["ok"] and r["result"]["gives"] == "iron-ore", r)
+    st = wait_job()
+    check("avatar: it carries what it mined", st["last_job"]["ok"] and st.get("carries", {}).get("iron-ore") == 2, st)
+    call("set_executor", {"mode": "avatar"}, c)
+    r = call("build", {"entities": [{"name": "transport-belt", "x": 18.5, "y": 9.5, "direction": 4}]}, c)["result"]
+    check("avatar: a dry run says what it must carry", r.get("avatar_lacks") == {"transport-belt": 1}, r)
+    c.send_command("/sc local b = game.surfaces.nauvis.find_entities_filtered{type='character'}[1] b.get_main_inventory().insert{name='transport-belt', count=1}")
+    r = call("build", {"entities": [{"name": "transport-belt", "x": 18.5, "y": 9.5, "direction": 4}], "dry_run": False}, c)["result"]
+    st = wait_job()
+    t = call("tile", {"x": 18, "y": 9}, c)["result"]
+    check("avatar: it builds by hand from its inventory", r.get("queued") == 1 and st["last_job"]["ok"] and t["things"] and t["things"][0]["name"] == "transport-belt", (r, st.get("last_job"), t))
+    call("set_executor", {"mode": "god"}, c)
 
     check("say", call("say", {"text": "check"}, c)["ok"])
     check("set_state", call("set_state", {"state": "working", "note": "check"}, c)["ok"] and not call("set_state", {"state": "napping"}, c)["ok"])

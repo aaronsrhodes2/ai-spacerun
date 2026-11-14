@@ -3,6 +3,8 @@ its facts from the game through the mod (never from memory), plans in code, and 
 built by planning: a plan gets an id, and `build_plan` sends it to the game, as a dry run unless told otherwise.
 
 The model sees these beside the mod's tools, in the same shape, and cannot tell the difference."""
+import time
+
 from .plan import calc, cells, place, route
 from .plan.layout import Layout, LayoutError
 
@@ -52,6 +54,18 @@ SPECS = [
                     "surface": _param("string", "surface name; leave out for where the player is")}},
 ]
 
+AVATAR_SPECS = [
+    {"name": "walk_to",
+     "description": "Walk the avatar (the character) to a tile and wait until it gets there. It walks by the game's own pathfinder, round whatever is in the way; nothing is teleported. Says where it ended up, or why it could not get there.",
+     "parameters": {"x": _param("number", "tile x to walk to", True), "y": _param("number", "tile y to walk to", True),
+                    "near": _param("number", "how many tiles from the spot count as arrived", default=1)}},
+    {"name": "mine",
+     "description": "Have the avatar mine by hand at a tile (ore, a tree, a rock) until it carries `count` more, and wait for it. It walks there first. Use it early in the game, before there are mining drills.",
+     "parameters": {"x": _param("number", "tile x of what to mine", True), "y": _param("number", "tile y of what to mine", True),
+                    "count": _param("number", "how many to gather", default=10)}},
+]
+SPECS = SPECS + AVATAR_SPECS
+
 UNDERGROUND = {"transport-belt": "underground-belt", "fast-transport-belt": "fast-underground-belt",
                "express-transport-belt": "express-underground-belt", "turbo-transport-belt": "turbo-underground-belt", "pipe": "pipe-to-ground"}
 
@@ -63,8 +77,11 @@ class ToolError(Exception):
 
 
 class LocalTools:
-    def __init__(self, game):
+    def __init__(self, game, sleep=time.sleep, poll=0.5, patience=600):
+        """sleep and poll set how the bridge waits for the avatar; patience is how many polls before it stops waiting
+        (the job itself goes on in the game)."""
         self.game = game
+        self.sleep, self.poll, self.patience = sleep, poll, patience
         self.plans = {}
         self.next_id = 1
         self.names = {s["name"] for s in SPECS}
@@ -223,6 +240,45 @@ class LocalTools:
                 "pieces": len(pieces), "underground_pairs": r["undergrounds"],
                 "next": "call build_plan with this plan_id to check it against the map (dry run)"}
 
+    # ---- the avatar: start a job in the game, then wait for it ----------------------------------------------------
+    def _wait(self, job_id):
+        """Poll the avatar until the job with this id has ended. Returns its result as the mod recorded it."""
+        for _ in range(self.patience):
+            r = self.game.call("avatar")
+            if not r.get("ok"):
+                raise ToolError(r.get("error") or "the avatar could not be read")
+            state = r["result"]
+            last = state.get("last_job") or {}
+            if last.get("id") == job_id and not state.get("job"):
+                return last, state
+            self.sleep(self.poll)
+        raise ToolError("the avatar is still working after a long wait", "call 'avatar' to see how far it is, or 'avatar_stop' to stop it")
+
+    def _start(self, tool, args):
+        r = self.game.call(tool, args)
+        if not r.get("ok"):
+            raise ToolError(r.get("error") or "the avatar could not start", r.get("hint"))
+        return r["result"]
+
+    def walk_to(self, x, y, near=1):
+        started = self._start("avatar_walk", {"x": x, "y": y, "near": near})
+        last, state = self._wait(started["job"])
+        if not last.get("ok"):
+            raise ToolError("the avatar did not get there: %s" % (last.get("reason") or "no reason given"),
+                            "it is at %s,%s now" % (state.get("x"), state.get("y")))
+        return {"arrived": True, "x": state.get("x"), "y": state.get("y"), "game_seconds": round((last.get("ticks") or 0) / 60.0, 1)}
+
+    def mine(self, x, y, count=10):
+        started = self._start("avatar_mine", {"x": x, "y": y, "count": count})
+        last, state = self._wait(started["job"])
+        out = {"item": started.get("gives"), "mined": last.get("mined") or 0, "asked": count, "carries": state.get("carries"),
+               "game_seconds": round((last.get("ticks") or 0) / 60.0, 1)}
+        if not last.get("ok"):
+            raise ToolError("the avatar could not mine there: %s" % (last.get("reason") or "no reason given"))
+        if last.get("reason"):
+            out["note"] = last["reason"]
+        return out
+
     def build_plan(self, plan_id, dry_run=True, surface=None):
         plan = self.plans.get(plan_id)
         if not plan:
@@ -237,7 +293,14 @@ class LocalTools:
             raise ToolError(r.get("error") or "the game refused the build", r.get("hint"))
         result = r["result"]
         if dry_run:
-            plan["checked"] = not result.get("failed")
+            plan["checked"] = not result.get("failed") and not result.get("avatar_lacks")
+        elif result.get("job"):                                       # the avatar builds it: wait for the walk and the placing
+            last, state = self._wait(result["job"])
+            plan["checked"] = False
+            plan["built"] = bool(last.get("ok"))
+            result = {"placed": last.get("placed") or 0, "of": last.get("of"), "executor": "avatar", "finished": bool(last.get("ok")),
+                      "stopped_because": last.get("reason"), "stopped_at": last.get("stopped_at"), "avatar_carries": state.get("carries"),
+                      "game_seconds": round((last.get("ticks") or 0) / 60.0, 1)}
         else:
             plan["checked"] = False                                   # built: the same plan cannot go down twice
             plan["built"] = True

@@ -5,10 +5,16 @@ day: one chat builds the mod while the main chat finishes the Fable run. Scored 
 verified solve (see Gate).
 
 Built so far:
-- **The mod** (`mods/skippy-copilot`, version 0.3.0), twenty tools: lookup, search, map, tile, find_free, diagnose,
+- **The mod** (`mods/skippy-copilot`, version 0.4.0), twenty-five tools: lookup, search, map, tile, find_free, diagnose,
   bottlenecks, alerts, player, design_note, events_read, reveal_map, chat_read, say, set_state, and for the planner
   occupancy, build and frames. `build` is a dry run unless told otherwise, refuses anything not researched, and sits on
   an executor layer so the walking avatar can replace free placement without changing a tool.
+- **The walking avatar** (increment 1, mod 0.4.0): walks by the game's pathfinder, re-paths when stuck, builds each piece
+  from its own inventory within building reach, steps aside when it stands where a piece goes, mines and crafts by hand,
+  carries items to and from chests in reach. No teleport anywhere. `build` hands a checked plan to it when the executor is
+  `avatar`; under free placement nothing changes. The increment's exit test (walk across a base with obstacles, build a
+  ten-machine line from the inventory, zero teleports, zero out-of-reach placements) passes against the stand-in game.
+  It has not walked in the real game yet.
 - **Planning code in the bridge** (`copilot/plan/`, pure and unit-tested): production calculator, layouts with overlap
   check and turning, the generic cells (belt-fed machine, robot-fed machine, direct pair, rows), a belt and pipe router
   with underground pairs, and pointing with words. The model reaches them as plan_production, plan_row, plan_route,
@@ -19,7 +25,7 @@ Built so far:
   kind of alert makes the model look into it and offer one suggestion.
 - **The bridge** (`copilot/`): game chat in, model with tools, answer out, working light, a log of every call, and a
   scorer for those logs. Providers: Ollama and any OpenAI-compatible server. An Anthropic adapter is not written.
-- **Tests**: 185 unit tests that need no game and no model, including the mod's own Lua run under Lua 5.2 against a
+- **Tests**: 232 unit tests that need no game and no model, including the mod's own Lua run under Lua 5.2 against a
   stand-in game; `scripts/modcheck.py` for the mod on a local headless test server. The Lua tests found three bugs on
   their first run (a search centred one tile off, a wrong player returned for an unknown name, an unstable ranking).
 - **First run with a local model** (qwen3:8b on Ollama, 2026-11-13, mod 0.2.0): three questions through the bridge, all
@@ -33,7 +39,8 @@ Not yet run in a real game: everything added in mod 0.3.0 (alerts, player, bottl
 reveal_map). They pass against the stand-in game only. Live runs are for late at night, when the Captain is not playing
 (2026-11-13).
 
-Next: a night run of `modcheck.py` and of a first build through the bridge, then the walking avatar.
+Next: a night run of `modcheck.py` (it now covers the avatar) and of a first build through the bridge; then planet
+travel for the avatar and the milestone list.
 
 ## Goal
 
