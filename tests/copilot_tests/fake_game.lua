@@ -51,6 +51,8 @@ local RECIPES = {
   ["steel-chest"] = { energy = 0.5, categories = { crafting = true }, ingredients = { item_part("iron-plate", 8) }, products = { item_part("steel-chest", 1) } },
   ["pipe-to-ground"] = { energy = 0.5, categories = { crafting = true }, ingredients = { item_part("iron-plate", 5) }, products = { item_part("pipe-to-ground", 2) } },
   ["pipe"] = { energy = 0.5, categories = { crafting = true }, ingredients = { item_part("iron-plate", 1) }, products = { item_part("pipe", 1) } },
+  ["chemical-plant"] = { energy = 5, categories = { crafting = true }, ingredients = { item_part("iron-plate", 5) }, products = { item_part("chemical-plant", 1) } },
+  ["medium-electric-pole"] = { energy = 0.5, categories = { crafting = true }, ingredients = { item_part("iron-plate", 2) }, products = { item_part("medium-electric-pole", 1) } },
   ["lab"] = { energy = 2, categories = { crafting = true }, ingredients = { item_part("electronic-circuit", 10) }, products = { item_part("lab", 1) } },
   ["automation-science-pack"] = { energy = 5, categories = { crafting = true }, ingredients = { item_part("copper-plate", 1), item_part("iron-gear-wheel", 1) }, products = { item_part("automation-science-pack", 1) } },
   ["logistic-science-pack"] = { energy = 6, categories = { crafting = true }, ingredients = { item_part("inserter", 1), item_part("transport-belt", 1) }, products = { item_part("logistic-science-pack", 1) } },
@@ -97,6 +99,15 @@ local ENTITIES = {
     get_crafting_speed = function() return 0.75 end, get_max_energy_usage = function() return 2500 end }),
   ["electromagnetic-plant"] = ent("electromagnetic-plant", "assembling-machine", 4, 4, {
     crafting_categories = { electromagnetics = true }, get_crafting_speed = function() return 2 end }),
+  ["chemical-plant"] = ent("chemical-plant", "assembling-machine", 3, 3, {
+    crafting_categories = { chemistry = true }, get_crafting_speed = function() return 1 end,
+    fluidbox_prototypes = {
+      { production_type = "input", pipe_connections = { { flow_direction = "input", direction = 0, connection_type = "normal", positions = { { x = -1, y = -1 } } } } },
+      { production_type = "input", pipe_connections = { { flow_direction = "input", direction = 0, connection_type = "normal", positions = { { x = 1, y = -1 } } } } },
+      { production_type = "output", filter = { name = "water" }, pipe_connections = { { flow_direction = "output", direction = 8, connection_type = "normal", positions = { { x = -1, y = 1 } } } } },
+      { production_type = "output", pipe_connections = { { flow_direction = "output", direction = 8, connection_type = "normal", positions = { { x = 1, y = 1 } } },
+                                                           { flow_direction = "output", direction = 8, connection_type = "underground", positions = { { x = 0, y = 1 } } } } },
+    } }),
   ["stone-furnace"] = ent("stone-furnace", "furnace", 2, 2, { crafting_categories = { smelting = true }, get_crafting_speed = function() return 1 end }),
   ["transport-belt"] = ent("transport-belt", "transport-belt", 1, 1, { belt_speed = 0.03125 }),
   ["underground-belt"] = ent("underground-belt", "underground-belt", 1, 1),

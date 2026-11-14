@@ -42,7 +42,7 @@ SPECS = [
                     "belt": _param("string", "belt to use", default="transport-belt"),
                     "inserter": _param("string", "inserter to use", default="inserter")}},
     {"name": "joints",
-     "description": "The small patterns for where supply lines meet and cross, each with the problem it solves: a belt crossing a belt, a pipe crossing belts, a splitter used as a filter, two belts merged with one going first, one belt feeding one lane of another, picking one item off a mixed belt, the inserters beside a train wagon. Read this when a layout has such a meeting; then build it with plan_joint.",
+     "description": "The small patterns for where supply lines meet and cross, each with the problem it solves: belts crossing, pipes crossing belts, a splitter as a filter, merging with one side first, an overflow valve, a balancer, feeding one lane, picking one item off a mixed belt, fitting pipes to a machine's fluid connections, handing a belt to robots and back, long pipe runs, pole lines, the inserters beside a train wagon, and the rules for rail signals. Read this when a layout has such a meeting; then build it with plan_joint.",
      "parameters": {}},
     {"name": "plan_joint",
      "description": "Lay out one joint at a place on the map. Every joint is designed with its main flow running north; facing turns it (the direction the main flow runs). Returns a picture and a plan_id; nothing is built until build_plan.",
@@ -50,11 +50,16 @@ SPECS = [
                     "x": _param("number", "x of the joint's top-left tile", True),
                     "y": _param("number", "y of the joint's top-left tile", True),
                     "facing": _param("string", "the direction the main flow runs: north, east, south or west", default="north"),
-                    "item": _param("string", "for filter_splitter and filtered_pick: the item to filter"),
+                    "item": _param("string", "for filter_splitter and filtered_pick: the item to filter. For barrel_station: the fluid. For fluid_machine_on_belts and robot_machine: the recipe to set"),
                     "side": _param("string", "for filter_splitter (the side the item leaves), priority_merge (the input served first) and side_load: 'left' or 'right'"),
                     "width": _param("number", "for the crossings: how many belts side by side are crossed"),
-                    "action": _param("string", "for wagon_side: 'unload' or 'load'"),
+                    "action": _param("string", "for wagon_side: 'unload' or 'load'. For barrel_station: 'fill' or 'empty'"),
                     "wagons": _param("number", "for wagon_side: how many wagons"),
+                    "lanes": _param("number", "for balancer: 2 or 4 belts"),
+                    "machine": _param("string", "for machine_ports and reach_over: the machine; its size and fluid connections are read from the game"),
+                    "length": _param("number", "for long_pipe and pole_line: tiles from end to end"),
+                    "spacing": _param("number", "for pole_line: tiles from pole to pole; leave out to use the pole's own reach"),
+                    "pole": _param("string", "for pole_line: which pole"),
                     "belt": _param("string", "belt to use", default="transport-belt")}},
     {"name": "plan_route",
      "description": "Find a way for a belt or a pipe from one tile to another around everything that stands between, going underground where it must. Reads what is in the way from the game. Returns the length and a plan_id; nothing is built until build_plan.",
@@ -239,16 +244,19 @@ class LocalTools:
     def joints(self):
         return {"joints": joints.catalogue(), "note": "every joint is designed with its main flow running north; plan_joint turns it"}
 
-    def plan_joint(self, joint, x, y, facing="north", item=None, side=None, width=None, action=None, wagons=None, belt="transport-belt"):
+    def plan_joint(self, joint, x, y, facing="north", item=None, side=None, width=None, action=None, wagons=None, lanes=None, machine=None,
+                   length=None, spacing=None, pole=None, belt="transport-belt"):
         if facing not in FACING:
             raise ToolError("facing must be north, east, south or west")
         options = {"belt": belt}
         if joint == "pipe_crossing":
             options = {"belt": belt}
-        if item is not None:
+        if item is not None and joint in ("filter_splitter", "filtered_pick"):
             if not self.maybe(item, "item"):
                 raise ToolError("there is no item named '%s'" % item, "use 'search' to find the name")
             options["item"] = item
+        elif item is not None:
+            options["item"] = item                                  # other joints give it their own meaning below
         if side is not None:
             options[{"filter_splitter": "to", "priority_merge": "first"}.get(joint, "side")] = side
         if width is not None:
@@ -257,14 +265,70 @@ class LocalTools:
             options["action"] = action
         if wagons is not None:
             options["wagons"] = int(wagons)
+        if lanes is not None:
+            options["lanes"] = int(lanes)
+        if length is not None:
+            options["length"] = int(length)
+        if side is not None and joint == "overflow_valve":
+            options.pop("side", None)
+            options["keep"] = side
+        if joint == "barrel_station":
+            if not item:
+                raise ToolError("the joint 'barrel_station' needs 'item': the fluid to barrel, such as 'crude-oil'")
+            options.pop("item", None)
+            recipe = ("%s-barrel" % item) if (action or "fill") == "fill" else ("empty-%s-barrel" % item)
+            if action not in (None, "fill", "empty"):
+                raise ToolError("for barrel_station, action is 'fill' or 'empty'")
+            options.pop("action", None)
+            r = self.maybe(recipe, "recipe")
+            if not r:
+                raise ToolError("the game has no barrel recipe for '%s'" % item, "not every fluid can be barrelled; use 'search' with 'barrel'")
+            machine = machine or next((m for m in (r.get("made_in") or []) if m.startswith("assembling-machine")), None) or (r.get("made_in") or [None])[0]
+            if not machine or machine not in (r.get("made_in") or []):
+                raise ToolError("'%s' cannot run the recipe '%s'" % (machine, recipe), "it can be made in: %s" % ", ".join(r.get("made_in") or []))
+            options["recipe"] = recipe
+        if joint in ("machine_ports", "reach_over", "fluid_machine_on_belts", "barrel_station", "robot_machine"):
+            if not machine:
+                raise ToolError("the joint '%s' needs the parameter 'machine'" % joint)
+            m = self.fact(machine, "entity")
+            options.update(machine=machine, width=m.get("tiles_wide"), height=m.get("tiles_high"))
+            options.pop("width", None) if not m.get("tiles_wide") else None
+            if joint in ("machine_ports", "fluid_machine_on_belts", "barrel_station"):
+                ports = m.get("fluid_ports")
+                if not isinstance(ports, list) or not ports:
+                    raise ToolError("'%s' has no fluid connections" % machine, "this joint is for machines that take or give fluids")
+                options["ports"] = ports
+        if joint == "pole_line":
+            name = pole or "medium-electric-pole"
+            p = self.fact(name, "entity")
+            reach, supply = p.get("pole_wire_reach"), p.get("pole_supply_tiles")
+            if not reach:
+                raise ToolError("'%s' is not a power pole" % name)
+            options["pole"] = name
+            options["spacing"] = int(spacing) if spacing is not None else max(1, int(min(reach, supply or reach)))
+            if options["spacing"] > reach:
+                raise ToolError("poles %d tiles apart are out of wire reach: a %s reaches %s" % (options["spacing"], name, reach))
+        if joint == "long_pipe":
+            options.pop("belt", None)
+        if joint in ("fluid_machine_on_belts", "robot_machine") and item is not None:      # for these, item names the recipe to set
+            options.pop("item", None)
+            r = self.fact(item, "recipe")
+            if machine not in (r.get("made_in") or []):
+                raise ToolError("'%s' cannot run the recipe '%s'" % (machine, item), "it can be made in: %s" % ", ".join(r.get("made_in") or []))
+            options["recipe"] = item
         lay = joints.make(joint, **options).turned(FACING[facing]).at_origin().moved(int(x), int(y))
         b = lay.bounds()
-        chars = {belt: "b", "splitter": "S", "inserter": "i", "pipe": "p", "pipe-to-ground": "q", "steel-chest": "C"}
+        chars = {belt: "b", "splitter": "S", "inserter": "i", "long-handed-inserter": "L", "pipe": "p", "pipe-to-ground": "q", "steel-chest": "C",
+                 "passive-provider-chest": "C", "requester-chest": "C"}
+        if machine:
+            chars[machine] = "M"
+        if joint == "pole_line":
+            chars[options["pole"]] = "P"
         for u in joints.UNDERGROUND.values():
             chars[u] = "U"
         return {"plan_id": self._keep(lay.entities(), "%s joint" % joint), "pieces": lay.count(), "solves": joints.JOINTS[joint]["solves"],
                 "covers": {"from_x": b[0], "from_y": b[1], "to_x": b[2], "to_y": b[3]},
-                "picture": lay.picture(chars), "legend": "b belt, U underground belt, S splitter, i inserter, p pipe, q underground pipe, C chest",
+                "picture": lay.picture(chars), "legend": "b belt, U underground belt, S splitter, i inserter, L long-handed inserter, p pipe, q underground pipe, C chest, M machine, P pole",
                 "next": "call build_plan with this plan_id to check it against the map (dry run)"}
 
     def plan_route(self, kind, from_x, from_y, to_x, to_y, item=None, end_facing=None, surface=None):

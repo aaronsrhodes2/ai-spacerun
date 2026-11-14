@@ -127,6 +127,22 @@ local function entity(name)
   end
   local items = {}
   for _, it in pairs(at(p, "items_to_place_this") or {}) do items[#items + 1] = it.name end
+  -- Where fluids go in and come out, with the machine facing north: the tile inside the machine that each connection
+  -- sits on (measured from the machine's centre) and the way it points out of the machine.
+  local ports = {}
+  for _, box in pairs(at(p, "fluidbox_prototypes") or {}) do
+    local filter = at(box, "filter")
+    for _, c in pairs(at(box, "pipe_connections") or {}) do
+      local pos = c.positions and c.positions[1]
+      if pos and (c.connection_type == nil or c.connection_type == "normal") then
+        ports[#ports + 1] = {
+          flow = c.flow_direction, fluid = filter and filter.name or nil,
+          x = pos.x or pos[1], y = pos.y or pos[2],
+          direction = string.lower(helpers.direction_to_string(c.direction)),
+        }
+      end
+    end
+  end
   local speed = call(p, "get_crafting_speed")
   local usage = call(p, "get_max_energy_usage")
   local supply = call(p, "get_supply_area_distance")
@@ -142,6 +158,7 @@ local function entity(name)
     pole_supply_tiles = (p.type == "electric-pole" and supply and supply > 0) and supply * 2 or nil,
     pole_wire_reach = (p.type == "electric-pole" and wire and wire > 0) and wire or nil,
     heat = heat,
+    fluid_ports = some(ports),
     placed_with_item = some(items),
     only_where = conditions(at(p, "surface_conditions")),
     note = "numbers are for normal quality",
