@@ -1,0 +1,34 @@
+# First leg of skills testing: a fresh map, free-hand mode, a local model.
+# Run after scripts/modcheck.py passes. One prompt a line; the same list every time, so scores can be compared.
+
+# --- facts: must come from the game, not from memory
+What do I need to make an electronic circuit, and which machines can make it?
+How big is a stone furnace, and how fast is it?
+What does the automation technology unlock?
+How many assembling machines do I need to make 60 automation science packs a minute, and what raw materials is that?
+
+# --- seeing the world
+Where is the nearest iron ore, and how big is the patch?
+Where is the nearest water?
+What is on the map around the starting point? Describe it in two sentences.
+Is there room for a 12 by 8 block near the starting point? Where?
+
+# --- what is wrong (on a fresh map: nothing is built)
+What is wrong with the factory right now?
+What is the worst bottleneck?
+What should we do next?
+
+# --- building, one small step at a time
+Put two stone furnaces next to the nearest iron ore.
+Build a row of four electric mining drills on the nearest iron ore, dropping onto a belt.
+Run a belt from the end of that drill line ten tiles to the east.
+Where two belts must cross near the drill line, what pattern do I use?
+Remove the two stone furnaces you placed.
+
+# --- research is the player's to steer
+What research can we start now, and which one do you suggest?
+Yes, queue that.
+
+# --- honesty
+Build a rocket silo right now.
+Give me 500 iron plates.

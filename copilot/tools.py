@@ -59,12 +59,20 @@ SPECS = [
                     "width": _param("number", "for the crossings: how many belts side by side are crossed"),
                     "action": _param("string", "for wagon_side: 'unload' or 'load'. For barrel_station: 'fill' or 'empty'"),
                     "wagons": _param("number", "for wagon_side: how many wagons"),
+                    "count": _param("number", "for miner_row: drills a side"),
+                    "second": _param("string", "for direct_coupling: the building that takes the fluid (machine is the one that gives it)"),
                     "lanes": _param("number", "for balancer: 2 or 4 belts"),
                     "machine": _param("string", "for machine_ports and reach_over: the machine; its size and fluid connections are read from the game"),
                     "length": _param("number", "for long_pipe and pole_line: tiles from end to end"),
                     "spacing": _param("number", "for pole_line: tiles from pole to pole; leave out to use the pole's own reach"),
                     "pole": _param("string", "for pole_line: which pole"),
                     "belt": _param("string", "belt to use", default="transport-belt")}},
+    {"name": "plan_pieces",
+     "description": "Plan single pieces exactly where you say: for anything no row, joint or route covers. Each piece is given by its centre (a 1 by 1 piece on tile 5,7 has its centre at 5.5, 7.5; find_placement returns centres). The pieces are checked against each other for overlap. Returns a plan_id; nothing is built until build_plan.",
+     "parameters": {"pieces": _param("table", "a list of pieces, each {name, x, y, direction?, recipe?, filter?}; direction is north, east, south or west", True)}},
+    {"name": "research_options",
+     "description": "What research could be started now, and what is running or queued. Technologies that a milestone not yet reached needs come first. Each has its packs, its cost, what it unlocks and a design note. Use it when research has stopped, to choose ONE technology to suggest to the player with the reason for it.",
+     "parameters": {}},
     {"name": "plan_route",
      "description": "Find a way for a belt or a pipe from one tile to another around everything that stands between, going underground where it must. Reads what is in the way from the game. Returns the length and a plan_id; nothing is built until build_plan.",
      "parameters": {"kind": _param("string", "'belt' or 'pipe'", True),
@@ -296,8 +304,63 @@ class LocalTools:
     def joints(self):
         return {"joints": joints.catalogue(), "note": "every joint is designed with its main flow running north; plan_joint turns it"}
 
+    def plan_pieces(self, pieces):
+        if not isinstance(pieces, list) or not pieces:
+            raise ToolError("pieces must be a list with at least one piece")
+        if len(pieces) > 200:
+            raise ToolError("at most 200 pieces in one plan", "plan it in parts")
+        lay = Layout()
+        for i, piece in enumerate(pieces):
+            if not isinstance(piece, dict) or not isinstance(piece.get("name"), str):
+                raise ToolError("piece %d has no name" % (i + 1))
+            if not isinstance(piece.get("x"), (int, float)) or not isinstance(piece.get("y"), (int, float)):
+                raise ToolError("piece %d (%s) needs x and y, the centre of the piece" % (i + 1, piece["name"]))
+            facing = piece.get("direction", "north")
+            if facing not in FACING:
+                raise ToolError("piece %d (%s): direction must be north, east, south or west" % (i + 1, piece["name"]))
+            m = self.fact(piece["name"], "entity")
+            w, h = m.get("tiles_wide") or 1, m.get("tiles_high") or 1
+            if FACING[facing] % 2:
+                w, h = h, w
+            left, top = piece["x"] - w / 2.0, piece["y"] - h / 2.0
+            if abs(left - round(left)) > 1e-6 or abs(top - round(top)) > 1e-6:
+                raise ToolError("piece %d (%s) is %d by %d tiles, so its centre must be at %s; %s,%s is not" % (
+                    i + 1, piece["name"], w, h, "a whole number" if w % 2 == 0 else "a half (such as 5.5)", piece["x"], piece["y"]),
+                    "use find_placement, or tile coordinates plus half the piece's size")
+            extra = {k: piece[k] for k in ("recipe", "filter", "type", "input_priority", "output_priority") if piece.get(k) is not None}
+            lay.put(piece["name"], int(round(left)), int(round(top)), w, h, FACING[facing] * 4, **extra)
+        b = lay.bounds()
+        return {"plan_id": self._keep(lay.entities(), "%d pieces" % len(pieces)), "pieces": lay.count(),
+                "covers": {"from_x": b[0], "from_y": b[1], "to_x": b[2], "to_y": b[3]},
+                "next": "call build_plan with this plan_id to check it against the map (dry run)"}
+
+    def research_options(self):
+        r = self.game.call("research_available")
+        if not r.get("ok"):
+            raise ToolError(r.get("error") or "research could not be read", r.get("hint"))
+        state = r["result"]
+        available = state.get("available") if isinstance(state.get("available"), list) else []
+        wanted = {}                                                    # technology -> the first milestone still needing it
+        try:
+            facts = self.facts()
+            for m in ms.MILESTONES:
+                if ms.missing(m["test"], facts):
+                    for tech in m["test"].get("researched", []):
+                        wanted.setdefault(tech, m["title"])
+        except ToolError:
+            pass
+        for t in available:
+            if t["technology"] in wanted:
+                t["needed_for"] = wanted[t["technology"]]
+        available.sort(key=lambda t: (0 if "needed_for" in t else 1, t.get("units") or 0, t["technology"]))
+        queued = state.get("queued") if isinstance(state.get("queued"), list) else []
+        return {"researching": state.get("researching"), "progress": state.get("progress"), "queued": queued, "labs": state.get("labs"),
+                "can_start_now": available[:12], "more_not_shown": max(0, len(available) - 12),
+                "standing_still": not state.get("researching") and not queued,
+                "note": "suggest one to the player with the reason, and queue it with queue_research when they agree"}
+
     def plan_joint(self, joint, x, y, facing="north", item=None, side=None, width=None, action=None, wagons=None, lanes=None, machine=None,
-                   length=None, spacing=None, pole=None, belt="transport-belt"):
+                   length=None, spacing=None, pole=None, count=None, second=None, belt="transport-belt"):
         if facing not in FACING:
             raise ToolError("facing must be north, east, south or west")
         options = {"belt": belt}
@@ -339,7 +402,18 @@ class LocalTools:
             if not machine or machine not in (r.get("made_in") or []):
                 raise ToolError("'%s' cannot run the recipe '%s'" % (machine, recipe), "it can be made in: %s" % ", ".join(r.get("made_in") or []))
             options["recipe"] = recipe
-        if joint in ("machine_ports", "reach_over", "fluid_machine_on_belts", "barrel_station", "robot_machine"):
+        if joint == "direct_coupling":
+            if not machine or not second:
+                raise ToolError("the joint 'direct_coupling' needs 'machine' (the building that gives the fluid) and 'second' (the one that takes it)")
+            a, b = self.fact(machine, "entity"), self.fact(second, "entity")
+            for name, m in ((machine, a), (second, b)):
+                if not isinstance(m.get("fluid_ports"), list) or not m["fluid_ports"]:
+                    raise ToolError("'%s' has no fluid connections" % name)
+            options = {"first": machine, "first_width": a["tiles_wide"], "first_height": a["tiles_high"], "first_ports": a["fluid_ports"],
+                       "second": second, "second_width": b["tiles_wide"], "second_height": b["tiles_high"], "second_ports": b["fluid_ports"]}
+        if count is not None:
+            options["count"] = int(count)
+        if joint in ("machine_ports", "reach_over", "fluid_machine_on_belts", "barrel_station", "robot_machine", "miner_row"):
             if not machine:
                 raise ToolError("the joint '%s' needs the parameter 'machine'" % joint)
             m = self.fact(machine, "entity")
@@ -374,6 +448,8 @@ class LocalTools:
                  "passive-provider-chest": "C", "requester-chest": "C"}
         if machine:
             chars[machine] = "M"
+        if second:
+            chars[second] = "N"
         if joint == "pole_line":
             chars[options["pole"]] = "P"
         for u in joints.UNDERGROUND.values():

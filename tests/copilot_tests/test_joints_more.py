@@ -241,7 +241,7 @@ def test_rail_signals_are_given_as_rules_not_as_a_layout():
 
 def test_the_catalogue_has_grown_and_stays_small_per_joint():
     cat = joints.catalogue()
-    assert len(cat) == 21 and len({j["joint"] for j in cat}) == 21
+    assert len(cat) == 23 and len({j["joint"] for j in cat}) == 23
     for name in ("balancer", "barrel_station", "machine_ports", "fluid_machine_on_belts", "robot_machine", "overflow_valve", "long_pipe", "pole_line", "rail_signals"):
         assert any(j["joint"] == name for j in cat), name
 

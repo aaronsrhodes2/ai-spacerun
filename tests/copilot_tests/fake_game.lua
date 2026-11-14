@@ -11,7 +11,7 @@ defines = {
   inventory = { chest = 1, crafter_input = 2, crafter_output = 3 },
   alert_type = { entity_destroyed = 0, no_material_for_construction = 3, turret_out_of_ammo = 7, train_out_of_fuel = 9 },
   events = { on_player_created = 1, on_player_joined_game = 2, on_console_chat = 3, on_research_finished = 4, on_tick = 5,
-             on_script_path_request_finished = 6, on_runtime_mod_setting_changed = 7, on_gui_click = 8 },
+             on_script_path_request_finished = 6, on_runtime_mod_setting_changed = 7, on_gui_click = 8, on_research_started = 9 },
   build_check_type = { manual = 1, script = 2 },
   flow_precision_index = { one_minute = 1, ten_minutes = 2, one_hour = 3 },
   rocket_silo_status = { building_rocket = 1, rocket_ready = 2, launch_started = 3 },
@@ -47,6 +47,7 @@ local RECIPES = {
   ["transport-belt"] = { energy = 0.5, categories = { crafting = true }, ingredients = { item_part("iron-plate", 1) }, products = { item_part("transport-belt", 2) } },
   ["underground-belt"] = { energy = 1, categories = { crafting = true }, ingredients = { item_part("iron-plate", 10) }, products = { item_part("underground-belt", 2) } },
   ["inserter"] = { energy = 0.5, categories = { crafting = true }, ingredients = { item_part("iron-plate", 1) }, products = { item_part("inserter", 1) } },
+  ["electric-mining-drill"] = { energy = 2, categories = { crafting = true }, ingredients = { item_part("iron-plate", 10) }, products = { item_part("electric-mining-drill", 1) } },
   ["splitter"] = { energy = 1, categories = { crafting = true }, ingredients = { item_part("iron-plate", 5) }, products = { item_part("splitter", 1) } },
   ["steel-chest"] = { energy = 0.5, categories = { crafting = true }, ingredients = { item_part("iron-plate", 8) }, products = { item_part("steel-chest", 1) } },
   ["pipe-to-ground"] = { energy = 0.5, categories = { crafting = true }, ingredients = { item_part("iron-plate", 5) }, products = { item_part("pipe-to-ground", 2) } },
@@ -168,6 +169,17 @@ for name, t in pairs(TECHS) do
   force.technologies[name] = { name = name, researched = false, prerequisites = {}, prototype = t, force = force }
 end
 force.technologies["automation-2"].prerequisites = { electronics = force.technologies["electronics"] }
+force.research_queue = {}
+force.add_research = function(name)
+  local t = force.technologies[name]
+  if not t or t.researched or fake.queue_full then return false end
+  force.research_queue[#force.research_queue + 1] = t
+  if not force.current_research then
+    force.current_research = t
+    if fake.handlers[defines.events.on_research_started] then fake.handlers[defines.events.on_research_started] { research = t } end
+  end
+  return true
+end
 force.chart = function(surface, area) fake.charted[#fake.charted + 1] = { surface = surface.name, area = area } end
 force.is_chunk_charted = function(surface, chunk) return surface.charted[chunk.x .. "," .. chunk.y] == true end
 
@@ -206,7 +218,7 @@ local function new_surface(name, index)
     local out = {}
     for _, e in ipairs(s.entities) do
       if e.valid and one_of(e.type, f.type) and one_of(e.name, f.name)
-        and (f.force == nil or e.force == nil or e.force.name == (type(f.force) == "table" and f.force.name or f.force))
+        and (f.force == nil or (e.force ~= nil and e.force.name == (type(f.force) == "table" and f.force.name or f.force)))
         and (f.area == nil or overlap(e.bounding_box, f.area))
         and (f.position == nil or math.sqrt(((f.position.x or f.position[1]) - e.position.x) ^ 2 + ((f.position.y or f.position[2]) - e.position.y) ^ 2) <= (f.radius or 0.5)) then
         out[#out + 1] = e
@@ -723,6 +735,10 @@ end
 function fake.research(name)
   local t = force.technologies[name]
   t.researched = true
+  for i, q in ipairs(force.research_queue) do
+    if q == t then table.remove(force.research_queue, i) break end
+  end
+  force.current_research = force.research_queue[1]
   fake.handlers[defines.events.on_research_finished] { research = t }
 end
 

@@ -18,6 +18,17 @@ answered with what would have been right (the tool names, or that tool's paramet
 console; the bridge sends them over RCON. With any mod enabled the game keeps a separate set of achievements that do not
 register with Steam; whether calling this command changes anything further has not been tested.
 
+## The assistant comes to you
+
+Three things make the assistant speak without being asked, each once and with one suggestion and its reason:
+
+- **Research has stopped.** Research is yours to steer. It suggests one technology, says what that unlocks and what it
+  lets you do next, and asks. It queues it when you agree.
+- **A new alert.** It looks into it and says what is wrong and what it would do.
+- **An obvious bottleneck.** Five or more machines waiting on the same item, or machines without power.
+
+It asks before changing anything that is working.
+
 ## Two ways people will play it
 
 - **Fewest prompts.** How few things do you have to say to finish the game? The mod counts every line you type to the
@@ -35,7 +46,7 @@ one small pattern for each such meeting (`copilot/plan/joints.py`), each saying 
 
 belt crossing, pipe crossing, filter splitter, priority merge, overflow valve, tee, balancer, side load, lane pair,
 filtered pick, reach over, belt to robots, robots to belt, robot-run machine, machine fluid ports, fluid machine on belts,
-barrel station, long pipe, pole line, wagon side, and the rules for rail signals (rules only, until signal positions are
+barrel station, direct coupling of two fluid buildings, long pipe, pole line, miner row, wagon side, and the rules for rail signals (rules only, until signal positions are
 checked in the game).
 
 None holds a recipe, a count or a place, and none holds more than one machine: production lines are made from joints, never
@@ -57,12 +68,15 @@ the working light, or by asking the assistant.
 
 Switching modes stops whatever the avatar was doing. A scored run can lock the mode.
 
-## Tools in the mod (version 0.10.0)
+## Tools in the mod (version 0.11.0)
 
 | Tool | What it does |
 |---|---|
 | `lookup`, `search` | Facts about a recipe, item, entity, technology or fluid, read live from the game |
 | `map`, `tile`, `find_free` | A labelled text picture of the map; exactly what stands on a tile; the nearest empty rectangle |
+| `find_resources`, `find_placement` | Where the ore, oil and water are; where a piece that is fussy about its ground can really go, found by trying |
+| `queue_research` | Queue a technology (the labs do the rest) |
+| `remove`, `set_recipe` | Take away pieces of ours, with a dry run first; change a standing machine's recipe |
 | `diagnose` | Every machine by what it is doing, with examples and what each problem means |
 | `bottlenecks` | The worst bottlenecks ranked by the item machines wait for; whole surface or near the player |
 | `alerts` | The game's own alerts by kind, with what each means |
@@ -74,7 +88,7 @@ Switching modes stops whatever the avatar was doing. A scored run can lock the m
 | `chat_read`, `say`, `set_state` | The chat channel and the working light (used by the bridge) |
 | `avatar`, `avatar_craft`, `avatar_carry`, `avatar_stop` | The character: where it is and what it carries; craft by hand; move items to and from a chest within reach; stop |
 | `set_mode` | Switch between the two modes, when the player asks |
-| `avatar_walk`, `avatar_mine`, `avatar_travel`, `progress`, `lock_mode` | For the bridge and the operator: start a walk, a mining job or a trip to another planet; the facts milestones are tested against; fix the mode for a scored run |
+| `avatar_walk`, `avatar_mine`, `avatar_travel`, `progress`, `research_available`, `lock_mode` | For the bridge and the operator: start a walk, a mining job or a trip to another planet; the facts milestones are tested against; fix the mode for a scored run |
 | `occupancy`, `build`, `frames` | For the bridge's planning tools: what is in the way, placing a checked plan (dry run first), the rectangles spoken places refer to |
 
 `build` keeps the rule that nothing is built before it is researched, and places nothing unless every piece of a plan can
@@ -99,6 +113,8 @@ These are added by the bridge and look the same to the model. They do the arithm
 | `plan_row` | A row of identical machines fed by belt or by robots, from one generic cell per machine |
 | `joints`, `plan_joint` | The small patterns for where lines meet and cross, each with the problem it solves; lay one out at a place |
 | `connections` | Every way one building can be connected, worked out from the game's facts about it, and what a recipe needs of them |
+| `plan_pieces` | Single pieces exactly where you say, for anything no row, joint or route covers |
+| `research_options` | What research can start now, with what a milestone needs first |
 | `plan_route` | A belt or pipe from A to B round what stands between, underground where it must |
 | `build_plan` | Send a plan to the game: dry run first, build only after a clean dry run, never twice |
 | `walk_to`, `mine`, `travel_to` | Start the avatar walking, mining or travelling to another planet, and wait until it has finished |
@@ -122,13 +138,15 @@ server that speaks the OpenAI chat API). `python -m copilot --ask "..."` asks on
 
 ## Testing
 
-- `python -m pytest tests/copilot_tests` runs with no game and no model: 371 tests. They cover the bridge, the planning
+- `python -m pytest tests/copilot_tests` runs with no game and no model: 405 tests. They cover the bridge, the planning
   code, the scorer, and the mod's own Lua run under Lua 5.2 against a stand-in game (`tests/copilot_tests/fake_game.lua`).
   Needs `pip install lupa`.
 - `scripts/modserver.sh start` runs a second, headless copy of the Steam install with its own data folder (`.testserver/`),
   so the live game is never touched. `scripts/modcheck.py` builds a small known scene there and checks what every tool
   says about it. `scripts/modtest.py <tool> '<json>'` calls one tool by hand.
 - `python -m copilot.score runs/` scores the bridge's logs: tool misses, repeats, stalls.
+- `python -m copilot.leg copilot/legs/first.txt` runs a fixed list of prompts through the assistant and scores it: a leg of
+  skills testing, the same every time so scores can be compared.
 
 Not yet run in a real game (written 2026-11-13 while the test server was off): everything added since version 0.2.0,
 which is `alerts`, `player`, `bottlenecks`, `occupancy`, `build`, `frames`, `reveal_map`, the modes, the whole avatar, planet

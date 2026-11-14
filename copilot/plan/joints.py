@@ -431,6 +431,76 @@ def robot_machine(machine, width, height, inserter="inserter", recipe=None):
     return cells.robot_cell(machine, width, height, inserter, recipe)
 
 
+def miner_row(machine, width, height, count=4, belt="transport-belt"):
+    """Mining drills on both sides of one belt, each dropping its ore straight onto it: no inserters. A drill's
+    direction is the way it drops. Lay it across an ore patch; drills that end up off the ore mine nothing.
+
+        D D D D D D      a row of drills dropping south
+        > > > > > >      the belt, running east
+        D D D D D D      a row of drills dropping north
+
+    count is drills per side. The belt is as long as the two rows."""
+    count = int(count)
+    if count < 1:
+        raise LayoutError("at least one drill a side")
+    lay = Layout()
+    for i in range(count):
+        lay.put(machine, i * width, 0, width, height, direction=S, role="drill")
+        lay.put(machine, i * width, height + 1, width, height, direction=N, role="drill")
+    for x in range(count * width):
+        lay.put(belt, x, height, direction=E, role="belt")
+    return lay
+
+
+def _turn_port(port, quarters):
+    """A port as it lies after the building is turned clockwise by quarter turns."""
+    order = ["north", "east", "south", "west"]
+    x, y = port["x"], port["y"]
+    for _ in range(quarters % 4):
+        x, y = -y, x
+    return dict(port, x=x, y=y, direction=order[(order.index(port["direction"]) + quarters) % 4])
+
+
+def direct_coupling(first, first_width, first_height, first_ports, second, second_width, second_height, second_ports):
+    """Two fluid buildings placed touching, so an output of the first feeds straight into an input of the second with
+    no pipe between: a boiler into a steam engine, a pump into a tank. The second building is turned and placed
+    wherever one of its inputs meets one of the first's outputs. `*_ports` come from the game (`fluid_ports` in
+    lookup). A port that takes and gives ('input-output') can serve as either."""
+    step = {"north": (0, -1), "east": (1, 0), "south": (0, 1), "west": (-1, 0)}
+    back = {"north": "south", "south": "north", "east": "west", "west": "east"}
+
+    def inside(port, w, h):
+        return (int((w / 2.0 + port["x"]) // 1), int((h / 2.0 + port["y"]) // 1))
+
+    gives = [p for p in first_ports or [] if p.get("flow") in ("output", "input-output")]
+    gives.sort(key=lambda p: 0 if p.get("flow") == "output" else 1)      # a true outlet before a port that only passes fluid through
+    if not gives:
+        raise LayoutError("'%s' has no fluid output to couple" % first)
+    if not [p for p in second_ports or [] if p.get("flow") in ("input", "input-output")]:
+        raise LayoutError("'%s' has no fluid input to couple" % second)
+    for out_port in gives:
+        ax, ay = inside(out_port, first_width, first_height)
+        tx, ty = ax + step[out_port["direction"]][0], ay + step[out_port["direction"]][1]        # the tile the second's input must sit on
+        for quarters in range(4):
+            w, h = (second_width, second_height) if quarters % 2 == 0 else (second_height, second_width)
+            for raw in second_ports:
+                port = _turn_port(raw, quarters)
+                if port.get("flow") not in ("input", "input-output") or port["direction"] != back[out_port["direction"]]:
+                    continue
+                if out_port.get("fluid") and port.get("fluid") and out_port["fluid"] != port["fluid"]:
+                    continue
+                bx, by = inside(port, w, h)
+                left, top = tx - bx, ty - by
+                lay = Layout()
+                lay.put(first, 0, 0, first_width, first_height, role="first")
+                try:
+                    lay.put(second, left, top, w, h, direction=quarters * 4, role="second")
+                except LayoutError:
+                    continue
+                return lay
+    raise LayoutError("no output of '%s' can meet an input of '%s' directly; join them with a pipe (plan_route)" % (first, second))
+
+
 RULES = {
     "rail_signals": {
         "solves": "trains must share track without colliding or blocking each other at a junction",
@@ -483,6 +553,11 @@ JOINTS = {
                        "options": {"machine": "the machine (required)", "width": "its width (required)", "height": "its height (required)", "ports": "its fluid ports from lookup (required)", "recipe": "the fill or empty recipe"}},
     "robot_machine": {"solves": "an item wanted in small numbers must be made on demand, with robots bringing ingredients and taking the product", "make": robot_machine,
                       "options": {"machine": "the machine (required)", "width": "its width (required)", "height": "its height (required)", "recipe": "recipe to set"}},
+    "miner_row": {"solves": "ore must be mined onto a belt with no inserters", "make": miner_row,
+                  "options": {"machine": "the mining drill (required)", "width": "its width (required)", "height": "its height (required)", "count": "drills a side (default 4)"}},
+    "direct_coupling": {"solves": "two fluid buildings must be joined with no pipe between, such as a boiler and a steam engine", "make": direct_coupling,
+                        "options": {"first": "the building that gives the fluid (required)", "first_width": "(required)", "first_height": "(required)", "first_ports": "(required)",
+                                    "second": "the building that takes it (required)", "second_width": "(required)", "second_height": "(required)", "second_ports": "(required)"}},
     "machine_ports": {"solves": "pipes must be fitted to a machine's fluid inputs and outputs", "make": machine_ports,
                       "options": {"machine": "the machine (required)", "width": "its width (required)", "height": "its height (required)", "ports": "its fluid ports from lookup (required)"}},
 }

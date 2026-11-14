@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.11.0
+Date: 2026-11-13
+  Features:
+    - Research: what can be started now, queueing, and news when research stands still with nothing chosen.
+    - Finding resources and water, finding where a fussy piece can be placed, removing pieces, changing a recipe.
+---------------------------------------------------------------------------------------------------
 Version: 0.10.0
 Date: 2026-11-13
   Features:

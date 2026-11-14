@@ -34,6 +34,24 @@ def alert_prompt(new, alert_text):
             "you suggest doing about it. If it needs no action, answer with the single word: nothing." % (kinds, alert_text))
 
 
+def research_prompt():
+    return ("News from the game: research has stopped because nothing is queued. This is your moment to come to the player. "
+            "Call research_options, pick the ONE technology that helps most right now (one a milestone needs, if there is one), and "
+            "tell the player in at most three sentences: what you suggest researching, what it unlocks, and what that will let us do "
+            "next. End by asking whether to go ahead. Do not queue it yourself unless the player has told you to choose research on your own.")
+
+
+def bottleneck_prompt(top, power):
+    if power:
+        return ("News from the game: %s. Tell the player in at most two sentences what is short of power and the one thing you suggest "
+                "doing about it, after a look with your tools. Ask whether to go ahead before changing anything that works." % power)
+    return ("News from the game: an obvious bottleneck. %d machines are %s (they make %s), around %s,%s. Find out with your tools why, "
+            "then tell the player in at most two sentences what is wrong and the one thing you suggest doing about it. Ask whether to go "
+            "ahead before changing anything that works. If it needs no action, answer with the single word: nothing."
+            % (top.get("machines_waiting") or 0, top.get("problem"), ", ".join(top.get("those_machines_make") or []) or "nothing yet",
+               top.get("centre_x"), top.get("centre_y")))
+
+
 def is_nothing(answer):
     return not answer or answer.strip().lower().rstrip(".") == NOTHING
 
@@ -52,9 +70,13 @@ class AlertWatch:
 
 
 class Bridge:
-    def __init__(self, game, agent, tools, clock=time.time, stall_hours=2.0, goal_pause=20.0, progress_every=60.0, max_idle_turns=3, out=print):
+    def __init__(self, game, agent, tools, clock=time.time, stall_hours=2.0, goal_pause=20.0, progress_every=60.0, max_idle_turns=3, out=print,
+                 bottleneck_every=180.0, bottleneck_machines=5):
         self.game, self.agent, self.tools, self.clock, self.out = game, agent, tools, clock, out
         self.goal_pause, self.progress_every, self.max_idle_turns = goal_pause, progress_every, max_idle_turns
+        self.bottleneck_every, self.bottleneck_machines = bottleneck_every, bottleneck_machines
+        self.bottlenecks = AlertWatch()                         # the same once-until-it-clears memory, for bottlenecks
+        self.bottleneck_at = None
         # start from now, not from lines and news that were there before the bridge came up
         self.chat_at = (game.call("chat_read", {"after": 10 ** 9}).get("result") or {}).get("last_id", 0)
         self.news_at = (game.call("events_read", {"after": 10 ** 9}).get("result") or {}).get("last_id", 0)
@@ -70,6 +92,7 @@ class Bridge:
         spoke = self._chat()
         self._news()
         self._new_alerts()
+        self._bottlenecks()
         self._progress()
         if not spoke:
             self._goal()
@@ -91,7 +114,12 @@ class Bridge:
     def _news(self):
         for ev in self._lines(self.game.call("events_read", {"after": self.news_at}), "events"):
             self.news_at = ev["id"]
-            if ev.get("kind") == "research_finished" and (ev.get("design_note") or ev.get("unlocks_recipes")):
+            if ev.get("kind") == "research_idle":
+                answer, outcome, stats = self.agent.handle(research_prompt(), "game")
+                if not is_nothing(answer):
+                    say(self.game, answer)
+                self.out("research stopped ->", outcome, stats)
+            elif ev.get("kind") == "research_finished" and (ev.get("design_note") or ev.get("unlocks_recipes")):
                 answer, outcome, stats = self.agent.handle(news_prompt(ev), "game")
                 if not is_nothing(answer):
                     say(self.game, answer)
@@ -105,6 +133,35 @@ class Bridge:
             if not is_nothing(answer):
                 say(self.game, answer)
             self.out("alert", sorted(fresh), "->", outcome, stats)
+
+    def _bottlenecks(self):
+        """Every few minutes: is there an obvious bottleneck the player has not been told about? Many machines waiting
+        on one item, or machines without power. Each is brought up once, and again only after it has cleared."""
+        now = self.clock()
+        if self.bottleneck_at is not None and now - self.bottleneck_at < self.bottleneck_every:
+            return
+        self.bottleneck_at = now
+        r = self.game.call("bottlenecks", {"top": 3})
+        if not r.get("ok"):
+            return
+        result = r.get("result") or {}
+        found = result.get("bottlenecks") if isinstance(result.get("bottlenecks"), list) else []
+        power = result.get("power_first")
+        obvious = [b for b in found if (b.get("machines_waiting") or 0) >= self.bottleneck_machines]
+        current = {("bottleneck", b.get("problem")) for b in obvious}
+        if power:
+            current.add(("bottleneck", "power"))
+        fresh = self.bottlenecks.new(current)
+        if not fresh:
+            return
+        if ("bottleneck", "power") in fresh:
+            prompt = bottleneck_prompt(None, power)
+        else:
+            prompt = bottleneck_prompt(next(b for b in obvious if ("bottleneck", b.get("problem")) in fresh), None)
+        answer, outcome, stats = self.agent.handle(prompt, "game")
+        if not is_nothing(answer):
+            say(self.game, answer)
+        self.out("bottleneck", sorted(k for _, k in fresh), "->", outcome, stats)
 
     def _progress(self):
         now = self.clock()

@@ -5,7 +5,7 @@ day: one chat builds the mod while the main chat finishes the Fable run. Scored 
 verified solve (see Gate).
 
 Built so far:
-- **The mod** (`mods/skippy-copilot`, version 0.10.0), thirty tools: lookup, search, map, tile, find_free, diagnose,
+- **The mod** (`mods/skippy-copilot`, version 0.11.0), thirty-six tools: lookup, search, map, tile, find_free, diagnose,
   bottlenecks, alerts, player, design_note, events_read, reveal_map, chat_read, say, set_state, and for the planner
   occupancy, build and frames. `build` is a dry run unless told otherwise, refuses anything not researched, and sits on
   an executor layer so the walking avatar can replace free placement without changing a tool.
@@ -52,6 +52,17 @@ Built so far:
 - **A building's finite set of connections** (the Captain, 2026-11-13): the `connections` tool lists, for any building,
   every way it can meet its lines, from the game's facts: sides, fluid connections, free tiles for inserters, heat, and
   for a recipe the belts its ingredients need and the joint that fits.
+- **What a blank map needs** (mod 0.11.0): finding ore, oil and water (`find_resources`); finding where a fussy piece can
+  really go by trying it (`find_placement`, the habit that found the offshore pump's spot in the Fable run); single pieces
+  (`plan_pieces`); drills on both sides of a belt (`miner_row`); two fluid buildings joined port to port, such as a boiler
+  and a steam engine (`direct_coupling`); removing pieces with a dry run first; changing a recipe.
+- **Research is the player's to steer, and three things make the assistant come to the player** (the Captain,
+  2026-11-13): research running out, a new alert, and an obvious bottleneck. Each is an opening to engage: the assistant
+  looks into it, makes ONE suggestion with its reason, and asks before acting. For research it suggests a technology (one a
+  milestone needs comes first) and queues it when the player agrees; it chooses on its own only if told to.
+- **A leg of skills testing** (`python -m copilot.leg copilot/legs/first.txt`): a fixed list of twenty prompts on a fresh
+  map covering facts, seeing the world, diagnosis, small builds, research and honesty (it must refuse "give me 500 iron
+  plates" and "build a rocket silo right now"). The same list every time, scored by the log.
 - **Planning code in the bridge** (`copilot/plan/`, pure and unit-tested): production calculator, layouts with overlap
   check and turning, the generic cells (belt-fed machine, robot-fed machine, direct pair, rows), a belt and pipe router
   with underground pairs, and pointing with words. The model reaches them as plan_production, plan_row, plan_route,
@@ -62,7 +73,7 @@ Built so far:
   kind of alert makes the model look into it and offer one suggestion.
 - **The bridge** (`copilot/`): game chat in, model with tools, answer out, working light, a log of every call, and a
   scorer for those logs. Providers: Ollama and any OpenAI-compatible server. An Anthropic adapter is not written.
-- **Tests**: 371 unit tests that need no game and no model, including the mod's own Lua run under Lua 5.2 against a
+- **Tests**: 405 unit tests that need no game and no model, including the mod's own Lua run under Lua 5.2 against a
   stand-in game; `scripts/modcheck.py` for the mod on a local headless test server. The Lua tests found three bugs on
   their first run (a search centred one tile off, a wrong player returned for an unknown name, an unstable ranking).
 - **First run with a local model** (qwen3:8b on Ollama, 2026-11-13, mod 0.2.0): three questions through the bridge, all
@@ -76,8 +87,14 @@ Not yet run in a real game: everything added in mod 0.3.0 (alerts, player, bottl
 reveal_map). They pass against the stand-in game only. Live runs are for late at night, when the Captain is not playing
 (2026-11-13).
 
-Next: a night run of `modcheck.py` (it now covers the avatar) and of a first build through the bridge; then planet
-travel for the avatar and the milestone list.
+Next, the first night run, in this order:
+1. `scripts/modserver.sh new` then `start`: the mod has not loaded in a real game since version 0.2.0, so expect errors
+   here first; fix until it loads.
+2. `scripts/modcheck.py`: every tool against a known scene, including the avatar and the fluid-port check.
+3. `python -m copilot.leg copilot/legs/first.txt` on a fresh map with a local model; read the score and the refused calls.
+4. Fix what the run shows, in the tool descriptions and the skill prompt first, then in code.
+Still to write after that: the first hour by hand (the avatar has no way yet to take pieces down), a real trip between
+planets, and the Anthropic model adapter.
 
 ## Publishing on the mod portal (researched 2026-11-13)
 

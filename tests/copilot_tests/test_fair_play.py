@@ -134,7 +134,7 @@ def test_the_mod_never_conjures_items_or_writes_research():
     for name, code in lua_code().items():
         assert not re.search(r"\.researched\s*=\s*(true|false)", code), "%s writes research state" % name
         assert "research_all_technologies" not in code and "cheat_mode" not in code, name
-        assert not re.search(r"\.enabled\s*=", code), "%s unlocks a recipe" % name
+        assert not re.search(r"\.enabled\s*=[^=]", code), "%s unlocks a recipe" % name
         if name != "avatar.lua":
             assert not re.search(r"\binsert\s*[({]", code), "%s inserts items" % name
     avatar = lua_code()["avatar.lua"]

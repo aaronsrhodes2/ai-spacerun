@@ -21,7 +21,10 @@ def test_every_joint_says_what_problem_it_solves_and_holds_no_recipe_or_place():
     cat = joints.catalogue()
     assert len(cat) >= 8 and all(len(j["solves"]) > 30 for j in cat)
     ports = [{"flow": "input", "x": -1, "y": -1, "direction": "north"}]
-    sample = {"item": "iron-plate", "machine": "chemical-plant", "width": 3, "height": 3, "ports": ports, "length": 20}
+    gives = [{"flow": "output", "x": 0, "y": -1, "direction": "north"}]
+    sample = {"item": "iron-plate", "machine": "chemical-plant", "width": 3, "height": 3, "ports": ports, "length": 20,
+              "first": "boiler", "first_width": 3, "first_height": 2, "first_ports": gives,
+              "second": "steam-engine", "second_width": 3, "second_height": 5, "second_ports": [{"flow": "input", "x": 0, "y": 2, "direction": "south"}]}
     for name in joints.JOINTS:
         need = {k: sample[k] for k, v in joints.JOINTS[name]["options"].items() if "required" in v}
         lay = joints.make(name, **need)
@@ -29,6 +32,7 @@ def test_every_joint_says_what_problem_it_solves_and_holds_no_recipe_or_place():
         assert len(lay.pieces) <= 30, "%s is too big to be a joint" % name
         machines = [p for p in lay.pieces if p.get("role") == "machine"]
         assert len(machines) <= 1, "%s holds more than one machine: that is a production line, not a joint" % name
+        assert len({p["name"] for p in lay.pieces if p.get("role") in ("drill", "first", "second")}) <= 2, name
 
 
 def test_a_belt_crosses_a_belt_underneath():

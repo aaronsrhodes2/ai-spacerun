@@ -49,9 +49,20 @@ function E.on_research(event)
   push(d)
 end
 
+-- Research is standing still for want of a choice: tell the assistant once, so it can come to the player with a
+-- suggestion. Told again only after research has been running in between.
+function E.check_idle(idle)
+  if idle and not storage.research_idle_told then
+    storage.research_idle_told = true
+    push { kind = "research_idle" }
+  elseif not idle then
+    storage.research_idle_told = nil
+  end
+end
+
 R.register {
   name = "events_read",
-  description = "News from the game since a given event: research that finished, with what it unlocked and a design note on what can now be improved. Pass the last id you have seen as 'after'.",
+  description = "News from the game since a given event: research that finished (with what it unlocked and a design note on what can now be improved), and research standing still because nothing is queued. Pass the last id you have seen as 'after'.",
   params = {
     after = { type = "number", default = 0, description = "id of the last event already read; 0 for everything remembered" },
   },

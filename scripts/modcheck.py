@@ -30,7 +30,7 @@ def main():
     check("scene built", (c.send_command("/sc " + SCENE) or "").strip() == "scene")
     t = call("tools", None, c)
     names = [x["name"] for x in t["result"]]
-    check("tool list", all(n in names for n in ["lookup", "search", "map", "tile", "find_free", "diagnose", "chat_read", "say", "set_state", "events_read", "design_note", "alerts", "player", "bottlenecks", "occupancy", "build", "frames", "reveal_map", "avatar", "avatar_walk", "avatar_mine", "avatar_stop", "avatar_craft", "avatar_carry", "set_mode", "lock_mode", "avatar_travel", "progress", "science", "run_stats"]), names)
+    check("tool list", all(n in names for n in ["lookup", "search", "map", "tile", "find_free", "diagnose", "chat_read", "say", "set_state", "events_read", "design_note", "alerts", "player", "bottlenecks", "occupancy", "build", "frames", "reveal_map", "avatar", "avatar_walk", "avatar_mine", "avatar_stop", "avatar_craft", "avatar_carry", "set_mode", "lock_mode", "avatar_travel", "progress", "science", "run_stats", "research_available", "queue_research", "find_resources", "find_placement", "remove", "set_recipe"]), names)
     check("every tool is described", all(x["description"] and isinstance(x["parameters"], (dict, list)) for x in t["result"]))
 
     r = call("lookup", {"name": "electronic-circuit", "kind": "recipe"}, c)["result"][0]
@@ -171,6 +171,23 @@ def main():
                              "local n=0 for _,list in pairs(e.neighbours) do for _,o in pairs(list) do if o.name=='chemical-plant' then n=n+1 end end end rcon.print(n)" % (tx + 0.5, ty + 0.5))
         joined += 1 if (out or "").strip() == "1" else 0
     check("fluid ports: a pipe on every stub joins the machine", joined == len(ports) and joined > 0, "%d of %d joined" % (joined, len(ports)))
+    r = call("find_resources", {"x": 0, "y": 0, "radius": 40}, c)
+    check("find_resources: the scene's iron patch", r["ok"] and r["result"]["patches"] and r["result"]["patches"][0]["kind"] == "iron-ore" and r["result"]["patches"][0]["tiles"] == 25, r)
+    r = call("find_resources", {"kind": "water", "x": 0, "y": 0, "radius": 40}, c)
+    check("find_resources: the nearest water", r["ok"] and r["result"]["found"] and 11 <= r["result"]["x"] <= 13, r)
+    r = call("find_placement", {"name": "offshore-pump", "x": 11, "y": -6, "radius": 4}, c)
+    check("find_placement: an offshore pump finds the shore", r["ok"] and r["result"].get("found") and len(r["result"]["places"]) >= 1, r)
+    r = call("research_available", None, c)
+    check("research: everything is researched on the test map, so nothing can be started", r["ok"] and r["result"]["available"] in ([], {}), str(r)[:300])
+    r = call("queue_research", {"technology": "automation"}, c)
+    check("research: an already researched technology is refused", not r["ok"] and "already researched" in r["error"], r)
+    c.send_command("/sc game.surfaces.nauvis.create_entity{name='stone-furnace', position={16,8}, force='player'}")
+    r = call("remove", {"x": 15, "y": 7, "width": 2, "height": 2}, c)
+    check("remove: a dry run lists and leaves", r["ok"] and r["result"]["would_remove"] == 1 and not call("tile", {"x": 15, "y": 7}, c)["result"]["free"], r)
+    r = call("remove", {"x": 15, "y": 7, "width": 2, "height": 2, "dry_run": False}, c)
+    check("remove: it is gone", r["ok"] and r["result"]["removed"] == 1 and call("tile", {"x": 15, "y": 7}, c)["result"]["free"], r)
+    r = call("set_recipe", {"x": 3, "y": 1, "recipe": "copper-cable"}, c)
+    check("set_recipe: the machine's recipe changes", r["ok"] and call("tile", {"x": 3, "y": 1}, c)["result"]["things"][0]["recipe"] == "copper-cable", r)
     r = call("run_stats", None, c)
     check("run stats: prompts and hours", r["ok"] and r["result"]["prompts"] == 0 and r["result"]["won"] is False, r)
 
