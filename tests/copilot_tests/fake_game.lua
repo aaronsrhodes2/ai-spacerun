@@ -47,6 +47,9 @@ local RECIPES = {
   ["transport-belt"] = { energy = 0.5, categories = { crafting = true }, ingredients = { item_part("iron-plate", 1) }, products = { item_part("transport-belt", 2) } },
   ["underground-belt"] = { energy = 1, categories = { crafting = true }, ingredients = { item_part("iron-plate", 10) }, products = { item_part("underground-belt", 2) } },
   ["inserter"] = { energy = 0.5, categories = { crafting = true }, ingredients = { item_part("iron-plate", 1) }, products = { item_part("inserter", 1) } },
+  ["splitter"] = { energy = 1, categories = { crafting = true }, ingredients = { item_part("iron-plate", 5) }, products = { item_part("splitter", 1) } },
+  ["steel-chest"] = { energy = 0.5, categories = { crafting = true }, ingredients = { item_part("iron-plate", 8) }, products = { item_part("steel-chest", 1) } },
+  ["pipe-to-ground"] = { energy = 0.5, categories = { crafting = true }, ingredients = { item_part("iron-plate", 5) }, products = { item_part("pipe-to-ground", 2) } },
   ["pipe"] = { energy = 0.5, categories = { crafting = true }, ingredients = { item_part("iron-plate", 1) }, products = { item_part("pipe", 1) } },
   ["lab"] = { energy = 2, categories = { crafting = true }, ingredients = { item_part("electronic-circuit", 10) }, products = { item_part("lab", 1) } },
   ["automation-science-pack"] = { energy = 5, categories = { crafting = true }, ingredients = { item_part("copper-plate", 1), item_part("iron-gear-wheel", 1) }, products = { item_part("automation-science-pack", 1) } },
@@ -98,6 +101,8 @@ local ENTITIES = {
   ["transport-belt"] = ent("transport-belt", "transport-belt", 1, 1, { belt_speed = 0.03125 }),
   ["underground-belt"] = ent("underground-belt", "underground-belt", 1, 1),
   ["inserter"] = ent("inserter", "inserter", 1, 1),
+  ["splitter"] = ent("splitter", "splitter", 2, 1),
+  ["steel-chest"] = ent("steel-chest", "container", 1, 1),
   ["pipe"] = ent("pipe", "pipe", 1, 1),
   ["pipe-to-ground"] = ent("pipe-to-ground", "pipe-to-ground", 1, 1),
   ["electric-mining-drill"] = ent("electric-mining-drill", "mining-drill", 3, 3, { mining_speed = 0.5 }),
@@ -262,6 +267,10 @@ local function new_surface(name, index)
     function e.get_fluid_contents() return e.fluids end
     function e.destroy() e.valid = false end
     e.prototype = p
+    if e.type == "inserter" then
+      e.filters = {}
+      function e.set_filter(i, name) e.filters[i] = name end
+    end
     function e.remove_item(a2)
       local have = e.items[a2.name] or 0
       local n = math.min(have, a2.count)

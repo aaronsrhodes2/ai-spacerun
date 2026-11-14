@@ -16,6 +16,7 @@ Where the player means:
 Building:
 8. Build only through plans. Make a plan with `plan_row` or `plan_route`, check it with `build_plan` (a dry run), fix what the dry run reports, and only then call `build_plan` with dry_run false.
 9. Build one small piece, look at it with `tile` or `diagnose` to see it working, then build the rest.
+9a. Where lines meet or cross (a belt across a belt, a pipe across belts, taking one item off a mixed belt, two belts into one, a train wagon to a belt), do not invent the arrangement: call `joints` to see the pattern that solves it and build it with `plan_joint`.
 10. Before removing or replacing anything that is working, say what you will do and ask the player.
 
 Modes:

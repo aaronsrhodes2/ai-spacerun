@@ -94,11 +94,14 @@ class Layout:
         return self._rebuilt(change)
 
     def mirrored(self):
-        """The layout flipped left to right about the origin; east and west swap."""
+        """The layout flipped left to right about the origin; east and west swap, and so do a splitter's sides."""
         def change(p):
             p["x"] = -(p["x"] + p["w"] - 1)
             if p["direction"] in (E, W):
                 p["direction"] = opposite(p["direction"])
+            for key in ("input_priority", "output_priority"):       # a splitter's left and right swap in a mirror
+                if p.get(key) in ("left", "right"):
+                    p[key] = "right" if p[key] == "left" else "left"
             return p
         return self._rebuilt(change)
 

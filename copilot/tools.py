@@ -7,7 +7,7 @@ import time
 
 from . import milestones as ms
 from .goals import Goal, GoalError
-from .plan import calc, cells, place, route
+from .plan import calc, cells, joints, place, route
 from .plan.layout import Layout, LayoutError
 
 FACING = {"north": 0, "east": 1, "south": 2, "west": 3}            # quarter turns from the cell's own facing (inputs north)
@@ -41,6 +41,21 @@ SPECS = [
                     "facing": _param("string", "side the inputs come from: north, east, south or west", default="north"),
                     "belt": _param("string", "belt to use", default="transport-belt"),
                     "inserter": _param("string", "inserter to use", default="inserter")}},
+    {"name": "joints",
+     "description": "The small patterns for where supply lines meet and cross, each with the problem it solves: a belt crossing a belt, a pipe crossing belts, a splitter used as a filter, two belts merged with one going first, one belt feeding one lane of another, picking one item off a mixed belt, the inserters beside a train wagon. Read this when a layout has such a meeting; then build it with plan_joint.",
+     "parameters": {}},
+    {"name": "plan_joint",
+     "description": "Lay out one joint at a place on the map. Every joint is designed with its main flow running north; facing turns it (the direction the main flow runs). Returns a picture and a plan_id; nothing is built until build_plan.",
+     "parameters": {"joint": _param("string", "the joint's name, from the joints tool", True),
+                    "x": _param("number", "x of the joint's top-left tile", True),
+                    "y": _param("number", "y of the joint's top-left tile", True),
+                    "facing": _param("string", "the direction the main flow runs: north, east, south or west", default="north"),
+                    "item": _param("string", "for filter_splitter and filtered_pick: the item to filter"),
+                    "side": _param("string", "for filter_splitter (the side the item leaves), priority_merge (the input served first) and side_load: 'left' or 'right'"),
+                    "width": _param("number", "for the crossings: how many belts side by side are crossed"),
+                    "action": _param("string", "for wagon_side: 'unload' or 'load'"),
+                    "wagons": _param("number", "for wagon_side: how many wagons"),
+                    "belt": _param("string", "belt to use", default="transport-belt")}},
     {"name": "plan_route",
      "description": "Find a way for a belt or a pipe from one tile to another around everything that stands between, going underground where it must. Reads what is in the way from the game. Returns the length and a plan_id; nothing is built until build_plan.",
      "parameters": {"kind": _param("string", "'belt' or 'pipe'", True),
@@ -219,6 +234,37 @@ class LocalTools:
         return {"plan_id": self._keep(lay.entities(), "row of %d %s" % (count, machine)), "pieces": lay.count(),
                 "covers": {"from_x": b[0], "from_y": b[1], "to_x": b[2], "to_y": b[3]},
                 "picture": lay.picture(chars), "legend": "M machine, b belt, i inserter, R requester chest, P provider chest",
+                "next": "call build_plan with this plan_id to check it against the map (dry run)"}
+
+    def joints(self):
+        return {"joints": joints.catalogue(), "note": "every joint is designed with its main flow running north; plan_joint turns it"}
+
+    def plan_joint(self, joint, x, y, facing="north", item=None, side=None, width=None, action=None, wagons=None, belt="transport-belt"):
+        if facing not in FACING:
+            raise ToolError("facing must be north, east, south or west")
+        options = {"belt": belt}
+        if joint == "pipe_crossing":
+            options = {"belt": belt}
+        if item is not None:
+            if not self.maybe(item, "item"):
+                raise ToolError("there is no item named '%s'" % item, "use 'search' to find the name")
+            options["item"] = item
+        if side is not None:
+            options[{"filter_splitter": "to", "priority_merge": "first"}.get(joint, "side")] = side
+        if width is not None:
+            options["width"] = int(width)
+        if action is not None:
+            options["action"] = action
+        if wagons is not None:
+            options["wagons"] = int(wagons)
+        lay = joints.make(joint, **options).turned(FACING[facing]).at_origin().moved(int(x), int(y))
+        b = lay.bounds()
+        chars = {belt: "b", "splitter": "S", "inserter": "i", "pipe": "p", "pipe-to-ground": "q", "steel-chest": "C"}
+        for u in joints.UNDERGROUND.values():
+            chars[u] = "U"
+        return {"plan_id": self._keep(lay.entities(), "%s joint" % joint), "pieces": lay.count(), "solves": joints.JOINTS[joint]["solves"],
+                "covers": {"from_x": b[0], "from_y": b[1], "to_x": b[2], "to_y": b[3]},
+                "picture": lay.picture(chars), "legend": "b belt, U underground belt, S splitter, i inserter, p pipe, q underground pipe, C chest",
                 "next": "call build_plan with this plan_id to check it against the map (dry run)"}
 
     def plan_route(self, kind, from_x, from_y, to_x, to_y, item=None, end_facing=None, surface=None):

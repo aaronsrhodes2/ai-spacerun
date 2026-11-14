@@ -12,6 +12,7 @@
 -- A job ends with a result that says what was done and, if it stopped, why. The bridge waits for it.
 local R = require("scripts.registry")
 local A = require("scripts.alerts")
+local settle = require("scripts.settle")
 
 local ARRIVE = 0.35             -- tiles from a waypoint that count as there
 local STUCK_TICKS = 45          -- ticks without progress before asking for a new path
@@ -223,7 +224,7 @@ local function place_one(body, piece)
                                     type = piece.type, raise_built = true, create_build_effect_smoke = false }
   if not (e and e.valid) then return false, "the game refused the piece at " .. piece.x .. "," .. piece.y end
   body.get_main_inventory().remove { name = item, count = 1 }
-  if piece.recipe then pcall(function() e.set_recipe(piece.recipe) end) end
+  settle(e, piece)
   return true
 end
 

@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.9.0
+Date: 2026-11-13
+  Features:
+    - Built pieces carry their settings: splitter filters and priorities, and inserter filters.
+---------------------------------------------------------------------------------------------------
 Version: 0.8.0
 Date: 2026-11-13
   Features:

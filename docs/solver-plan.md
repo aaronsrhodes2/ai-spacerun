@@ -5,7 +5,7 @@ day: one chat builds the mod while the main chat finishes the Fable run. Scored 
 verified solve (see Gate).
 
 Built so far:
-- **The mod** (`mods/skippy-copilot`, version 0.7.0), thirty tools: lookup, search, map, tile, find_free, diagnose,
+- **The mod** (`mods/skippy-copilot`, version 0.9.0), thirty tools: lookup, search, map, tile, find_free, diagnose,
   bottlenecks, alerts, player, design_note, events_read, reveal_map, chat_read, say, set_state, and for the planner
   occupancy, build and frames. `build` is a dry run unless told otherwise, refuses anything not researched, and sits on
   an executor layer so the walking avatar can replace free placement without changing a tool.
@@ -33,6 +33,18 @@ Built so far:
     prompts.
   - *Science per minute.* The `science` tool measures every pack over ten minutes on all surfaces; a factory's rate is its
     slowest researched pack. "1,000 a minute of each" is a standing goal of its own kind.
+- **A planet as one goal, and playing fair** (the Captain, 2026-11-13): people will say "solve Nauvis" and expect a planet
+  per prompt. Every milestone now belongs to a place, and a place is a standing goal. That expectation may be optimistic:
+  real problems will come up and the player will have to deal with some. We do not invent problems and we do not hide them.
+  The assistant does the best job an expert could and never cheats: nothing conjured, research earned, nothing built before
+  it is researched, failures said plainly. The run's record counts pieces placed freely apart from pieces placed by a
+  character's hands, and unit tests check that no file of the mod inserts items, unlocks recipes, writes research or
+  teleports.
+- **Joints** (the Captain, 2026-11-13: the acceptable small blueprints are the ones for where lines intersect): eight
+  patterns, each for one kind of meeting, with the problem it solves: belt crossing, pipe crossing, splitter as a filter,
+  priority merge, side-loading one lane, a lane each for two items, a filtered pick, the row beside a train wagon. The
+  model reads them with `joints` and lays one out with `plan_joint`. Still to add as the same kind of clue: fitting a pipe
+  to a machine's fluid ports (needs the ports from the game), rail signals at a junction, and a balancer.
 - **Planning code in the bridge** (`copilot/plan/`, pure and unit-tested): production calculator, layouts with overlap
   check and turning, the generic cells (belt-fed machine, robot-fed machine, direct pair, rows), a belt and pipe router
   with underground pairs, and pointing with words. The model reaches them as plan_production, plan_row, plan_route,
@@ -43,7 +55,7 @@ Built so far:
   kind of alert makes the model look into it and offer one suggestion.
 - **The bridge** (`copilot/`): game chat in, model with tools, answer out, working light, a log of every call, and a
   scorer for those logs. Providers: Ollama and any OpenAI-compatible server. An Anthropic adapter is not written.
-- **Tests**: 306 unit tests that need no game and no model, including the mod's own Lua run under Lua 5.2 against a
+- **Tests**: 339 unit tests that need no game and no model, including the mod's own Lua run under Lua 5.2 against a
   stand-in game; `scripts/modcheck.py` for the mod on a local headless test server. The Lua tests found three bugs on
   their first run (a search centred one tile off, a wrong player returned for an unknown name, an unstable ranking).
 - **First run with a local model** (qwen3:8b on Ollama, 2026-11-13, mod 0.2.0): three questions through the bridge, all

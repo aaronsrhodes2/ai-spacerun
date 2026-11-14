@@ -10,6 +10,7 @@
 local R = require("scripts.registry")
 local G = require("scripts.grid")
 local V = require("scripts.avatar")
+local settle = require("scripts.settle")
 
 local MAX_SIDE = 100
 local MAX_PIECES = 600
@@ -82,9 +83,7 @@ local function place_by_hand(surface, force, piece)
     type = piece.type,                                   -- "input" or "output" for underground belts
     raise_built = true, create_build_effect_smoke = false,
   }
-  if e and e.valid and piece.recipe then
-    pcall(function() e.set_recipe(piece.recipe) end)
-  end
+  if e and e.valid then settle(e, piece) end
   return e
 end
 
@@ -93,7 +92,7 @@ local EXECUTORS = { god = place_by_hand }
 
 R.register {
   name = "build",
-  description = "For planning tools: place a list of pieces, each {name, x, y, direction, recipe?, type?} by its centre. With dry_run true nothing is placed and every piece is checked: known name, researched, and room on the map. Without dry_run, pieces that pass are placed and the rest are reported.",
+  description = "For planning tools: place a list of pieces, each {name, x, y, direction, recipe?, type?, filter?, input_priority?, output_priority?} by its centre. With dry_run true nothing is placed and every piece is checked: known name, researched, and room on the map. Without dry_run, pieces that pass are placed and the rest are reported.",
   params = {
     entities = { type = "table", required = true, description = "the pieces" },
     dry_run = { type = "boolean", default = true, description = "true to only check" },
@@ -126,6 +125,8 @@ R.register {
           why = "something is in the way, or the ground there does not allow it"
         elseif piece.recipe and not (force.recipes[piece.recipe] and force.recipes[piece.recipe].enabled) then
           why = "its recipe '" .. tostring(piece.recipe) .. "' is not researched yet"
+        elseif piece.filter and not prototypes.item[piece.filter] then
+          why = "its filter '" .. tostring(piece.filter) .. "' is not an item"
         end
       end
       if why then

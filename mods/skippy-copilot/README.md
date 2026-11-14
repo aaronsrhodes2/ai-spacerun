@@ -27,6 +27,14 @@ register with Steam; whether calling this command changes anything further has n
 - **Science per minute.** Say "I want 1,000 science a minute of each science". The assistant measures every pack, takes the
   target as a standing goal, and works on whichever pack is slowest until all of them are there.
 
+## Joints
+
+The hard part of a layout is where supply lines meet: a belt across a belt, a pipe across belts, one item taken off a
+mixed belt, two belts into one, a train wagon to a belt. The bridge carries one small pattern for each of these (eight so
+far, in `copilot/plan/joints.py`), each saying what problem it solves. They hold no recipe, no count and no place, and none
+is larger than the meeting itself: production lines are made from them, never stored. Built pieces carry their settings
+(splitter filter and priorities, inserter filter).
+
 ## Modes
 
 The mod has two modes, and the player can switch between them at any time: in the map's mod settings, with the button on
@@ -38,7 +46,7 @@ the working light, or by asking the assistant.
 
 Switching modes stops whatever the avatar was doing. A scored run can lock the mode.
 
-## Tools in the mod (version 0.7.0)
+## Tools in the mod (version 0.9.0)
 
 | Tool | What it does |
 |---|---|
@@ -78,6 +86,7 @@ These are added by the bridge and look the same to the model. They do the arithm
 |---|---|
 | `plan_production` | Machines per recipe, raw inputs and belts for an item at a rate |
 | `plan_row` | A row of identical machines fed by belt or by robots, from one generic cell per machine |
+| `joints`, `plan_joint` | The small patterns for where lines meet and cross, each with the problem it solves; lay one out at a place |
 | `plan_route` | A belt or pipe from A to B round what stands between, underground where it must |
 | `build_plan` | Send a plan to the game: dry run first, build only after a clean dry run, never twice |
 | `walk_to`, `mine`, `travel_to` | Start the avatar walking, mining or travelling to another planet, and wait until it has finished |
@@ -101,7 +110,7 @@ server that speaks the OpenAI chat API). `python -m copilot --ask "..."` asks on
 
 ## Testing
 
-- `python -m pytest tests/copilot_tests` runs with no game and no model: 306 tests. They cover the bridge, the planning
+- `python -m pytest tests/copilot_tests` runs with no game and no model: 339 tests. They cover the bridge, the planning
   code, the scorer, and the mod's own Lua run under Lua 5.2 against a stand-in game (`tests/copilot_tests/fake_game.lua`).
   Needs `pip install lupa`.
 - `scripts/modserver.sh start` runs a second, headless copy of the Steam install with its own data folder (`.testserver/`),
