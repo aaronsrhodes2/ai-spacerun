@@ -1,10 +1,45 @@
 # Skippy Copilot
 
-Play Factorio by talking to an AI model. The mod holds the tools the model uses and the chat between player and model.
-The bridge in [copilot/](../../copilot) connects a model to it. Plan: [docs/solver-plan.md](../../docs/solver-plan.md).
+Play Factorio by talking to an AI. You say what you want in the game's chat; the AI looks at your factory, plans, builds,
+and tells you what it did. The mod holds the tools the AI uses. A small program outside the game, the bridge
+([copilot/](../../copilot)), connects ONE AI source to it. Plan: [docs/solver-plan.md](../../docs/solver-plan.md).
 
 The idea and the mechanism (a mod with tools, a bridge over RCON, a model behind an adapter) come from
 [ai-player-v3](https://github.com/thedemon117/ai-player-v3) by demon117_. The code here is our own.
+
+## Getting started (new to this? start here)
+
+You need three things: the game running as a server, this mod, and one AI.
+
+1. **Enable the mod** `Skippy Copilot` in the game's mod list.
+2. **Start the game with RCON on.** RCON is how a program outside the game talks to it. Start Factorio as a server, or
+   host a multiplayer game, with `--rcon-port 27015 --rcon-password <a password you choose>`.
+3. **Copy** `copilot/copilot.env.example` **to** `copilot/copilot.env` and fill in its three parts: where the game is, which
+   AI, and that AI's key. There is exactly one AI source: one address, one key.
+4. **Run the check:** `python -m copilot --check`. It goes through everything in order and says in plain words what works
+   and, at the first thing that does not, the one thing to do about it. It ends by asking the AI a real question and
+   making sure the answer was looked up in your game.
+5. **Start it:** `python -m copilot`. In the game, type in chat. The light at the top of the screen shows what the AI is
+   doing; it reads "not connected" whenever the bridge is not running.
+
+Things to say first: "what should we do next?", "what is wrong with the factory?", "where is the nearest iron?",
+"solve Nauvis".
+
+### The AI source
+
+| Source | What it is | What you fill in |
+|---|---|---|
+| `openai` | Any service or local server that speaks the OpenAI chat API (most do) | address, key, model name |
+| `ollama` | Ollama on your own computer | model name; no key |
+| `purple` | Purple Skippy, the SkippyTel project's agent, working in one workspace | the bridge's address and key, the workspace |
+
+The model must be able to use tools; the check tells you if it cannot.
+
+**Purple Skippy** is an agent with its own thinking loop, so it reaches the game differently: through the MCP server in
+this repository (`.mcp.json`, `python -m copilot.mcp_server`), which offers the same tools, and with the
+`factorio-copilot` skill (`.claude/skills/factorio-copilot`). The workspace named in `COPILOT_WORKSPACE` must be a project
+in SkippyTel's registry whose folder is a clone of this repository. Any other agent that speaks MCP can be connected the
+same way.
 
 ## Calling a tool
 
@@ -17,6 +52,16 @@ The answer is one line of JSON: `{"ok":true,"result":...}` or `{"ok":false,"erro
 answered with what would have been right (the tool names, or that tool's parameters). Admins can type calls in the game
 console; the bridge sends them over RCON. With any mod enabled the game keeps a separate set of achievements that do not
 register with Steam; whether calling this command changes anything further has not been tested.
+
+Three more aims players drive toward, each with its measure:
+
+- **Waste nothing.** `surplus` shows what is made faster than it is used. The assistant's order for a surplus: make less,
+  make something useful, and only then recycle or void it.
+- **Compact.** "Compact the north-west corner of my view": `footprint` measures the ground a block really uses; the
+  assistant plans the same work tighter, builds it beside the old one, and asks before removing the old.
+- **Everything moving.** `utilisation` shows the share of machines working and which stand idle and why. "Keep everything
+  moving" is a standing goal. The game has no dial for a machine's effort: balance comes from machine counts, from what
+  belts and inserters carry, and from modules and beacons.
 
 ## The assistant comes to you
 
@@ -68,7 +113,7 @@ the working light, or by asking the assistant.
 
 Switching modes stops whatever the avatar was doing. A scored run can lock the mode.
 
-## Tools in the mod (version 0.11.0)
+## Tools in the mod (version 0.14.0)
 
 | Tool | What it does |
 |---|---|
@@ -77,6 +122,9 @@ Switching modes stops whatever the avatar was doing. A scored run can lock the m
 | `find_resources`, `find_placement` | Where the ore, oil and water are; where a piece that is fussy about its ground can really go, found by trying |
 | `queue_research` | Queue a technology (the labs do the rest) |
 | `remove`, `set_recipe` | Take away pieces of ours, with a dry run first; change a standing machine's recipe |
+| `utilisation` | The share of machines working, now and lately, and the groups that stand idle and why |
+| `surplus` | What is made faster than it is used, what runs short, and chests that stand full |
+| `footprint` | How much ground a block of factory really uses and what it does: the measure for compacting it |
 | `diagnose` | Every machine by what it is doing, with examples and what each problem means |
 | `bottlenecks` | The worst bottlenecks ranked by the item machines wait for; whole surface or near the player |
 | `alerts` | The game's own alerts by kind, with what each means |
@@ -138,7 +186,7 @@ server that speaks the OpenAI chat API). `python -m copilot --ask "..."` asks on
 
 ## Testing
 
-- `python -m pytest tests/copilot_tests` runs with no game and no model: 405 tests. They cover the bridge, the planning
+- `python -m pytest tests/copilot_tests` runs with no game and no model: 452 tests. They cover the bridge, the planning
   code, the scorer, and the mod's own Lua run under Lua 5.2 against a stand-in game (`tests/copilot_tests/fake_game.lua`).
   Needs `pip install lupa`.
 - `scripts/modserver.sh start` runs a second, headless copy of the Steam install with its own data folder (`.testserver/`),

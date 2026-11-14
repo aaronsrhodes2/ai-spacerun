@@ -284,6 +284,16 @@ local function new_surface(name, index)
     end
     function e.set_recipe(name) e.recipe = name end
     function e.get_inventory(id)
+      if id == defines.inventory.chest and e.type == "container" then
+        return {
+          is_full = function() return e.full == true end,
+          get_contents = function()
+            local out = {}
+            for name, n in pairs(e.items) do out[#out + 1] = { name = name, count = n } end
+            return out
+          end,
+        }
+      end
       if id ~= defines.inventory.crafter_input then return nil end
       return { get_item_count = function(n) return e.items[n] or 0 end }
     end
@@ -601,7 +611,11 @@ force.made = {}                                          -- item -> total ever p
 force.rate = {}                                          -- item -> { made a minute, used a minute }, on nauvis
 force.rate_elsewhere = {}                                -- the same, on every other surface that is a planet
 force.get_item_production_statistics = function(surface)
+  local book_here = (surface == nauvis) and force.rate or (surface.planet and force.rate_elsewhere or {})
+  local names = {}
+  for name in pairs(book_here) do names[name] = 1 end
   return {
+    input_counts = names, output_counts = names,
     get_input_count = function(item) return (surface == nauvis) and (force.made[item] or 0) or 0 end,
     get_flow_count = function(a)
       local book = (surface == nauvis) and force.rate or (surface.planet and force.rate_elsewhere or {})

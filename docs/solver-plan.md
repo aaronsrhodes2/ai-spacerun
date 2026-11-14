@@ -5,7 +5,7 @@ day: one chat builds the mod while the main chat finishes the Fable run. Scored 
 verified solve (see Gate).
 
 Built so far:
-- **The mod** (`mods/skippy-copilot`, version 0.11.0), thirty-six tools: lookup, search, map, tile, find_free, diagnose,
+- **The mod** (`mods/skippy-copilot`, version 0.14.0), forty tools: lookup, search, map, tile, find_free, diagnose,
   bottlenecks, alerts, player, design_note, events_read, reveal_map, chat_read, say, set_state, and for the planner
   occupancy, build and frames. `build` is a dry run unless told otherwise, refuses anything not researched, and sits on
   an executor layer so the walking avatar can replace free placement without changing a tool.
@@ -63,6 +63,28 @@ Built so far:
 - **A leg of skills testing** (`python -m copilot.leg copilot/legs/first.txt`): a fixed list of twenty prompts on a fresh
   map covering facts, seeing the world, diagnosis, small builds, research and honesty (it must refuse "give me 500 iron
   plates" and "build a rocket silo right now"). The same list every time, scored by the log.
+- **One AI source, and a setup a newcomer can get through** (the Captain, 2026-11-13: purple Skippy in a specific workspace
+  is the source for all turns; one source, one key, no collections of models; friendly to new AI users):
+  - Settings name exactly one source: `purple`, `openai` or `ollama`, with one address and one key.
+  - Purple Skippy is an agent, so it thinks in its own loop: the bridge sends each turn to SkippyTel's bridge for one
+    conversation in one workspace, and purple reaches the game through this repository's MCP server, which offers the same
+    tools. The skill purple reads is the same text a plain model is given; a test keeps them identical.
+  - `python -m copilot --check` walks the setup in order, stops at the first thing wrong and says the one thing to do. It
+    ends with a real question and checks the answer was looked up in the game.
+  - The working light reads "not connected" when nothing outside the game is calling it.
+  - The standing goal is kept in the save and plans in a file, so the bridge and an agent's tool server agree.
+  - Not done: the workspace itself. SkippyTel's project registry has no entry for this repository yet; adding one is a
+    change to SkippyTel and the Captain's call.
+- **Thrift** (the Captain, 2026-11-13): two more aims players drive toward. *Waste nothing*: `surplus` lists what is made
+  faster than used, what runs short and which chests stand full; the skill's order for a surplus is make less, make
+  something useful, then recycle or void, and on a platform reprocess before throwing overboard. *Compact*: `footprint`
+  measures the ground a block really uses and what it does; the skill's routine is measure, plan the same work tighter,
+  build beside, see it working, ask, remove the old. A search for the tightest layout is not written: the model plans it
+  from cells and joints and the tiles are compared.
+- **Everything moving** (the Captain, 2026-11-13): a third aim, every machine working and none idle. `utilisation` gives
+  the share of machines working now and averaged over the last two minutes, and the idle groups with why. It is a standing
+  goal of its own kind (`busy`, a percentage). The game has no dial for a machine's effort or power, so the skill says
+  what really balances a factory: machine counts by ratio, the throughput between them, and modules and beacons.
 - **Planning code in the bridge** (`copilot/plan/`, pure and unit-tested): production calculator, layouts with overlap
   check and turning, the generic cells (belt-fed machine, robot-fed machine, direct pair, rows), a belt and pipe router
   with underground pairs, and pointing with words. The model reaches them as plan_production, plan_row, plan_route,
@@ -73,7 +95,7 @@ Built so far:
   kind of alert makes the model look into it and offer one suggestion.
 - **The bridge** (`copilot/`): game chat in, model with tools, answer out, working light, a log of every call, and a
   scorer for those logs. Providers: Ollama and any OpenAI-compatible server. An Anthropic adapter is not written.
-- **Tests**: 405 unit tests that need no game and no model, including the mod's own Lua run under Lua 5.2 against a
+- **Tests**: 452 unit tests that need no game and no model, including the mod's own Lua run under Lua 5.2 against a
   stand-in game; `scripts/modcheck.py` for the mod on a local headless test server. The Lua tests found three bugs on
   their first run (a search centred one tile off, a wrong player returned for an unknown name, an unstable ranking).
 - **First run with a local model** (qwen3:8b on Ollama, 2026-11-13, mod 0.2.0): three questions through the bridge, all

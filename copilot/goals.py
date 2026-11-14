@@ -7,6 +7,7 @@ Four kinds:
   place       finish everything the list holds for one place: "solve Nauvis", "solve Vulcanus", "the first platform"
   milestone   reach one milestone of the list, by its id
   science     make at least N of every researched science pack a minute
+  busy        have at least N percent of the machines working, averaged over the last minutes ("everything moving")
 
 A goal knows whether it is reached, from facts the mod reports, and what to tell the model to do next."""
 from . import milestones as ms
@@ -18,8 +19,15 @@ class GoalError(Exception):
 
 class Goal:
     def __init__(self, kind, value=None, said=""):
-        if kind not in ("win", "place", "milestone", "science"):
-            raise GoalError("a goal is 'win', 'place', 'milestone' or 'science'")
+        if kind not in ("win", "place", "milestone", "science", "busy"):
+            raise GoalError("a goal is 'win', 'place', 'milestone', 'science' or 'busy'")
+        if kind == "busy":
+            try:
+                value = float(value if value is not None else 95)
+            except (TypeError, ValueError):
+                raise GoalError("a busy goal needs a percentage of machines working, such as 95")
+            if not 1 <= value <= 100:
+                raise GoalError("a busy goal needs a percentage between 1 and 100")
         if kind == "place":
             value = str(value or "").strip().lower()
             if not ms.of_place(value):
@@ -48,10 +56,20 @@ class Goal:
         if self.kind == "milestone":
             title = next(m["title"] for m in ms.MILESTONES if m["id"] == self.value)
             return "reach the milestone: %s" % title
+        if self.kind == "busy":
+            return "keep %g%% of the machines working" % self.value
         return "make %g of every science pack a minute" % self.value
 
     def needs_science(self):
         return self.kind == "science"
+
+    def measure(self):
+        """The mod tool and arguments that measure this goal, or None when the milestone facts are enough."""
+        if self.kind == "science":
+            return "science", {"target": self.value}
+        if self.kind == "busy":
+            return "utilisation", {}
+        return None
 
     def reached(self, facts, science=None):
         """(reached, one line on where things stand)."""
@@ -66,6 +84,14 @@ class Goal:
             m = next(m for m in ms.MILESTONES if m["id"] == self.value)
             lacks = ms.missing(m["test"], facts)
             return not lacks, ("done" if not lacks else "still needs: " + "; ".join(lacks))
+        if self.kind == "busy":
+            u = science or {}
+            if not u.get("machines"):
+                return False, "there are no machines yet"
+            lately = u.get("percent_lately")
+            now = u.get("percent_now") or 0
+            seen = lately if lately is not None else now
+            return seen >= self.value, "%g%% of %d machines working%s" % (seen, u["machines"], "" if lately is not None else " (right now; no average yet)")
         s = science or {}
         spm = s.get("science_per_minute") or 0
         short = s.get("short") or []
@@ -78,7 +104,14 @@ class Goal:
         _, where = self.reached(facts, science)
         lines = ["You are working on a standing goal the player gave you: %s. Nobody has typed anything; carry on by yourself." % self.describe(),
                  "Where it stands: %s." % where]
-        if self.kind == "science":
+        if self.kind == "busy":
+            idle = (science or {}).get("idle_groups") or []
+            if idle:
+                lines.append("Idle, largest first: " + "; ".join("%d of %d %s%s (%s)" % (g.get("idle"), g.get("of"), g.get("machine"),
+                             (" making " + g["recipe"]) if g.get("recipe") else "", g.get("why") or g.get("mostly")) for g in idle[:5]) + ".")
+            lines.append("Balance it: the game has no dial for a machine's effort. Use plan_production for the exact machine counts; where machines "
+                         "are starved, supply more or run fewer; where they are backed up, add what uses the product or run fewer.")
+        elif self.kind == "science":
             short = (science or {}).get("short") or []
             if short:
                 lines.append("Packs that fall short, worst first: " + ", ".join("%s (short by %g a minute)" % (x["pack"], x["short_by"]) for x in short[:6]) + ".")

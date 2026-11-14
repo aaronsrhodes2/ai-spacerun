@@ -194,8 +194,9 @@ class Bridge:
         try:
             facts = self.tools.facts()
             science = None
-            if goal.needs_science():
-                r = self.game.call("science", {"target": goal.value})
+            measure = goal.measure()
+            if measure:
+                r = self.game.call(measure[0], measure[1])
                 science = r.get("result") if r.get("ok") else None
         except Exception as e:
             self.out("goal check failed:", str(e)[:120])

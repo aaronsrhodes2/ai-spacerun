@@ -46,7 +46,7 @@ class Server:
             return None                                              # notifications need no answer
         if method == "initialize":
             return reply(msg_id, {"protocolVersion": PROTOCOL, "capabilities": {"tools": {}},
-                                  "serverInfo": {"name": "skippy-copilot", "version": "0.12.0"}})
+                                  "serverInfo": {"name": "skippy-copilot", "version": "0.14.0"}})
         if method == "ping":
             return reply(msg_id, {})
         if method == "tools/list":

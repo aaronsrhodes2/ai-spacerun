@@ -1,4 +1,15 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.14.0
+Date: 2026-11-13
+  Features:
+    - Utilisation: the share of machines working, now and lately, and the groups that stand idle and why.
+---------------------------------------------------------------------------------------------------
+Version: 0.13.0
+Date: 2026-11-13
+  Features:
+    - Surplus: what is made faster than used, what runs short, and chests that stand full.
+    - Footprint: how much ground a block of factory really uses, as the measure for compacting it.
+---------------------------------------------------------------------------------------------------
 Version: 0.12.0
 Date: 2026-11-13
   Features:
