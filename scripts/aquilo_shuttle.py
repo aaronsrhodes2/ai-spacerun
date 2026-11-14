@@ -116,6 +116,8 @@ def layout():
     put("crusher", -8, -2, 3, 2, d=E, recipe="metallic-asteroid-crushing")
     ins(-5, -2, E, ["metallic-asteroid-chunk"], gate=("iron-ore", 3000))
     ins(-5, -1, W)
+    put("decider-combinator", -9, -6, 1, 2)                               # the west crusher's recipe: crushing below 3,000 iron ore,
+    put("decider-combinator", -11, -6, 1, 2)                              # reprocessing at or above it (REPRO)
     put("electric-furnace", -8, 0, 3, 3)
     ins(-5, 0, E, ["iron-ore"], gate=("iron-plate", 400))
     ins(-5, 2, W)
@@ -230,6 +232,16 @@ TILES = ("local s=game.surfaces['SURF'] local want={} local add={} for _,p in pa
          "for _,t in pairs(s.find_tiles_filtered{name='space-platform-foundation'}) do if not want[t.position.x..','..t.position.y] then rm[#rm+1]={name='empty-space',position=t.position} end end s.set_tiles(rm) rcon.print('foundation '..#add..' removed '..#rm)")
 # Rocket turrets fire only at big and huge asteroids: left free they shot rockets at small and medium ones in Fulgora orbit, 5,635 rockets
 # made and the hub held none, with all the carbon gone (the Captain, 2026-11-13: "major rocket ammo problems"). The guns take the small ones.
+# The west crusher changes recipe by circuit (the Captain, 2026-11-13: reshuffle a surplus into what is short). Metallic chunks stood at their
+# cap with 3,000 ore in store while carbon ran out. Two deciders read the hub (red): below 3,000 iron ore they send the recipe signal for
+# metallic crushing, at or above it for metallic reprocessing, on a green wire of their own to the crusher. Its intake has no gate any more.
+REPRO = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=defines.wire_connector_id local function dec(x) return s.find_entities_filtered{name='decider-combinator',position={x,-5},radius=0.6}[1] end local a,b=dec(-8.5),dec(-10.5) "
+         "local function set(d,cmp,rec) d.get_or_create_control_behavior().parameters={conditions={{first_signal={type='item',name='iron-ore'},comparator=cmp,constant=3000}},outputs={{signal={type='recipe',name=rec},copy_count_from_input=false,constant=1}}} end "
+         "set(a,'<','metallic-asteroid-crushing') set(b,'>=','metallic-asteroid-reprocessing') "
+         "a.get_wire_connector(W.combinator_input_red,true).connect_to(hub.get_wire_connector(W.circuit_red,true),false) b.get_wire_connector(W.combinator_input_red,true).connect_to(a.get_wire_connector(W.combinator_input_red,true),false) "
+         "b.get_wire_connector(W.combinator_output_green,true).connect_to(a.get_wire_connector(W.combinator_output_green,true),false) "
+         "local c=s.find_entities_filtered{name='crusher',position={-6.5,-1},radius=1}[1] c.get_wire_connector(W.circuit_green,true).connect_to(a.get_wire_connector(W.combinator_output_green,true),false) c.get_or_create_control_behavior().circuit_set_recipe=true "
+         "s.find_entities_filtered{type='inserter',position={-4.5,-1.5},radius=0.3}[1].get_or_create_control_behavior().circuit_enable_disable=false rcon.print('west crusher recipe by circuit')")
 TARGETS = ("local s=game.surfaces['SURF'] local n=0 for _,t in pairs(s.find_entities_filtered{name='rocket-turret'}) do local i=0 for _,sz in pairs{'big','huge'} do "
            "for _,k in pairs{'metallic','carbonic','oxide'} do i=i+1 t.set_priority_target(i,sz..'-'..k..'-asteroid') end end t.ignore_unprioritised_targets=true n=n+1 end rcon.print('rocket turrets limited to big asteroids '..n)")
 CONFIG = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=defines.wire_connector_id local n,r,g=0,0,0 local function ins(x,y) return s.find_entities_filtered{type='inserter',position={x,y},radius=0.3}[1] end "
@@ -283,6 +295,7 @@ def main():
         gt = "{" + ",".join("{%s,%s,'%s',%d,'%s'}" % g for g in gates) + "}"
         print(tools["run_lua"](CONFIG.replace("SURF", sf).replace("FILT", filt).replace("REC", rec).replace("GATES", gt)))
         print(tools["run_lua"](TARGETS.replace("SURF", sf)))
+        print(tools["run_lua"](REPRO.replace("SURF", sf)))
         print(tools["run_lua"](VALVE.replace("SURF", sf).replace("CAPS", "{" + ",".join("['%s']=%d" % kv for kv in CAPS.items()) + "}")))
     elif step == "route":
         print(tools["run_lua"](ROUTE.replace("SURF", sf)))

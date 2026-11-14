@@ -876,3 +876,11 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - Aquilo shuttle at Fulgora: its fuel plant takes all carbon above 200 until the three fuel tanks are full, so the carbon stock (departure gate 2,500) only starts to grow after that. Expect well over an hour in orbit before the first flight.
 - `scripts/watch_aquilo.py [minutes]`: a local once-a-minute watch of that ship; exits on arrival at Aquilo or on damage in flight.
 - Aquilo has no surface yet; `planet_landing.py` assumes one exists (`game.surfaces[...]`), so the first landing there needs the surface made when the ship is in orbit.
+
+## Character map before building into used ground (2026-11-13)
+- `scripts/ascii_map.py SURFACE X0 Y0 X1 Y1` prints one character a tile, read off the game: free ground, holes in a platform deck, water, belts, pipes, machines (legend in the file). `from ascii_map import ascii_map` gives the same as a string. At most 120 x 80 tiles a call.
+- Use it before every design that goes between existing things: it showed that a "free" row beside the Aquilo shuttle's hub was full of pipes and that the Gleba towers are cut off from each other by belts.
+- The dry run of `place_entities` is the second check, not the first: it does not see fluid mixing, heat pipes cut by belts, or an offshore pump's shore rule.
+
+## One crusher, two recipes (2026-11-13)
+- A crusher can take its recipe from the circuit network (`control_behavior.circuit_set_recipe=true`, signal `{type='recipe',name=...}`). The Aquilo shuttle's metallic crusher crushes below 3,000 iron ore and reprocesses at or above it: no extra crusher or hub-edge tile needed. Keep the recipe signals on their own wire: on the hub's wire the item signals would read as recipes.
