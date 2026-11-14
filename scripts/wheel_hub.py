@@ -155,7 +155,7 @@ def main():
             json.dump(held, open(salvage_file(planet), "w"))
             print("removed", n, "held", held)
         elif step == "build":
-            mine = [e for e in ents if turrets or e["name"] != "laser-turret"]
+            mine = [e for e in ents if e["name"] != "laser-turret"]   # no lasers inside the rim: nothing reaches there (0 kills on Gleba, removed)
             if apply:
                 print("foundation tiles", lay_foundation(tiles, surface))
             ok, bad = place_all(mine, surface, apply)

@@ -933,3 +933,9 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - Smallest order first on the three assemblers: decider gives each missing makeable item 1,000,000; the arithmetic combinator beside the machine adds minus the raw demand; the selector takes the maximum. Machines 2 and 3 add 10,000,000 for what the machine before is waiting for.
 - Inner hulls on the new pattern are cargo ships: gates 1,000 ore, 1,000 carbon, 500 ice, 5 chunks of each kind (3,000 / 4,000 / 1,500 / 30 filled all 325 hub slots).
 - Filling stations buffer 10 slots (100 barrels) so barrels can also ship by rocket.
+
+## Fulgora Wheel and Vulcanus Wheel (2026-11-13)
+- `Fulgora Wheel` = platform-16 (index 19), `Vulcanus Wheel` = platform-17 (index 20): the same station as the other two (rim at 600 with 156 collectors and 196 lasers, round centre, space, red, blue and green science, valve, reprocessing, spiral). No inner lasers: `wheel_hub.py build` no longer places them on any wheel.
+- Order that worked for a new wheel, always with `--only PLANET`: `wheel.py create`, `wheel_round.py found` then `build`, `wheel_power.py`, remove the spoke solar panels and accumulators inside +-47.5 tiles (they block the hub build on a fresh wheel), `wheel_hub.py build` then `config`, `wheel_science.py clear / build / products`, `wheel_red.py clear / build`, `wheel_valve.py`, `wheel_blue.py pre / build`, `wheel_reprocess.py build / balance`, `wheel_spiral.py build`, `wheel_lights.py` last.
+- Chunks caught a minute at radius 600 (metallic / carbonic / oxide): Fulgora 177 / 104 / 31, Vulcanus 162 / 68 / 31. Both are short of ice (oxide); Vulcanus also of carbon.
+- Neither wheel delivers its packs anywhere yet.

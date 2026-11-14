@@ -5,7 +5,7 @@ import sys
 
 from _game import tools
 
-WHEELS = [("Gleba Wheel", "gleba", True), ("Nauvis Wheel", "nauvis", False)]
+WHEELS = [("Gleba Wheel", "gleba", True), ("Nauvis Wheel", "nauvis", False), ("Fulgora Wheel", "fulgora", True), ("Vulcanus Wheel", "vulcanus", True)]
 
 
 def wheels():
