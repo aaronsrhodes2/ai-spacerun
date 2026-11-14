@@ -156,6 +156,11 @@ planets, and the Anthropic model adapter.
 
 ## Publishing on the mod portal (researched 2026-11-13)
 
+- **Portability is on the back burner** (the Captain, 2026-11-13): this is a mod only so it can be used in the Captain's own
+  game; get it working first. If it is ever made portable, the shape is a list of AI vendor entry points where a player
+  fills in a key (Anthropic, Gemini and so on, each in its own format) or the address of a local llama server, with a
+  written specification of what a local model must be able to do. No model is shipped with the mod. The bridge's
+  `anthropic`, `openai` and `ollama` sources are already that shape.
 - **The name** (the Captain, 2026-11-13): in the game it is **Skippy**, in long form **Skippy the Foreman** (the mod's
   title), and "Skippy" is the wake word, the same one
   purple Skippy answers to. "Copilot" is not to be used as a name (Microsoft's and GitHub's products). A public name is
