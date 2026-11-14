@@ -55,6 +55,7 @@ PRODUCT = {"fulgora": "processing-unit", "gleba": "rocket-fuel", "vulcanus": "lo
 SURPLUS = {"processing-unit": ("advanced-circuit", 5), "rocket-fuel": ("solid-fuel", 20), "low-density-structure": ("plastic-bar", 20)}
 CAP_EXPORT, CAP_SIDE = 4000, 300
 REQUEST_MIN = 300
+WATER_LOW, COPPER_LOW = 100, 500      # the melter's water buffer and the copper melter's molten copper buffer below these: short
 TARGETS = dict(wr.TARGETS, **{"carbon": 80, "copper-cable": 30, "iron-plate": 40, "processing-unit": 8})
 HX, HY = wr.HX, wr.HY
 
@@ -111,7 +112,11 @@ WATER_ENTS = [ent("fast-inserter", 5, 45, N), ent("fast-inserter", 6, 45, S), en
 # the reshuffler's metallic chunks are now ALL the metal the district gets: the spoke's metallic tap is shut (its chunks stood packed on
 # in2 and the by-product found no gap: reshuffler at full output, no oxide, no water, everything stopped) and the metallic crusher takes
 # whatever in2 brings (ore the melters do not want rides out to the hub). So the reshuffler has two reasons to run, joined by the decider
-# at 7..8,48: the melter holds fewer than 20 ice (green wire) OR the copper melter holds fewer than 30 copper ore (red wire).
+# at 7..8,48: the ice melter's own water buffer is under WATER_LOW (green wire) OR the copper melter's molten copper buffer is under COPPER_LOW
+# (red wire). A machine read by circuit shows its fluids too. NOT the item counts: a machine at full output is not fed, so the melter holds
+# 0 to 2 ice and the copper melter 5 ore however well supplied they are, and 'ice < 20' / 'copper ore < 50' (wheel_rocket.py's gates on the
+# oxide and metallic crushers) are always true: those two crushers ran flat out and their surplus rode to the hub. The oxide crusher's belt
+# intake (9,45) now follows the water buffer as well.
 WATER_FILTERS = [(5, 45, ["carbonic-asteroid-chunk"]), (6, 45, ["carbonic-asteroid-chunk"]), (7, 45, ["metallic-asteroid-chunk"]), (6, 42, ["carbon"])]
 WATERCLEAR = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local n=0 for _,e in pairs(s.find_entities_filtered{name='long-handed-inserter',position={IX,IY},radius=0.3}) do "
               "if e.held_stack.valid_for_read then hub.insert(e.held_stack) e.held_stack.clear() end e.destroy() n=n+1 end rcon.print('long-handed intake of the reshuffler removed '..n)")
@@ -165,11 +170,12 @@ CONFIG = ("local s=game.surfaces['SURF'] local hub=s.platform.hub local W=define
           "local dc=s.find_entities_filtered{name='decider-combinator',position={DCX,DCY},radius=0.6}[1] local cu=s.find_entities_filtered{name='foundry',position={CMX,CMY},radius=0.6}[1] cu.get_or_create_control_behavior().circuit_read_contents=true "
           "for _,id in pairs{W.combinator_input_red,W.combinator_input_green,W.combinator_output_red,W.combinator_output_green} do dc.get_wire_connector(id,true).disconnect_all() end "
           "dc.get_wire_connector(W.combinator_input_green,true).connect_to(melt.get_wire_connector(W.circuit_green,true),false) dc.get_wire_connector(W.combinator_input_red,true).connect_to(cu.get_wire_connector(W.circuit_red,true),false) "
-          "dc.get_or_create_control_behavior().parameters={conditions={{first_signal={type='item',name='ice'},first_signal_networks={red=false,green=true},comparator='<',constant=20},"
-          "{first_signal={type='item',name='copper-ore'},first_signal_networks={red=true,green=false},comparator='<',constant=30,compare_type='or'}},outputs={{signal={type='virtual',name='signal-A'},copy_count_from_input=false,constant=1}}} "
+          "dc.get_or_create_control_behavior().parameters={conditions={{first_signal={type='fluid',name='water'},first_signal_networks={red=false,green=true},comparator='<',constant=WATERLOW},"
+          "{first_signal={type='fluid',name='molten-copper'},first_signal_networks={red=true,green=false},comparator='<',constant=COPPERLOW,compare_type='or'}},outputs={{signal={type='virtual',name='signal-A'},copy_count_from_input=false,constant=1}}} "
           "c.disconnect_all() local cr2=ri.get_wire_connector(W.circuit_red,true) cr2.disconnect_all() cr2.connect_to(dc.get_wire_connector(W.combinator_output_red,true),false) "
           "local cb=ri.get_or_create_control_behavior() cb.circuit_enable_disable=true cb.circuit_condition={first_signal={type='virtual',name='signal-A'},comparator='>',constant=0} "
           "local mi=at('inserter',MIX,MIY) if mi then mi.get_or_create_control_behavior().circuit_enable_disable=false end "
+          "local oi=at('inserter',OIX,OIY) if oi then local ob=oi.get_or_create_control_behavior() ob.circuit_enable_disable=true ob.circuit_condition={first_signal={type='fluid',name='water'},comparator='<',constant=WATERLOW} end "
           "local tap=at('inserter',-66.5,0.5) if tap then local tb=tap.get_or_create_control_behavior() tb.circuit_enable_disable=true tb.circuit_condition={first_signal={type='item',name='metallic-asteroid-chunk'},comparator='>',constant=1000000} end "
           "o[#o+1]='reshuffler on carbonic chunks while ice or copper ore is short; metallic tap shut, metallic crusher ungated' end "
           "local old=s.find_entities_filtered{name='assembling-machine-3',position={OPX,OPY},radius=0.3}[1] if old then old.direction=defines.direction.south o[#o+1]='old processing unit assembler turned south' end "
@@ -243,7 +249,7 @@ def config(surface, export):
     gated.append(hc(1, 45) + ("carbon", 0 if water else TARGETS["carbon"]))
     lb = hc(*[(t[0] - HX, t[1] - HY) for t in wr.loop_tiles][0])
     return run(CONFIG, surface, FILT=lua_rows(filt), REC=lua_rows(rec), GATED=lua_rows(gated), SIDE=lua_rows(side), CAPS=lua_rows(caps),
-               LBX=lb[0], LBY=lb[1], RPX=HX + 6.5, RPY=HY + 44, RIX=hc(6, 45)[0], RIY=hc(6, 45)[1], WMX=HX + 45.5, WMY=HY + 27.5, DCX=8 + HX, DCY=48.5 + HY, CMX=HX + 34.5, CMY=HY + 37.5, MIX=hc(13, 45)[0], MIY=hc(13, 45)[1], CRX=CRUSH_ENTS[0]["x"], CRY=CRUSH_ENTS[0]["y"], OPX=OLD_MACH[0][0] + HX, OPY=OLD_MACH[0][1] + HY, EXPORT=export, RMIN=REQUEST_MIN)
+               LBX=lb[0], LBY=lb[1], RPX=HX + 6.5, RPY=HY + 44, RIX=hc(6, 45)[0], RIY=hc(6, 45)[1], WMX=HX + 45.5, WMY=HY + 27.5, DCX=8 + HX, DCY=48.5 + HY, CMX=HX + 34.5, CMY=HY + 37.5, MIX=hc(13, 45)[0], MIY=hc(13, 45)[1], OIX=hc(9, 45)[0], OIY=hc(9, 45)[1], WATERLOW=WATER_LOW, COPPERLOW=COPPER_LOW, CRX=CRUSH_ENTS[0]["x"], CRY=CRUSH_ENTS[0]["y"], OPX=OLD_MACH[0][0] + HX, OPY=OLD_MACH[0][1] + HY, EXPORT=export, RMIN=REQUEST_MIN)
 
 
 def rate(surface, export, secs):

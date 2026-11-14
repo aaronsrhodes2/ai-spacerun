@@ -55,7 +55,7 @@ RESERVE = 3000                # the line never takes an item the hub holds fewer
 # Each inserter's items ride one lane, and a lane of the loop holds 580. A lane that stands 100% full stops the loop (seen twice), so
 # an inserter's targets plus what the wire cannot see (about 20% of the feed is underground) must stay under about 450.
 TARGETS_A = {"carbon": 400, "iron-plate": 4}
-TARGETS_B = {"copper-ore": 100, "iron-ore": 40, "sulfur": 70, "ice": 80, "calcite": 24}
+TARGETS_B = {"copper-ore": 100, "iron-ore": 40, "sulfur": 140, "ice": 80, "calcite": 24}
 HAND = 6                      # hand size of the two hub inserters: a full hand (12) overshot every target by one or two hands
 Q = {"quality": "epic"}
 N, E, S, W = 0, 4, 8, 12

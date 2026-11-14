@@ -30,7 +30,7 @@ Q = {"quality": "epic"}
 N, E, S, W = 0, 4, 8, 12
 NOHEAT = {"passive-provider-chest", "requester-chest", "steel-chest", "storage-chest", "buffer-chest", "substation", "medium-electric-pole",
           "big-electric-pole", "heat-pipe", "offshore-pump", "heat-exchanger", "heating-tower"}
-USABLE = set("SCiP")
+USABLE = set("SCiP~")        # brash ice (~) takes concrete like ice does
 
 
 def lua(code):
@@ -163,7 +163,7 @@ def heat_plan(P, grid, net, extra=()):
     return H, cold
 
 
-def build(P, grid, net, apply, extra=()):
+def build(P, grid, net, apply, extra=(), clear=True):
     occ = P.occupied()
     bad = [(t, grid.get(t, "?")) for t in occ if grid.get(t, "?") not in USABLE and not any(e["name"] == "offshore-pump" and t in e["tiles"] for e in P.ents)]
     if bad:
@@ -172,7 +172,7 @@ def build(P, grid, net, apply, extra=()):
     print("heat pipes:", len(H), "unheated:", cold)
     for x, y in sorted(H):
         P.add("heat-pipe", x, y)
-    pave = sorted(t for t in P.occupied() if grid.get(t) in ("i", "P"))      # ice and ice platform are meltable: nothing heated stands on them without concrete
+    pave = sorted(t for t in P.occupied() if grid.get(t) in ("i", "P", "~"))      # ice and ice platform are meltable: nothing heated stands on them without concrete
     print("entities:", len(P.ents), "ice tiles to pave with concrete:", len(pave))
     out = [{k: v for k, v in e.items() if k != "tiles"} for e in P.ents]
     # leave out what stands
@@ -191,7 +191,7 @@ def build(P, grid, net, apply, extra=()):
     failed = []
     placed = 0
     for i in range(0, len(out), 150):
-        r = json.loads(tools["place_entities"](json.dumps(out[i:i + 150]), surface=SURF, dry_run=not apply, clear_trees=apply))
+        r = json.loads(tools["place_entities"](json.dumps(out[i:i + 150]), surface=SURF, dry_run=not apply, clear_trees=apply and clear))
         placed += r.get("placed") or 0
         failed += r.get("failed") or []
     pv = set(pave)
@@ -440,6 +440,155 @@ def power(apply):
         print(lua(code))
 
 
+# ---------------------------------------------------------------- lithium from brine
+# Pumpjack on the brine well (-44.5,59.5) on the south-west island -> pipe north (over ice platform stepping stones laid like the fluorine
+# causeway, heat pipe beside it all the way) -> lithium plant (chemical plant, -23..-21, -20..-18, facing north: brine in at (-23,-21),
+# ammonia in at (-21,-21) by a branch from the science line's ammonia pipe at (-21,-26)). Holmium plate comes by robot from the pad
+# (chest (-23,-16)), lithium leaves by the red chest (-21,-16) for the furnace (plates) and the fluoroketone plant.
+BRINE = (-46, 58)          # top-left tile of the pumpjack
+LIX, LIY = -23, -20        # top-left tile of the lithium plant
+BOX_B = (-62, -30, -8, 64)
+ROUTE_FILE = __file__.replace("aquilo_cryo.py", "aquilo_brine_route.json")
+
+
+def brine_route(grid):
+    """The pipe path, computed once and kept in aquilo_brine_route.json (a later run sees its own pipes as obstacles). Turns are dear:
+    long straight legs, because every right turn needs an underground hop four tiles before it (see brine_plan)."""
+    import heapq
+    import os
+    if os.path.exists(ROUTE_FILE):
+        return [tuple(t) for t in json.load(open(ROUTE_FILE))]
+    start, goal = (BRINE[0] + 2, BRINE[1] - 1), (LIX, LIY - 1)
+    keep_off = {(LIX + 2, y) for y in range(-26, LIY)} | {(LIX + 1, LIY - 1)}
+    keep_off |= {n for t in keep_off for n in adj(t)}
+    keep_off |= {(LIX + a, LIY + b) for a in range(-1, 4) for b in range(0, 6)}        # the plant, its inserters and chests
+    keep_off |= {(BRINE[0] + a, BRINE[1] + b) for a in range(3) for b in range(3)}
+    s0 = (start, (0, 0))
+    best, prev, heap = {s0: 0}, {s0: None}, [(0, s0)]
+    end = None
+    while heap:
+        d, st = heapq.heappop(heap)
+        u, du = st
+        if u == goal:
+            end = st
+            break
+        if d > best[st]:
+            continue
+        for n in adj(u):
+            c = grid.get(n)
+            if n != goal and (c is None or c == "#" or n in keep_off):
+                continue
+            dn = (n[0] - u[0], n[1] - u[1])
+            nd = d + (5 if c == "." else 1.2 if c in "i~" else 1) + (0 if du in ((0, 0), dn) else 14)
+            ns = (n, dn)
+            if nd < best.get(ns, 1e9):
+                best[ns] = nd
+                prev[ns] = st
+                heapq.heappush(heap, (nd, ns))
+    if end is None:
+        return []
+    out, c = [], end
+    while c is not None:
+        out.append(c[0])
+        c = prev[c]
+    out = out[::-1]
+    json.dump(out, open(ROUTE_FILE, "w"))
+    return out
+
+
+DIRC = {(0, -1): N, (1, 0): E, (0, 1): S, (-1, 0): W}
+
+
+def brine_plan(grid):
+    """Heat runs on the RIGHT of the pipe (seen along the flow). A left turn is fine (the heat goes round the outside); at a right turn the
+    corner pipe has no heat pipe beside it, so four tiles before it the pipe dives for one tile and the heat crosses to the left side."""
+    P = Plan()
+    path = brine_route(grid)
+    if not path:
+        print("no brine route")
+        return P, [], []
+    P.add("pumpjack", BRINE[0], BRINE[1], 3, 3, N)             # facing north its output is the tile (x+2, y-1)
+    pset = set(path)
+    step = [(b[0] - a[0], b[1] - a[1]) for a, b in zip(path, path[1:])]
+    right = lambda d: (-d[1], d[0])
+    heat, ptg, gaps, bad = set(), {}, set(), []
+    for k, p in enumerate(path):
+        din = step[k - 1] if k > 0 else step[0]
+        dout = step[k] if k < len(step) else step[-1]
+        n1, n2 = right(din), right(dout)
+        heat |= {(p[0] + n1[0], p[1] + n1[1]), (p[0] + n2[0], p[1] + n2[1])}
+        if n1 != n2:
+            if dout == n1:                                      # right turn: the hop
+                if k < 4 or any(step[k - m] != din for m in (1, 2, 3, 4)):
+                    bad.append(p)
+                    continue
+                a, g, b = path[k - 3], path[k - 2], path[k - 1]
+                ptg[a] = DIRC[(-din[0], -din[1])]
+                ptg[b] = DIRC[din]
+                gaps.add(g)
+                heat |= {g, (g[0] - n1[0], g[1] - n1[1]), (b[0] - n1[0], b[1] - n1[1]), (p[0] - n1[0], p[1] - n1[1])}
+            else:                                               # left turn: round the outside
+                heat.add((p[0] + n1[0] + n2[0], p[1] + n1[1] + n2[1]))
+    if bad:
+        print("right turns with a leg shorter than four tiles before them (no room for the hop):", bad)
+    for t in path:
+        if t in ptg:
+            P.add("pipe-to-ground", t[0], t[1], d=ptg[t])
+        elif t not in gaps:
+            P.pipe(*t)
+    heat -= pset - gaps
+    comp = heat
+    water = sorted(t for t in pset | comp if grid.get(t) == ".")
+    P.add("chemical-plant", LIX, LIY, 3, 3, N, recipe="lithium")
+    for y in range(-25, LIY):
+        P.pipe(LIX + 2, y)                                     # ammonia branch from the T at (LIX+2, -26)
+    P.add("fast-inserter", LIX, LIY + 3, d=S)                  # holmium plate in
+    P.add("requester-chest", LIX, LIY + 4)
+    P.add("fast-inserter", LIX + 2, LIY + 3, d=N)              # lithium out
+    P.add("passive-provider-chest", LIX + 2, LIY + 4)
+    # a substation every 18 tiles of pipe, on land on the left of it
+    occ = P.occupied() | comp
+    last = None
+    for k, (x, y) in enumerate(path):
+        if last is not None and k - last < 18 and k != 3:
+            continue
+        for dx, dy in ((2, 0), (-3, 0), (0, 2), (0, -3), (2, 2), (-3, -3), (3, 0), (-4, 0), (0, 3), (0, -4)):
+            sq = {(x + dx + a, y + dy + b) for a in (0, 1) for b in (0, 1)}
+            if all(grid.get(t) in USABLE for t in sq) and not (sq & occ) and not any(n in pset for t in sq for n in adj(t)):
+                P.add("substation", x + dx, y + dy, 2, 2)
+                occ |= sq
+                last = k
+                break
+    return P, sorted(comp), water
+
+
+def brine(apply, lay):
+    grid = fetch(BOX_B)
+    P, comp, water = brine_plan(grid)
+    print("pipe tiles:", len([e for e in P.ents if e["name"] == "pipe"]), "ocean tiles that need an ice platform first:", len(water))
+    json.dump(water, open(ROUTE_FILE.replace("route", "water"), "w"))       # for _aq_lay.py (cheap polling; a map fetch every few seconds stalls the server)
+    if water:
+        tiles = ",".join("{%d,%d}" % t for t in water)
+        print(lua("local s=game.surfaces.aquilo local src={} for _,e in pairs(s.find_entities_filtered{name={'passive-provider-chest','assembling-machine-3'},area={{%d,%d},{%d,%d}}}) do "
+                  "src[#src+1]=e.type=='assembling-machine' and e.get_inventory(defines.inventory.crafter_output) or e.get_inventory(defines.inventory.chest) end "
+                  "local function take() for _,inv in pairs(src) do if inv.remove({name='ice-platform',count=1})==1 then return true end end return false end "
+                  "local done,nog,short=0,0,0 for _,p in pairs({%s}) do local g=s.find_entities_filtered{type='tile-ghost',position={p[1]+0.5,p[2]+0.5},radius=0.3}[1] "
+                  "if not g then nog=nog+1 elseif %s and take() then g.revive{raise_revive=true} done=done+1 else short=short+1 end end "
+                  "rcon.print('stepping stones laid now '..done..', no ghost '..nog..', waiting for platforms '..short)"
+                  % (US[0], CY - 3, US[-1] + 11, CY + 3, tiles, "true" if lay else "false")))
+        return
+    if apply:
+        print(lua("local s=game.surfaces.aquilo local n=0 for _,p in pairs({{%s,-24.5},{%s,-23.5}}) do local h=s.find_entities_filtered{name='heat-pipe',position=p,radius=0.3}[1] if h then h.destroy{raise_destroy=true} n=n+1 end end rcon.print('heat pipes lifted for the ammonia branch '..n)"
+                  % (LIX + 2.5, LIX + 2.5)))
+        grid = fetch(BOX_B)
+    net = heat_tiles(BOX_B)
+    build(P, grid, net, apply, comp, clear=False)          # never clear here: lithium icebergs stand beside the well
+    if apply:
+        code = "local s=game.surfaces.aquilo local o={} " + ask(LIX + .5, LIY + 4.5, {"holmium-plate": 20})
+        code += "rcon.print(table.concat(o,' | '))"
+        print(lua(code))
+
+
 def cond(x, y, item, comp, n):
     return ("do local e=s.find_entities_filtered{type='inserter',position={%s,%s},radius=0.4}[1] local cb=e.get_or_create_control_behavior() cb.connect_to_logistic_network=true "
             "cb.logistic_condition={comparator='%s',first_signal={type='item',name='%s'},constant=%d} o[#o+1]=e.name..' %s %s %d' end " % (x, y, comp, item, n, item, comp, n))
@@ -496,6 +645,8 @@ def main():
         science(apply)
     elif step == "power":
         power(apply)
+    elif step == "brine":
+        brine(apply, "--lay" in sys.argv)
     elif step == "science_config":
         science_config()
     elif step == "status":
