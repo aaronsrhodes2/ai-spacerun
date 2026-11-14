@@ -868,3 +868,11 @@ The Captain's warning: spoilage is what makes Gleba unstable. The layout answers
 - Inner shuttles are not chunk-limited: ore sits at its cap; magazines on the Fulgora run are limited by two furnaces (142 plates a minute), water on the Fulgora and Vulcanus runs by ice. A reprocessing crusher belongs in the shuttle redesign, not the old hull.
 - Aquilo shuttle: metallic chunks at the cap of 30 and ore at 3,000 while carbon runs out: the clearest case for a metallic reprocessor.
 - 'White Science' (the Captain's old platform at Nauvis) has a full hub (0 of 1,123 free, 58,700 iron plate) and every crusher stands at full output.
+
+## Road to the solve (2026-11-13)
+- The solve is a platform reaching the solar system edge (the Captain). Chain still to research: lithium-processing (trigger: mine lithium brine) -> cryogenic-plant (trigger: craft a lithium plate) -> cryogenic-science-pack (trigger: craft one cryogenic plant, only possible on Aquilo: pressure 100..600) -> quantum-processor (500 units) -> railgun (2,000) and fusion-reactor (2,000) -> stellar-discovery-solar-system-edge (1,000). Every unit takes all ten packs incl. agricultural, so it runs in the Gleba labs.
+- `scripts/aquilo_supply.py` (set | pad | status): relay Nauvis -> Fulgora (processing units, refined concrete on `Nauvis-Fulgora 2 Shuttle`, Fulgora pad asks for them), Fulgora -> Aquilo (those plus holmium plate, superconductors, concrete, rocket fuel on the Aquilo shuttle). `pad` sets the Aquilo pad's requests once it stands.
+- A hub request below one rocket load never launches unless the slot's `minimum_delivery_count` is set (read the filter back, set the field, `set_slot` again).
+- Aquilo shuttle at Fulgora: its fuel plant takes all carbon above 200 until the three fuel tanks are full, so the carbon stock (departure gate 2,500) only starts to grow after that. Expect well over an hour in orbit before the first flight.
+- `scripts/watch_aquilo.py [minutes]`: a local once-a-minute watch of that ship; exits on arrival at Aquilo or on damage in flight.
+- Aquilo has no surface yet; `planet_landing.py` assumes one exists (`game.surfaces[...]`), so the first landing there needs the surface made when the ship is in orbit.
