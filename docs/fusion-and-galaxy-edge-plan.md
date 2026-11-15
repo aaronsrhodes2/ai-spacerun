@@ -34,3 +34,11 @@ Fusion cells are not uranium cells: they need Fulgora holmium, Aquilo lithium an
 ## Open
 - Pack stocks per planet not yet surveyed.
 - Ship size: Captain asked to plan first.
+
+## Survey result (2026-11-15, scripts/fusion_aquilo.py bom)
+First plant = 1 reactor + 2 generators + 20 start cells = 350 quantum processors.
+- On Aquilo already: superconductor 5,464, processing units 1,132, lithium plate 1,342 (need 800).
+- Far but exists: tungsten plate (Vulcanus 37.9k), tungsten carbide (Vulcanus 48k), holmium plate (Fulgora 8k).
+- SHORT, no producer anywhere: quantum processor (built in a cryogenic-plant-class assembler on Aquilo: 1 processing unit, 1 tungsten carbide, 1 superconductor, 1 carbon fiber, 2 lithium plate, 10 cold fluoroketone) and carbon fiber (10 yumako mash + 1 carbon, Gleba; 3,500 mash for 350).
+- Site: the empty prepared ice-platform area south of the Aquilo base (about x -50..30, y 28..50).
+- Route for far items: Vulcanus -> Nauvis -> Fulgora -> Aquilo kit ship (aq-ghost section); carbon fiber: Gleba-Aquilo shuttle.
