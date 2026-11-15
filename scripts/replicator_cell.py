@@ -107,13 +107,21 @@ CONFIG = ("local s=game.surfaces['SURF'] local f=game.forces.player local W=defi
           "dp(hold,{C(nil,'>',0)},{{signal=EACH,copy_count_from_input=false,constant=HOLD}}) wire(hold,W.combinator_input_green,sel,W.combinator_output_green) wire(hold,W.combinator_output_green,sel,W.combinator_input_green) "
           "prev=rq end o[#o+1]='3 machines wired' rcon.print(table.concat(o,', '))")
 
+# Doctrine (the Captain, 2026-11-14): the Replicator grid serves building items and special orders; goods with a continuous need run on
+# dedicated lines and stay OFF the menus. Each item here had its own line on Nauvis when listed (lines/stock/made checked 2026-11-14).
+# Occasional ammunition with no line (cannon/artillery/shotgun shells, atomic bomb) and landfill stay on the menu as special orders.
+CONSUMABLES = ["advanced-circuit", "electronic-circuit", "copper-cable", "iron-gear-wheel", "iron-stick", "engine-unit", "flying-robot-frame",
+               "low-density-structure", "barrel", "explosive-rocket", "firearm-magazine", "piercing-rounds-magazine", "rocket",
+               "uranium-rounds-magazine", "uranium-fuel-cell", "repair-pack", "space-platform-foundation"]
+EXT = "{" + ",".join("['%s']=true" % c for c in CONSUMABLES) + "}"
+
 # The list refresh, generalised: surface conditions of the cell's surface, an optional menu, and the partition p of n.
-LIST = ("local s=game.surfaces['SURF'] local f=game.forces.player local cats=prototypes.entity['assembling-machine-3'].crafting_categories local MENU=MENUT local seen,list={},{} "
+LIST = ("local s=game.surfaces['SURF'] local f=game.forces.player local cats=prototypes.entity['assembling-machine-3'].crafting_categories local MENU=MENUT local EX=" + EXT + " local seen,list={},{} "
         "for name,r in pairs(f.recipes) do local p=r.prototype local okc=false for _,c in pairs(p.categories) do if cats[c] then okc=true end end "
         "local surf=true for _,c in pairs(p.surface_conditions or {}) do local v=s.get_property(c.property) if (c.min and v<c.min) or (c.max and v>c.max) then surf=false end end "
         "if r.enabled and okc and surf and not p.hidden and #r.products==1 and r.products[1].type=='item' and not name:find('science%-pack') and not name:find('recycling') then "
         "local solid=true for _,i in pairs(r.ingredients) do if i.type~='item' then solid=false end end local it=r.products[1].name "
-        "if solid and (not MENU or MENU[it]) then if seen[it] then seen[it]=2 else seen[it]=1 list[#list+1]=it end end end end local mk={} for _,it in pairs(list) do if seen[it]==1 then mk[#mk+1]=it end end table.sort(mk) ")
+        "if solid and not EX[it] and (not MENU or MENU[it]) then if seen[it] then seen[it]=2 else seen[it]=1 list[#list+1]=it end end end end local mk={} for _,it in pairs(list) do if seen[it]==1 then mk[#mk+1]=it end end table.sort(mk) ")
 REFRESH = (LIST + "local function at(x,y) return s.find_entities_filtered{name='constant-combinator',position={x,y},radius=0.4}[1] end local rank,ring=at(RKX,RKY),at(RGX,RGY) "
            "if not (rank and ring) then rcon.print('missing constant combinators') return end local N,P=NN,PP local want,nw={},0 for i,it in ipairs(mk) do if (i-1)%N==P then want[it]=i nw=nw+1 end end "
            "local cur,nc={},0 for _,sec in pairs(rank.get_or_create_control_behavior().sections) do for _,fl in pairs(sec.filters) do if fl.value then cur[fl.value.name]=fl.min nc=nc+1 end end end "
