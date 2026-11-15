@@ -45,6 +45,11 @@ MENU = [m for m in (opt("--menu", default="") or "").split(",") if m]
 DEMAND = tuple(int(v) for v in opt("--demand", 2, ["-352", "-229"]))        # the roboport whose red wire carries the demand
 EM = MAKER == "electromagnetic-plant"
 FOUNDRY = MAKER == "foundry"
+BIOCH = MAKER == "biochamber"
+RECIPES = [m for m in (opt("--recipes", default="") or "").split(",") if m]      # only these recipe names (a product may have several)
+SOLID = "--solid" in sys.argv                                                    # also allow recipes with NO fluid (the emptier then idles)
+FUEL = (opt("--fuel", default="") or "").split(":")                              # item:amount asked for every order, for a burner maker (biochamber: nutrients)
+FUEL_ITEM, FUEL_AMT = (FUEL[0], int(FUEL[1])) if len(FUEL) == 2 else ("", 0)
 
 # Entity centres relative to the site tile (cx, cy). name -> (dx, dy[, direction]).
 if FOUNDRY:
@@ -53,6 +58,10 @@ if FOUNDRY:
     GEOM = {"P": (0.5, 0.5), "E": (-0.5, 4.5, S), "reqP": (-3.5, 0.5), "inP": (-2.5, 0.5, W), "outP": (3.5, 0.5, W), "chP": (4.5, 0.5),
             "reqE": (-3.5, 4.5), "inE": (-2.5, 4.5, W), "outE": (1.5, 4.5, W), "chE": (2.5, 4.5),
             "cc": (-6.5, -3.5), "dec": (-6.5, -1.0), "sel": (-5.5, -1.0), "sub": (7.0, -3.0), "table": (-6, 9)}
+elif BIOCH:
+    GEOM = {"P": (0.5, 0.5), "E": (-0.5, -2.5, N), "reqP": (-2.5, 0.5), "inP": (-1.5, 0.5, W), "outP": (2.5, 0.5, W), "chP": (3.5, 0.5),
+            "reqE": (-3.5, -2.5), "inE": (-2.5, -2.5, W), "outE": (1.5, -2.5, W), "chE": (2.5, -2.5),
+            "cc": (-5.5, -5.5), "dec": (-5.5, -3.0), "sel": (-4.5, -3.0), "sub": (6.0, -5.0), "table": (-6, 4)}
 elif EM:
     GEOM = {"P": (0.0, 0.0), "E": (-3.5, 0.5, W), "reqP": (0.5, -3.5), "inP": (0.5, -2.5, N), "outP": (0.5, 2.5, N), "chP": (0.5, 3.5),
             "reqE": (-3.5, -2.5), "inE": (-3.5, -1.5, N), "outE": (-3.5, 2.5, N), "chE": (-3.5, 3.5),
@@ -73,6 +82,9 @@ local f=game.forces.player
 local am3=prototypes.entity['assembling-machine-3'].crafting_categories
 local mk=prototypes.entity['MAKERENT'].crafting_categories
 local MENU={MENUTAB}
+local RECS={RECTAB}
+local SOLIDOK=SOLIDFLAG
+local function recok(n) return next(RECS)==nil or RECS[n]==true end
 local function menuok(it) return next(MENU)==nil or MENU[it]==true end
 local function has_cat(p,set) for _,c in pairs(p.categories) do if set[c] then return true end end return false end
 local bar={}
@@ -95,16 +107,16 @@ for _,name in pairs(names) do
   local p=r.prototype
   if r.enabled and has_cat(p,mk) and not p.hidden and #r.products==1 and r.products[1].type=='item' then
     local it=r.products[1].name
-    if menuok(it) and not it:find('%-barrel$') and not plain[it] and not seen[it] and not name:find('recycling') then
+    if menuok(it) and recok(name) and not it:find('%-barrel$') and not plain[it] and not seen[it] and not name:find('recycling') then
       local nf,fl,si,ok=0,nil,{},true
       for _,i in pairs(r.ingredients) do
         if i.type=='fluid' then nf=nf+1 fl=i if not bar[i.name] then ok=false end else si[#si+1]=i end
       end
-      if ok and nf==1 then seen[it]=true rs[#rs+1]={name=name,key=it,fl=fl,si=si} end
+      if ok and (nf==1 or (SOLIDOK and nf==0)) then seen[it]=true rs[#rs+1]={name=name,key=it,fl=fl,si=si} end
     end
   end
 end
-'''.replace("MAKERENT", MAKER).replace("MENUTAB", ",".join(f"['{m}']=true" for m in MENU))
+'''.replace("MAKERENT", MAKER).replace("MENUTAB", ",".join(f"['{m}']=true" for m in MENU)).replace("RECTAB", ",".join(f"['{m}']=true" for m in RECIPES)).replace("SOLIDFLAG", "true" if SOLID else "false")
 
 
 def layout(cx, cy):
@@ -138,7 +150,7 @@ def table_slots(cx, cy, n):
 
 
 def recipes():
-    code = LIST + "local o={} for _,r in ipairs(rs) do o[#o+1]=r.key..'|'..r.name..'|'..r.fl.name..' x'..r.fl.amount..'|'..bar[r.fl.name] end rcon.print(helpers.table_to_json(o))"
+    code = LIST + "local o={} for _,r in ipairs(rs) do o[#o+1]=r.key..'|'..r.name..'|'..(r.fl and (r.fl.name..' x'..r.fl.amount..'|'..bar[r.fl.name]) or 'solid|-') end rcon.print(helpers.table_to_json(o))"
     return json.loads(tools["run_lua"](code))
 
 
@@ -193,8 +205,10 @@ for i,r in pairs(rs) do
   for j=1,4 do local sp=SL[(i-1)*4+j] d[j]=s.find_entities_filtered{name='decider-combinator',position={sp[1]+0.5,sp[2]+1},radius=0.3}[1] end
   if d[1] and d[2] and d[3] and d[4] then
     local cond={{first_signal={type='item',name=r.key},comparator='>',constant=0}}
-    local o={{K(R(r.name),1)},{},{K(R('empty-'..bar[r.fl.name]),1)},{K({type='item',name=bar[r.fl.name]},math.ceil(r.fl.amount*BATCH/50))}}
+    local o={{K(R(r.name),1)},{},{},{}}
+    if r.fl then o[3]={K(R('empty-'..bar[r.fl.name]),1)} o[4]={K({type='item',name=bar[r.fl.name]},math.ceil(r.fl.amount*BATCH/50))} end
     for _,ing in pairs(r.si) do o[2][#o[2]+1]=K({type='item',name=ing.name},ing.amount*BATCH) end
+    if 'FUELITEM'~='' then o[2][#o[2]+1]=K({type='item',name='FUELITEM'},FUELAMT) end
     local tgt={{P,W.circuit_red},{reqP,W.circuit_green},{Em,W.circuit_red},{reqE,W.circuit_green}}
     for j=1,4 do
       clr(d[j],CB)
@@ -242,7 +256,7 @@ def sub(code, cx, cy):
         code = re.sub(r"\b%s\b" % (k[:-1] + "Y"), str(y), code)
     code = re.sub(r"\bDX\b", str(DEMAND[0]), code)
     code = re.sub(r"\bDY\b", str(DEMAND[1]), code)
-    return code.replace("MAKERENT", MAKER).replace("SLOTS", sl).replace("SURF", PLANET).replace("BATCH", str(BATCH))
+    return code.replace("FUELITEM", FUEL_ITEM).replace("FUELAMT", str(FUEL_AMT)).replace("MAKERENT", MAKER).replace("SLOTS", sl).replace("SURF", PLANET).replace("BATCH", str(BATCH))
 
 
 SITE_PROBE = r'''

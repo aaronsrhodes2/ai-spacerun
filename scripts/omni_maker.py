@@ -34,15 +34,17 @@ import sys
 
 from _game import tools
 
-SITES = {"nauvis": (-30, -400), "replicator": (-354, -231), "fulgora": (122, -78), "vulcanus": (0, 0)}      # vulcanus: set with --at after `sites`
+SITES = {"nauvis": (-30, -400), "replicator": (-354, -231), "fulgora": (122, -78), "vulcanus": (-52, -88), "gleba": (0, 0)}      # gleba: set with --at after a site scan
 BATCH, DEPTH, PITCH = 5, 3, 7
 # PLANET REPLICATORS (the Captain, 2026-11-14): a planet's Replicator serves only its menu (docs/planet-replicators-plan.md), so MENUOK filters the
 # item list. Fulgora's islands are small (no 24 x 14 + 4 patch), and its solid menu does not nest, so: one machine, the stock roboport beside the
 # unit instead of below it, the recipe table in the free strip east of the machine. Nauvis and the Replicator have no menu: nothing changes for them.
 MENUS = {"fulgora": ["lightning-rod", "recycler", "battery-mk3-equipment", "mech-armor", "personal-roboport-mk2-equipment", "electromagnetic-plant",
                      "quality-module-3"],
-         "vulcanus": ["artillery-shell", "artillery-turret", "artillery-wagon", "cliff-explosives", "speed-module-3", "low-density-structure"]}
-DEPTHS = {"fulgora": 1, "vulcanus": 1}
+         "vulcanus": ["artillery-shell", "artillery-turret", "artillery-wagon", "cliff-explosives", "speed-module-3", "low-density-structure"],
+         "gleba": ["artificial-jellynut-soil", "artificial-yumako-soil", "agricultural-tower", "biolab", "capture-robot-rocket", "rocket-turret", "spidertron",
+                   "stack-inserter", "toolbelt-equipment", "biochamber", "efficiency-module-3"]}      # biolab and spidertron nest (capture robot rocket, rocket turret): depth 2
+DEPTHS = {"fulgora": 1, "vulcanus": 1, "gleba": 2}
 STOCK_AT = {"fulgora": (10, 2), "vulcanus": (10, 2)}          # stock-reading roboport, relative to the site (default (2, 16))
 FX = 23        # the furnace unit stands at this offset east of machine 1
 OLD_SITE = "nauvis"          # the first copy (retired by scripts/replicator_move.py once the Replicator is proven)
@@ -59,8 +61,10 @@ def rom_slots(planet, n):
     a substation/roboport/solar lattice in it, so the tables fill the two free bands (tile rows y -211..-204 and -199..-192),
     78 to a row, one long sequence."""
     x, y = SITES[planet]
-    if planet in MENUS:
+    if planet in MENUS and DEPTH == 1:
         return [(x + 9 + g % 7, y + 8 + (g // 7) * 2) for g in range(DEPTH * n)]
+    if planet in MENUS:         # depth 2 or more: the units fill the width, the tables go below the stock roboport (default position (2,16))
+        return [(x + g % 14, y + 21 + (g // 14) * 2) for g in range(DEPTH * n)]
     if planet != "replicator":
         return [(x + u * 35 + i % 35, y + 25 + (i // 35) * 2) for u in range(DEPTH) for i in range(n)]
     rows = [-211, -209, -207, -205, -199, -197, -195, -193]

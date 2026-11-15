@@ -12,6 +12,41 @@ Replicator are unchanged (regression-checked: 178 entries, 0 to place). **Tested
 copper cable, steel plate and stone brick; it stalled for lack of steel and cable, because **Fulgora's main logistic network holds none of the basics** (steel, plates, circuits,
 plastic, cable all 0; it holds processing units 256, supercapacitors 308, superconductors 600, holmium plates 800, accumulators 1143). The unit stays dormant until Nauvis ships them.
 
+**Aquilo: SKIPPED (the Captain's decision, 2026-11-14); revisit only if a piped cryogenic block is wanted. Nothing built. With a correction (2026-11-14).** Earlier notes said Aquilo's lithium and fluoroketone chain was unresearched. That was wrong: lithium (2,200 made), lithium plate (2,337),
+cryogenic science pack (2,233) and fluoroketone barrels are enabled and in production. My menu analysis left them out because they are **cross-planet** (lithium needs a holmium plate, which Fulgora
+makes), and the analysis only allowed a planet's own resources plus Nauvis basics. What Aquilo's Replicator could do with the generators that exist:
+- ice (445,550 made, 3,999 in the network): ammoniacal-solution separation (two products, fluid has no barrel) or asteroid crushing: not buildable by the patterns;
+- ice platform (6,400 made, 1,049 in stock): needs 400 ammonia, no barrel: piped only;
+- lithium: lithium brine and ammonia, no barrels, plus a Fulgora holmium plate: piped only;
+- lithium plate: single-ingredient smelting, the one pattern-friendly item, but the network holds no lithium (all consumed on the lines);
+- cryogenic science pack: a science pack (left out of Replicators by design).
+Every Aquilo-unique item is already made in bulk by dedicated lines and served from stock, so an Aquilo Replicator built from the existing patterns would have almost nothing to make.
+Options: skip Aquilo; or a small unit (lithium-plate furnace + rocket fuel, which Aquilo makes 1,910 of); or a piped cryogenic block (the ammonia, brine and fluoroketone supply) — a real build.
+
+**Gleba BUILT (2026-11-14, save `pre-gleba-replicator` before it); two units, demand wire from the maker unit's roboport (126,-28):**
+- **maker unit** (`omni_maker.py ... gleba`, site tile (124,-30), depth 2, 17 x 27 patch, recipe tables below it): artificial-jellynut-soil, artificial-yumako-soil, agricultural-tower, biolab,
+  capture-robot-rocket, rocket-turret, spidertron, stack-inserter, toolbelt-equipment, biochamber, efficiency-module-3. Depth 2 because biolab and spidertron nest (capture robot rocket, rocket turret).
+  Its silo reads orbital requests. 22 table entries wired.
+- **biochamber barrel unit** (`omni_fluid_asm.py --planet gleba --maker biochamber --solid --menu carbon-fiber,rocket-fuel --recipes carbon-fiber,rocket-fuel-from-jelly --fuel nutrients:20`, site (177,16)):
+  carbon fiber (never made on Gleba, yet 3 menu items need it) and **rocket fuel from jelly** (the Gleba Wheel mission item; water barrels). The biochamber (3 x 3) burns nutrients, so every order also asks for
+  20 nutrients; its fluid inputs are on the north face, the emptier stands above it one tile west. New generator options: --maker biochamber|foundry, --recipes, --solid, --fuel.
+  Tested on real demand (12 rocket fuel were missing): it chose rocket fuel, set the recipe, set the emptier to empty-water-barrel; it waits for nutrients, jelly and water barrels (none on Gleba).
+  The fluid link is derived from prototype ports, not seen working. A bridging substation at (168,14) joined the unit's isolated substation to the main grid (network 11943); nothing unpowered.
+- Not on the menu: jelly, yumako mash, bioflux, pentapod egg, agricultural science pack (Gleba makes them in bulk: 941k, 2.18M, 413k, 231k, 290k; multi-product or science-pack recipes besides), seeds,
+  bacteria and spoilage (multi-product recipes), the overgrowth soils (need 10 biter eggs each: the spawner capture research is not done).
+- Gleba's main network holds almost nothing the menu needs: spoilage 18,200, stone 4,550, iron plate 400; no nutrients, carbon, jelly, steel, circuits, barrels or landfill.
+
+**Vulcanus BUILT (2026-11-14, save `pre-vulcanus-replicator` before it); three units on land patches in its main logistic network, demand wire from the maker unit's roboport (-50,-86):**
+- **maker unit** (`omni_maker.py ... vulcanus`, site tile (-52,-88), one maker, depth 1): artillery-shell, artillery-turret, artillery-wagon, cliff-explosives, speed-module-3, low-density-structure
+  (the Vulcanus Wheel mission item). Its silo reads orbital requests. Tested with a temporary artillery-shell request: it picked the recipe and ordered explosives, tungsten plate, calcite and radar
+  (calcite and radar arrived; stalls on explosives and tungsten plate, which the network does not hold).
+- **assembler barrel unit** (`omni_fluid_asm.py --planet vulcanus --menu tungsten-carbide,foundry`, site (-68,-51)): sulfuric-acid and lubricant barrels. It already picked up real demand
+  (974 tungsten carbide missing) and ordered 2 sulfuric-acid barrels.
+- **foundry barrel unit** (`--maker foundry --menu turbo-splitter,turbo-transport-belt,turbo-underground-belt`, site (-64,-84)): lubricant barrels; the 5 x 5 foundry has its fluid inputs on the south face,
+  so the emptier stands directly south of it. Geometry derived from prototype ports, **not yet seen working** (no barrels on Vulcanus).
+- Left out: metallurgic-science-pack (science packs stay with the wheel lines), tungsten-plate (100,279 made on the planet's own lines) and big-mining-drill (needs molten iron, no barrel).
+- Vulcanus holds no steel, plates, gears or barrels in its network, but does hold plastic 9,100, electronic circuits 36,400, advanced circuits 18,200, processing units 9,100, calcite 4,538 and carbon 13,650.
+
 **Fulgora phase 2 (2026-11-14): barrel-fed part BUILT, piped part decided.**
 - `scripts/omni_fluid_asm.py` now takes --planet, --maker, --menu, --demand and has a `sites` scan (land patches of 16 x 14 in the main network) and a geometry per maker type
   (assembling machine 3: emptier stacked above, ports top and bottom; electromagnetic plant: 4 x 4 with fluid inputs on its WEST and EAST faces, so the emptier stands west of it, facing
