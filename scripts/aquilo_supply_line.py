@@ -29,7 +29,7 @@ SHIP = "Fulgora-Aquilo 4"
 IDX = 36
 SUPPLY, DROP = "aq-supply-%d" % IDX, "aq-drop-%d" % IDX
 # item -> amount per trip (the proven load, from what exists at Fulgora; a standing kit would use the list in aquilo_delivery_list.txt)
-KIT = {"holmium-plate": 800, "processing-unit": 100, "low-density-structure": 50, "superconductor": 100, "construction-robot": 30, "refined-concrete": 40}
+KIT = {"holmium-plate": 800, "processing-unit": 100, "superconductor": 100, "construction-robot": 30, "refined-concrete": 40}
 AMMO_GATE = 2300       # explosive rockets aboard to leave Fulgora (a trip burns ~1,800; outbound ~1,000, return ~800)
 RESERVE = 1000         # leave Aquilo at once when rockets fall to this (the return needs ~800)
 MAGS_GATE = 1500

@@ -3,35 +3,77 @@
 which scripts/omni_maker.py leaves out (its machines have no pipes) and scripts/omni_fluid.py (chemistry only) cannot make.
 
 Items (generated from the game's recipes, not typed): processing-unit (sulfuric acid), electric-engine-unit and the three express belt parts
-(lubricant), concrete and refined-concrete (water), rocket-fuel (light oil). Rule: an enabled recipe an assembling machine 3 can run, one item
-product, exactly ONE fluid ingredient that has a barrel, no fluid product, product not already on the assembler list, product not a barrel.
-The crude-oil and heavy-oil barrels are not made here: they are the raw barrels the fluid units ask for (scripts/nauvis_taps.py fills them).
+(lubricant), concrete and refined-concrete (water), rocket-fuel (light oil), superconductor (light oil, electromagnetic plant). Rule: an enabled recipe the
+unit's MAKER machine can run, one item product, exactly ONE fluid ingredient that has a barrel, no fluid product, product not already on the assembler list,
+product not a barrel. The crude-oil and heavy-oil barrels are not made here: they are the raw barrels the fluid units ask for (scripts/nauvis_taps.py).
 
-Barrel-fed, like omni_fluid.py: no pipes to the network. Two assembling machines 3 face north, one above the other, same x:
-  E  (above)  empties barrels: its recipe is empty-<fluid>-barrel; its fluid OUTPUT (bottom centre) touches P's fluid INPUT (top centre)
-  P  (below)  makes the item, recipe set by circuit
+Barrel-fed, like omni_fluid.py: no pipes to the network. Two machines, the maker P and an emptier E (an assembling machine 3 whose recipe is
+empty-<fluid>-barrel) whose fluid OUTPUT touches P's fluid INPUT. The geometry depends on P (prototype fluid ports, read from the game):
+  --maker assembling-machine-3 (default)   E stands directly above P, both facing north (input top centre, output bottom centre)
+  --maker electromagnetic-plant            a 4 x 4 plant with its fluid inputs on the WEST and EAST faces: E stands west of it, facing west (output east)
   blue requester chests, one for each machine (P: the solid ingredients; E: the barrels of the fluid P needs, never more than a batch)
   red provider chests, one for each machine (P: the product; E: the empty barrels), emptied by inserters; robots do the rest
 Control is omni_maker's: the demand roboport's MISSING REQUESTS, the unit's item list (constant combinator), a decider that passes only what
 this unit can make, a selector that picks the most-missing item, and a table of 4 deciders a recipe (P recipe, P solids, E recipe, E barrels).
 A decider puts its outputs on both wires, so one decider serves one target: the recipe table is 4 deciders wide for each item.
 
-Steps (read-only unless --apply):  list | check [--at X Y ...] | build --at X Y [--apply] | config --at X Y | status --at X Y
+Planet Replicators (docs/planet-replicators-plan.md): --planet fulgora --menu superconductor --demand 124 -76 (the planet unit's roboport).
+Steps (read-only unless --apply):  list | sites | build --at X Y [--apply] | config --at X Y | status --at X Y
 (X, Y = the tile under P's centre.) Never apply `build` twice at one site. Run `config` after `build --apply` and after any new recipe is researched.
-Demand wire: the Replicator's demand roboport (omni_maker site `replicator`), over-reach script wire."""
+Options: --planet NAME (default nauvis)  --maker ENTITY  --menu a,b (only those products)  --demand X Y (default: the Nauvis Replicator's roboport)."""
 import json
 import sys
 
 from _game import tools
 
 BATCH = 10
-DEMAND = (-352, -229)          # the Replicator's demand roboport (omni_fluid.SITES['replicator']['demand'])
 Q = {"quality": "epic"}
 N, E, S, W = 0, 4, 8, 12
+
+
+def opt(name, n=1, default=None):
+    if name not in sys.argv:
+        return default
+    i = sys.argv.index(name)
+    vals = sys.argv[i + 1:i + 1 + n]
+    return vals[0] if n == 1 else vals
+
+
+PLANET = opt("--planet", default="nauvis")
+MAKER = opt("--maker", default="assembling-machine-3")
+MENU = [m for m in (opt("--menu", default="") or "").split(",") if m]
+DEMAND = tuple(int(v) for v in opt("--demand", 2, ["-352", "-229"]))        # the roboport whose red wire carries the demand
+EM = MAKER == "electromagnetic-plant"
+FOUNDRY = MAKER == "foundry"
+
+# Entity centres relative to the site tile (cx, cy). name -> (dx, dy[, direction]).
+if FOUNDRY:
+    # a 5 x 5 foundry has its fluid inputs on the SOUTH face (orientation north: first input at x-1); the emptier stands directly south of it, facing south
+    # (assembler output on its top centre), x-1 from the foundry's centre; chests west and east like the stacked unit.
+    GEOM = {"P": (0.5, 0.5), "E": (-0.5, 4.5, S), "reqP": (-3.5, 0.5), "inP": (-2.5, 0.5, W), "outP": (3.5, 0.5, W), "chP": (4.5, 0.5),
+            "reqE": (-3.5, 4.5), "inE": (-2.5, 4.5, W), "outE": (1.5, 4.5, W), "chE": (2.5, 4.5),
+            "cc": (-6.5, -3.5), "dec": (-6.5, -1.0), "sel": (-5.5, -1.0), "sub": (7.0, -3.0), "table": (-6, 9)}
+elif EM:
+    GEOM = {"P": (0.0, 0.0), "E": (-3.5, 0.5, W), "reqP": (0.5, -3.5), "inP": (0.5, -2.5, N), "outP": (0.5, 2.5, N), "chP": (0.5, 3.5),
+            "reqE": (-3.5, -2.5), "inE": (-3.5, -1.5, N), "outE": (-3.5, 2.5, N), "chE": (-3.5, 3.5),
+            "cc": (-6.5, -6.5), "dec": (-6.5, -4.0), "sel": (-5.5, -4.0), "sub": (4.0, -4.0), "table": (-6, 6)}
+else:
+    GEOM = {"P": (0.5, 0.5), "E": (0.5, -2.5, N), "reqP": (-2.5, 0.5), "inP": (-1.5, 0.5, W), "outP": (2.5, 0.5, W), "chP": (3.5, 0.5),
+            "reqE": (-2.5, -2.5), "inE": (-1.5, -2.5, W), "outE": (2.5, -2.5, W), "chE": (3.5, -2.5),
+            "cc": (-5.5, -5.5), "dec": (-5.5, -3.0), "sel": (-4.5, -3.0), "sub": (6.0, -5.0), "table": (-6, 4)}
+
+
+def pos(cx, cy, key):
+    g = GEOM[key]
+    return cx + g[0], cy + g[1]
+
 
 LIST = r'''
 local f=game.forces.player
 local am3=prototypes.entity['assembling-machine-3'].crafting_categories
+local mk=prototypes.entity['MAKERENT'].crafting_categories
+local MENU={MENUTAB}
+local function menuok(it) return next(MENU)==nil or MENU[it]==true end
 local function has_cat(p,set) for _,c in pairs(p.categories) do if set[c] then return true end end return false end
 local bar={}
 for name,r in pairs(f.recipes) do if name:find('^empty%-') and r.enabled and #r.ingredients==1 then for _,p in pairs(r.products) do if p.type=='fluid' then bar[p.name]=r.ingredients[1].name end end end end
@@ -51,9 +93,9 @@ local rs,seen={},{}
 for _,name in pairs(names) do
   local r=f.recipes[name]
   local p=r.prototype
-  if r.enabled and has_cat(p,am3) and not p.hidden and #r.products==1 and r.products[1].type=='item' then
+  if r.enabled and has_cat(p,mk) and not p.hidden and #r.products==1 and r.products[1].type=='item' then
     local it=r.products[1].name
-    if not it:find('%-barrel$') and not plain[it] and not seen[it] and not name:find('recycling') then
+    if menuok(it) and not it:find('%-barrel$') and not plain[it] and not seen[it] and not name:find('recycling') then
       local nf,fl,si,ok=0,nil,{},true
       for _,i in pairs(r.ingredients) do
         if i.type=='fluid' then nf=nf+1 fl=i if not bar[i.name] then ok=false end else si[#si+1]=i end
@@ -62,37 +104,42 @@ for _,name in pairs(names) do
     end
   end
 end
-'''
+'''.replace("MAKERENT", MAKER).replace("MENUTAB", ",".join(f"['{m}']=true" for m in MENU))
 
 
 def layout(cx, cy):
-    """Entities of one unit; (cx, cy) is the tile under P's centre. Positions are entity centres."""
+    """Entities of one unit; positions are entity centres."""
     out = []
 
-    def add(name, x, y, d=N):
-        out.append({"name": name, "x": x, "y": y, "direction": d, "params": dict(Q)})
+    def add(name, key, d=None):
+        x, y = pos(cx, cy, key)
+        g = GEOM[key]
+        out.append({"name": name, "x": x, "y": y, "direction": g[2] if len(g) > 2 and d is None else (d or 0), "params": dict(Q)})
 
-    add("assembling-machine-3", cx + 0.5, cy + 0.5)               # P, fluid input at its top centre
-    add("assembling-machine-3", cx + 0.5, cy - 2.5)               # E, fluid output at its bottom centre
-    for dy, tag in ((0, "P"), (-3, "E")):
-        add("requester-chest", cx - 2.5, cy + dy + 0.5)           # blue: solids for P, barrels for E
-        add("fast-inserter", cx - 1.5, cy + dy + 0.5, W)          # direction = pickup side: takes from the chest on its west
-        add("fast-inserter", cx + 2.5, cy + dy + 0.5, W)          # takes from the machine on its west, drops east
-        add("passive-provider-chest", cx + 3.5, cy + dy + 0.5)    # red: product / empty barrels
-    add("constant-combinator", cx - 5.5, cy - 5.5)
-    add("decider-combinator", cx - 5.5, cy - 3.0)
-    add("selector-combinator", cx - 4.5, cy - 3.0)
-    add("substation", cx + 6.0, cy - 5.0)
+    add(MAKER, "P")
+    out[-1]["direction"] = N
+    add("assembling-machine-3", "E")
+    for q, i, o, c in (("reqP", "inP", "outP", "chP"), ("reqE", "inE", "outE", "chE")):
+        add("requester-chest", q)
+        add("fast-inserter", i)
+        add("fast-inserter", o)
+        add("passive-provider-chest", c)
+    add("constant-combinator", "cc")
+    add("decider-combinator", "dec")
+    add("selector-combinator", "sel")
+    add("substation", "sub")
     return out
 
 
 def table_slots(cx, cy, n):
     """Top-left tile of the 4 deciders of each of n recipes (1 x 2 each), one long row south of the unit."""
-    return [(cx - 6 + 4 * i + j, cy + 4) for i in range(n) for j in range(4)]
+    tx, ty = GEOM["table"]
+    return [(cx + tx + 4 * i + j, cy + ty) for i in range(n) for j in range(4)]
 
 
 def recipes():
-    return json.loads(tools["run_lua"](LIST + "local o={} for _,r in ipairs(rs) do o[#o+1]=r.key..'|'..r.name..'|'..r.fl.name..' x'..r.fl.amount..'|'..bar[r.fl.name] end rcon.print(table.concat(o,'\\n'))".replace("rcon.print(table.concat(o,'\\n'))", "rcon.print(helpers.table_to_json(o))")))
+    code = LIST + "local o={} for _,r in ipairs(rs) do o[#o+1]=r.key..'|'..r.name..'|'..r.fl.name..' x'..r.fl.amount..'|'..bar[r.fl.name] end rcon.print(helpers.table_to_json(o))"
+    return json.loads(tools["run_lua"](code))
 
 
 def table_entities(cx, cy, n):
@@ -102,26 +149,27 @@ def table_entities(cx, cy, n):
 def place(cx, cy, apply):
     n = len(recipes())
     ents = layout(cx, cy) + table_entities(cx, cy, n)
-    r = json.loads(tools["place_entities"](json.dumps(ents), surface="nauvis", dry_run=not apply, clear_trees=apply))
+    r = json.loads(tools["place_entities"](json.dumps(ents), surface=PLANET, dry_run=not apply, clear_trees=apply))
     return n, r
 
 
+GLUA = "local P,Em,reqP,reqE,cc,dec,sel=GP,GE,GRP,GRE,GCC,GDEC,GSEL "
+
 CONFIG = LIST + r'''
-local s=game.surfaces.nauvis
+local s=game.surfaces['SURF']
 local W=defines.wire_connector_id
 local CB={W.combinator_input_red,W.combinator_input_green,W.combinator_output_red,W.combinator_output_green}
 local CC={W.circuit_red,W.circuit_green}
 local function wire(a,ia,b,ib) a.get_wire_connector(ia,true).connect_to(b.get_wire_connector(ib,true),false) end
 local function clr(e,ids) for _,id in pairs(ids) do e.get_wire_connector(id,true).disconnect_all() end end
 local function at(n,x,y) return s.find_entities_filtered{name=n,position={x,y},radius=0.4}[1] end
-local cx,cy=CX,CY
-local P=at('assembling-machine-3',cx+0.5,cy+0.5)
-local Em=at('assembling-machine-3',cx+0.5,cy-2.5)
-local reqP=at('requester-chest',cx-2.5,cy+0.5)
-local reqE=at('requester-chest',cx-2.5,cy-2.5)
-local cc=at('constant-combinator',cx-5.5,cy-5.5)
-local dec=at('decider-combinator',cx-5.5,cy-3.0)
-local sel=at('selector-combinator',cx-4.5,cy-3.0)
+local P=at('MAKERENT',PX,PY)
+local Em=at('assembling-machine-3',EX,EY)
+local reqP=at('requester-chest',RPX,RPY)
+local reqE=at('requester-chest',REX,REY)
+local cc=at('constant-combinator',CCX,CCY)
+local dec=at('decider-combinator',DCX,DCY)
+local sel=at('selector-combinator',SLX,SLY)
 local rp=s.find_entities_filtered{name='roboport',position={DX,DY},radius=0.6}[1]
 if not (P and Em and reqP and reqE and cc and dec and sel and rp) then rcon.print('unit incomplete: build it first') return end
 local cb=cc.get_or_create_control_behavior()
@@ -163,23 +211,22 @@ rcon.print('recipes wired '..n..' of '..#rs..': '..table.concat(t,', '))
 '''
 
 STATUS = LIST + r'''
-local s=game.surfaces.nauvis
+local s=game.surfaces['SURF']
 local W=defines.wire_connector_id
-local cx,cy=CX,CY
 local function at(n,x,y) return s.find_entities_filtered{name=n,position={x,y},radius=0.4}[1] end
 local function st(e) local k='?' for a,v in pairs(defines.entity_status) do if v==e.status then k=a end end local r=e.get_recipe() local fl={} for n,v in pairs(e.get_fluid_contents()) do fl[#fl+1]=n..' '..math.floor(v) end return (r and r.name or 'no recipe')..', '..k..', made '..e.products_finished..(#fl>0 and (' ['..table.concat(fl,', ')..']') or '') end
 local function inv(e) local t={} for _,it in pairs(e.get_inventory(defines.inventory.chest).get_contents()) do t[#t+1]=it.name..' '..it.count end return table.concat(t,', ') end
-local P=at('assembling-machine-3',cx+0.5,cy+0.5)
-local Em=at('assembling-machine-3',cx+0.5,cy-2.5)
+local P=at('MAKERENT',PX,PY)
+local Em=at('assembling-machine-3',EX,EY)
 local o={}
 if not (P and Em) then rcon.print('unit not built') return end
-local sel=at('selector-combinator',cx-4.5,cy-3.0)
+local sel=at('selector-combinator',SLX,SLY)
 local ch={}
 local n=sel and sel.get_circuit_network(W.combinator_output_green)
 if n and n.signals then for _,x in pairs(n.signals) do ch[#ch+1]=x.signal.name..' '..x.count end end
 o[#o+1]='chosen: '..table.concat(ch,', ')
-o[#o+1]='P (makes): '..st(P)..' | blue: '..inv(at('requester-chest',cx-2.5,cy+0.5))..' | red: '..inv(at('passive-provider-chest',cx+3.5,cy+0.5))
-o[#o+1]='E (empties): '..st(Em)..' | blue: '..inv(at('requester-chest',cx-2.5,cy-2.5))..' | red: '..inv(at('passive-provider-chest',cx+3.5,cy-2.5))
+o[#o+1]='P (makes): '..st(P)..' | blue: '..inv(at('requester-chest',RPX,RPY))..' | red: '..inv(at('passive-provider-chest',CPX,CPY))
+o[#o+1]='E (empties): '..st(Em)..' | blue: '..inv(at('requester-chest',REX,REY))..' | red: '..inv(at('passive-provider-chest',CEX,CEY))
 rcon.print(table.concat(o,'\n'))
 '''
 
@@ -187,13 +234,21 @@ rcon.print(table.concat(o,'\n'))
 def sub(code, cx, cy):
     n = len(recipes())
     sl = "{" + ",".join("{%d,%d}" % t for t in table_slots(cx, cy, n)) + "}"
-    return code.replace("SLOTS", sl).replace("CX", str(cx)).replace("CY", str(cy)).replace("DX", str(DEMAND[0])).replace("DY", str(DEMAND[1])).replace("BATCH", str(BATCH))
+    rep = {"PX": pos(cx, cy, "P"), "EX": pos(cx, cy, "E"), "RPX": pos(cx, cy, "reqP"), "REX": pos(cx, cy, "reqE"), "CCX": pos(cx, cy, "cc"), "DCX": pos(cx, cy, "dec"),
+           "SLX": pos(cx, cy, "sel"), "CPX": pos(cx, cy, "chP"), "CEX": pos(cx, cy, "chE")}
+    import re
+    for k, (x, y) in rep.items():
+        code = re.sub(r"\b%s\b" % k, str(x), code)
+        code = re.sub(r"\b%s\b" % (k[:-1] + "Y"), str(y), code)
+    code = re.sub(r"\bDX\b", str(DEMAND[0]), code)
+    code = re.sub(r"\bDY\b", str(DEMAND[1]), code)
+    return code.replace("MAKERENT", MAKER).replace("SLOTS", sl).replace("SURF", PLANET).replace("BATCH", str(BATCH))
 
 
 SITE_PROBE = r'''
-local s=game.surfaces.nauvis
+local s=game.surfaces['SURF']
 local f=game.forces.player
-local x,y=PX,PY
+local x,y=PX0,PY0
 local nets=s.find_logistic_networks_by_construction_area({x,y},f)
 local pole=s.find_entities_filtered{type='electric-pole',position={x,y},radius=30}
 local near=1e9
@@ -201,12 +256,34 @@ for _,p in pairs(pole) do local d=math.sqrt((p.position.x-x)^2+(p.position.y-y)^
 rcon.print('network '..#nets..', nearest pole '..(near<1e9 and string.format('%.0f',near) or 'none within 30'))
 '''
 
+PATCHES = r'''
+local s=game.surfaces['SURF']
+local f=game.forces.player
+local big,mainid=0,nil
+for _,rp in pairs(s.find_entities_filtered{name='roboport'}) do local n=rp.logistic_network if n and #n.cells>big then big=#n.cells mainid=n.network_id end end
+local function land(x,y) local t=s.get_tile(x,y).name return not (t:find('oil') or t:find('out%-of%-map') or t:find('lava') or t:find('water')) end
+local out={}
+local W,H=16,14
+for x=XMIN,XMAX do for y=YMIN,YMAX do
+  local ok=true
+  for gx=0,W-1,3 do for gy=0,H-1,3 do if not land(x+gx,y+gy) then ok=false break end end if not ok then break end end
+  if ok and land(x+W-1,y+H-1) then
+    local area={{x,y},{x+W,y+H}}
+    if s.count_entities_filtered{area=area,type={'resource','tree','corpse','projectile','simple-entity','decorative'},invert=true}==0 then
+      local nets=s.find_logistic_networks_by_construction_area({x+W/2,y+H/2},f)
+      for _,n in pairs(nets) do if n.network_id==mainid then out[#out+1]=x..','..y break end end
+    end
+  end
+end end
+rcon.print(table.concat(out,';'))
+'''
+
 
 def at_arg():
-    if "--at" not in sys.argv:
+    a = opt("--at", 2)
+    if not a:
         sys.exit("give the site: --at X Y (the tile under P's centre)")
-    i = sys.argv.index("--at")
-    return int(sys.argv[i + 1]), int(sys.argv[i + 2])
+    return int(a[0]), int(a[1])
 
 
 def main():
@@ -214,21 +291,25 @@ def main():
     apply = "--apply" in sys.argv
     if step == "list":
         rows = recipes()
-        print(f"{len(rows)} items this unit can make (item | recipe | fluid | barrel):")
+        print(f"{len(rows)} items this unit ({MAKER}) can make on {PLANET} (item | recipe | fluid | barrel):")
         for r in rows:
             print("  ", r)
-    elif step == "check":
-        cands = []
-        if "--at" in sys.argv:
-            cands.append(at_arg())
-        else:
-            cands = [(-330, -178), (-300, -178), (-270, -178), (-340, -184), (-282, -215), (-282, -200), (-270, -240), (-330, -246)]
-        for cx, cy in cands:
+    elif step == "sites":
+        box = opt("--box", 4, ["90", "240", "-230", "-30"])
+        patches = tools["run_lua"](PATCHES.replace("SURF", PLANET).replace("XMIN", box[0]).replace("XMAX", box[1]).replace("YMIN", box[2]).replace("YMAX", box[3])).strip()
+        found = 0
+        for p in patches.split(";") if patches else []:
+            px, py = (int(v) for v in p.split(","))
+            cx, cy = px + 8, py + 7
             n, r = place(cx, cy, False)
-            probe = tools["run_lua"](SITE_PROBE.replace("PX", str(cx)).replace("PY", str(cy)))
-            print(f"site ({cx},{cy}): items {n}, placeable {r.get('placed')}, failed {len(r.get('failed') or [])} | {probe.strip()}")
-            if r.get("failed"):
-                print("    first failure:", json.dumps(r["failed"][:2])[:300])
+            if not r.get("failed"):
+                probe = tools["run_lua"](SITE_PROBE.replace("SURF", PLANET).replace("PX0", str(cx)).replace("PY0", str(cy)))
+                print(f"clean site --at {cx} {cy}: {n} item(s), {r.get('placed')} entities | {probe.strip()}")
+                found += 1
+                if found >= int(opt("--max", default="6")):
+                    break
+        if not found:
+            print("no clean site among", len(patches.split(";")) if patches else 0, "land patches")
     elif step == "build":
         cx, cy = at_arg()
         n, r = place(cx, cy, apply)

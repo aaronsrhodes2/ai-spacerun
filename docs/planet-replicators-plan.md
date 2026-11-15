@@ -12,7 +12,24 @@ Replicator are unchanged (regression-checked: 178 entries, 0 to place). **Tested
 copper cable, steel plate and stone brick; it stalled for lack of steel and cable, because **Fulgora's main logistic network holds none of the basics** (steel, plates, circuits,
 plastic, cable all 0; it holds processing units 256, supercapacitors 308, superconductors 600, holmium plates 800, accumulators 1143). The unit stays dormant until Nauvis ships them.
 
-**Fulgora phase 2 (not built):**
+**Fulgora phase 2 (2026-11-14): barrel-fed part BUILT, piped part decided.**
+- `scripts/omni_fluid_asm.py` now takes --planet, --maker, --menu, --demand and has a `sites` scan (land patches of 16 x 14 in the main network) and a geometry per maker type
+  (assembling machine 3: emptier stacked above, ports top and bottom; electromagnetic plant: 4 x 4 with fluid inputs on its WEST and EAST faces, so the emptier stands west of it, facing
+  west). The Nauvis unit is unchanged (regression-checked). Save `pre-fulgora-phase2` before the builds.
+- **processing-unit unit** at tile (127,-50): assembler maker + sulfuric-acid barrel emptier, wired (demand wire from the Fulgora maker unit's roboport (124,-76)). Same stacked geometry as the
+  Nauvis unit that is proven working.
+- **superconductor unit** at tile (160,-30): electromagnetic plant maker + light-oil barrel emptier west of it, wired. Geometry derived from prototype ports and checked by coordinates (emptier
+  east port (157.5,-29.5) meets the plant's west port (158.5,-29.5)); **not yet seen working** because this game build has no fluid-connection API and Fulgora holds no light-oil barrels.
+  The first real order will prove it (the Fulgora network needs light-oil barrels from Nauvis).
+- Both units idle for now: the network already holds 256 processing units and 600 superconductors, so nothing is missing; both powered (0 no_power).
+- **Piped items (decided, not built):** electrolyte and holmium solution cannot be barrelled. Fulgora already makes supercapacitor (63,636 made, 316 in the network), EM science pack
+  (115,665 made, 21,965 in stock) and holmium plate (102,130 made, 800 in stock) on dedicated lines, so the Replicator serves those from stock and does not make them. Tesla ammo, tesla gun,
+  tesla turret and lightning collector have never been made; building them needs a piped block (holmium-solution chemical plant -> electrolyte plant -> maker plant, with heavy-oil
+  and water barrel emptiers, holmium ore and stone) of 5 to 7 machines for four items nobody has asked for. Recommendation: do not build it until a tesla item is wanted.
+
+(The earlier phase 2 notes follow.)
+
+**Fulgora phase 2 (not built), as first planned:**
 - barrel-fed: processing-unit (sulfuric acid; assembler) and superconductor (light oil; EM plant only, so the fluid-assembler unit needs the EM plant's port geometry);
 - piped only, no barrel exists for electrolyte or holmium solution: supercapacitor, tesla ammo, tesla gun, tesla turret, lightning collector, EM science pack, holmium plate.
   They need the unit beside Fulgora's existing electrolyte / holmium-solution pipes (heavy oil and holmium solution run in 45 and 112 pipes; the 13 EM plants there make these).

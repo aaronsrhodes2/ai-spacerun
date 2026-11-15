@@ -34,15 +34,16 @@ import sys
 
 from _game import tools
 
-SITES = {"nauvis": (-30, -400), "replicator": (-354, -231), "fulgora": (122, -78)}
+SITES = {"nauvis": (-30, -400), "replicator": (-354, -231), "fulgora": (122, -78), "vulcanus": (0, 0)}      # vulcanus: set with --at after `sites`
 BATCH, DEPTH, PITCH = 5, 3, 7
 # PLANET REPLICATORS (the Captain, 2026-11-14): a planet's Replicator serves only its menu (docs/planet-replicators-plan.md), so MENUOK filters the
 # item list. Fulgora's islands are small (no 24 x 14 + 4 patch), and its solid menu does not nest, so: one machine, the stock roboport beside the
 # unit instead of below it, the recipe table in the free strip east of the machine. Nauvis and the Replicator have no menu: nothing changes for them.
 MENUS = {"fulgora": ["lightning-rod", "recycler", "battery-mk3-equipment", "mech-armor", "personal-roboport-mk2-equipment", "electromagnetic-plant",
-                     "quality-module-3"]}
-DEPTHS = {"fulgora": 1}
-STOCK_AT = {"fulgora": (10, 2)}          # stock-reading roboport, relative to the site (default (2, 16))
+                     "quality-module-3"],
+         "vulcanus": ["artillery-shell", "artillery-turret", "artillery-wagon", "cliff-explosives", "speed-module-3", "low-density-structure"]}
+DEPTHS = {"fulgora": 1, "vulcanus": 1}
+STOCK_AT = {"fulgora": (10, 2), "vulcanus": (10, 2)}          # stock-reading roboport, relative to the site (default (2, 16))
 FX = 23        # the furnace unit stands at this offset east of machine 1
 OLD_SITE = "nauvis"          # the first copy (retired by scripts/replicator_move.py once the Replicator is proven)
 
