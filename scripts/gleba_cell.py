@@ -345,6 +345,42 @@ def buffers():
     return " | ".join(out)
 
 
+def second_cell(apply, ox=56, oy=82, pump=(75.5, 120.5, 8)):
+    """Cell 2 (the Captain, 2026-11-15: "yes, second cell"): the same hub at a new origin, sharing the farms, the seeds and the egg bank through the one robot network.
+    Site found by search: the only clear 29 x 18 block with a straight corridor to the shore (the pump is 38 tiles south of the hub's water column).
+    A roboport is added at the east end (the nearest existing one covers only the west half)."""
+    global OX, OY, PUMP, SUB, SPOIL_SITES
+    saved = (OX, OY, PUMP, SUB, SPOIL_SITES)
+    OX, OY, PUMP, SUB, SPOIL_SITES = ox, oy, pump, (ox - 2, oy + 2), []
+    try:
+        P = hub()
+        y = oy + 14.5
+        while y <= pump[1] - 1 + 0.01:
+            P.add("pipe", ox + 19.5, y)
+            y += 1
+        rp = json.loads(L("local s=game.surfaces.gleba local f=game.forces.player local best,bd=nil,1e9 for x=%d,%d do for y=%d,%d do local a={{x-1.98,y-1.98},{x+1.98,y+1.98}} "
+                          "if s.count_tiles_filtered{area=a,collision_mask='water_tile'}==0 and s.count_entities_filtered{area=a,force=f,limit=1}==0 and s.count_entities_filtered{area=a,type='cliff',limit=1}==0 then "
+                          "local d=(x-%d)^2+(y-%d)^2 if d<bd then bd=d best={x,y} end end end end rcon.print(best and helpers.table_to_json(best) or '[]')" % (ox + 26, ox + 34, oy + 3, oy + 13, ox + 28, oy + 8)) or "[]")
+        if rp:
+            P.add("roboport", rp[0], rp[1], 0, None, Q)
+            P.add("medium-electric-pole", rp[0] - 3, rp[1])
+        print("cell 2 at (%s,%s): %d pieces, east roboport %s" % (ox, oy, len(P.ents), rp))
+        SIZE.update({"biochamber": 1.5, "roboport": 2, "steel-chest": .5})
+        print(clear_plants(P, apply))
+        placed, failed = place(P, not apply)
+        print(("placed" if apply else "dry run"), placed, "failed", json.dumps(failed)[:1500])
+        if not apply:
+            return
+        for r in cfg_lua(P):
+            print(r)
+        for e in P.ents:
+            if e["name"] == "biochamber" and e.get("recipe") == "pentapod-egg":
+                L("local e=game.surfaces.gleba.find_entities_filtered{name='biochamber',position={%s,%s},radius=0.5}[1] if e then e.direction=defines.direction.east end" % (e["x"], e["y"]))
+        print(buffers())
+    finally:
+        OX, OY, PUMP, SUB, SPOIL_SITES = saved
+
+
 def status():
     return json.loads(L(STATUS))
 
@@ -379,7 +415,7 @@ BLOCKERS = (
     "o.yumako_plants=pl['yumako-tree'] or 0 o.jellynut_plants=pl['jellystem'] or 0 "
     "local full=0 for _,c in pairs(s.find_entities_filtered{area={{%s,%s},{%s,%s}},force=f,name='passive-provider-chest'}) do local inv=c.get_inventory(defines.inventory.chest) if inv.get_item_count('spoilage')>0 and inv.count_empty_stacks()==0 then full=full+1 end end "
     "o.spoilage_chests_full=full rcon.print(helpers.table_to_json(o))"
-) % (OX + 10, OY + 8, OX - 1, OY, OX + 28, OY + 17, OX - 1, OY, OX + 28, OY + 17)
+) % (OX + 10, OY + 8, 50, 22, 120, 102, 50, 22, 120, 102)      # one box over both cells and the egg bank
 
 SPOIL_BACKUP = 1500                 # spoilage in the network above this for 10 minutes is a backup
 
@@ -404,7 +440,7 @@ JANITOR = ("local s=game.surfaces.gleba local f=game.forces.player local moved=0
 
 def janitor():
     try:
-        return int(L(JANITOR % (cx(5), OY + 0.5, OX - 12, OY - 2, OX + 30, OY + 28)).strip() or 0)
+        return int(L(JANITOR % (cx(5), OY + 0.5, 50, 22, 120, 102)).strip() or 0)
     except Exception:  # noqa: BLE001
         return -1
 
@@ -478,6 +514,8 @@ if __name__ == "__main__":
         print(json.dumps(status(), indent=1))
     elif cmd == "tune":
         print(tune())
+    elif cmd == "cell2":
+        second_cell(len(sys.argv) > 2 and sys.argv[2] == "build")
     elif cmd == "buffers":
         print(buffers())
     elif cmd == "spoilage":
