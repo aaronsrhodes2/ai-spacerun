@@ -1,0 +1,2 @@
+from _game import tools
+print(tools["run_lua"]("local o={} for _,n in pairs{'cryogenic-science-pack','cryogenic-plant','rocket-part','fusion-power-cell','fluoroketone-cooling','lithium-plate'} do local r=prototypes.recipe[n] if r then local i={} for _,x in pairs(r.ingredients) do i[#i+1]=x.amount..' '..x.name end local p={} for _,x in pairs(r.products) do p[#p+1]=(x.amount or '?')..' '..x.name end o[#o+1]=n..' ('..r.energy..'s): '..table.concat(i,', ')..' -> '..table.concat(p,', ') end end rcon.print(table.concat(o,string.char(10)))"))

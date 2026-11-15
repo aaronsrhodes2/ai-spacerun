@@ -34,8 +34,15 @@ import sys
 
 from _game import tools
 
-SITES = {"nauvis": (-30, -400), "replicator": (-354, -231)}
+SITES = {"nauvis": (-30, -400), "replicator": (-354, -231), "fulgora": (122, -78)}
 BATCH, DEPTH, PITCH = 5, 3, 7
+# PLANET REPLICATORS (the Captain, 2026-11-14): a planet's Replicator serves only its menu (docs/planet-replicators-plan.md), so MENUOK filters the
+# item list. Fulgora's islands are small (no 24 x 14 + 4 patch), and its solid menu does not nest, so: one machine, the stock roboport beside the
+# unit instead of below it, the recipe table in the free strip east of the machine. Nauvis and the Replicator have no menu: nothing changes for them.
+MENUS = {"fulgora": ["lightning-rod", "recycler", "battery-mk3-equipment", "mech-armor", "personal-roboport-mk2-equipment", "electromagnetic-plant",
+                     "quality-module-3"]}
+DEPTHS = {"fulgora": 1}
+STOCK_AT = {"fulgora": (10, 2)}          # stock-reading roboport, relative to the site (default (2, 16))
 FX = 23        # the furnace unit stands at this offset east of machine 1
 OLD_SITE = "nauvis"          # the first copy (retired by scripts/replicator_move.py once the Replicator is proven)
 
@@ -51,6 +58,8 @@ def rom_slots(planet, n):
     a substation/roboport/solar lattice in it, so the tables fill the two free bands (tile rows y -211..-204 and -199..-192),
     78 to a row, one long sequence."""
     x, y = SITES[planet]
+    if planet in MENUS:
+        return [(x + 9 + g % 7, y + 8 + (g // 7) * 2) for g in range(DEPTH * n)]
     if planet != "replicator":
         return [(x + u * 35 + i % 35, y + 25 + (i // 35) * 2) for u in range(DEPTH) for i in range(n)]
     rows = [-211, -209, -207, -205, -199, -197, -195, -193]
@@ -76,7 +85,8 @@ def stock_stage(planet):
     decider lets an orbital request through only for the part the network cannot cover (the silos report every open request of a
     shuttle overhead, also for items the planet has plenty of)."""
     x, y = SITES[planet]
-    return [{"name": "roboport", "x": x + 2, "y": y + 16, "direction": 0, "params": dict(Q)},
+    sx, sy = STOCK_AT.get(planet, (2, 16))
+    return [{"name": "roboport", "x": x + sx, "y": y + sy, "direction": 0, "params": dict(Q)},
             {"name": "arithmetic-combinator", "x": x + 4.5, "y": y + 1, "direction": 0, "params": dict(Q)},
             {"name": "decider-combinator", "x": x + 4.5, "y": y + 3, "direction": 0, "params": dict(Q)}]
 
@@ -197,6 +207,18 @@ COUNT = ("local f=game.forces.player local cats=prototypes.entity['assembling-ma
          "if solid then if seen[it] then seen[it]=2 else seen[it]=1 list[#list+1]=it end end end end local n=0 for _,it in pairs(list) do if seen[it]==1 then n=n+1 end end rcon.print(n)")
 
 
+CONFIG, ROM, COUNT = (s.replace("if solid then if seen[it] then", "if solid and MENUOK(it) then if seen[it] then") for s in (CONFIG, ROM, COUNT))
+CONFIG = CONFIG.replace("at('roboport',2,16)", "at('roboport',STKX,STKY)")
+
+
+def menu_header(planet):
+    """Lua prefix: MENUOK(item) is true for everything unless the planet has a menu (docs/planet-replicators-plan.md)."""
+    items = MENUS.get(planet)
+    if not items:
+        return "local function MENUOK(it) return true end "
+    return "local MENU={" + ",".join("['%s']=true" % i for i in items) + "} local function MENUOK(it) return MENU[it]==true end "
+
+
 def standing(planet):
     """True when the site's first roboport already stands (never apply twice)."""
     x, y = SITES[planet]
@@ -205,14 +227,22 @@ def standing(planet):
 
 
 def main():
+    global DEPTH
     step, planet = sys.argv[1], sys.argv[2]
     apply = "--apply" in sys.argv
     x, y = SITES[planet]
+    if "--at" in sys.argv:                     # try another site without editing SITES
+        i = sys.argv.index("--at")
+        SITES[planet] = x, y = int(sys.argv[i + 1]), int(sys.argv[i + 2])
+    DEPTH = DEPTHS.get(planet, DEPTH)
+    stk = STOCK_AT.get(planet, (2, 16))
 
     def run(code):
+        code = menu_header(planet) + code
         if "ROMTAB" in code:
-            code = code.replace("ROMTAB", lua_slots(rom_slots(planet, int(tools["run_lua"](COUNT).strip()))))
-        return tools["run_lua"](code.replace("SURF", surf(planet)).replace("OX", str(x)).replace("OY", str(y)).replace("PITCH", str(PITCH)).replace("DEPTH", str(DEPTH)))
+            code = code.replace("ROMTAB", lua_slots(rom_slots(planet, int(tools["run_lua"](menu_header(planet) + COUNT).strip()))))
+        return tools["run_lua"](code.replace("SURF", surf(planet)).replace("STKX", str(stk[0])).replace("STKY", str(stk[1])).replace("OX", str(x)).replace("OY", str(y))
+                                .replace("PITCH", str(PITCH)).replace("DEPTH", str(DEPTH)))
 
     if step == "build":
         first = int(sys.argv[sys.argv.index("--from") + 1]) if "--from" in sys.argv else 0

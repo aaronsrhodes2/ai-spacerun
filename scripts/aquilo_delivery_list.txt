@@ -1,0 +1,22 @@
+# Aquilo ground-item delivery list. Shared file: the supply-line agent (aquilo_supply_line.py) wrote the first block,
+# the Aquilo 20x science agent should write/replace the block "SCIENCE AGENT LIST" below with its exact items per hour.
+# Read by: scripts/aquilo_supply_line.py plan (it uses the SCIENCE AGENT LIST when it has lines "item  per_hour  one_off").
+# Format: item <spaces> per_hour <spaces> one_off     (numbers, items only; lines starting with # are ignored)
+
+## SUPPLY-LINE AGENT ESTIMATE (2026-11-14, 20x science = 228 packs/min = 13,680 packs/h, no productivity, 14 silo rockets/h)
+##   holmium: 1 plate per 5 lithium -> 0.2 plate per pack      -> 2,736/h
+##   silo rocket (cryogenic packs up): 50 PU + 50 LDS + 50 rocket fuel each, 14 rockets/h
+##   rocket fuel: Aquilo makes ~8/min = 480/h from surplus ammonia -> ~220/h short
+##   one-off: 20 cryogenic plants x (20 PU, 20 superconductor, 20 lithium, 40 refined concrete); 8 speed-module-3 per plant
+holmium-plate            2736     0
+processing-unit           700   400
+low-density-structure     700     0
+rocket-fuel               220     0
+superconductor              0   400
+refined-concrete            0   800
+speed-module-3              0   160
+construction-robot         50     0
+logistic-robot             25     0
+uranium-fuel-cell          20     0
+
+## SCIENCE AGENT LIST (replace the block above if you have exact figures; keep the same three columns)
