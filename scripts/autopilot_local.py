@@ -54,6 +54,14 @@ SHIP_GUARD = (
     "rcon.print('shuttle guard sent '..n..' home'..(#o>0 and ': '..table.concat(o,'; ') or ''))"
 )
 
+# Oxidizer wire guard (2026-11-15): a quality upgrade drops the circuit wire from the fuel tank to the oxidizer tank on the Nauvis shuttles, so
+# the hub reads oxidizer 0 and every "oxidizer >= N" departure condition stays false: the whole fleet sat parked (legendary upgrade, found by the science ranker).
+# Every cycle, any shuttle whose oxidizer tank has no wire gets it back (fuel tank -> oxidizer tank, green). Same fix as configure_shuttle2.py 'tank wires'.
+OX_WIRE = ("local W=defines.wire_connector_id local n=0 for _,p in pairs(game.forces.player.platforms) do if p.valid and p.name:find('Shuttle$') and p.hub then local s=p.surface "
+           "local fu=s.find_entities_filtered{name='storage-tank',position={6.5,14.5},radius=0.4}[1] local ox=s.find_entities_filtered{name='storage-tank',position={(-6.5),14.5},radius=0.4}[1] "
+           "if fu and ox then local c=ox.get_wire_connector(W.circuit_green,true) if c.connection_count==0 then fu.get_wire_connector(W.circuit_green,true).connect_to(c,false,defines.wire_origin.script) n=n+1 end end end end "
+           "rcon.print('oxidizer wires restored '..n)")
+
 # Factory status wall (2026-11-14): panels and lamps on Nauvis near the silos, refreshed every WALL_EVERY cycles (about 2 s of RCON). See scripts/factory_wall.py.
 WALL_EVERY = 2
 REFRESH_EVERY = 10     # Replicator item lists (scripts/replicator_cell.py refresh_all): re-read from the game's recipes; one RCON call, rewrites only when something changed
@@ -71,6 +79,9 @@ def main():
             guard = tools["run_lua"](ap.SILO_GUARD)
             ships = tools["run_lua"](ap.SHIPS)
             ships = ships + " | " + tools["run_lua"](SHIP_GUARD)
+            oxw = tools["run_lua"](OX_WIRE).strip()
+            if not oxw.endswith(" 0"):
+                ap.log(oxw, LOG)
             bots = tools["run_lua"](ROBOTS).strip()
             reac = tools["run_lua"](REACTOR).strip()
             if "fed one cell" in reac:
