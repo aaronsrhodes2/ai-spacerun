@@ -14,7 +14,8 @@ import ghost_demand
 import robot_network
 import module_mall
 import aquilo_build_logistics
-import replicator_compress
+import depleted_return
+import replicator_cell
 
 LOG = str(Path(__file__).resolve().parent.parent / "docs" / "autopilot.log")
 
@@ -52,7 +53,7 @@ SHIP_GUARD = (
 
 # Factory status wall (2026-11-14): panels and lamps on Nauvis near the silos, refreshed every WALL_EVERY cycles (about 2 s of RCON). See scripts/factory_wall.py.
 WALL_EVERY = 2
-REFRESH_EVERY = 10     # Replicator item list (scripts/replicator_compress.py refresh): re-read from the game's recipes; one RCON call, rewrites only when something changed
+REFRESH_EVERY = 10     # Replicator item lists (scripts/replicator_cell.py refresh_all): re-read from the game's recipes; one RCON call, rewrites only when something changed
 VIZ_EVERY = 2          # Replicator console (scripts/replicator_viz.py), about 1 s of RCON
 
 
@@ -85,9 +86,9 @@ def main():
                     ap.log("replicator console error: " + repr(exc), LOG)
             if cyc % REFRESH_EVERY == 5:                                                     # newly researched or impossible items: rank list + ring of the Replicator
                 try:
-                    rr = replicator_compress.refresh("live")
-                    if not rr.startswith("unchanged"):
-                        ap.log("replicator list refreshed: " + rr[:300], LOG)
+                    for name, rr in replicator_cell.refresh_all().items():           # the live Replicator and every cell, with their partitions
+                        if not rr.startswith("unchanged"):
+                            ap.log("replicator list %s refreshed: %s" % (name, rr[:300]), LOG)
                 except Exception as exc:  # noqa: BLE001
                     ap.log("replicator refresh error: " + repr(exc), LOG)
             if cyc % 3 == 2:                                                                 # ghost demand (non-builder mode, scripts/ghost_demand.py)
@@ -105,6 +106,8 @@ def main():
                     ap.log("aquilo build logistics: " + aquilo_build_logistics.cycle(), LOG)
                 except Exception as exc:  # noqa: BLE001
                     ap.log("aquilo build logistics error: " + repr(exc), LOG)
+            if cyc % 2 == 1:                                                                 # spent fuel cells home to Nauvis (scripts/depleted_return.py)
+                ap.log("depleted return: " + depleted_return.cycle(), LOG)
             tools["run_lua"](module_mall.LABS)                                               # speed modules into the Gleba labs first
             mods = tools["run_lua"](module_mall.sub(module_mall.INSTALL, True)).strip()      # finished productivity modules go into the wheels
             ap.log(snap + " | queue " + queue + " | " + fix + " | " + guard + " | " + ships + ("" if bots.endswith(" 0") else " | " + bots) + ("" if "installed 0 / 0" in mods else " | " + mods), LOG)
