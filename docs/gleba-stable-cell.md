@@ -149,3 +149,13 @@ Sources: Factorio forums threads "Restarting nutrients supply is a pain in the a
 - Keep spare biochambers in a chest: recycling one gives a chance of an egg back, the only restart for eggs. **To do: a locked reserve of spare biochambers (like the seed vault).**
 - **Defence:** towers send out spores when they harvest, which draws pentapod attacks; more towers means more attacks. **To do: check turrets around the new towers.**
 - Avoid chest buffers between towers and first-stage processing; keep items moving. (Ours: fruit goes tower -> chest -> robot -> chamber. Watch for spoilage of fruit in chests; the fruit gate stops the towers, so chests stay small.)
+
+## Power (found 2026-11-15, after cell 2)
+Gleba's grid is 388 solar panels plus heating towers whose heat runs steam turbines. The towers were fed spoilage on belts by the old line. That feed has been dead
+for days and the spoilage assemblers now take what is left, so all 7 towers read "no fuel", 432 accumulators were empty and 9 of the 10 labs ran at low power once
+cell 2 added 13 biochambers (about 6.5 MW at full tilt).
+- Stopgap (done): the four hot towers have a requester chest + inserter fed **surplus jellynut** (10 MJ each), the inserter open only while the network holds more than
+  300 jellynut, so only the surplus burns. This turns idle fruit into heat, it is not a full answer.
+- Real answer (the Captain, 2026-11-15: "burn nuclear instead of spoilage"): a nuclear reactor on Gleba feeding the same heat pipes. Needs uranium fuel cells shipped
+  to Gleba (about 18 cells an hour per reactor at full heat) through the shuttle fleet, which waits on `all_requests_satisfied`, so the request must be one the
+  supply can always fill. Not built.
