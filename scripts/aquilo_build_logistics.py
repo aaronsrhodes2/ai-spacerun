@@ -135,6 +135,11 @@ def needs(show=True):
 
 
 # ------------------------------------------------------------------ kit
+# consumables Aquilo burns that no ghost asks for (the Captain, 2026-11-14: "set up a fuel cell supply to Aquilo"); the reactor's feed chest
+# holds 50 more on top (requester contents are not counted by the network)
+AQUILO_STOCK = {"uranium-fuel-cell": 100}
+
+
 def kit(loads=8.0, concrete=None, show=True):
     """Kit = entity-ghost items (inside coverage first) at exact quality + ingredients for `concrete` concrete, within `loads` rocket loads."""
     ents, tiles, w, src = needs(show=False)
@@ -166,6 +171,15 @@ def kit(loads=8.0, concrete=None, show=True):
             bricks_have = tiles["stock_brick"]
             take("stone-brick", "normal", max(0, 5 * crafts - bricks_have), "concrete works: %d concrete" % n)
             take("iron-ore", "normal", max(0, crafts - tiles["stock_ore"]), "concrete works")
+    # standing stock on Aquilo (consumables no ghost asks for): top up to the target, counting what is aboard the ship
+    stock = where([(n, "normal") for n in AQUILO_STOCK])
+    w.update(weights(list(AQUILO_STOCK)))
+    src.update(stock)
+    for n, target in AQUILO_STOCK.items():
+        s = stock.get((n, "normal"), {})
+        want = target - s.get("aquilo", 0) - s.get("hub", 0)
+        if want > 0:
+            take(n, "normal", want, "Aquilo stock target %d" % target)
     if show:
         print("KIT within %.1f rocket loads (%.0f kg used = %.2f loads):" % (loads, used / 1000, used / 1e6))
         for r in rows:
@@ -401,20 +415,24 @@ RELEASE = ("local c=game.surfaces.nauvis.find_entities_filtered{name='requester-
            "local nn=c.logistic_network local inv=c.get_inventory(defines.inventory.chest) local moved=0 for _,it in pairs(inv.get_contents()) do local left=it.count "
            "for _,st in pairs(nn.storages) do if left<=0 then break end if st.name=='storage-chest' then local n=st.insert{name=it.name,quality=it.quality,count=left} if n>0 then inv.remove{name=it.name,quality=it.quality,count=n} left=left-n moved=moved+n end end end end "
            "rcon.print('kit chest released '..moved..' items to Nauvis storage')")
-ASK = ("local c=game.surfaces.nauvis.find_entities_filtered{name='requester-chest',position={%s,%s},radius=0.5}[1] local pt=c.get_logistic_point(defines.logistic_member_index.logistic_container) "
-       "local sec=pt.sections[1] or pt.add_section() sec.filters={} for i,it in ipairs({%s}) do sec.set_slot(i,{value={type='item',name=it[1],quality='normal'},min=it[2]}) end rcon.print('kit chest asks '..#sec.filters)")
+ASK = ("local c=game.surfaces.nauvis.find_entities_filtered{name='requester-chest',position={%s,%s},radius=0.5}[1] local nn=c.logistic_network local pt=c.get_logistic_point(defines.logistic_member_index.logistic_container) "
+       "local sec=pt.sections[1] or pt.add_section() local keep={} for i,f in pairs(sec.filters) do if f.value and nn.get_item_count(f.value.name)==0 then keep[f.value.name]=f.min end end "
+       "for _,it in ipairs({%s}) do keep[it[1]]=it[2] end sec.filters={} local i=0 local held=0 for nm,mn in pairs(keep) do if nn.get_item_count(nm)==0 then i=i+1 sec.set_slot(i,{value={type='item',name=nm,quality='normal'},min=mn}) else held=held+1 end end "
+       "rcon.print('kit chest asks '..i..' (held back '..held..': stock waiting for a ship)')")
 
 
 def release(unsourced=None):
     """Move what the Replicator made into the kit chest on to Nauvis storage (a requester chest's contents are invisible to
-    network counts, so `kit` never shipped them - found 2026-11-14 with 81 heat pipes sitting there), then ask for the shortfall left."""
+    network counts, so `kit` never shipped them - found 2026-11-14 with 81 heat pipes sitting there), then ask for the shortfall left.
+    The chest only asks for items Nauvis storage holds NONE of: a requester pulls from storage, so asking while released stock waits
+    for a ship pulled it straight back (seen 2026-11-14: 55 heat pipes back in the chest, 0 made). Always re-filters, so a released
+    item stops being requested at once."""
     out = lua(RELEASE % KIT_CHEST)
-    if unsourced is not None:
-        want = {}
-        for item, q, missing, why in unsourced:
-            if q == "normal" and why.startswith("no stock"):
-                want[item] = want.get(item, 0) + missing
-        out += "; " + lua(ASK % (KIT_CHEST + (",".join("{'%s',%d}" % kv for kv in sorted(want.items())),)))
+    want = {}
+    for item, q, missing, why in (unsourced or []):
+        if q == "normal" and why.startswith("no stock"):
+            want[item] = want.get(item, 0) + missing
+    out += "; " + lua(ASK % (KIT_CHEST + (",".join("{'%s',%d}" % kv for kv in sorted(want.items())),)))
     return out
 
 
