@@ -17,6 +17,7 @@ import aquilo_build_logistics
 import depleted_return
 import replicator_demand_watch
 import replicator_cell
+import gleba_cell
 
 LOG = str(Path(__file__).resolve().parent.parent / "docs" / "autopilot.log")
 
@@ -110,6 +111,11 @@ def main():
             line = replicator_demand_watch.sample()                                           # steady Replicator demand -> "needs a dedicated line" (scripts/replicator_demand_watch.py)
             if "dedicated line" in line or "error" in line:
                 ap.log(line, LOG)
+            if cyc % 2 == 0:                                                                 # Gleba stable cell: balance fruit caps, log, alarm (scripts/gleba_cell.py)
+                try:
+                    ap.log(gleba_cell.watch(), LOG)
+                except Exception as exc:  # noqa: BLE001
+                    ap.log("gleba cell error: " + repr(exc), LOG)
             if cyc % 2 == 1:                                                                 # spent fuel cells home to Nauvis (scripts/depleted_return.py)
                 ap.log("depleted return: " + depleted_return.cycle(), LOG)
             tools["run_lua"](module_mall.LABS)                                               # speed modules into the Gleba labs first
