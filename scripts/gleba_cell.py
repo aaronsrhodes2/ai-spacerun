@@ -445,8 +445,20 @@ def janitor():
         return -1
 
 
+# Gleba reactor (2026-11-15, the Captain: "nuclear reactor", after the spoilage-fed heating towers lost their fuel): at (57.5,3.5), on the west heat pipes.
+# Its fuel inserter is gated by the reactor's own temperature (< 700) through a circuit wire, so a cell goes in only when heat is needed.
+REACTOR = ("local s=game.surfaces.gleba local rx=s.find_entities_filtered{name='nuclear-reactor',position={57.5,3.5},radius=0.5}[1] "
+           "local ch=s.find_entities_filtered{name='requester-chest',position={53.5,3.5},radius=0.3}[1] "
+           "local pad=s.find_entities_filtered{type='cargo-landing-pad'}[1] local pc=pad and pad.get_inventory(defines.inventory.cargo_landing_pad_main).get_item_count('uranium-fuel-cell') or 0 "
+           "if not rx then rcon.print('{}') return end rcon.print(helpers.table_to_json({temp=rx.temperature,cells=rx.get_fuel_inventory().get_item_count('uranium-fuel-cell')+(ch and ch.get_inventory(defines.inventory.chest).get_item_count('uranium-fuel-cell') or 0),pad=pc}))")
+
+
 def blockers():
     bl = json.loads(L(BLOCKERS))
+    try:
+        bl["reactor"] = json.loads(L(REACTOR))
+    except Exception:  # noqa: BLE001
+        bl["reactor"] = {}
     try:
         bl["bank"] = json.loads(L(BANK))
     except Exception:  # noqa: BLE001
@@ -481,6 +493,8 @@ def watch():
         ("fruit starvation jellynut", bl["jellynut"] < 30, 15, "jellynut stock %d" % bl["jellynut"]),
         ("egg bank empty", bl["bank"]["eggs"] == 0, 20, "the egg bank ring holds no egg: the reserve is gone"),
         ("egg bank bioflux", 0 <= bl["bank"]["bioflux"] < 20, 15, "the egg bank has %d bioflux left (about one heartbeat is 10)" % bl["bank"]["bioflux"]),
+        ("reactor out of cells", bool(bl["reactor"]) and bl["reactor"].get("cells", 1) == 0 and bl["reactor"].get("temp", 999) < 300, 20,
+         "the Gleba reactor holds no fuel cell and is cold (%s degrees); the pad holds %s cells (a shuttle must bring more)" % (bl["reactor"].get("temp"), bl["reactor"].get("pad"))),
         ("spoilage blockage", bl["spoilage_blocked"] > 0, 5, "%d machines stopped with spoilage in their output" % bl["spoilage_blocked"]),
         ("spoilage backup", bl["spoilage"] > SPOIL_BACKUP or bl["spoilage_chests_full"] > 0, 10,
          "spoilage %d in the network, %d chests full of it" % (bl["spoilage"], bl["spoilage_chests_full"])),

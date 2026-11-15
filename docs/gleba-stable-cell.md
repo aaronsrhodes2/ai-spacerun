@@ -159,3 +159,11 @@ cell 2 added 13 biochambers (about 6.5 MW at full tilt).
 - Real answer (the Captain, 2026-11-15: "burn nuclear instead of spoilage"): a nuclear reactor on Gleba feeding the same heat pipes. Needs uranium fuel cells shipped
   to Gleba (about 18 cells an hour per reactor at full heat) through the shuttle fleet, which waits on `all_requests_satisfied`, so the request must be one the
   supply can always fill. Not built.
+
+## Gleba reactor (2026-11-15)
+Built after the Captain chose nuclear: a nuclear reactor (epic) at (57.5,3.5), touching the west heat pipes by the first heat exchanger (2 exchanger/turbine pairs, about 11.6 MW; the east group has 3 pairs).
+- Fuel: a requester chest at (53.5,3.5) asks for 6 uranium fuel cells; its inserter is wired to the reactor's temperature signal and runs only below 700 degrees.
+- Cells reach Gleba through a landing-pad request, section "reactor cells (gleba)": uranium-fuel-cell >= 40, import from Nauvis (13,650 cells there), the pattern the pad already uses for robots and LDS. Not yet delivered: the next Nauvis-Gleba shuttle trip brings them.
+- Depleted cells: an inserter on the east side puts them into a provider chest at (61.5,3.5); depleted_return.py carries them home.
+- Watchdog alarm: no cell and cold for 20 minutes.
+- Limit: five exchanger/turbine pairs is about 29 MW at most. If demand grows, add pairs on the reactor's heat.
