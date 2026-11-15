@@ -246,6 +246,11 @@ TARGETS = {"bench": ((BX + 4.5, BY + 5.5), (BX + 5.5, BY + 5.5)),
 def refresh(target="bench", exclude=()):
     """Rewrite the rank list and the ring from the game's recipes (one RCON call; idempotent: prints 'unchanged' when nothing differs).
     Items that became impossible (a recipe no longer enabled, surface conditions Nauvis fails) drop out; newly researched ones appear."""
+    if target == "live" and not exclude:                  # the live Replicator is a registered site of scripts/replicator_cell.py (partition aware)
+        import replicator_cell
+        cells = replicator_cell.reg()
+        if "replicator" in cells:
+            return replicator_cell.refresh_one(cells["replicator"])
     from _game import tools
     (rkx, rky), (rgx, rgy) = TARGETS[target]
     code = (REFRESH.replace("EXCL", ",".join("[%r]=true" % e for e in exclude)).replace("RKX", str(rkx)).replace("RKY", str(rky))
@@ -399,7 +404,7 @@ HOLD_LUA = ("local s=game.surfaces.nauvis local W=defines.wire_connector_id loca
             "if MODE=='unhold' then rcon.print('machine '..(U+1)..': hold decider unwired') return end if MODE=='penalty' then local rq=at('requester-chest',-354+ox+2.5,-224.5) local EACH={type='virtual',name='signal-each'} h.get_or_create_control_behavior().parameters={conditions={{first_signal=EACH,comparator='>',constant=0}},outputs={{signal=EACH,copy_count_from_input=false,constant=-1000000}}} h.get_wire_connector(W.combinator_input_green,true).connect_to(rq.get_wire_connector(W.circuit_green,true),false) h.get_wire_connector(W.combinator_output_green,true).connect_to(sel.get_wire_connector(W.combinator_input_green,true),false) rcon.print('machine '..(U+1)..': own-request penalty -1000000 wired (selector green input only)') return end "
             "local EACH={type='virtual',name='signal-each'} h.get_or_create_control_behavior().parameters={conditions={{first_signal=EACH,comparator='>',constant=0}},outputs={{signal=EACH,copy_count_from_input=false,constant=HOLDH}}} "
             "h.get_wire_connector(W.combinator_input_green,true).connect_to(sel.get_wire_connector(W.combinator_output_green,true),false) "
-            "h.get_wire_connector(W.combinator_output_red,true).connect_to(sel.get_wire_connector(W.combinator_input_red,true),false) rcon.print('machine '..(U+1)..': hold +HOLDH wired')")
+            "h.get_wire_connector(W.combinator_output_green,true).connect_to(sel.get_wire_connector(W.combinator_input_green,true),false) rcon.print('machine '..(U+1)..': hold +HOLDH wired (selector green input only)')")
 
 
 def hold_step(what, apply):
