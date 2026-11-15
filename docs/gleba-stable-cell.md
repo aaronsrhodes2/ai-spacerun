@@ -167,3 +167,11 @@ Built after the Captain chose nuclear: a nuclear reactor (epic) at (57.5,3.5), t
 - Depleted cells: an inserter on the east side puts them into a provider chest at (61.5,3.5); depleted_return.py carries them home.
 - Watchdog alarm: no cell and cold for 20 minutes.
 - Limit: five exchanger/turbine pairs is about 29 MW at most. If demand grows, add pairs on the reactor's heat.
+
+## Lab pack buffer (2026-11-15)
+The Gleba labs ran out of **utility** science packs (9 of 10 labs had none) while Nauvis held 27,939 and two loaded shuttles sat at Nauvis: the 1,200-pack buffer was used up
+before the next trip. Deeper buffer for utility packs, set live (the Captain: "add a deeper utility buffer"):
+- Gleba landing pad, manual section: utility-science-pack min 1,200 -> **5,000** (max 2,400 -> 8,000). The pad's circuit-controlled section still adds 1,800 from Nauvis.
+- Each Nauvis-Gleba shuttle hub: utility from Nauvis 400 -> **800** per trip (six ships).
+- Room: the pad has 280 slots with 182 empty; 5,000 packs take 25 slots. Nauvis can always fill it (27,939 on hand, 1,698 made an hour), so no ship waits on an unmet request.
+- Other packs keep 1,200 on the pad and 400 per ship. Use the same two numbers for any pack that runs dry first.
