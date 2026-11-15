@@ -396,11 +396,41 @@ def relay(apply=False, loads=8.0, concrete=None):
               "for _,pt in pairs(game.surfaces.fulgora.find_entities_filtered{type='cargo-landing-pad'}[1].get_logistic_point()) do if pt.mode==defines.logistic_mode.requester then fill(pt,nil) n=n+1 end end rcon.print('relay group written on '..n..' request points')"))
 
 
+KIT_CHEST = (-193.5, -221.5)   # Nauvis requester chest the Replicator fills with what Aquilo's ghosts need and no one stocks
+RELEASE = ("local c=game.surfaces.nauvis.find_entities_filtered{name='requester-chest',position={%s,%s},radius=0.5}[1] if not c then rcon.print('no kit chest') return end "
+           "local nn=c.logistic_network local inv=c.get_inventory(defines.inventory.chest) local moved=0 for _,it in pairs(inv.get_contents()) do local left=it.count "
+           "for _,st in pairs(nn.storages) do if left<=0 then break end if st.name=='storage-chest' then local n=st.insert{name=it.name,quality=it.quality,count=left} if n>0 then inv.remove{name=it.name,quality=it.quality,count=n} left=left-n moved=moved+n end end end end "
+           "rcon.print('kit chest released '..moved..' items to Nauvis storage')")
+ASK = ("local c=game.surfaces.nauvis.find_entities_filtered{name='requester-chest',position={%s,%s},radius=0.5}[1] local pt=c.get_logistic_point(defines.logistic_member_index.logistic_container) "
+       "local sec=pt.sections[1] or pt.add_section() sec.filters={} for i,it in ipairs({%s}) do sec.set_slot(i,{value={type='item',name=it[1],quality='normal'},min=it[2]}) end rcon.print('kit chest asks '..#sec.filters)")
+
+
+def release(unsourced=None):
+    """Move what the Replicator made into the kit chest on to Nauvis storage (a requester chest's contents are invisible to
+    network counts, so `kit` never shipped them - found 2026-11-14 with 81 heat pipes sitting there), then ask for the shortfall left."""
+    out = lua(RELEASE % KIT_CHEST)
+    if unsourced is not None:
+        want = {}
+        for item, q, missing, why in unsourced:
+            if q == "normal" and why.startswith("no stock"):
+                want[item] = want.get(item, 0) + missing
+        out += "; " + lua(ASK % (KIT_CHEST + (",".join("{'%s',%d}" % kv for kv in sorted(want.items())),)))
+    return out
+
+
 def cycle(loads=8.0):
     """The autopilot step. Never raises."""
     out = []
     try:
+        out.append(release())
+    except Exception as exc:  # noqa: BLE001
+        out.append("release error " + repr(exc))
+    try:
         rows, unsourced, _ = kit(loads, None, show=False)
+        try:
+            out.append(release(unsourced))
+        except Exception as exc:  # noqa: BLE001
+            out.append("kit ask error " + repr(exc))
         loc = lua(FIND + "rcon.print(p.space_location and p.space_location.name or 'flight')")
         out.append("kit %d items (%d unsourced), ship %s" % (len(rows), len(unsourced), loc))
         if rows and loc == "fulgora":                     # sections are only rewritten while the ship is parked at Fulgora, never mid-flight
