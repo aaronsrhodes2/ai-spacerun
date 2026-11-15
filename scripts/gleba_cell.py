@@ -29,7 +29,8 @@ YT = (-176.5, -140.5)               # yumako tower: the only tower spot on the w
 Q = "epic"
 
 # setpoints (tune() moves the fruit caps; the rest are fixed safety lines)
-SEED_FLOOR = 20                     # towers plant only while the network holds more seeds than this: the farm can never plant itself empty
+SEED_FLOOR = 0                      # towers plant whenever the network holds a seed. (First version was 20: a cold start makes only ~10 yumako seeds, so the farm
+                                    # would never have replanted. The reserve is the locked vault, not a floor.)
 SEED_VAULT_AFTER = 50               # the vault fills only once the network holds this many
 VAULT_BAR = 21                      # 20 slots of 10 = 200 seeds per vault
 BIOFLUX_CAP = 500                   # fruit processors stop at this much bioflux (bioflux is the store: 2 h shelf)
@@ -289,7 +290,7 @@ def tune():
 
 WATCH_FILE = Path(__file__).resolve().parent.parent / "snapshots" / "gleba_cell_watch.json"
 # alarm: (what, lowest ok value, minutes it may stay below before the alarm)
-ALARMS = (("yumako-seed", 50, 10), ("jellynut-seed", 50, 10), ("bioflux", 150, 5))
+ALARMS = (("yumako-seed", 1, 20), ("jellynut-seed", 50, 10), ("bioflux", 150, 5), ("pentapod-egg", 1, 20))   # eggs: none anywhere = the egg loop is dead and cannot restart itself
 
 
 def watch():
