@@ -126,3 +126,26 @@ It alarms in game and in the log when any of these happens:
 ## Open points
 - **Captain's choice:** whether to leave the old line and old towers alone (my plan) or tear them down once the cell runs.
 - **Modules:** no productivity modules are in stock on Gleba. Without them the seed margin is the base +50%, which is enough. Modules would add to it.
+
+## Build log and lessons (2026-11-15)
+Built as `scripts/gleba_cell.py` (hub), `scripts/gleba_farms.py` (many towers), watchdog in the autopilot. First run went like this:
+
+1. Cold start worked with no help: the spoilage assembler made the first nutrients, the mash chamber then made its own. Bioflux reached 450+ within minutes.
+2. **Robot trips are the hidden limit.** A request of 20 yumako starved a chamber that eats 2 a second, 270 tiles from the farm. Fruit requests are now 250 / 120.
+3. **Seed floor was backwards.** Planting only above 20 seeds meant a cold start (about 10 yumako seeds) never replanted. Floor is 0; the locked vault is the reserve.
+4. **Chest `bar` is 1-based.** `bar=1` blocks every slot. Egg output chests have `bar=3` (eggs plus the spoilage a chamber also puts out).
+5. **`place_entities` ignores a biochamber's facing.** `cfg_lua` sets it after placing (`setdir`).
+6. **Pipes need a source.** The water header was built without a link from the pump; nothing flowed.
+7. **Eggs have no bootstrap.** Every egg was gone when the old line starved (they hatch in 15 minutes). The Captain allowed one starter egg (2026-11-15). Anything that stalls the egg loop for 15 minutes needs a spare again.
+
+## What other players do (web research, 2026-11-15; forum and Reddit advice, not official)
+Sources: Factorio forums threads "Restarting nutrients supply is a pain in the ass", "Remote restart of Gleba?", "Building on gleba"; r/factorio "Notes on Gleba"; wiki.factorio.com Gleba and Agricultural tower.
+- Make nutrients where they are eaten. Nutrients spoil in 5 minutes, so central distribution over long belts does not survive the delay. (Our hub makes nutrients beside the chambers that eat them.)
+- Keep a bootstrap that does not depend on the machines being restarted: a spoilage-to-nutrients assembler (what we have). One poster switches it off when the biochambers hold nutrients (ours runs only while spoilage is fed in).
+- Prioritise nutrients to bioflux production first; the rest can wait.
+- Fruit must be processed before it spoils or the seed chance is lost. Biochambers (+50% productivity) are what make seeds out exceed seeds in.
+- Trees do not spoil, so leave fruit on them and stop the tower when enough is on hand ("turn off the tower, not the inserters"). Ours stops the fruit inserter so the tower's output fills and it stops harvesting: same effect.
+- Surplus seeds and spoilage: recycle or burn in a heating tower.
+- Keep spare biochambers in a chest: recycling one gives a chance of an egg back, the only restart for eggs. **To do: a locked reserve of spare biochambers (like the seed vault).**
+- **Defence:** towers send out spores when they harvest, which draws pentapod attacks; more towers means more attacks. **To do: check turrets around the new towers.**
+- Avoid chest buffers between towers and first-stage processing; keep items moving. (Ours: fruit goes tower -> chest -> robot -> chamber. Watch for spoilage of fruit in chests; the fruit gate stops the towers, so chests stay small.)

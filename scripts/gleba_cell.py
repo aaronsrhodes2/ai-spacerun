@@ -98,11 +98,11 @@ def hub():
     for i in range(5):
         x = cx(i)
         if i % 2 == 0:       # egg chamber, facing east: its water inputs sit in the gap column to its right
-            P.add("biochamber", x, r2 + 3.5, 4, "pentapod-egg", Q)
+            P.add("biochamber", x, r2 + 3.5, 4, "pentapod-egg", Q, setdir=4)    # place_entities ignores the facing of a biochamber: cfg_lua sets it (east: the water inputs sit in the pipe column to its right)
             P.add("requester-chest", x, r2 + 0.5, request={"nutrients": 60, "pentapod-egg": 2})
             P.add("bulk-inserter", x, r2 + 1.5, 0, None, Q, cond=("pentapod-egg", "<", EGG_CAP))
             P.add("bulk-inserter", x, r2 + 5.5, 0, None, Q)
-            P.add("passive-provider-chest", x, r2 + 6.5, bar=1)
+            P.add("passive-provider-chest", x, r2 + 6.5, bar=3)     # bar is 1-based: bar=3 leaves TWO slots (eggs + the spoilage the chamber also puts out); bar=1 locked every slot
             for y in range(0, 6):
                 P.add("pipe", OX + 4 * i + 3.5, r2 - 0.5 + y)
         else:                # pack chamber
@@ -178,6 +178,8 @@ def cfg_lua(P):
         if not c:
             continue
         b = "do local e=s.find_entities_filtered{name='%s',position={%s,%s},radius=0.3}[1] if e then " % (e["name"], e["x"], e["y"])
+        if c.get("setdir"):
+            b += "e.direction=%d " % c["setdir"]
         if c.get("filt"):
             b += "e.use_filters=true e.set_filter(1,'%s') " % c["filt"]
         if c.get("cond"):
