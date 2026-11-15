@@ -231,6 +231,27 @@ def standing(planet):
     return r.strip() != "0"
 
 
+LIVE_RING = (-324.5, -242.5)     # the ring constant combinator of scripts/replicator_compress.py (the Replicator swap, 2026-11-14)
+
+
+def swapped(planet):
+    """True when the Replicator runs on the compact lookup (scripts/replicator_compress.py swap): its ring constant combinator stands."""
+    if planet != "replicator":
+        return False
+    r = tools["run_lua"]("rcon.print(#game.surfaces.nauvis.find_entities_filtered{name='constant-combinator',position={%s,%s},radius=0.4})" % LIVE_RING)
+    return r.strip() != "0"
+
+
+def swapped_config():
+    """What `config` may still do once the swap stands: the demand wiring, the stock stage and the silos' orbital requests (the head of CONFIG),
+    WITHOUT the item list (replicator_compress.py refresh owns it: min = rank) and WITHOUT touching the machines, chests and recipe tables."""
+    head = CONFIG[:CONFIG.index("local prev,nrom=nil,0")]
+    a = head.index("local cb=cc.get_or_create_control_behavior()")
+    key = "o[#o+1]='makeable items '..k "
+    b = head.index(key) + len(key)
+    return head[:a] + head[b:] + "rcon.print(table.concat(o,', '))"
+
+
 def main():
     global DEPTH
     step, planet = sys.argv[1], sys.argv[2]
@@ -265,7 +286,14 @@ def main():
     if step == "rom":
         print(run(ROM.replace("APPLY", "true" if apply else "false")))
     if step == "config" or (step in ("build", "rom") and apply):
-        print(run(CONFIG))
+        if swapped(planet) and "--old-design" not in sys.argv:
+            print("SWAPPED: the Replicator runs on the compact lookup (replicator_compress.py). Re-wiring the demand, stock stage and silos only; the item list is refreshed from the game."
+                  " Use --old-design to go back to the old recipe tables (that IS the rollback; run `replicator_compress.py swap rollback 0|1|2` first for each machine).")
+            print(run(swapped_config()))
+            import replicator_compress
+            print("refresh live:", replicator_compress.refresh("live"))
+        else:
+            print(run(CONFIG))
     elif step == "status":
         print(run(STATUS).replace(" ;; ", "\n"))
 

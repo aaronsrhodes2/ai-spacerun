@@ -239,7 +239,8 @@ REFRESH = (LIST_LUA + "local function at(n,x,y) return s.find_entities_filtered{
            "for _,pair in pairs{{rank,'item'},{ring,'recipe'}} do local cb=pair[1].get_or_create_control_behavior() while cb.sections_count>0 do cb.remove_section(1) end local sec=cb.add_section() "
            "for i,it in pairs(mk) do sec.set_slot(i,{value={type=pair[2],name=it,quality='normal'},min=i}) end end "
            "table.sort(add) table.sort(rem) rcon.print('changed: '..n..' items; added '..table.concat(add,',')..' ; removed '..table.concat(rem,','))")
-TARGETS = {"bench": ((BX + 4.5, BY + 5.5), (BX + 5.5, BY + 5.5))}
+TARGETS = {"bench": ((BX + 4.5, BY + 5.5), (BX + 5.5, BY + 5.5)),
+           "live": ((-348.5, -224.5), (-324.5, -242.5))}      # live: the filter constant combinator of omni_maker site replicator, and the ring
 
 
 def refresh(target="bench", exclude=()):
@@ -307,7 +308,7 @@ RISKS: (a) the 7 surface-locked items stop being requested (they could never be 
 def swap_layout():
     def e(name, tx, ty, w=1, h=1):
         return {"name": name, "x": tx + w / 2, "y": ty + h / 2, "direction": 0, "params": dict(Q)}
-    out = [e("substation", SW_X + 15, SW_Y - 3, 2, 2)]
+    out = [e("substation", SW_X + 6, SW_Y - 3, 2, 2)]
     for k in range(3):
         bx = SW_X + 4 * k
         out += [e("decider-combinator", bx, SW_Y, 1, 2), e("arithmetic-combinator", bx + 1, SW_Y, 1, 2), e("decider-combinator", bx + 2, SW_Y, 1, 2), e("arithmetic-combinator", bx + 3, SW_Y, 1, 2)]
@@ -322,6 +323,63 @@ def swap_plan():
     print("dry run of the conversion blocks:", r.get("placed"), "of", len(swap_layout()), "failed", json.dumps(r.get("failed") or [])[:300])
 
 
+# ---- the live swap, step by step (each guarded; --apply to act) ----
+LIVE_RING = (-324.5, -242.5)
+SW_PRE = ("local s=game.surfaces.nauvis local f=game.forces.player local W=defines.wire_connector_id local APPLY=DOIT local U=UNIT local ox=7*U "
+          "local function at(n,x,y) return s.find_entities_filtered{name=n,position={x,y},radius=0.4}[1] end "
+          "local rq=at('requester-chest',-354+ox+2.5,-231+6.5) local am=at('assembling-machine-3',-354+ox+2.5,-231+9.5) local sel=at('selector-combinator',-354+ox+6.5,-231+8) "
+          "local cc=at('constant-combinator',-348.5,-224.5) local ring=at('constant-combinator',RGX,RGY) local bx=SWX+4*U "
+          "local d1,a1,d2,a2=at('decider-combinator',bx+0.5,SWY+1),at('arithmetic-combinator',bx+1.5,SWY+1),at('decider-combinator',bx+2.5,SWY+1),at('arithmetic-combinator',bx+3.5,SWY+1) "
+          "if not (rq and am and sel and cc and ring and d1 and a1 and d2 and a2) then rcon.print('ABORT: an entity is missing') return end "
+          "local function wire(a,ia,b,ib) a.get_wire_connector(ia,true).connect_to(b.get_wire_connector(ib,true),false) end "
+          "local CB={W.combinator_input_red,W.combinator_input_green,W.combinator_output_red,W.combinator_output_green} local function clr(e) for _,id in pairs(CB) do e.get_wire_connector(id,true).disconnect_all() end end "
+          "local rc=rq.get_wire_connector(W.circuit_green,true) local sc=sel.get_wire_connector(W.combinator_output_green,true) "
+          "local T={} for _,c in pairs(sc.connections) do local t=c.target if t.wire_connector_id==W.combinator_input_green and t.owner.name=='decider-combinator' and t.owner.unit_number~=d1.unit_number then T[#T+1]=t.owner end end "
+          "local linked=0 for _,d in ipairs(T) do if d.get_wire_connector(W.combinator_output_green,true).is_connected_to(rc) then linked=linked+1 end end "
+          "local cut=a2.get_wire_connector(W.combinator_output_green,true).is_connected_to(rc) ")
+SW_CUT = (SW_PRE + "local dump=0 for _,c in pairs(am.get_inventory(defines.inventory.assembling_machine_dump).get_contents()) do dump=dump+c.count end "
+          "local info='machine '..(U+1)..': old table deciders on sel '..#T..', linked to the chest '..linked..', dump items '..dump..', already cut '..tostring(cut) "
+          "if cut then rcon.print('ABORT already cut: '..info) return end if dump>0 then rcon.print('ABORT dump slot not empty: '..info) return end if not APPLY then rcon.print('dry: '..info) return end "
+          "local EACH={type='virtual',name='signal-each'} clr(d1) clr(a1) clr(d2) clr(a2) "
+          "d1.get_or_create_control_behavior().parameters={conditions={{first_signal=EACH,first_signal_networks={red=false,green=true},comparator='>',constant=0},{first_signal=EACH,first_signal_networks={red=true,green=false},comparator='>',constant=0,compare_type='and'}},outputs={{signal=EACH,copy_count_from_input=true,networks={red=true,green=false}}}} "
+          "a1.get_or_create_control_behavior().parameters={first_signal=EACH,second_constant=0,operation='+',output_signal={type='virtual',name='signal-R'}} "
+          "d2.get_or_create_control_behavior().parameters={conditions={{first_signal=EACH,first_signal_networks={red=true,green=false},comparator='=',second_signal={type='virtual',name='signal-R'},second_signal_networks={red=false,green=true}}},outputs={{signal=EACH,copy_count_from_input=false,constant=1}}} "
+          "a2.get_or_create_control_behavior().parameters={first_signal=EACH,second_constant=BATCH,operation='*',output_signal=EACH} "
+          "for _,d in ipairs(T) do d.get_wire_connector(W.combinator_output_green,true).disconnect_from(rc) end "
+          "am.get_wire_connector(W.circuit_green,true).disconnect_all() am.get_wire_connector(W.circuit_red,true).disconnect_all() am.get_or_create_control_behavior().circuit_read_ingredients=true "
+          "wire(sel,W.combinator_output_green,d1,W.combinator_input_green) wire(cc,W.circuit_red,d1,W.combinator_input_red) wire(d1,W.combinator_output_green,a1,W.combinator_input_green) "
+          "wire(a1,W.combinator_output_green,d2,W.combinator_input_green) wire(ring,W.circuit_red,d2,W.combinator_input_red) wire(d2,W.combinator_output_green,am,W.circuit_green) "
+          "wire(am,W.circuit_green,a2,W.combinator_input_green) wire(a2,W.combinator_output_green,rq,W.circuit_green) "
+          "rcon.print('CUT '..info..' ; old outputs unlinked '..#T)")
+SW_BACK = (SW_PRE + "if not cut then rcon.print('not cut: nothing to roll back') return end "
+           "clr(d1) clr(a1) clr(d2) clr(a2) am.get_wire_connector(W.circuit_green,true).disconnect_all() am.get_or_create_control_behavior().circuit_read_ingredients=false "
+           "wire(am,W.circuit_green,sel,W.combinator_output_green) local n=0 for _,d in ipairs(T) do wire(d,W.combinator_output_green,rq,W.circuit_green) n=n+1 end "
+           "rcon.print('ROLLED BACK machine '..(U+1)..': am rewired to sel, '..n..' table outputs reconnected')")
+
+
+def swap_lua(code, unit, apply=False):
+    return (code.replace("DOIT", "true" if apply else "false").replace("UNIT", str(unit)).replace("RGX", str(LIVE_RING[0])).replace("RGY", str(LIVE_RING[1]))
+            .replace("SWX", str(SW_X)).replace("SWY", str(SW_Y)).replace("BATCH", str(BATCH)))
+
+
+def swap_step(what, unit=None, apply=False):
+    from _game import tools
+    if what == "place":
+        ring = tools["run_lua"]("rcon.print(#game.surfaces.nauvis.find_entities_filtered{name='constant-combinator',position={%s,%s},radius=0.4})" % LIVE_RING).strip()
+        if ring != "0" and apply:
+            sys.exit("the conversion blocks already stand: never apply twice")
+        if apply:
+            print("save:", tools["save_game"]("skippy"))
+        r = json.loads(tools["place_entities"](json.dumps(swap_layout()), surface="nauvis", dry_run=not apply, clear_trees=apply))
+        print("placed" if apply else "dry run", r.get("placed"), "failed", json.dumps(r.get("failed") or [])[:300])
+    elif what == "shadow":
+        print("refresh live:", refresh("live"))
+    elif what == "cut":
+        print(tools["run_lua"](swap_lua(SW_CUT, unit, apply)))
+    elif what == "rollback":
+        print(tools["run_lua"](swap_lua(SW_BACK, unit, True)))
+
+
 def main():
     step = sys.argv[1] if len(sys.argv) > 1 else "study"
     if step == "study":
@@ -331,7 +389,10 @@ def main():
     elif step == "bench" and sys.argv[2] == "stage2":
         bench_stage2("--apply" in sys.argv)
     elif step == "swap":
-        swap_plan()
+        if len(sys.argv) > 2 and sys.argv[2] in ("place", "shadow", "cut", "rollback"):
+            swap_step(sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 and sys.argv[3].isdigit() else None, "--apply" in sys.argv)
+        else:
+            swap_plan()
     elif step == "refresh":
         if "--test" in sys.argv:
             print("refresh test passed:", refresh_test())
