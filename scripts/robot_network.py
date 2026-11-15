@@ -42,7 +42,7 @@ CAP = 200
 STATS = ("local s=game.surfaces['%(S)s'] if not s then rcon.print('{}') return end local f=game.forces.player local best=nil "
          "for _,p in pairs(s.find_entities_filtered{force=f,type='roboport'}) do local n=p.logistic_network if n and (best==nil or #n.cells>#best.cells) then best=n end end "
          "if not best then rcon.print('{}') return end local r={id=best.network_id,cells=#best.cells,tick=game.tick,al=best.all_logistic_robots,vl=best.available_logistic_robots,ac=best.all_construction_robots,vc=best.available_construction_robots,"
-         "ghosts=s.count_entities_filtered{force=f,type='entity-ghost'},cl=0,cc=0,chest=false} "
+         "ghosts=s.count_entities_filtered{force=f,type='entity-ghost'}+(s.name=='aquilo' and s.count_entities_filtered{force=f,type='tile-ghost',ghost_name='ice-platform'} or 0),cl=0,cc=0,chest=false} "
          "local c=s.find_entities_filtered{name='requester-chest',position={%(X)s,%(Y)s},radius=0.4}[1] if c then r.chest=true r.innet=(c.logistic_network~=nil and c.logistic_network.network_id==best.network_id) "
          "for _,it in pairs(c.get_inventory(defines.inventory.chest).get_contents()) do if it.name=='logistic-robot' then r.cl=r.cl+it.count elseif it.name=='construction-robot' then r.cc=r.cc+it.count end end "
          "r.stock_l=best.get_item_count('logistic-robot') r.stock_c=best.get_item_count('construction-robot') r.frames=best.get_item_count('flying-robot-frame') r.engines=best.get_item_count('electric-engine-unit') r.batteries=best.get_item_count('battery') end "

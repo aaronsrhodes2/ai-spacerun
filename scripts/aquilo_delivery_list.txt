@@ -20,3 +20,17 @@ logistic-robot             25     0
 uranium-fuel-cell          20     0
 
 ## SCIENCE AGENT LIST (replace the block above if you have exact figures; keep the same three columns)
+
+## GHOST-LOGISTICS AGENT (2026-11-14, scripts/aquilo_ghost_logistics.py): the Captain's tile ghosts and the entity ghosts waiting for items
+##   concrete: 4,510 tile ghosts of `concrete` (land tiles) wait, network stock 0, the ice platform works make none -> the wall for ~4,500 ghosts. One-off 4,600.
+##   construction-robot: 40 on Aquilo, mean flight to the remaining platform ghosts 116 tiles (about 68 s a trip) -> 32 keep 28 platforms/min going; a
+##                       burst (stock of finished platforms) wants about 100. One-off 20 more (60 total) is enough; more only speeds up a stock burn.
+##   entity ghosts with stock 0 (lithium/pipe agent's builds): pipe 47, pumpjack 8, storage-tank 3, fast-inserter 4, substation 2, requester-chest 2,
+##                       passive-provider-chest 1, roboport 1, heating-tower 1, heat-pipe 1 (one-off, listed below; the Replicator can make most of them)
+concrete                  0      4600
+construction-robot        0        20
+pipe                      0        50
+pumpjack                  0         8
+storage-tank              0         3
+fast-inserter             0         4
+substation                0         2
