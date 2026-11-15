@@ -110,6 +110,19 @@ local covered = {}
 for _, it in pairs(mk) do covered[it] = 'assembler' end
 for _, it in pairs(smelt) do if not covered[it] then covered[it] = 'furnace' end end
 for _, e in pairs(fl) do if not covered[e.key] then covered[e.key] = 'fluid unit' end end
+local faseen = {}
+for _, name in pairs(names) do
+  local r = f.recipes[name]
+  local p = r.prototype
+  if r.enabled and has_cat(p, am3) and not p.hidden and #r.products == 1 and r.products[1].type == 'item' then
+    local it = r.products[1].name
+    if not it:find('%-barrel$') and not seen[it] and not faseen[it] and not name:find('recycling') then
+      local nf, ok = 0, true
+      for _, i in pairs(r.ingredients) do if i.type == 'fluid' then nf = nf + 1 if not bar[i.name] then ok = false end end end
+      if ok and nf == 1 then faseen[it] = true if not covered[it] then covered[it] = 'fluid-assembler unit' end end
+    end
+  end
+end
 local prod = {}
 for _, r in ipairs(live) do
   if feasrec[r.name] then
@@ -132,7 +145,7 @@ local function depth(it)
   depth_memo[it] = d + 1
   return d + 1
 end
-local out = {covered = {assembler = {}, furnace = {}, ['fluid unit'] = {}}, uncovered = {}, raw_items = {}, deep = {}, nfeas = 0}
+local out = {covered = {assembler = {}, furnace = {}, ['fluid unit'] = {}, ['fluid-assembler unit'] = {}}, uncovered = {}, raw_items = {}, deep = {}, nfeas = 0}
 for it, _ in pairs(feas) do
   local proto = prototypes.item[it]
   if proto and not proto.hidden then
@@ -296,7 +309,7 @@ def report(a, live):
              f"Biome inputs: {', '.join(RAW)}.", "",
              "## Coverage", "",
              f"- Items reachable from the biome with researched recipes: **{a['nfeas']}** ({len(a['raw_items'])} are raw inputs)",
-             f"- Covered by the Replicator: **{ncov}** (assemblers {len(cov['assembler'])}, furnace unit {len(cov['furnace'])}, fluid unit {len(cov['fluid unit'])})",
+             f"- Covered by the Replicator: **{ncov}** (assemblers {len(cov['assembler'])}, furnace unit {len(cov['furnace'])}, fluid unit {len(cov['fluid unit'])}, fluid-assembler unit {len(cov['fluid-assembler unit'])})",
              f"- Not covered, makeable elsewhere in the factory: **{sum(len(v) for v in a['uncovered'].values())}**", ""]
     lines.append("### Not covered, by reason")
     for reason, items in sorted(a["uncovered"].items(), key=lambda kv: -len(kv[1])):

@@ -1,4 +1,4 @@
-# Replicator fluid-assembler unit (design, 2026-11-14; not built yet)
+# Replicator fluid-assembler unit (built 2026-11-14 at tile (-330,-178), save `pre-fluid-asm-unit` before it)
 
 Closes the gap the Replicator audit found (docs/replicator-audit.md): 10 items whose assembler recipe needs a fluid. The Captain chose the
 **barrel-fed** design (like scripts/omni_fluid.py): no pipes to the network.
@@ -53,7 +53,15 @@ Solid ingredient stock is whatever the factory holds (engine-unit was -12, i.e. 
     python scripts/omni_fluid_asm.py status --at -330 -178
 Re-run `config --at -330 -178` after any recipe research that adds a fluid-assembler item.
 
-## Not verified
+## Verified on the live build
 
-The fluid connection E -> P (port alignment) is derived from prototype data; it has not been seen working. The first build should be watched:
-E should show the fluid in its output and P a fluid in its input within a minute of the first order.
+The fluid link works: on the first order (express underground belt) E emptied 24 lubricant barrels and filled P's fluid box (160 lubricant in P, 920 in
+E's output), P crafted 3 belts and its red chest took them. All 12 recipes wired; all 62 entities placed. The unit's maker later waited on
+ingredients the network lacked (fast underground belt); when the order cleared, trash returned the unrequested gears to the red chest.
+
+## Companion: the buffer field
+
+`scripts/replicator_buffers.py` builds 15 epic buffer chests at tile (-340,-228), above the makers, each requesting the same 11 basics (steel plate,
+iron plate, gears, advanced circuit, processing unit, pipe, low-density structure, stone brick, iron stick, explosives, battery), like the
+nuclear centrifuge block. It filled within 90 seconds. Scarce items (electronic circuit, copper plate and cable, engine unit, plastic) are left
+out until their supply recovers; `--scarce` adds them.

@@ -12,6 +12,8 @@ Steps (dry run unless --apply):
   status                 every link, plus the ship, the pad, the chests, the queue
   build [--apply]        create the platform at Gleba, lay the hull (aquilo_ship3 layout), config, targets, hold control, requests, fit explosive
   gleba-side [--apply] [--off]   cryogenic requests on the Gleba pad and lab chests (read back)
+  cryo-request N D       ship's pack request: min N, minimum_delivery_count D (keep D at or under the packs the Aquilo network holds, or the silo never launches)
+  stage [--apply]        Aquilo side before the flight: prints packs on the pad (a pad request does NOT make robots haul packs there; the silo loads from the red chest by robots) / in chests, silo rocket ready
   ammo [--apply]         bar the five explosive-rocket cell chests at 4 slots (400 each) and re-add the rocket request the cells lost; with --apply only
   load R M               move R explosive rockets and M uranium-round magazines from the Nauvis ammunition chests into the ship's hub
   route [--go] [--rockets=N] [--mags=N] [--packs=N] [--reserve=N] [--wait=TICKS]   (--reserve: the ship leaves Aquilo once its explosive rockets fall to N, packs or not: it burns ~9 a minute parked and the return needs ~800; default 900)   the schedule (paused unless --go)
@@ -70,6 +72,17 @@ local sec for _,x in pairs(p.hub.get_logistic_point()) do if x.mode==defines.log
 local at for k=1,sec.filters_count do local f=sec.get_slot(k) if f and f.value and f.value.name=='low-density-structure' then at=k end end
 if 'MODE'=='off' then if at then sec.clear_slot(at) end else sec.set_slot(at or sec.filters_count+1,{value={type='item',name='low-density-structure',quality='normal'},min=150,max=100000,import_from='gleba',request_from='platforms'}) end
 local r='absent' for k=1,sec.filters_count do local f=sec.get_slot(k) if f and f.value and f.value.name=='low-density-structure' then r='min '..f.min..' from '..tostring(f.import_from and f.import_from.name)..' request_from '..tostring(f.request_from) end end rcon.print('LDS request '..r)"""
+
+# Aquilo side staged BEFORE the ship goes (a parked ship burns 100-330 rockets a minute near Aquilo): packs in the network (red chest, as Gleba's), a rocket standing ready in the silo, delivery count at or under the packs held. The silo loads and launches an
+# orbital request only when the network holds a whole minimum_delivery_count: 379 packs against a 1,000 delivery never launched (2026-11-14).
+STAGE = """
+local s=game.surfaces.aquilo local o={} local pad=s.find_entities_filtered{type='cargo-landing-pad'}[1] local inv=pad.get_inventory(defines.inventory.cargo_landing_pad_main)
+local at for si,se in pairs(pad.get_logistic_sections().sections) do for k=1,se.filters_count do local f=se.get_slot(k) if f and f.value and f.value.name=='cryogenic-science-pack' then at={se,k} end end end
+o[#o+1]='pad request cryo '..(at and at[1].get_slot(at[2]).min or 'none')
+local tot=0 for _,c in pairs(s.find_entities_filtered{type={'container','logistic-container'}}) do tot=tot+c.get_item_count('cryogenic-science-pack') end
+o[#o+1]='packs on pad '..inv.get_item_count('cryogenic-science-pack')..', in all chests '..tot
+local si=s.find_entities_filtered{name='rocket-silo'}[1] o[#o+1]='silo status '..si.status..' rocket ready '..tostring(si.rocket~=nil)..' parts '..si.rocket_parts..' LDS on pad '..inv.get_item_count('low-density-structure')
+rcon.print(table.concat(o,'|'))"""
 
 AMMO = """
 local s=game.surfaces.nauvis local o={}
@@ -131,6 +144,10 @@ def main():
         mode = "off" if "--off" in sys.argv else ("on" if apply else "status")
         lst = "{" + ",".join("{%s,%s}" % c for c in CHESTS) + "}"
         print(run(GLEBA_SIDE.replace("MODE", mode).replace("PADN", str(PAD_PACKS)).replace("CHESTN", str(CHEST_PACKS)).replace("CHESTS", lst)).replace("|", "\n"))
+    elif step == "cryo-request":
+        print(S.lua(lua_find() + ASK_CRYO.replace("PACKS", sys.argv[2]).replace("DELIV", sys.argv[3])))
+    elif step == "stage":
+        print(run(STAGE.replace("APPLY", "yes" if apply else "no")).replace("|", chr(10)))
     elif step == "ammo":
         print(run(AMMO.replace("APPLY", "yes" if apply else "no")).replace("|", "\n"))
     elif step == "load":
