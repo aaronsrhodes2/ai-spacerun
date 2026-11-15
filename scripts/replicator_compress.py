@@ -380,6 +380,61 @@ def swap_step(what, unit=None, apply=False):
         print(tools["run_lua"](swap_lua(SW_BACK, unit, True)))
 
 
+# ---- the choice-stall fix (2026-11-14): HYSTERESIS on the score. A machine's own blue-chest requests feed back into the missing-request
+# demand, so a nested item displaced its parent, the parent's need vanished, and the machine flapped every 10-30 ticks and never finished a
+# craft. One decider per machine copies the selector's chosen item back into the score as +HOLD_H: the machine keeps its item unless another
+# beats it by more than HOLD_H (a demand difference) or the nesting first call (+10,000,000) asks for a sub-part. Rollback: `swap unhold K`.
+HOLD_H = 200
+HOLD_POS = [(-334.5, -240.0), (-333.5, -240.0), (-331.5, -240.0)]     # 1 x 2 deciders on the free strip (tiles y -241..-240)
+HOLD_LUA = ("local s=game.surfaces.nauvis local W=defines.wire_connector_id local U=UNIT local MODE='WHAT' local ox=7*U "
+            "local function at(n,x,y) return s.find_entities_filtered{name=n,position={x,y},radius=0.4}[1] end "
+            "local sel=at('selector-combinator',-354+ox+6.5,-223) local h=at('decider-combinator',HX,HY) if not (sel and h) then rcon.print('ABORT: missing entity') return end "
+            "for _,id in pairs{W.combinator_input_red,W.combinator_input_green,W.combinator_output_red,W.combinator_output_green} do h.get_wire_connector(id,true).disconnect_all() end "
+            "if MODE=='unhold' then rcon.print('machine '..(U+1)..': hold decider unwired') return end "
+            "local EACH={type='virtual',name='signal-each'} h.get_or_create_control_behavior().parameters={conditions={{first_signal=EACH,comparator='>',constant=0}},outputs={{signal=EACH,copy_count_from_input=false,constant=HOLDH}}} "
+            "h.get_wire_connector(W.combinator_input_green,true).connect_to(sel.get_wire_connector(W.combinator_output_green,true),false) "
+            "h.get_wire_connector(W.combinator_output_red,true).connect_to(sel.get_wire_connector(W.combinator_input_red,true),false) rcon.print('machine '..(U+1)..': hold +HOLDH wired')")
+
+
+def hold_step(what, apply):
+    from _game import tools
+    if what == "hold-place":
+        ents = [{"name": "decider-combinator", "x": x, "y": y, "direction": 0, "params": dict(Q)} for x, y in HOLD_POS]
+        n = tools["run_lua"]("rcon.print(#game.surfaces.nauvis.find_entities_filtered{name='decider-combinator',position={%s,%s},radius=0.4})" % HOLD_POS[0]).strip()
+        if n != "0" and apply:
+            sys.exit("hold deciders already stand: never apply twice")
+        if apply:
+            print("save:", tools["save_game"]("skippy"))
+        r = json.loads(tools["place_entities"](json.dumps(ents), surface="nauvis", dry_run=not apply, clear_trees=apply))
+        print("placed" if apply else "dry run", r.get("placed"), "failed", json.dumps(r.get("failed") or [])[:300])
+        return
+    for u in range(3):
+        code = (HOLD_LUA.replace("UNIT", str(u)).replace("WHAT", what).replace("HX", str(HOLD_POS[u][0])).replace("HY", str(HOLD_POS[u][1]))
+                .replace("HOLDH", str(HOLD_H)))
+        print(tools["run_lua"](code))
+
+
+# ---- retire the old recipe tables (LAST step of the swap): the deciders whose INPUT hangs on a machine's selector output and whose
+# OUTPUT no longer reaches anything, i.e. exactly the cut table entries (the conversion D1 and the hold decider are excluded by position/wiring).
+RETIRE_LUA = ("local s=game.surfaces.nauvis local f=game.forces.player local W=defines.wire_connector_id local APPLY=DOIT local o={} local tot,marked=0,0 "
+              "local keep={} for _,p in pairs(KEEP) do local e=s.find_entities_filtered{name='decider-combinator',position=p,radius=0.4}[1] if e then keep[e.unit_number]=true end end "
+              "for u=0,2 do local sel=s.find_entities_filtered{name='selector-combinator',position={-354+7*u+6.5,-223},radius=0.4}[1] local n,live=0,0 "
+              "for _,c in pairs(sel.get_wire_connector(W.combinator_output_green,true).connections) do local t=c.target local d=t.owner "
+              "if t.wire_connector_id==W.combinator_input_green and d.name=='decider-combinator' and not keep[d.unit_number] then "
+              "local oc=d.get_wire_connector(W.combinator_output_green,true).connection_count+d.get_wire_connector(W.combinator_output_red,true).connection_count "
+              "if oc==0 then n=n+1 if APPLY and d.order_deconstruction(f) then marked=marked+1 end else live=live+1 end end end tot=tot+n "
+              "o[#o+1]='machine '..(u+1)..': cut table deciders '..n..', still wired out '..live end rcon.print(table.concat(o,'; ')..' ; total '..tot..', marked for deconstruction '..marked)")
+
+
+def retire_tables(apply):
+    from _game import tools
+    keep = [(SW_X + 4 * u + 0.5, SW_Y + 1) for u in range(3)] + list(HOLD_POS)
+    code = RETIRE_LUA.replace("DOIT", "true" if apply else "false").replace("KEEP", "{" + ",".join("{%s,%s}" % k for k in keep) + "}")
+    if apply:
+        print("save:", tools["save_game"]("skippy"))
+    print(tools["run_lua"](code))
+
+
 def main():
     step = sys.argv[1] if len(sys.argv) > 1 else "study"
     if step == "study":
@@ -389,7 +444,11 @@ def main():
     elif step == "bench" and sys.argv[2] == "stage2":
         bench_stage2("--apply" in sys.argv)
     elif step == "swap":
-        if len(sys.argv) > 2 and sys.argv[2] in ("place", "shadow", "cut", "rollback"):
+        if len(sys.argv) > 2 and sys.argv[2] == "retire":
+            retire_tables("--apply" in sys.argv)
+        elif len(sys.argv) > 2 and sys.argv[2] in ("hold-place", "hold", "unhold"):
+            hold_step(sys.argv[2], "--apply" in sys.argv)
+        elif len(sys.argv) > 2 and sys.argv[2] in ("place", "shadow", "cut", "rollback"):
             swap_step(sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 and sys.argv[3].isdigit() else None, "--apply" in sys.argv)
         else:
             swap_plan()

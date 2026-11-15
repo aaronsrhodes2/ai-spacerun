@@ -50,7 +50,7 @@ def tolua(rows):
 # ------------------------------------------------------------------ needs
 NEEDS = ("local s=game.surfaces.aquilo local f=game.forces.player local R={} for _,r in pairs(s.find_entities_filtered{type='roboport',force=f}) do R[#R+1]=r.position end "
          "local function cov(p) for _,r in ipairs(R) do if math.abs(p.x-r.x)<=55 and math.abs(p.y-r.y)<=55 then return true end end return false end "
-         "local net=s.find_entities_filtered{type='roboport'}[1].logistic_network local need={} "
+         "local net=(function() local b for _,r in pairs(game.surfaces.aquilo.find_entities_filtered{type='roboport'}) do local n=r.logistic_network if n and (not b or #n.cells>#b.cells) then b=n end end return b end)() local need={} "
          "for _,g in pairs(s.find_entities_filtered{type='entity-ghost',force=f}) do local inn=cov(g.position) for _,it in pairs(g.ghost_prototype.items_to_place_this) do "
          "local k=it.name..' '..g.quality.name local e=need[k] if not e then e={0,0} need[k]=e end if inn then e[1]=e[1]+it.count else e[2]=e[2]+it.count end end end "
          "local o={} for k,e in pairs(need) do local n,q=k:match('(%S+) (%S+)') o[#o+1]='E '..n..' '..q..' '..e[1]..' '..e[2]..' '..net.get_item_count{name=n,quality=q} end "
@@ -96,7 +96,7 @@ def read_needs():
 def where(rows):
     """rows [(name, q)] -> {(name,q): dict(aquilo, hub, fulgora, nauvis, pad)}"""
     lst = "{" + ",".join("{'%s','%s'}" % r for r in rows) + "}"
-    out = lua("local W=%s " % lst + FIND + "local hi=p.hub.get_inventory(defines.inventory.hub_main) local an=game.surfaces.aquilo.find_entities_filtered{type='roboport'}[1].logistic_network "
+    out = lua("local W=%s " % lst + FIND + "local hi=p.hub.get_inventory(defines.inventory.hub_main) local an=(function() local b for _,r in pairs(game.surfaces.aquilo.find_entities_filtered{type='roboport'}) do local n=r.logistic_network if n and (not b or #n.cells>#b.cells) then b=n end end return b end)() "
               "local nn=game.surfaces.nauvis.find_entities_filtered{type='roboport',force='player'}[1].logistic_network local fs=game.surfaces.fulgora local ch=fs.find_entities_filtered{type={'container','logistic-container'}} "
               "local fp=fs.find_entities_filtered{type='cargo-landing-pad'}[1].get_inventory(defines.inventory.cargo_landing_pad_main) local o={} "
               "for _,w in ipairs(W) do local n=0 for _,e in pairs(ch) do n=n+e.get_inventory(defines.inventory.chest).get_item_count{name=w[1],quality=w[2]} end "
@@ -330,6 +330,20 @@ def status():
     kit()
 
 
+# ------------------------------------------------------------------ pad overflow
+# The Aquilo pad has 80 slots; a hub's trash lands there only when slots are free. Bulk ore from the other ship filled 57 of them (2026-11-14) and held
+# a kit's drop for minutes. Two epic storage chests (19.5,-11.5) (20.5,-11.5), inside the roboport network, take the ore: factory-made items moved, not made.
+OVERFLOW = [(19.5, -11.5), (20.5, -11.5)]
+PAD_MIN_FREE = 25
+
+
+def overflow():
+    return lua("local s=game.surfaces.aquilo local pad=s.find_entities_filtered{type='cargo-landing-pad'}[1].get_inventory(defines.inventory.cargo_landing_pad_main) local moved=0 "
+               "if pad.count_empty_stacks()<%d then for _,x in ipairs{%s} do local c=s.find_entities_filtered{name='storage-chest',position={x,%s},radius=0.3}[1] if c then local ci=c.get_inventory(defines.inventory.chest) "
+               "local n=math.min(pad.get_item_count('iron-ore')-400,ci.get_insertable_count('iron-ore')) if n>0 then local put=ci.insert{name='iron-ore',count=n} if put>0 then pad.remove{name='iron-ore',count=put} moved=moved+put end end end end end "
+               "rcon.print('pad free '..pad.count_empty_stacks()..', ore moved to overflow chests '..moved)" % (PAD_MIN_FREE, ",".join(str(o[0]) for o in OVERFLOW), OVERFLOW[0][1]))
+
+
 # ------------------------------------------------------------------ baseline / verify / relay / cycle
 BASE = "D:/Aaron/development/AI-factorio/snapshots/aquilo_build_baseline.json"
 
@@ -393,6 +407,10 @@ def cycle(loads=8.0):
             apply_sections(True, loads, None)
     except Exception as exc:  # noqa: BLE001
         out.append("kit error " + repr(exc))
+    try:
+        out.append(overflow())
+    except Exception as exc:  # noqa: BLE001
+        out.append("overflow error " + repr(exc))
     try:
         out.append(reload(True))
     except Exception as exc:  # noqa: BLE001
