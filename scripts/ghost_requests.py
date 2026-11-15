@@ -44,8 +44,10 @@ for _,g in pairs(s.find_entities_filtered{type='entity-ghost',force=f}) do
       pcall(function() d.tags=g.tags end)
       pcall(function() if g.ghost_type=='underground-belt' then d.type=g.belt_to_ground_type elseif g.ghost_type=='loader' or g.ghost_type=='loader-1x1' then d.type=g.loader_type end end)
       local plan pcall(function() plan=g.insert_plan end)
+      local oq=g.quality.name g.destroy()
       local ng=s.create_entity(d)
-      if ng then pcall(function() if plan and #plan>0 then ng.insert_plan=plan end end) g.destroy() else bad=bad+1 end
+      if ng then pcall(function() if plan and #plan>0 then ng.insert_plan=plan end end)
+      else bad=bad+1 d.quality=oq s.create_entity(d) end
     end
   end
 end
@@ -67,7 +69,7 @@ if not net then for _,r in pairs(s.find_entities_filtered{type='roboport',force=
 if not net then rcon.print('NONET') return end
 local need={} local outside=0 local inside=0
 local function add(g,items) local n=s.find_logistic_network_by_position(g.position,f)
-  if n ~= net then outside=outside+1 return end inside=inside+1
+  if not n or n.network_id ~= net.network_id then outside=outside+1 return end inside=inside+1
   for _,it in pairs(items) do local k=it.name..' '..g.quality.name need[k]=(need[k] or 0)+it.count end end
 for _,g in pairs(s.find_entities_filtered{type='entity-ghost',force=f}) do add(g,g.ghost_prototype.items_to_place_this or {}) end
 for _,g in pairs(s.find_entities_filtered{type='tile-ghost',force=f}) do local tp=g.ghost_prototype add(g,tp.items_to_place_this or {}) end
