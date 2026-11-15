@@ -15,7 +15,11 @@ Quality parity (2026-11-15, the Captain): we never build epic machines, we build
 Rules kept: no item is created, no ghost is touched; the section only asks, the platforms still have to carry the goods.
 Caps: --max-stacks N (default 40) limits the total pad stacks one run asks for, biggest shortfall in stacks first, so a huge blueprint cannot flood the pad.
 
-Usage: ghost_requests.py [--planet NAME ...] [--apply] [--max-stacks N]     (default: all planets, dry run)"""
+Order each run: 1 normalize ghosts to normal quality, 2 write the pad requests, 3 set non-normal slots in OUR ghost groups (ghost-auto-*, aq-ghost*) to normal
+(deliberate ones are kept: robots, modules, ungrouped and other groups), 4 upgrade everything built to the best researched quality (upgrade_quality.py; --upgrade in
+manual runs, every 4th cycle() call in the autopilot).
+
+Usage: ghost_requests.py [--planet NAME ...] [--apply] [--upgrade] [--max-stacks N]     (default: all planets, dry run)"""
 import sys
 
 from _game import tools
@@ -36,7 +40,8 @@ local s=game.surfaces['PLANET'] local f=game.forces.player local APPLY=APPLYFLAG
 local pad=s.find_entities_filtered{type='cargo-landing-pad',force=f}[1]
 local net=pad and (pad.logistic_network or s.find_logistic_network_by_position(pad.position,f))
 for _,g in pairs(s.find_entities_filtered{type='entity-ghost',force=f}) do
-  if g.quality.name~='normal' and (not net or s.find_logistic_network_by_position(g.position,f)==net) then
+  local gn=net and s.find_logistic_network_by_position(g.position,f)
+  if g.quality.name~='normal' and (not net or (gn and gn.network_id==net.network_id)) then
     n=n+1
     if APPLY then
       local d={name='entity-ghost',inner_name=g.ghost_name,position=g.position,direction=g.direction,force=f,quality='normal',fast_replace=false,raise_built=false}
@@ -99,6 +104,39 @@ def game_has(planet):
     return lua("rcon.print(game.surfaces['%s'] and 'y' or 'n')" % planet) == "y"
 
 
+# Step 3: requests for non-normal items inside GHOST groups only. Everything deliberate is left alone: ungrouped requests, the Drones / Robots groups (quality robots),
+# module requests (quality modules are made on purpose), characters, and any other group. A ghost's own request must match a ghost that is now normal.
+DOWNGRADE = """
+local f=game.forces.player local APPLY=APPLYFLAG local n,kept=0,0 local seen={}
+local function mine(g) return g and (g:find('^ghost%-auto') or g:find('^aq%-ghost')) end
+local function keep(name) local p=prototypes.item[name] return p and (p.type=='module' or p.type=='construction-robot' or p.type=='logistic-robot') end
+for _,s in pairs(game.surfaces) do for _,e in pairs(s.find_entities_filtered{force=f}) do if e.valid and e.type~='entity-ghost' and (e.type=='cargo-landing-pad' or e.type=='space-platform-hub' or e.type=='logistic-container') then
+  local ok,pts=pcall(function() return e.get_logistic_point() end)
+  if ok and pts then if pts.mode then pts={pts} end for _,pt in pairs(pts) do if pt.mode==defines.logistic_mode.requester or pt.mode==defines.logistic_mode.buffer then
+    for _,sec in ipairs(pt.sections) do if mine(sec.group) and not seen[sec.group..'@'..e.unit_number] then seen[sec.group..'@'..e.unit_number]=1
+      for k=1,sec.filters_count do local fl=sec.get_slot(k)
+        if fl and fl.value and fl.value.quality and fl.value.quality~='normal' then
+          if keep(fl.value.name) then kept=kept+1 else n=n+1
+            if APPLY then fl.value.quality='normal' pcall(function() sec.set_slot(k,fl) end) end end end end end end end end end end end end
+rcon.print('non-normal ghost-group request slots '..n..(APPLY and ' set to normal' or ' (dry run)')..', kept '..kept..' deliberate')
+"""
+
+UPGRADE_EVERY = 4        # cycle() calls between upgrade passes (the autopilot calls cycle every 5th cycle: one pass per 20 cycles)
+_calls = [0]
+
+
+def upgrade():
+    """Step 4: the game's own in-place upgrade of everything built to the best researched quality (upgrade_quality.py --items --apply); heavy, so run apart and rarely."""
+    import subprocess
+    here = __file__.rsplit("ghost_requests.py", 1)[0] or "."
+    try:
+        r = subprocess.run([sys.executable, here + "upgrade_quality.py", "--items", "--apply"], capture_output=True, text=True, timeout=900)
+        lines = [ln.strip() for ln in r.stdout.splitlines() if "upgraded" in ln or "refused" in ln]
+        return "; ".join(lines)[:300] or "nothing to upgrade"
+    except Exception as exc:  # noqa: BLE001
+        return "upgrade error: " + repr(exc)
+
+
 def read(planet):
     out = lua(READ.replace('PLANET', planet))
     if out in ("NOSURFACE", "NOPAD", "NONET"):
@@ -116,54 +154,68 @@ def read(planet):
     return "ok", rows, stat
 
 
-def main():
-    for planet in (ONLY or PLANETS):
-        print("== %s" % planet)
-        if game_has(planet):
-            print("  quality parity: " + lua(NORMALIZE.replace("PLANET", planet).replace("APPLYFLAG", "true" if APPLY else "false")))
-        status, rows, stat = read(planet)
-        if status != "ok":
-            print("  skipped: %s" % {"NOSURFACE": "no such surface", "NOPAD": "no cargo landing pad", "NONET": "pad has no logistic network"}[status])
-            continue
-        print("  ghosts inside the pad network: %d, outside coverage (not requested): %d, pad free stacks: %d" % (stat["inside"], stat["outside"], stat["free"]))
-        short = sorted([r for r in rows if r["short"] > 0], key=lambda r: -(r["short"] / r["stack"]))
-        pick, used = [], 0
-        for r in short:
-            st = -(-r["short"] // r["stack"])
-            if used + st > MAXST:
-                continue
+def pick_slots(rows):
+    short = sorted([r for r in rows if r["short"] > 0], key=lambda r: -(r["short"] / r["stack"]))
+    pick, used = [], 0
+    for r in short:
+        st = -(-r["short"] // r["stack"])
+        if used + st <= MAXST:
             used += st
             pick.append(r)
+    return short, pick, used
+
+
+def planet_steps(planet, apply, verbose):
+    """Steps 1 and 2 for one planet: normalize the ghosts, then write the pad request. Returns the number of slots written (or would be)."""
+    if not game_has(planet):
+        return 0
+    q = lua(NORMALIZE.replace("PLANET", planet).replace("APPLYFLAG", "true" if apply else "false"))
+    status, rows, stat = read(planet)
+    if verbose:
+        print("== %s" % planet)
+        print("  1 normalize: " + q)
+    if status != "ok":
+        if verbose:
+            print("  skipped: %s" % {"NOSURFACE": "no such surface", "NOPAD": "no cargo landing pad", "NONET": "pad has no logistic network"}[status])
+        return 0
+    short, pick, used = pick_slots(rows)
+    if verbose:
+        print("  ghosts inside the pad network: %d, outside coverage (not requested): %d, pad free stacks: %d" % (stat["inside"], stat["outside"], stat["free"]))
         for r in sorted(rows, key=lambda r: -r["need"])[:12]:
             print("  %-26s %-9s need %6d  network has %6d  short %6d%s" % (r["item"], r["q"], r["need"], r["have"], r["short"], "" if r in pick or not r["short"] else "  (over the stack cap)"))
-        if not short:
-            print("  nothing missing")
-        slots = "{" + ",".join("{'%s','%s',%d}" % (r["item"], r["q"], r["onpad"] + r["short"]) for r in pick) + "}"
-        if APPLY:
-            print("  " + lua((WRITE % (planet, slots)).replace("GRP", GROUP + "-" + planet)))
-        else:
-            print("  dry run: would write %d slots (%d stacks); --apply to write" % (len(pick), used))
+    slots = "{" + ",".join("{'%s','%s',%d}" % (r["item"], r["q"], r["onpad"] + r["short"]) for r in pick) + "}"
+    if apply:
+        res = lua((WRITE % (planet, slots)).replace("GRP", GROUP + "-" + planet))
+        if verbose:
+            print("  2 request: " + res)
+    elif verbose:
+        print("  2 request: dry run, would write %d slots (%d stacks)" % (len(pick), used))
+    return len(pick)
+
+
+def main():
+    """Dry run unless --apply. Order: 1 normalize ghosts, 2 pad requests, 3 downgrade ghost-group requests, 4 upgrade built entities (only with --upgrade)."""
+    for planet in (ONLY or PLANETS):
+        planet_steps(planet, APPLY, True)
+    print("== all planets")
+    print("  3 requests: " + lua(DOWNGRADE.replace("APPLYFLAG", "true" if APPLY else "false")))
+    if "--upgrade" in args:
+        print("  4 upgrade: " + (upgrade() if APPLY else "dry run (run upgrade_quality.py without --apply to count)"))
 
 
 def cycle():
-    """For the autopilot: apply on every planet, quiet; returns one log line ('gleba 3 slots, aquilo 1 slots', or 'nothing missing')."""
+    """For the autopilot, quiet, one log line. Steps 1-3 every call; step 4 every UPGRADE_EVERY calls."""
+    _calls[0] += 1
     done = []
     for planet in PLANETS:
-        status, rows, _ = read(planet)
-        if status != "ok":
-            continue
-        short = sorted([r for r in rows if r["short"] > 0], key=lambda r: -(r["short"] / r["stack"]))
-        pick, used = [], 0
-        for r in short:
-            st = -(-r["short"] // r["stack"])
-            if used + st <= MAXST:
-                used += st
-                pick.append(r)
-        slots = "{" + ",".join("{'%s','%s',%d}" % (r["item"], r["q"], r["onpad"] + r["short"]) for r in pick) + "}"
-        lua((WRITE % (planet, slots)).replace("GRP", GROUP + "-" + planet))
-        if pick:
-            done.append("%s %d slots" % (planet, len(pick)))
-    return ", ".join(done) or "nothing missing"
+        n = planet_steps(planet, True, False)
+        if n:
+            done.append("%s %d slots" % (planet, n))
+    out = ", ".join(done) or "nothing missing"
+    out += " | " + lua(DOWNGRADE.replace("APPLYFLAG", "true"))
+    if _calls[0] % UPGRADE_EVERY == 0:
+        out += " | upgrade: " + upgrade()
+    return out
 
 
 if __name__ == "__main__":
