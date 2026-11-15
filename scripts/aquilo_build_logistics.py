@@ -413,7 +413,8 @@ def relay(apply=False, loads=8.0, concrete=None):
     if not apply:
         return
     k = tolua([(r[0], r[1], r[2]) for r in rows])
-    print(lua("local K=" + k + " local function fill(pt,imp) local function drop(g) for i=pt.sections_count,1,-1 do if pt.sections[i].group==g then pt.remove_section(i) end end end drop('" + RELAY_GROUP + "') local s=pt.add_section('" + RELAY_GROUP + "') "
+    # one group name per request point: a shared group copies one list onto every point (the pad's no-import list overwrote the shuttle's)
+    print(lua("local K=" + k + " local function fill(pt,imp) local G='" + RELAY_GROUP + "'..(imp and ' ship' or ' pad') local function drop(g) for i=pt.sections_count,1,-1 do if pt.sections[i].group==g then pt.remove_section(i) end end end drop('" + RELAY_GROUP + "') drop(G) local s=pt.add_section(G) "
               "for i,r in ipairs(K) do local sl={value={type='item',name=r[1],quality=r[2]},min=r[3]} if imp then sl.max=r[3] sl.import_from=imp end s.set_slot(i,sl) end end "
               "local n=0 for _,p in pairs(game.forces.player.platforms) do if p.name:find('Nauvis-Fulgora 2 Shuttle',1,true) and p.hub then for _,pt in pairs(p.hub.get_logistic_point()) do if pt.mode==defines.logistic_mode.requester then fill(pt,'nauvis') n=n+1 end end end end "
               "for _,pt in pairs(game.surfaces.fulgora.find_entities_filtered{type='cargo-landing-pad'}[1].get_logistic_point()) do if pt.mode==defines.logistic_mode.requester then fill(pt,nil) n=n+1 end end rcon.print('relay group written on '..n..' request points')"))
@@ -462,6 +463,20 @@ def cycle(loads=8.0):
         out.append("kit %d items (%d unsourced), ship %s" % (len(rows), len(unsourced), loc))
         if rows and loc == "fulgora":                     # sections are only rewritten while the ship is parked at Fulgora, never mid-flight
             apply_sections(True, loads, None)
+    except Exception as exc:  # noqa: BLE001
+        out.append("kit error " + repr(exc))
+    try:                                                  # Nauvis -> Fulgora leg (2026-11-14: was off, so nothing ever left Nauvis; the Fulgora pad
+        if rows:                                          # had 1/80 free slots - 3 cargo bays added, 194 slots)
+            pad_free = int(lua("local i=game.surfaces.fulgora.find_entities_filtered{type='cargo-landing-pad'}[1].get_inventory(defines.inventory.cargo_landing_pad_main) rcon.print(i.count_empty_stacks())"))
+            if pad_free >= 30:
+                import io
+                import contextlib
+                buf = io.StringIO()
+                with contextlib.redirect_stdout(buf):
+                    relay(True, loads, None)
+                out.append("relay on (pad free %d)" % pad_free)
+            else:
+                out.append("relay held: Fulgora pad free %d < 30" % pad_free)
     except Exception as exc:  # noqa: BLE001
         out.append("kit error " + repr(exc))
     try:
