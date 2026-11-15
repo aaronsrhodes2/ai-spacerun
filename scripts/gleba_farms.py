@@ -146,6 +146,39 @@ def plan(kind, n):
     return P, notes
 
 
+def defend():
+    """One laser turret (power only, no ammo, no robots) beside the substation of every tower we built (the Captain, 2026-11-15: towers draw pentapod
+    attacks with their spores). Skips towers that already have a turret within 12 tiles. Gleba is peaceful mode, so this is insurance."""
+    infra = existing_infra()
+    subs = [tuple(p) for p in infra["poles"]]
+    towers = existing_towers()
+    code = ("local s=game.surfaces.gleba local o={} for _,t in pairs(s.find_entities_filtered{type='electric-turret',force=game.forces.player}) do o[#o+1]={t.position.x,t.position.y} end rcon.print(helpers.table_to_json(o))")
+    turrets = [tuple(t) for t in json.loads(L(code) or "[]")]
+    P = G.Plan()
+    taken = []
+    for tw in towers:
+        if abs(tw[0] - 195.5) < 0.1 and abs(tw[1] - 100.5) < 0.1 or abs(tw[0] + 150.5) < 0.1 and abs(tw[1] + 115.5) < 0.1:
+            continue                      # the Captain's own two towers
+        if any(dist(tw, t) < 12 for t in turrets):
+            continue
+        sub = min(subs, key=lambda p: dist(p, tw))
+        if dist(sub, tw) > 9:
+            continue
+        sp = snap("laser-turret", 1, sub[0] + 3, sub[1] + 3, taken, 4) or snap("laser-turret", 1, sub[0] - 3, sub[1] - 3, taken, 4)
+        if not sp:
+            continue
+        taken.append((sp[0], sp[1], 1))
+        turrets.append(sp)
+        P.add("laser-turret", sp[0], sp[1], 0, None, G.Q)
+    print("laser turrets planned:", len(P.ents))
+    if not P.ents:
+        return
+    G.SIZE["laser-turret"] = 1
+    print(G.clear_plants(P, True))
+    placed, failed = G.place(P, False)
+    print("placed", placed, "failed", json.dumps(failed)[:1500])
+
+
 def run(cmd, kind, n):
     P, notes = plan(kind, n)
     for line in notes:
@@ -177,6 +210,9 @@ def deliver(kind):
 
 
 if __name__ == "__main__":
+    if len(sys.argv) == 2 and sys.argv[1] == "defend":
+        defend()
+        sys.exit(0)
     if len(sys.argv) < 4:
         print(__doc__)
         sys.exit(1)

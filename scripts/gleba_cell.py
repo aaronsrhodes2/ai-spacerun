@@ -66,7 +66,7 @@ def hub():
     units = [("biochamber", "nutrients-from-yumako-mash"), ("biochamber", "yumako-processing"), ("biochamber", "bioflux"),
              ("biochamber", "jellynut-processing"), ("biochamber", "nutrients-from-bioflux"), ("assembling-machine-3", "nutrients-from-spoilage")]
     # buffers sized to the robot round trip, not to the machine: yumako processing eats 2 a second and the farm is 270 tiles away (first run: 20 starved it)
-    req = [{"nutrients": 10}, {"yumako": 250, "nutrients": 10}, {"nutrients": 10}, {"jellynut": 120, "nutrients": 10}, {"bioflux": 60, "nutrients": 10}, {"spoilage": 100}]
+    req = [{"nutrients": 10}, {"yumako": 250, "nutrients": 10}, {"nutrients": 10}, {"jellynut": 120, "nutrients": 10}, {"bioflux": 60, "nutrients": 10}, {"spoilage": 400}]
     gate = [("nutrients", "<", NUTRIENT_LOW), ("bioflux", "<", BIOFLUX_CAP), None, ("bioflux", "<", BIOFLUX_CAP), ("nutrients", "<", NUTRIENT_CAP), None]
     for i, (m, rec) in enumerate(units):
         x = cx(i)
@@ -272,6 +272,30 @@ STATUS = ("local s=game.surfaces.gleba local f=game.forces.player local net=s.fi
           "rcon.print(helpers.table_to_json(o))") % (OX + 10, OY + 8, OX - 1, OY, OX + 24, OY + 17, -300, -300, 300, 300, OX - 1, OY, OX + 24, OY + 17)
 
 
+SPOIL_SITES = [(113.5, 33.5)]       # centres found by search 2026-11-15 (the column east of the last hub unit is full of the old line's pipes)
+
+
+def spoilage_works(sites=None):
+    """More spoilage -> nutrients (the Captain, 2026-11-15: "convert spoilage to more nutrient"; power comes from nuclear, so nothing burns spoilage).
+    10 spoilage make 1 nutrient, a nutrient rots back into 1 spoilage after 5 minutes, so every round trip shrinks the pile by 9/10: a sink that needs
+    no valve. One plain assembler (no nutrients needed to run) per site; the first one's request is raised from 100 to 400 (a robot trip brings
+    100-odd, an assembler eats 10 per craft)."""
+    P = Plan()
+    for x, y in (sites or SPOIL_SITES):
+        P.add("assembling-machine-3", x, y, 0, "nutrients-from-spoilage", Q)
+        P.add("requester-chest", x, y - 3, request={"spoilage": 400})
+        P.add("bulk-inserter", x, y - 2, 0, None, Q)
+        P.add("bulk-inserter", x, y + 2, 0, None, Q)
+        P.add("passive-provider-chest", x, y + 3, bar=3)
+        P.add("medium-electric-pole", x - 2, y)
+    placed, failed = place(P, False)
+    out = ["placed %d failed %s" % (placed, json.dumps(failed)[:800])]
+    out += cfg_lua(P)
+    out.append(L("local s=game.surfaces.gleba local e=s.find_entities_filtered{name='requester-chest',position={%s,%s},radius=0.4}[1] "
+                 "local sec=e.get_requester_point().get_section(1) sec.set_slot(1,{value={type='item',name='spoilage',quality='normal',comparator='='},min=400}) rcon.print('first spoilage request raised to 400')" % (cx(5), OY + 0.5)))
+    return " | ".join(out)
+
+
 def status():
     return json.loads(L(STATUS))
 
@@ -291,15 +315,36 @@ def tune():
 
 
 WATCH_FILE = Path(__file__).resolve().parent.parent / "snapshots" / "gleba_cell_watch.json"
-# alarm: (what, lowest ok value, minutes it may stay below before the alarm)
-ALARMS = (("yumako-seed", 1, 20), ("jellynut-seed", 50, 10), ("bioflux", 150, 5), ("pentapod-egg", 1, 20))   # eggs: none anywhere = the egg loop is dead and cannot restart itself
+
+# The Captain's five Gleba blockers (2026-11-15): egg starvation, seed starvation, fruit starvation, spoilage blockage, spoilage backup.
+# blockers() reads what each one needs; watch() raises one in-game alarm per cause (at most once an hour) when it persists.
+BLOCKERS = (
+    "local s=game.surfaces.gleba local f=game.forces.player local net=s.find_logistic_network_by_position({%s,%s},f) local o={} "
+    "local function cnt(n) return math.max(0,net.get_item_count(n)) end "
+    "local eggs=cnt('pentapod-egg') local blocked=0 "
+    "for _,e in pairs(s.find_entities_filtered{area={{%s,%s},{%s,%s}},force=f,type='assembling-machine'}) do "
+    "for _,inv in pairs({e.get_inventory(defines.inventory.crafter_input),e.get_inventory(defines.inventory.crafter_output)}) do if inv then eggs=eggs+inv.get_item_count('pentapod-egg') end end "
+    "if e.status==defines.entity_status.full_output and e.get_output_inventory().get_item_count('spoilage')>0 then blocked=blocked+1 end end "
+    "o.eggs=eggs o.spoilage_blocked=blocked o.spoilage=cnt('spoilage') o.yumako_seed=cnt('yumako-seed') o.jellynut_seed=cnt('jellynut-seed') "
+    "o.yumako=cnt('yumako') o.jellynut=cnt('jellynut') local pl={} for _,e in pairs(s.find_entities_filtered{type='plant'}) do pl[e.name]=(pl[e.name] or 0)+1 end "
+    "o.yumako_plants=pl['yumako-tree'] or 0 o.jellynut_plants=pl['jellystem'] or 0 "
+    "local full=0 for _,c in pairs(s.find_entities_filtered{area={{%s,%s},{%s,%s}},force=f,name='passive-provider-chest'}) do local inv=c.get_inventory(defines.inventory.chest) if inv.get_item_count('spoilage')>0 and inv.count_empty_stacks()==0 then full=full+1 end end "
+    "o.spoilage_chests_full=full rcon.print(helpers.table_to_json(o))"
+) % (OX + 10, OY + 8, OX - 1, OY, OX + 28, OY + 17, OX - 1, OY, OX + 28, OY + 17)
+
+SPOIL_BACKUP = 1500                 # spoilage in the network above this for 10 minutes is a backup
+
+
+def blockers():
+    return json.loads(L(BLOCKERS))
 
 
 def watch():
-    """Autopilot hook, once a cycle: balance the fruit caps, log one line, raise an in-game alarm (once an hour per cause) when a line stays low.
+    """Autopilot hook, once a cycle: balance the fruit caps, log one line, raise an in-game alarm (once an hour per cause) when a blocker persists.
     The first 30 minutes after a build or restart are a grace period: the buffers are still filling."""
     try:
         st = status()
+        bl = blockers()
     except Exception as exc:  # noqa: BLE001
         return "gleba cell: no reading (%r)" % exc
     tune_msg = tune()
@@ -308,22 +353,33 @@ def watch():
     state.setdefault("since", {})
     state.setdefault("alarmed", {})
     state.setdefault("started", now)
+    # (key, true while the trouble lasts, minutes it may last, text)
+    conds = [
+        ("bioflux", st.get("bioflux", 0) < 150, 5, "bioflux %d (below 150)" % st.get("bioflux", 0)),
+        ("egg starvation", bl["eggs"] == 0, 15, "no pentapod egg anywhere: the egg loop is dead and eggs cannot restart themselves"),
+        ("seed starvation yumako", bl["yumako_seed"] == 0 and bl["yumako_plants"] < 10, 20, "no yumako seed and %d trees" % bl["yumako_plants"]),
+        ("seed starvation jellynut", bl["jellynut_seed"] == 0 and bl["jellynut_plants"] < 10, 20, "no jellynut seed and %d stems" % bl["jellynut_plants"]),
+        ("fruit starvation yumako", bl["yumako"] < 50, 15, "yumako stock %d" % bl["yumako"]),
+        ("fruit starvation jellynut", bl["jellynut"] < 30, 15, "jellynut stock %d" % bl["jellynut"]),
+        ("spoilage blockage", bl["spoilage_blocked"] > 0, 5, "%d machines stopped with spoilage in their output" % bl["spoilage_blocked"]),
+        ("spoilage backup", bl["spoilage"] > SPOIL_BACKUP or bl["spoilage_chests_full"] > 0, 10,
+         "spoilage %d in the network, %d chests full of it" % (bl["spoilage"], bl["spoilage_chests_full"])),
+    ]
     alarms = []
-    for name, low, minutes in ALARMS:
-        v = st.get(name, 0)
-        if v >= low:
-            state["since"].pop(name, None)
+    for key, bad, minutes, text in conds:
+        if not bad:
+            state["since"].pop(key, None)
             continue
-        t0 = state["since"].setdefault(name, now)
-        if now - t0 > minutes * 60 and now - state["started"] > 1800 and now - state["alarmed"].get(name, 0) > 3600:
-            alarms.append("%s %d (below %d for %d min)" % (name, v, low, (now - t0) // 60))
-            state["alarmed"][name] = now
+        t0 = state["since"].setdefault(key, now)
+        if now - t0 > minutes * 60 and now - state["started"] > 1800 and now - state["alarmed"].get(key, 0) > 3600:
+            alarms.append("%s: %s" % (key, text))
+            state["alarmed"][key] = now
     if alarms:
-        L("game.print('[Gleba cell] ALARM: " + "; ".join(alarms) + ". Seeds in the vault stay locked until the Captain says.')")
+        L("game.print('[Gleba cell] ALARM " + "; ".join(alarms).replace("'", "") + ". The locked seed vault stays shut until the Captain says.')")
     WATCH_FILE.write_text(json.dumps(state))
-    return "gleba cell: packs/min %.1f, bioflux %d, nutrients %d, eggs %d, seeds Y%d J%d, vault %s%s | %s" % (
-        st.get("packs_per_min", 0), st.get("bioflux", 0), st.get("nutrients", 0), st.get("pentapod-egg", 0), st.get("yumako-seed", 0),
-        st.get("jellynut-seed", 0), st.get("vault") or {}, (" | ALARM " + "; ".join(alarms)) if alarms else "", tune_msg)
+    return "gleba cell: packs/min %.1f, bioflux %d, nutrients %d, eggs %d, seeds Y%d J%d, fruit Y%d J%d, spoilage %d (blocked %d), vault %s%s | %s" % (
+        st.get("packs_per_min", 0), st.get("bioflux", 0), st.get("nutrients", 0), bl["eggs"], bl["yumako_seed"], bl["jellynut_seed"],
+        bl["yumako"], bl["jellynut"], bl["spoilage"], bl["spoilage_blocked"], st.get("vault") or {}, (" | ALARM " + "; ".join(alarms)) if alarms else "", tune_msg)
 
 
 if __name__ == "__main__":
@@ -338,6 +394,8 @@ if __name__ == "__main__":
         print(json.dumps(status(), indent=1))
     elif cmd == "tune":
         print(tune())
+    elif cmd == "spoilage":
+        print(spoilage_works())
     elif cmd == "watch":
         print(watch())
     elif cmd == "vault_release":
