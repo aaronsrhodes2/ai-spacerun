@@ -30,8 +30,9 @@ BATCH = 5
 # the same selection omni_maker.CONFIG uses: enabled, assembler-3 category, not hidden, single item product, solid ingredients only,
 # not a science pack or recycling, and only items with exactly one such recipe
 DUMP = ("local f=game.forces.player local cats=prototypes.entity['assembling-machine-3'].crafting_categories local seen,list,rec={},{},{} "
-        "for name,r in pairs(f.recipes) do local p=r.prototype local okc=false for _,c in pairs(p.categories) do if cats[c] then okc=true end end "
-        "if r.enabled and okc and not p.hidden and #r.products==1 and r.products[1].type=='item' and not name:find('science%-pack') and not name:find('recycling') then "
+        "local s=game.surfaces.nauvis for name,r in pairs(f.recipes) do local p=r.prototype local okc=false for _,c in pairs(p.categories) do if cats[c] then okc=true end end "
+        "local surf=true for _,c in pairs(p.surface_conditions or {}) do local v=s.get_property(c.property) if (c.min and v<c.min) or (c.max and v>c.max) then surf=false end end "
+        "if r.enabled and okc and surf and not p.hidden and #r.products==1 and r.products[1].type=='item' and not name:find('science%-pack') and not name:find('recycling') then "
         "local solid=true for _,i in pairs(r.ingredients) do if i.type~='item' then solid=false end end local it=r.products[1].name "
         "if solid then if seen[it] then seen[it]=2 else seen[it]=1 list[#list+1]=it rec[it]=r end end end end local out={} "
         "for _,it in pairs(list) do if seen[it]==1 then local t={} for _,i in pairs(rec[it].ingredients) do t[#t+1]=i.name..':'..i.amount end "
@@ -222,6 +223,105 @@ def status():
     print("chest wire:", bench_read())
 
 
+# ---- ROUND 2: the dynamic refresh. Circuits cannot read the research tree, so a script re-reads it and rewrites ONLY the constant combinators.
+# The machine itself reads each recipe's ingredients from the game, so the only data left outside the game is the LIST of makeable items.
+LIST_LUA = ("local s=game.surfaces.nauvis local f=game.forces.player local cats=prototypes.entity['assembling-machine-3'].crafting_categories local EX={EXCL} local seen,list={},{} "
+            "for name,r in pairs(f.recipes) do local p=r.prototype local okc=false for _,c in pairs(p.categories) do if cats[c] then okc=true end end "
+            "local surf=true for _,c in pairs(p.surface_conditions or {}) do local v=s.get_property(c.property) if (c.min and v<c.min) or (c.max and v>c.max) then surf=false end end "
+            "if r.enabled and okc and surf and not p.hidden and #r.products==1 and r.products[1].type=='item' and not name:find('science%-pack') and not name:find('recycling') then "
+            "local solid=true for _,i in pairs(r.ingredients) do if i.type~='item' then solid=false end end local it=r.products[1].name "
+            "if solid and not EX[it] then if seen[it] then seen[it]=2 else seen[it]=1 list[#list+1]=it end end end end local mk={} for _,it in pairs(list) do if seen[it]==1 then mk[#mk+1]=it end end table.sort(mk) ")
+REFRESH = (LIST_LUA + "local function at(n,x,y) return s.find_entities_filtered{name=n,position={x,y},radius=0.4}[1] end local rank,ring=at('constant-combinator',RKX,RKY),at('constant-combinator',RGX,RGY) "
+           "local cur={} for _,sec in pairs(rank.get_or_create_control_behavior().sections) do for _,fl in pairs(sec.filters) do if fl.value then cur[fl.value.name]=fl.min end end end "
+           "local same=true local n=0 for i,it in pairs(mk) do n=n+1 if cur[it]~=i then same=false end end local m=0 for _ in pairs(cur) do m=m+1 end if m~=n then same=false end "
+           "local add,rem={},{} for _,it in pairs(mk) do if not cur[it] then add[#add+1]=it end end local have={} for _,it in pairs(mk) do have[it]=true end for it in pairs(cur) do if not have[it] then rem[#rem+1]=it end end "
+           "if same then rcon.print('unchanged '..n) return end "
+           "for _,pair in pairs{{rank,'item'},{ring,'recipe'}} do local cb=pair[1].get_or_create_control_behavior() while cb.sections_count>0 do cb.remove_section(1) end local sec=cb.add_section() "
+           "for i,it in pairs(mk) do sec.set_slot(i,{value={type=pair[2],name=it,quality='normal'},min=i}) end end "
+           "table.sort(add) table.sort(rem) rcon.print('changed: '..n..' items; added '..table.concat(add,',')..' ; removed '..table.concat(rem,','))")
+TARGETS = {"bench": ((BX + 4.5, BY + 5.5), (BX + 5.5, BY + 5.5))}
+
+
+def refresh(target="bench", exclude=()):
+    """Rewrite the rank list and the ring from the game's recipes (one RCON call; idempotent: prints 'unchanged' when nothing differs).
+    Items that became impossible (a recipe no longer enabled, surface conditions Nauvis fails) drop out; newly researched ones appear."""
+    from _game import tools
+    (rkx, rky), (rgx, rgy) = TARGETS[target]
+    code = (REFRESH.replace("EXCL", ",".join("[%r]=true" % e for e in exclude)).replace("RKX", str(rkx)).replace("RKY", str(rky))
+            .replace("RGX", str(rgx)).replace("RGY", str(rgy)))
+    return tools["run_lua"](code).strip()
+
+
+def refresh_test():
+    """Simulate a research unlock without writing research state: leave 'lab' out of the list, check the bench answers nothing for it, then
+    refresh again and check it is back and answers with its ingredients. Third call must say 'unchanged'."""
+    import time
+    r0 = refresh("bench")
+    print("1 refresh (normal):", r0[:300])
+    print("2 refresh (idempotent):", refresh("bench")[:80])
+    print("3 refresh excluding lab:", refresh("bench", ["lab"])[:200])
+    bench_pick("lab")
+    time.sleep(1.5)
+    out_gone = bench_read()
+    print("  lab chosen while not listed ->", out_gone)
+    print("4 refresh (lab becomes available again):", refresh("bench")[:200])
+    ok = False
+    for w in (1.0, 2.0, 3.0):
+        bench_pick("lab")
+        time.sleep(w)
+        got = bench_read()
+        if got == expected("lab"):
+            ok = True
+            break
+    print("  lab chosen after refresh ->", got, "| matches f(lab) x BATCH:", ok)
+    print("5 refresh (idempotent again):", refresh("bench")[:80])
+    bench_pick(None)
+    return ok and out_gone == {}
+
+
+# ---- the LIVE SWAP: documented and dry-run only. This script never performs it (the Captain decides). ----
+SW_X, SW_Y = -338, -243          # tiles: three 4-combinator conversion blocks and the ring, north strip beside the bench (outside the wall)
+
+SWAP_PLAN = """LIVE SWAP PLAN (not performed by this script)
+ 0. Preconditions: refresh target 'live' reads/writes the filter constant combinator at (-348.5,-224.5) (omni_maker site replicator, cc at 5.5,6.5)
+    and the ring constant combinator placed in step 2. `swap` below dry-runs the placements. Nobody may run omni_maker.py config after the swap
+    (it re-wires the old tables: that IS the rollback). Tell the other sessions (ghost_demand, replicator_viz, omni_fluid_asm) first.
+ 1. Save: tools['save_game']('skippy') (rollback point 1).
+ 2. Place (place_entities, epic): substation + 3 x [D1 decider, A1 arithmetic, D2 decider, A2 arithmetic] + ring constant combinator at the swap site.
+    Nothing is wired yet: the live Replicator is unchanged.
+ 3. SHADOW: `refresh live` rewrites the filter list with min=rank (the demand deciders only test > 0, so they are unaffected) and fills the ring.
+    Check the live Replicator still answers (omni_maker.py status replicator).
+ 4. Cut machine 3 over first (the last in the nesting chain, least loaded): wire sel3 -> D1 -> A1 -> D2 -> machine 3 -> A2 -> blue chest 3, and
+    disconnect the OLD table deciders' OUTPUT wires from chest 3 (entities stay). Verify on a real request: chest 3 wants f(item) x 5, the red chest fills.
+ 5. Same for machine 2, then machine 1, one at a time, each confirmed on a real request.
+ 6. Soak for a day: refresh runs from the autopilot every few cycles; an unlocked item appears with no manual step.
+ 7. RETIRE LAST: deconstruct the old table deciders (only entities the omni_maker layout built, matched by name+position, like replicator_move.py retire-old).
+ROLLBACK at any step before 7: `python scripts/omni_maker.py config replicator` (disconnects every machine and chest and re-wires the old tables
+    from sel; the new blocks just go idle), or load the saved game 'skippy'. After step 7 only the saved game restores them.
+RISKS: (a) the 7 surface-locked items stop being requested (they could never be made); (b) a non-empty machine dump slot or inserted modules block recipe
+    changes (seen on the bench): empty them before cutover; (c) anything that re-runs omni_maker config undoes the cutover; (d) recipe signals appear
+    on the chests' wires (wire contents verified on the bench; the chest request effect itself NOT yet checked); (e) fluid and fluid-assembler units are NOT part of this swap; (f) one tick of lag more
+    between choice and request (4 combinators in series)."""
+
+
+def swap_layout():
+    def e(name, tx, ty, w=1, h=1):
+        return {"name": name, "x": tx + w / 2, "y": ty + h / 2, "direction": 0, "params": dict(Q)}
+    out = [e("substation", SW_X + 15, SW_Y - 3, 2, 2)]
+    for k in range(3):
+        bx = SW_X + 4 * k
+        out += [e("decider-combinator", bx, SW_Y, 1, 2), e("arithmetic-combinator", bx + 1, SW_Y, 1, 2), e("decider-combinator", bx + 2, SW_Y, 1, 2), e("arithmetic-combinator", bx + 3, SW_Y, 1, 2)]
+    out.append(e("constant-combinator", SW_X + 13, SW_Y))
+    return out
+
+
+def swap_plan():
+    from _game import tools
+    print(SWAP_PLAN)
+    r = json.loads(tools["place_entities"](json.dumps(swap_layout()), surface="nauvis", dry_run=True))
+    print("dry run of the conversion blocks:", r.get("placed"), "of", len(swap_layout()), "failed", json.dumps(r.get("failed") or [])[:300])
+
+
 def main():
     step = sys.argv[1] if len(sys.argv) > 1 else "study"
     if step == "study":
@@ -230,6 +330,13 @@ def main():
         bench_build("--apply" in sys.argv)
     elif step == "bench" and sys.argv[2] == "stage2":
         bench_stage2("--apply" in sys.argv)
+    elif step == "swap":
+        swap_plan()
+    elif step == "refresh":
+        if "--test" in sys.argv:
+            print("refresh test passed:", refresh_test())
+        else:
+            print(refresh("bench"))
     elif step == "generate":
         generate()
     elif step == "status":

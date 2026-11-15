@@ -43,24 +43,6 @@
 "recipe": "arithmetic-combinator",
 "yield": 1
 },
-"artificial-jellynut-soil": {
-"ing": {
-"jellynut-seed": 2,
-"landfill": 5,
-"nutrients": 50
-},
-"recipe": "artificial-jellynut-soil",
-"yield": 10
-},
-"artificial-yumako-soil": {
-"ing": {
-"landfill": 5,
-"nutrients": 50,
-"yumako-seed": 2
-},
-"recipe": "artificial-yumako-soil",
-"yield": 10
-},
 "artillery-shell": {
 "ing": {
 "calcite": 1,
@@ -196,15 +178,15 @@
 "recipe": "big-electric-pole",
 "yield": 1
 },
-"biochamber": {
+"biolab": {
 "ing": {
-"electronic-circuit": 5,
-"iron-plate": 20,
-"landfill": 1,
-"nutrients": 5,
-"pentapod-egg": 1
+"biter-egg": 10,
+"capture-robot-rocket": 2,
+"lab": 1,
+"refined-concrete": 25,
+"uranium-235": 3
 },
-"recipe": "biochamber",
+"recipe": "biolab",
 "yield": 1
 },
 "boiler": {
@@ -387,16 +369,6 @@
 "recipe": "crusher",
 "yield": 1
 },
-"cryogenic-plant": {
-"ing": {
-"lithium-plate": 20,
-"processing-unit": 20,
-"refined-concrete": 40,
-"superconductor": 20
-},
-"recipe": "cryogenic-plant",
-"yield": 1
-},
 "decider-combinator": {
 "ing": {
 "copper-cable": 5,
@@ -491,16 +463,6 @@
 "iron-plate": 10
 },
 "recipe": "electric-mining-drill",
-"yield": 1
-},
-"electromagnetic-plant": {
-"ing": {
-"holmium-plate": 150,
-"processing-unit": 50,
-"refined-concrete": 50,
-"steel-plate": 50
-},
-"recipe": "electromagnetic-plant",
 "yield": 1
 },
 "electronic-circuit": {
@@ -806,15 +768,6 @@
 "recipe": "light-armor",
 "yield": 1
 },
-"lightning-rod": {
-"ing": {
-"copper-cable": 12,
-"steel-plate": 8,
-"stone-brick": 4
-},
-"recipe": "lightning-rod",
-"yield": 1
-},
 "locomotive": {
 "ing": {
 "electronic-circuit": 10,
@@ -1040,6 +993,16 @@
 "recipe": "productivity-module-2",
 "yield": 1
 },
+"productivity-module-3": {
+"ing": {
+"advanced-circuit": 5,
+"biter-egg": 1,
+"processing-unit": 5,
+"productivity-module-2": 4
+},
+"recipe": "productivity-module-3",
+"yield": 1
+},
 "programmable-speaker": {
 "ing": {
 "copper-cable": 5,
@@ -1145,16 +1108,6 @@
 "steel-plate": 10
 },
 "recipe": "rail-support",
-"yield": 1
-},
-"recycler": {
-"ing": {
-"concrete": 20,
-"iron-gear-wheel": 40,
-"processing-unit": 6,
-"steel-plate": 20
-},
-"recipe": "recycler",
 "yield": 1
 },
 "refined-hazard-concrete": {
