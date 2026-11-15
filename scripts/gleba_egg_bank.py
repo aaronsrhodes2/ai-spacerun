@@ -28,10 +28,10 @@ import gleba_cell as G
 L = G.L
 O = (82, 44)                 # top-left tile of the bank
 PERIOD = 36000               # ticks between heartbeats: 10 minutes, inside the 15 minute hatch time
-WINDOW = 300                 # ticks the window stays open (5 s: enough for 30 nutrients to each chamber)
-EGG_MAX = 10                 # the feed stops while the ring holds this many eggs (6 deadlocked a ring seeded with 2 that had grown to 7: no feed, no craft, eggs idle)
+WINDOW = 900                 # ticks the window stays open (15 s: N needs two crafts to make the 60 nutrients both chambers need, and nutrients rot in 5 minutes so each heartbeat must finish in one window)
+EGG_MAX = 30                 # the feed stops only on real overgrowth (6 and then 10 both deadlocked a ring whose eggs sat idle for want of nutrients: the cap shut the very feed they needed)
 KEEP_EGGS = 2                # the tap never takes the ring below this
-NET_EGG_WANT = 8             # the tap opens only while the network holds fewer eggs than this
+NET_EGG_WANT = 30            # the tap is open while the network holds fewer eggs than this: the main loop always wants eggs, so the breeder lends its surplus instead of letting it age
 BIOFLUX_BUFFER = 100         # about 10 heartbeats = 100 minutes of life if the whole cell is dead
 BIOFLUX_HEALTHY = 150        # the bioflux inserter refills the buffer only while the cell holds more than this
 NEED_BIOFLUX_IN_BANK = 10    # the tap stays shut when the bank holds less bioflux than this (N input + chest)
@@ -54,7 +54,7 @@ def plan():
     P.add("bulk-inserter", *w(2, 3), 8, None, G.Q, feed=True)
     P.add("bulk-inserter", *w(4, 3), 8, None, G.Q, feed=True)
     # fuel loop for N: I1 N->Cn, I3 Cn->Cm, I2 Cm->N
-    P.add("bulk-inserter", *w(1, 4), 4, None, G.Q)         # inserter direction = the side it PICKS UP from (E=4: picks east, drops west)
+    P.add("bulk-inserter", *w(1, 4), 4, None, G.Q, loop=True)         # gated in circuit(): open only while the heartbeat window is CLOSED, so the egg chambers are fed first # inserter direction = the side it PICKS UP from (E=4: picks east, drops west)
     P.add("steel-chest", *w(0, 4))
     P.add("bulk-inserter", *w(0, 5), 0, None, G.Q)
     P.add("requester-chest", *w(0, 6), request={"nutrients": 8})
@@ -125,6 +125,7 @@ local function gate(e,sig,wire_from)
 local n=0
 for _,p in pairs({{%(f1)s},{%(f2)s},{%(f3)s}}) do local e=at('bulk-inserter',p[1],p[2]) if e then gate(e,G1,D1) n=n+1 end end
 local tap=at('bulk-inserter',%(tapx)s,%(tapy)s) if tap then gate(tap,G2,D2) n=n+1 end
+local loop=at('bulk-inserter',%(lx)s,%(ly)s) if loop then local lcb=loop.get_or_create_control_behavior() lcb.circuit_enable_disable=true lcb.circuit_condition={first_signal=G1,comparator='<',constant=1} con(D1,R.combinator_output_red).connect_to(con(loop,R.circuit_red),false,WO) n=n+1 end
 rcon.print('circuit built, gated inserters '..n)
 """
 
@@ -135,7 +136,7 @@ def circuit():
     tap = w(7, 1)
     code = CIRCUIT % dict(e1x=E1[0], e1y=E1[1], e2x=E2[0], e2y=E2[1], nx=N[0], ny=N[1], cx0=O[0] - 3, cy0=O[1], cx1=O[0] - 0.5, cy1=O[1] + 9,
                           period=PERIOD, window=WINDOW, emax=EGG_MAX, keep=KEEP_EGGS, needbf=NEED_BIOFLUX_IN_BANK,
-                          f1="%s,%s" % f1, f2="%s,%s" % f2, f3="%s,%s" % f3, tapx=tap[0], tapy=tap[1])
+                          f1="%s,%s" % f1, f2="%s,%s" % f2, f3="%s,%s" % f3, tapx=tap[0], tapy=tap[1], lx=w(1, 4)[0], ly=w(1, 4)[1])
     print(L(code))
 
 

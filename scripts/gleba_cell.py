@@ -74,7 +74,7 @@ def hub():
         P.add("requester-chest", x, r1 + 0.5, request=req[i])
         P.add("bulk-inserter", x, r1 + 1.5, 0, None, Q, cond=gate[i])
     # direct insertion: yumako processing -> restart chamber (west) and -> bioflux (east); jellynut processing -> bioflux (west)
-    P.add("bulk-inserter", OX + 3.5, r1 + 3.5, 4, None, Q, cond=("nutrients", "<", NUTRIENT_LOW))
+    P.add("bulk-inserter", OX + 3.5, r1 + 3.5, 4, None, Q)        # mash -> nutrients is ungated: surplus mash becomes nutrients (the Captain: convert, do not waste), and the processor never blocks on its own mash
     P.add("bulk-inserter", OX + 7.5, r1 + 3.5, 12, None, Q)
     P.add("bulk-inserter", OX + 11.5, r1 + 3.5, 4, None, Q)
     # outputs
@@ -90,6 +90,10 @@ def hub():
         P.add("steel-chest", x, r1 + 6.5, bar=VAULT_BAR, vault=seed)
         P.add("bulk-inserter", x + 1, r1 + 5.5, 0, None, Q, filt="spoilage")                                   # rot out
         P.add("passive-provider-chest", x + 1, r1 + 6.5)
+    # seed feed (2026-11-15): the bioflux cap stops the yumako processor, and the processor is the only seed source, so yumako seeds starved at 0 while 20 towers waited.
+    # A second small chest + inserter feeds it whenever the network holds fewer than SEED_WANT yumako seeds, whatever the bioflux level.
+    P.add("requester-chest", cx(1) + 1, r1 + 0.5, request={"yumako": 40})
+    P.add("bulk-inserter", cx(1) + 1, r1 + 1.5, 0, None, Q, cond=("yumako-seed", "<", 30))
     for gx, gy in ((OX + 3.5, r1 + 2.5), (OX + 7.5, r1 + 2.5), (OX + 11.5, r1 + 2.5), (OX + 15.5, r1 + 3.5), (OX + 19.5, r1 + 3.5), (OX + 9.5, r1 + 7.5)):
         P.add("medium-electric-pole", gx, gy)
     P.add("substation", SUB[0], SUB[1])
@@ -380,8 +384,38 @@ BLOCKERS = (
 SPOIL_BACKUP = 1500                 # spoilage in the network above this for 10 minutes is a backup
 
 
+# egg bank (scripts/gleba_egg_bank.py): origin tile (82,44); eggs in its two egg chambers, bioflux in its requester chest
+BANK = ("local s=game.surfaces.gleba local e=0 for _,p in pairs({{83.5,45.5},{87.5,45.5}}) do local m=s.find_entities_filtered{name='biochamber',position=p,radius=0.5}[1] "
+        "if m then e=e+m.get_inventory(defines.inventory.crafter_input).get_item_count('pentapod-egg')+m.get_inventory(defines.inventory.crafter_output).get_item_count('pentapod-egg') end end "
+        "local c=s.find_entities_filtered{name='requester-chest',position={85.5,52.5},radius=0.3}[1] local b=c and c.get_inventory(defines.inventory.chest).get_item_count('bioflux') or -1 "
+        "rcon.print(helpers.table_to_json({eggs=e,bioflux=b}))")
+
+
+# Spoilage blockage inside a machine (the Captain's blocker 4): an ingredient that rots in the input slot (nutrients 5 min, mash 3 min, eggs 15 min)
+# turns into spoilage there, and no inserter can take it out of an input slot, so the machine waits for a nutrient that can never fit. The janitor takes
+# that spoilage out of the ingredient slots of every machine whose recipe does not use spoilage, and hands it to a spoilage assembler's chest (moving
+# factory-made items between inventories).
+JANITOR = ("local s=game.surfaces.gleba local f=game.forces.player local moved=0 local sink=s.find_entities_filtered{name='requester-chest',position={%s,%s},radius=0.3}[1] "
+           "for _,e in pairs(s.find_entities_filtered{area={{%s,%s},{%s,%s}},force=f,type='assembling-machine'}) do local r=e.get_recipe() local uses=false "
+           "if r then for _,i in pairs(r.ingredients) do if i.name=='spoilage' then uses=true end end end if not uses then local inv=e.get_inventory(defines.inventory.crafter_input) "
+           "local c=inv and inv.get_item_count('spoilage') or 0 if c>0 then local took=inv.remove{name='spoilage',count=c} local put=sink and sink.insert{name='spoilage',count=took} or 0 "
+           "if put<took then e.get_inventory(defines.inventory.crafter_input).insert{name='spoilage',count=took-put} end moved=moved+put end end end rcon.print(moved)")
+
+
+def janitor():
+    try:
+        return int(L(JANITOR % (cx(5), OY + 0.5, OX - 12, OY - 2, OX + 30, OY + 28)).strip() or 0)
+    except Exception:  # noqa: BLE001
+        return -1
+
+
 def blockers():
-    return json.loads(L(BLOCKERS))
+    bl = json.loads(L(BLOCKERS))
+    try:
+        bl["bank"] = json.loads(L(BANK))
+    except Exception:  # noqa: BLE001
+        bl["bank"] = {"eggs": -1, "bioflux": -1}
+    return bl
 
 
 def watch():
@@ -393,6 +427,9 @@ def watch():
     except Exception as exc:  # noqa: BLE001
         return "gleba cell: no reading (%r)" % exc
     tune_msg = tune()
+    cleaned = janitor()
+    if cleaned > 0:
+        tune_msg += " | janitor moved %d spoilage out of machine input slots" % cleaned
     now = time.time()
     state = json.loads(WATCH_FILE.read_text()) if WATCH_FILE.exists() else {}
     state.setdefault("since", {})
@@ -406,6 +443,8 @@ def watch():
         ("seed starvation jellynut", bl["jellynut_seed"] == 0 and bl["jellynut_plants"] < 10, 20, "no jellynut seed and %d stems" % bl["jellynut_plants"]),
         ("fruit starvation yumako", bl["yumako"] < 50, 15, "yumako stock %d" % bl["yumako"]),
         ("fruit starvation jellynut", bl["jellynut"] < 30, 15, "jellynut stock %d" % bl["jellynut"]),
+        ("egg bank empty", bl["bank"]["eggs"] == 0, 20, "the egg bank ring holds no egg: the reserve is gone"),
+        ("egg bank bioflux", 0 <= bl["bank"]["bioflux"] < 20, 15, "the egg bank has %d bioflux left (about one heartbeat is 10)" % bl["bank"]["bioflux"]),
         ("spoilage blockage", bl["spoilage_blocked"] > 0, 5, "%d machines stopped with spoilage in their output" % bl["spoilage_blocked"]),
         ("spoilage backup", bl["spoilage"] > SPOIL_BACKUP or bl["spoilage_chests_full"] > 0, 10,
          "spoilage %d in the network, %d chests full of it" % (bl["spoilage"], bl["spoilage_chests_full"])),
@@ -422,8 +461,8 @@ def watch():
     if alarms:
         L("game.print('[Gleba cell] ALARM " + "; ".join(alarms).replace("'", "") + ". The locked seed vault stays shut until the Captain says.')")
     WATCH_FILE.write_text(json.dumps(state))
-    return "gleba cell: packs/min %.1f, bioflux %d, nutrients %d, eggs %d, seeds Y%d J%d, fruit Y%d J%d, spoilage %d (blocked %d), vault %s%s | %s" % (
-        st.get("packs_per_min", 0), st.get("bioflux", 0), st.get("nutrients", 0), bl["eggs"], bl["yumako_seed"], bl["jellynut_seed"],
+    return "gleba cell: packs/min %.1f, bioflux %d, nutrients %d, eggs %d (bank %d, its bioflux %d), seeds Y%d J%d, fruit Y%d J%d, spoilage %d (blocked %d), vault %s%s | %s" % (
+        st.get("packs_per_min", 0), st.get("bioflux", 0), st.get("nutrients", 0), bl["eggs"], bl["bank"]["eggs"], bl["bank"]["bioflux"], bl["yumako_seed"], bl["jellynut_seed"],
         bl["yumako"], bl["jellynut"], bl["spoilage"], bl["spoilage_blocked"], st.get("vault") or {}, (" | ALARM " + "; ".join(alarms)) if alarms else "", tune_msg)
 
 
