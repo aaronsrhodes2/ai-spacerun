@@ -389,7 +389,7 @@ def swap_step(what, unit=None, apply=False):
 # (the next machine still takes them through the first call); no hysteresis, smallest order first stays intact. The penalty goes on the selector's
 # GREEN input only: on the red score net it also hid the sub-part from the next machine's first-call decider (all three deadlocked on one parent).
 HOLD_H = 200
-HOLD2_H = 100      # the damping bonus that stays with the penalty (a second decider per machine)
+HOLD2_H = 10      # the damping bonus that stays with the penalty (a second decider per machine)
 HOLD2_POS = [(-330.5, -240.0), (-329.5, -240.0), (-328.5, -240.0)]
 HOLD_POS = [(-334.5, -240.0), (-333.5, -240.0), (-331.5, -240.0)]     # 1 x 2 deciders on the free strip (tiles y -241..-240)
 HOLD_LUA = ("local s=game.surfaces.nauvis local W=defines.wire_connector_id local U=UNIT local MODE='WHAT' local ox=7*U "

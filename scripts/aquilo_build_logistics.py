@@ -8,7 +8,7 @@ Aquilo ghosts (entity ghosts, `concrete` and `ice-platform` tile ghosts) wait fo
   apply    writes the ship's request section `aq-ghost-36` (import_from fulgora: the Fulgora silo lifts what Fulgora holds) and the drop section
            `aq-ghostdrop-36` (min = max = 0 at Aquilo: an UNREQUESTED item never leaves a hub), and adds the kit items to the Aquilo stop's leave rule
   reload   ONE ammunition step for both Aquilo ships: a ship parked at its home planet is topped up to a target (default 3,200 explosive rockets and
-           1,500 uranium magazines) from any Nauvis network chest, only when stock exists. `--plain` fits plain rockets (NOT proven: see SKILL.md)
+           1,500 uranium magazines) from the Nauvis ammo cells' steel output chests (x -330..-280, y -105..-80: not in the robot network) and then any Nauvis network chest, only when stock exists. `--plain` fits plain rockets (NOT proven: see SKILL.md)
   works    the concrete works on Aquilo: ice melter -> concrete assembler fed bricks + ore by a requester chest, output to a provider chest
            (concrete 10 kg a piece; 5 bricks + 1 ore make 10 concrete = 12 kg, 8x lighter)
   verify   the checks for a flight; status = everything in one screen
@@ -229,7 +229,7 @@ RELOAD = ("local o={} local nn=game.surfaces.nauvis.find_entities_filtered{type=
           "local H=HOMES for _,p in pairs(game.forces.player.platforms) do local home=nil for hn,hv in pairs(H) do if p.name:find(hn,1,true) then home=hv end end if home and p.hub then local loc=p.space_location and p.space_location.name or 'flight' "
           "local inv=p.hub.get_inventory(defines.inventory.hub_main) if loc~=home then o[#o+1]=p.name:sub(-24)..' not parked at '..home..' ('..loc..'): skipped' else "
           "local r={} for k,target in pairs(want) do local need=target-inv.get_item_count(k) local got=0 "
-          "if need>0 then for _,list in ipairs{nn.providers,nn.storages} do for _,pt in pairs(list) do if got>=need then break end local ok,ci=pcall(function() return pt.get_inventory(defines.inventory.chest) end) "
+          "if need>0 then local cells=game.surfaces.nauvis.find_entities_filtered{name='steel-chest',area={{-330,-105},{-280,-80}}} for _,list in ipairs{cells,nn.providers,nn.storages} do for _,pt in pairs(list) do if got>=need then break end local ok,ci=pcall(function() return pt.get_inventory(defines.inventory.chest) end) "
           "if ok and ci then local n=math.min(need-got,ci.get_item_count(k)) if n>0 then local put=n if APPLY then put=inv.insert{name=k,count=n} if put>0 then ci.remove{name=k,count=put} end end got=got+put end end end end end "
           "r[#r+1]=k..' '..inv.get_item_count(k)..'/'..target..(got>0 and (' (+'..got..(APPLY and '' or ' dry')..')') or '') end "
           "if not APPLY then end o[#o+1]=p.name:sub(-24)..' at '..home..': '..table.concat(r,', ') end end end rcon.print(table.concat(o," + NL + "))")

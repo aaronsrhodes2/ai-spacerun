@@ -19,7 +19,7 @@ from bridge.factorio.planner import batches
 
 KINDS = {
     "steel": {"machine": "electric-furnace", "recipe": None, "req": [("iron-plate", 100)]},
-    "cable": {"machine": "assembling-machine-3", "recipe": "copper-cable", "bar": 4, "req": [("copper-plate", 200)]},
+    "cable": {"machine": "assembling-machine-3", "recipe": "copper-cable", "bar": 4, "quality": "epic", "req": [("copper-plate", 200)]},     # epic since 2026-11-14 (a normal AM3 makes 4.2 cables/s, an epic one 9.5)
     "ec": {"machine": "assembling-machine-3", "recipe": "electronic-circuit", "bar": 4, "req": [("copper-cable", 300), ("iron-plate", 100)]},
     "ac": {"machine": "assembling-machine-3", "recipe": "advanced-circuit", "req": [("electronic-circuit", 40), ("plastic-bar", 40), ("copper-cable", 80)]},
     "foundation": {"machine": "assembling-machine-3", "recipe": "space-platform-foundation", "req": [("steel-plate", 100), ("copper-cable", 100)]},
@@ -52,6 +52,10 @@ KINDS = {
     "cliffx": {"machine": "assembling-machine-3", "recipe": "cliff-explosives", "bar": 6, "quality": "epic",
                "req": [("explosives", 200), ("calcite", 200), ("barrel", 20), ("grenade", 20)]},
     "barrel": {"machine": "assembling-machine-3", "recipe": "barrel", "bar": 10, "quality": "epic", "req": [("steel-plate", 100)]},
+    # nuclear fuel reprocessing (2026-11-14, "the secondary uranium"): 5 depleted uranium fuel cells -> 3 uranium-238 in 60 s, centrifuge (epic speed 1.9; two
+    # speed-module-3 are added after the build). 134,820 spent cells sit in provider chests. "bar" 20 slots (stack 50) stops a cell at about 1,000 U-238 in
+    # its chest: nothing else asks for U-238 yet (79,717 in stock), so the line fills and stops by itself.
+    "reprocess": {"machine": "centrifuge", "recipe": "nuclear-fuel-reprocessing", "bar": 20, "quality": "epic", "req": [("depleted-uranium-fuel-cell", 100)]},
 }
 # logistic group for the requests of each kind (docs/naming-sop.md)
 GROUPS = {"steel": "Feed: Steel", "cable": "Feed: Copper Cable", "ec": "Feed: Electronic Circuit", "ac": "Feed: Advanced Circuit",
@@ -59,7 +63,7 @@ GROUPS = {"steel": "Feed: Steel", "cable": "Feed: Copper Cable", "ec": "Feed: El
           "production": "Feed: Production Science Pack", "frame": "Feed: Robot Frame (science cell)", "efurnace": "Feed: Electric Furnace",
           "prodmod": "Feed: Productivity Module", "rail": "Feed: Rail (science cell)", "stick": "Feed: Iron Stick", "brick": "Feed: Stone Brick",
           "engine": "Feed: Engine (science cell)", "gear": "Feed: Iron Gear Wheel", "pipe": "Feed: Pipe",
-          "cliffx": "Feed: Cliff Explosives", "barrel": "Feed: Barrel"}
+          "cliffx": "Feed: Cliff Explosives", "barrel": "Feed: Barrel", "reprocess": "Feed: Nuclear Reprocessing"}
 
 
 def plan(kind, x0, y0, n):

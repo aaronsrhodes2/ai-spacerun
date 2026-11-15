@@ -8,7 +8,7 @@ import replicator_compress as r
 from _game import tools
 
 TARGET = 108000
-TEST_ITEM, POS = "flamethrower-turret", (-337.5, -239.5)
+TEST_ITEM, POS = "battery-equipment", (-337.5, -239.5)
 d = r.game_recipes()
 ING = sorted({i for v in d.values() for i in v["ing"]})
 BOXES = {"fluid unit": (-310, -233, -290, -215), "fluid-asm": (-342, -190, -316, -165), "buffer field": (-346, -233, -334, -222)}
@@ -33,7 +33,7 @@ while True:
     if placed is None and tick - start >= 18000:
         if tools["run_lua"](FIND + "rcon.print(c and 1 or 0)").strip() == "0":
             tools["place_entities"](json.dumps([{"name": "requester-chest", "x": POS[0], "y": POS[1], "direction": 0, "params": {"quality": "epic"}}]), surface="nauvis", dry_run=False)
-        tools["run_lua"](FIND + "local lp=c.get_logistic_point(defines.logistic_member_index.logistic_container) local se=lp.get_section(1) or lp.add_section() se.set_slot(3,{value={type='item',name='%s',quality='normal'},min=1}) rcon.print('ok')" % TEST_ITEM)
+        tools["run_lua"](FIND + "local lp=c.get_logistic_point(defines.logistic_member_index.logistic_container) local se=lp.get_section(1) or lp.add_section() se.set_slot(5,{value={type='item',name='%s',quality='normal'},min=1}) rcon.print('ok')" % TEST_ITEM)
         placed = tick
         msg += " || TEST: requested 1 %s" % TEST_ITEM
     if placed and picked is None and any(TEST_ITEM in s_ for s_ in seqs):
