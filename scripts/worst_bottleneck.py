@@ -9,6 +9,8 @@ Scores (higher = worse), each finding is one line:
   robots     a surface with roboports but no logistic robots (score = 500; nothing moves there)
   labs       labs missing science packs (score = count)
   alert      a game alert from the in-game alert overview (score = 25 per instance; the Captain's rule: read alerts first)
+Two honesty rules (2026-11-14): a `short` finding is scaled down by its RUNWAY (network stock / deficit): a deficit that a big stockpile covers for
+hours is not urgent (iron plate: 577k in stock); and a machine whose feed inserters are disabled by a circuit is GATED (idle on purpose), not starved.
 
 Usage: scripts/worst_bottleneck.py [top_n]   (default 5)"""
 import sys
@@ -25,6 +27,11 @@ local agg = {}
 for _, s in pairs(game.surfaces) do
   for _, e in pairs(s.find_entities_filtered{type = {'assembling-machine', 'furnace', 'chemical-plant', 'oil-refinery', 'lab', 'rocket-silo', 'recycler'}}) do
     local st = SN[e.status] or tostring(e.status)
+    if (st == 'no_ingredients' or st == 'item_ingredient_shortage') and e.type ~= 'lab' then
+      for _, i in pairs(s.find_entities_filtered{type = 'inserter', position = e.position, radius = 4}) do
+        if i.drop_target == e and i.status == defines.entity_status.disabled_by_control_behavior then st = 'gated' break end
+      end
+    end
     local rn = e.type
     if e.type ~= 'lab' and e.type ~= 'rocket-silo' and e.type ~= 'recycler' then
       local ok, r = pcall(function() if e.type == 'furnace' then return e.previous_recipe end return e.get_recipe() end)
@@ -76,10 +83,10 @@ for k, v in pairs(agg) do o[#o + 1] = v .. '#' .. k end
 rcon.print(table.concat(o, ';'))
 '''
 
-LEDGER = """local s=game.surfaces.nauvis local ps=game.forces.player.get_item_production_statistics(s) local o={} for _,n in pairs({%s}) do
+LEDGER = """local s=game.surfaces.nauvis local rp=s.find_entities_filtered{name='roboport',position={-352,-229},radius=0.6}[1] local net=rp and rp.logistic_network local ps=game.forces.player.get_item_production_statistics(s) local o={} for _,n in pairs({%s}) do
 local m=ps.get_flow_count{name=n,category='input',precision_index=defines.flow_precision_index.one_minute}/60
 local u=ps.get_flow_count{name=n,category='output',precision_index=defines.flow_precision_index.one_minute}/60
-o[#o+1]=string.format('%%s|%%.2f|%%.2f',n,m,u) end rcon.print(table.concat(o,';'))""" % ",".join(
+o[#o+1]=string.format('%%s|%%.2f|%%.2f|%%d',n,m,u,net and net.get_item_count(n) or 0) end rcon.print(table.concat(o,';'))""" % ",".join(
     f"'{i}'" for i in ("iron-plate copper-plate steel-plate stone-brick plastic-bar sulfur copper-cable electronic-circuit advanced-circuit "
                         "processing-unit battery low-density-structure electric-engine-unit flying-robot-frame logistic-science-pack "
                         "military-science-pack chemical-science-pack production-science-pack utility-science-pack space-science-pack rocket-part").split())
@@ -144,10 +151,15 @@ def findings():
     for part in tools["run_lua"](LEDGER).split(";"):
         if not part:
             continue
-        name, made, used = part.split("|")
-        made, used = float(made), float(used)
+        fields = part.split("|")
+        name, made, used = fields[0], float(fields[1]), float(fields[2])
+        stock = int(fields[3]) if len(fields) > 3 else 0
         if used > made * 1.05 and used > 0.05:
-            out.append(((used - made) * 20, "short", f"nauvis: {name} made {made:.2f}/s, used {used:.2f}/s"))
+            deficit = used - made
+            runway = stock / deficit if stock > 0 else 0.0           # seconds the stock would last at this deficit
+            factor = 1.0 if runway < 600 else max(0.05, 600.0 / runway)
+            note = f", stock {stock}, lasts {runway / 3600:.1f} h" if stock > 0 else ", stock 0"
+            out.append((deficit * 20 * factor, "short", f"nauvis: {name} made {made:.2f}/s, used {used:.2f}/s{note}"))
     return out
 
 
