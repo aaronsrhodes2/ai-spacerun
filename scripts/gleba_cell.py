@@ -296,6 +296,51 @@ def spoilage_works(sites=None):
     return " | ".join(out)
 
 
+# The Captain's buffer trick (2026-11-15): wire the machine's recipe (circuit "read ingredients") through a multiplier combinator into its requester chest set to
+# "set requests from circuit": every machine keeps k crafts of every ingredient on board without typing the items. k is sized to the robot round trip
+# (yumako processing eats 2 a second and the farm is 270 tiles away), not to the machine. Only what the recipe lists comes from the circuit; fuel stays manual.
+BUFFER_MULT = {"yumako-processing": 250, "jellynut-processing": 120, "nutrients-from-bioflux": 12, "nutrients-from-spoilage": 40,
+               "pentapod-egg": 2, "agricultural-science-pack": 4}
+
+
+def hub_pairs():
+    """(requester chest, machine) positions of the hub: row 1, row 2 and the extra spoilage assemblers."""
+    pairs = [((cx(i), OY + 0.5), (cx(i), OY + 3.5)) for i in range(6)]
+    pairs += [((cx(i), OY + 9.5), (cx(i), OY + 12.5)) for i in range(5)]
+    pairs += [((x, y - 3), (x, y)) for x, y in SPOIL_SITES]
+    return pairs
+
+
+BUFFER_LUA = ("local s=game.surfaces.gleba local f=game.forces.player local R=defines.wire_connector_id local WO=defines.wire_origin.script local o={} "
+              "local ch=s.find_entities_filtered{name='requester-chest',position={%s,%s},radius=0.3}[1] local mc=s.find_entities_filtered{type='assembling-machine',position={%s,%s},radius=0.6}[1] "
+              "if not(ch and mc) then rcon.print('missing chest or machine') return end local rec=mc.get_recipe() if not rec then rcon.print('no recipe') return end local mult=%s "
+              "local ing={} for _,i in pairs(rec.ingredients) do if i.type=='item' then ing[i.name]=true end end "
+              "local cb=ch.get_or_create_control_behavior() if cb.set_requests then rcon.print('already wired: '..rec.name) return end "
+              "local best,bd=nil,1e9 for dx=-5,5 do for dy=-5,5 do local p={ch.position.x+dx,math.floor(ch.position.y)+dy} local d=math.sqrt(dx*dx+dy*dy) "
+              "if d<bd and math.sqrt((p[1]-mc.position.x)^2+(p[2]-mc.position.y)^2)<=8 and s.can_place_entity{name='arithmetic-combinator',position=p,direction=defines.direction.north,force=f,build_check_type=defines.build_check_type.manual} then bd=d best=p end end end "
+              "if not best then rcon.print('no spot for a combinator near '..rec.name) return end "
+              "local comb=s.create_entity{name='arithmetic-combinator',position=best,direction=defines.direction.north,force=f} "
+              "comb.get_or_create_control_behavior().parameters={first_signal={type='virtual',name='signal-each'},second_constant=mult,operation='*',output_signal={type='virtual',name='signal-each'}} "
+              "local mcb=mc.get_or_create_control_behavior() mcb.circuit_read_ingredients=true "
+              "mc.get_wire_connector(R.circuit_green,true).connect_to(comb.get_wire_connector(R.combinator_input_green,true),false,WO) "
+              "comb.get_wire_connector(R.combinator_output_green,true).connect_to(ch.get_wire_connector(R.circuit_green,true),false,WO) "
+              "cb.set_requests=true cb.read_contents=false local rp=ch.get_requester_point() local lt=defines.logistic_section_type local cleared=0 "
+              "for i=1,rp.sections_count do local sec=rp.get_section(i) if sec.type==lt.manual then for j=1,sec.filters_count do local fl=sec.get_slot(j) if fl and fl.value and ing[fl.value.name] then sec.clear_slot(j) cleared=cleared+1 end end end end "
+              "rcon.print(rec.name..' x'..mult..' combinator at '..best[1]..','..best[2]..' manual ingredient slots cleared '..cleared)")
+
+
+def buffers():
+    out = []
+    for ch, mc in hub_pairs():
+        rec = L("local m=game.surfaces.gleba.find_entities_filtered{type='assembling-machine',position={%s,%s},radius=0.6}[1] rcon.print(m and m.get_recipe() and m.get_recipe().name or '-')" % mc).strip()
+        k = BUFFER_MULT.get(rec)
+        if not k:
+            out.append("%s: no buffer wiring for %r" % (mc, rec))
+            continue
+        out.append(L(BUFFER_LUA % (ch + mc + (k,))).strip())
+    return " | ".join(out)
+
+
 def status():
     return json.loads(L(STATUS))
 
@@ -394,6 +439,8 @@ if __name__ == "__main__":
         print(json.dumps(status(), indent=1))
     elif cmd == "tune":
         print(tune())
+    elif cmd == "buffers":
+        print(buffers())
     elif cmd == "spoilage":
         print(spoilage_works())
     elif cmd == "watch":
