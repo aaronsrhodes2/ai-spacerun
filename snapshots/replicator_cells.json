@@ -1,26 +1,38 @@
 {
  "cell1": {
-  "n": 2,
-  "p": 1,
+  "demand": [
+   -352,
+   -229
+  ],
+  "n": 3,
+  "p": 0,
   "silos": false,
   "surface": "nauvis",
   "x": -358,
   "y": -213
  },
- "replicator": {
-  "n": 2,
-  "note": "the large Replicator (omni_maker site replicator), compact lookup since the swap",
-  "p": 0,
-  "rank": [
-   -348.5,
-   -224.5
+ "cell2": {
+  "demand": [
+   -352.0,
+   -229.0
   ],
-  "ring": [
-   -324.5,
-   -242.5
-  ],
+  "n": 3,
+  "p": 1,
+  "silos": false,
   "surface": "nauvis",
-  "x": -354,
-  "y": -231
+  "x": -334,
+  "y": -213
+ },
+ "cell3": {
+  "demand": [
+   -352.0,
+   -229.0
+  ],
+  "n": 3,
+  "p": 2,
+  "silos": false,
+  "surface": "nauvis",
+  "x": -310,
+  "y": -213
  }
 }

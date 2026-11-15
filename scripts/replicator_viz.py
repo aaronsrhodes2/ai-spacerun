@@ -5,7 +5,8 @@ Replicator with one Lua query and writes panel texts, icons and lamp colours. No
 
 Where (footprint in scripts/replicator_viz_site.txt):
   north row  tile row y -234, x -366..-289, 26 cells (lamp, panel, one free tile): DEMAND (what the network is missing, top 8, from the
-             demand wire of the first machine) and MACHINES (three recipe machines M1 M2 M3, the fluid unit, the furnace unit; three cells each:
+             demand wire of the hub roboport) and MACHINES (the three Replicator CELLS, scripts/replicator_cell.py, shown as CELL1-3: machine 1's status, item and made count,
+             all three chests (TOTALS counts every machine); the fluid unit, the furnace unit; three cells each:
              status + item being made + made so far; what the blue requester chest asks for / what the network lacks; red chest contents).
   south row  tile row y -192, same x: ORBITAL (what shuttles ask the silos for that the network cannot cover), STALLS (demanded items the
              Replicator cannot make, with the reason), TOTALS (made, made per minute, robots), STOCK (raw inputs in the network).
@@ -92,7 +93,7 @@ local rp=at('roboport',X+2,Y+2) local net=rp and rp.logistic_network
 local function stock(n) return net and net.get_item_count(n) or 0 end
 local function chest(c) local l={} local tot=0 if c then for _,it in pairs(c.get_inventory(defines.inventory.chest).get_contents()) do l[#l+1]={it.name,it.count} tot=tot+it.count end end return l,tot end
 local ms={} local function addset(e) for _,v in ipairs(sigs(e,W.circuit_green)) do ms[v[1]]=true end end
-addset(at('constant-combinator',X+5.5,Y+6.5)) addset(at('constant-combinator',X+23+5.5,Y+6.5)) addset(at('constant-combinator',C-5.5,CY-5.5))
+local CELLS={{-358,-213},{-334,-213},{-310,-213}} for _,c in ipairs(CELLS) do addset(at('constant-combinator',c[1]+8.5,c[2]+2.5)) end addset(at('constant-combinator',X+23+5.5,Y+6.5)) addset(at('constant-combinator',C-5.5,CY-5.5))
 local prods={} local made=0
 local function unit(tag,am,rqs,pvs,sel)
 local r=am and am.get_recipe() local rn=r and r.name
@@ -105,11 +106,11 @@ local mk=am and am.products_finished or 0 made=made+mk
 if r and (stn(am)=='working' or stn(am)=='normal') then prods[pn]=true end
 local ch=sel and sigs(sel,W.combinator_output_green)[1] or nil
 o[#o+1]='U|'..tag..'|'..stn(am)..'|'..(rn or ' ')..'|'..pn..'|'..pt..'|'..mk..'|'..an..'|'..at1..'|'..lkn..'|'..lkc..'|'..rn2..'|'..rt..'|'..(ch and ch[1] or ' ') end
-for u=0,2 do local ox=7*u unit('M'..(u+1),at('assembling-machine-3',X+ox+2.5,Y+9.5),{at('requester-chest',X+ox+2.5,Y+6.5)},{at('passive-provider-chest',X+ox+2.5,Y+12.5)},at('selector-combinator',X+ox+6.5,Y+8)) end
+for i,c in ipairs(CELLS) do local rqs,pvs={},{} for k=0,2 do rqs[#rqs+1]=at('requester-chest',c[1]+7*k+1.5,c[2]+4.5) pvs[#pvs+1]=at('passive-provider-chest',c[1]+7*k+1.5,c[2]+10.5) end for k=1,2 do local m=at('assembling-machine-3',c[1]+7*k+1.5,c[2]+7.5) if m then made=made+m.products_finished end end unit('M'..i,at('assembling-machine-3',c[1]+1.5,c[2]+7.5),rqs,pvs,at('selector-combinator',c[1]+4.5,c[2]+5)) end
 unit('FU',at('electric-furnace',X+25.5,Y+9.5),{at('requester-chest',X+25.5,Y+6.5)},{at('passive-provider-chest',X+25.5,Y+12.5)},at('selector-combinator',X+29.5,Y+8))
 unit('FL',at('chemical-plant',C+0.5,CY+0.5),{at('requester-chest',C-2.5,CY+0.5),at('requester-chest',C-0.5,CY-5.5),at('requester-chest',C+3.5,CY-4.5)},{at('passive-provider-chest',C+3.5,CY+0.5),at('passive-provider-chest',C-3.5,CY+3.5),at('passive-provider-chest',C+6.5,CY+2.5)},at('selector-combinator',C-4.5,CY-3))
 local function why(it) local best=nil local bc=nil for name,r in pairs(prototypes.recipe) do if not r.hidden and not name:find('recycling') then for _,p in pairs(r.products) do if p.name==it then local k=r.categories[1] if not k then k=next(r.categories) end for _,i in pairs(r.ingredients) do if i.type=='fluid' then k='fluid' end end if not best or k=='fluid' then best=k end end end end end return best or 'raw' end
-local dem=sigs(at('decider-combinator',X+5.5,Y+8),W.combinator_input_red) local pos={} for _,v in ipairs(dem) do if v[2]>0 then pos[#pos+1]=v end end
+local dem=sigs(rp,W.circuit_red) local pos={} for _,v in ipairs(dem) do if v[2]>0 then pos[#pos+1]=v end end
 local dl={} for i,v in ipairs(pos) do if i<=8 then dl[#dl+1]=v[1]..':'..v[2]..':'..(ms[v[1]] and 1 or 0)..':'..(prods[v[1]] and 1 or 0) end end
 o[#o+1]='D|'..#pos..'|'..table.concat(dl,',')
 local un={} for _,si in pairs(s.find_entities_filtered{name='rocket-silo'}) do local l=sigs(si,W.circuit_green) if #l>0 then for _,v in ipairs(l) do if v[2]>0 then un[#un+1]=v end end break end end
@@ -182,7 +183,7 @@ def compute():
     t = {k: (v[0], None, "white") for k, v in HEADINGS.items()}
     t = {k: (HEADINGS[k][1], HEADINGS[k][0], "white") for k in HEADINGS}
     total_made = 0
-    for key, label, prefix in (("M1", "M1", "M1"), ("M2", "M2", "M2"), ("M3", "M3", "M3"), ("FL", "FLUID", "FL"), ("FU", "FURN", "FU")):
+    for key, label, prefix in (("M1", "CELL1", "M1"), ("M2", "CELL2", "M2"), ("M3", "CELL3", "M3"), ("FL", "FLUID", "FL"), ("FU", "FURN", "FU")):
         cells, mk = unit_cells(key, units[key], prefix, label)
         t.update(cells)
         total_made += mk

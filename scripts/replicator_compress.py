@@ -448,6 +448,49 @@ def retire_tables(apply):
     print(tools["run_lua"](code))
 
 
+# ---- retire the big Replicator block after the three cells took over (the Captain, 2026-11-14: "Retire, build 3 cells").
+# Only what the scripts built for it, matched by name + position: its 3 machines, chests, inserters, per-machine combinators, its filter list, and the
+# north-strip conversion blocks, fix deciders and ring. KEPT: the hub roboport (-352,-229) + stock stage + silo wires (the cells, the fluid unit, the
+# fluid-assembler unit and the furnace unit read that demand), the substations, the furnace unit, the fluid unit, the striped floor and wall.
+# Every item in a chest, machine (input, output, modules, dump) or inserter hand is first MOVED into Nauvis storage chests; an entity that
+# could not be emptied is left standing and reported.
+RETIRE_BLOCK = ("local s=game.surfaces.nauvis local f=game.forces.player local APPLY=DOIT local L=LIST local moved,left,marked,found,missing=0,0,0,0,0 local skip={} "
+                "local hub=s.find_entities_filtered{name='roboport',position={-352,-229},radius=0.6}[1] local net=hub.logistic_network local st={} "
+                "for _,c in pairs(s.find_entities_filtered{name='storage-chest',force=f}) do if c.logistic_network==net then st[#st+1]=c end end "
+                "local function put(stack) local n=0 for _,c in ipairs(st) do if stack.count-n<=0 then break end n=n+c.insert{name=stack.name,count=stack.count-n,quality=stack.quality} end return n end "
+                "local function empty(inv) if not inv then return 0 end local rest=0 for _,it in pairs(inv.get_contents()) do local n=APPLY and put(it) or 0 if n>0 then inv.remove{name=it.name,count=n,quality=it.quality} end moved=moved+n rest=rest+(it.count-n) end return rest end "
+                "for _,p in ipairs(L) do local e=s.find_entities_filtered{name=p[1],position={p[2],p[3]},radius=0.45,force=f}[1] if not e then missing=missing+1 else found=found+1 local r=0 "
+                "if e.type=='container' or e.type=='logistic-container' then r=r+empty(e.get_inventory(defines.inventory.chest)) end "
+                "if e.type=='assembling-machine' then for _,id in pairs{defines.inventory.crafter_input,defines.inventory.crafter_output,defines.inventory.crafter_modules,defines.inventory.assembling_machine_dump} do r=r+empty(e.get_inventory(id)) end end "
+                "if e.type=='inserter' and e.held_stack and e.held_stack.valid_for_read then local hs=e.held_stack local n=APPLY and put({name=hs.name,count=hs.count,quality=hs.quality.name}) or 0 if n>0 then hs.count=hs.count-n moved=moved+n end r=r+(e.held_stack.valid_for_read and e.held_stack.count or 0) end "
+                "if r>0 then left=left+r skip[#skip+1]=e.name..'@'..e.position.x..','..e.position.y..' ('..r..' items)' elseif APPLY and e.order_deconstruction(f) then marked=marked+1 end end end "
+                "rcon.print('block entities found '..found..', missing '..missing..', items moved to storage '..moved..', items left '..left..', marked for deconstruction '..marked..', storage chests '..#st..(#skip>0 and (' ; NOT emptied: '..table.concat(skip,', ',1,math.min(#skip,8))) or ''))")
+
+
+def block_entities():
+    import omni_maker
+    out = []
+    for e in omni_maker.layout("replicator"):
+        if e["name"] in ("substation", "roboport"):
+            continue
+        out.append((e["name"], e["x"], e["y"]))
+    for e in swap_layout():
+        if e["name"] != "substation":
+            out.append((e["name"], e["x"], e["y"]))
+    for x, y in HOLD_POS + HOLD2_POS:
+        out.append(("decider-combinator", x, y))
+    return out
+
+
+def retire_block(apply):
+    from _game import tools
+    ents = block_entities()
+    lst = "{" + ",".join("{'%s',%s,%s}" % e for e in ents) + "}"
+    if apply:
+        print("save:", tools["save_game"]("skippy"))
+    print("listed", len(ents), "entities;", tools["run_lua"](RETIRE_BLOCK.replace("DOIT", "true" if apply else "false").replace("LIST", lst)))
+
+
 def main():
     step = sys.argv[1] if len(sys.argv) > 1 else "study"
     if step == "study":
@@ -457,7 +500,9 @@ def main():
     elif step == "bench" and sys.argv[2] == "stage2":
         bench_stage2("--apply" in sys.argv)
     elif step == "swap":
-        if len(sys.argv) > 2 and sys.argv[2] == "retire":
+        if len(sys.argv) > 2 and sys.argv[2] == "retire-block":
+            retire_block("--apply" in sys.argv)
+        elif len(sys.argv) > 2 and sys.argv[2] == "retire":
             retire_tables("--apply" in sys.argv)
         elif len(sys.argv) > 2 and sys.argv[2] in ("hold-place", "hold", "unhold", "penalty", "hold2-place", "hold2", "unhold2"):
             hold_step(sys.argv[2], "--apply" in sys.argv)

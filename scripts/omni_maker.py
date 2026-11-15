@@ -31,6 +31,7 @@ sits between lattice substations; wires are script wires (over-reach). Drive it 
 keeps working until retired."""
 import json
 import sys
+from pathlib import Path
 
 from _game import tools
 
@@ -238,6 +239,8 @@ def swapped(planet):
     """True when the Replicator runs on the compact lookup (scripts/replicator_compress.py swap): its ring constant combinator stands."""
     if planet != "replicator":
         return False
+    if (Path(__file__).resolve().parent.parent / "snapshots" / "replicator_retired_site.json").exists():
+        return True              # the machines were retired 2026-11-14; the site is only the demand hub now (scripts/replicator_cell.py)
     r = tools["run_lua"]("rcon.print(#game.surfaces.nauvis.find_entities_filtered{name='constant-combinator',position={%s,%s},radius=0.4})" % LIVE_RING)
     return r.strip() != "0"
 
@@ -290,8 +293,8 @@ def main():
             print("SWAPPED: the Replicator runs on the compact lookup (replicator_compress.py). Re-wiring the demand, stock stage and silos only; the item list is refreshed from the game."
                   " Use --old-design to go back to the old recipe tables (that IS the rollback; run `replicator_compress.py swap rollback 0|1|2` first for each machine).")
             print(run(swapped_config()))
-            import replicator_compress
-            print("refresh live:", replicator_compress.refresh("live"))
+            import replicator_cell
+            print("refresh cells:", replicator_cell.refresh_all())
         else:
             print(run(CONFIG))
     elif step == "status":

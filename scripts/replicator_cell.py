@@ -16,11 +16,13 @@ CHOICE per machine (as omni_maker): dec = demanded AND on the rank list -> 1e6; 
 PARTITION (multiply without coordination): a cell with index p of n keeps on its RANK LIST only the items whose rank mod n == p (the ring
   keeps all). Its dec then never passes the other cells' items, so two cells never make the same item; a sub-part of another partition is
   requested by this cell's blue chest and the owning cell sees it as ordinary demand. Data only: no extra combinator.
-DEMAND: the cell's own roboport reads the missing requests of the network it stands in (any surface). Only ONE cell per surface may read the
+DEMAND: the cell's own roboport reads the missing requests of the network it stands in (any surface), or --demand RX RY: the dec/ar read a
+  shared HUB roboport instead (on Nauvis the old Replicator's roboport at (-352,-229) with its stock stage + silos, which the fluid, fluid-assembler
+  and furnace units also read: orbital demand then counts once for everyone). Only ONE cell per surface may read the
   silos' orbital requests (--silos), or the orbital demand is counted twice. Optional modules attach to the demand roboport's red wire:
   furnace unit, fluid unit (omni_fluid.py), fluid-assembler unit (omni_fluid_asm.py), buffer field.
 Registry: snapshots/replicator_cells.json (name -> surface, rank/ring positions, n, p, menu); `refresh` rewrites every registered list.
-Steps: plan NAME X Y [--surface S] [--silos] [--part P/N] | build NAME [--apply] | config NAME | refresh [NAME] | status NAME | verify NAME
+Steps: plan NAME X Y [--surface S] [--silos] [--part P/N] [--demand RX RY] | build NAME [--apply] | config NAME | refresh [NAME] | status NAME | verify NAME
   `plan` registers the cell (no game change) and dry-runs it; `build --apply` saves, places (never twice), wires and refreshes."""
 import json
 import sys
@@ -75,7 +77,7 @@ CONFIG = ("local s=game.surfaces['SURF'] local f=game.forces.player local W=defi
           "local EACH={type='virtual',name='signal-each'} local function dp(e,conds,outs) e.get_or_create_control_behavior().parameters={conditions=conds,outputs=outs} end "
           "local function C(net,cmp,k) return {first_signal=EACH,first_signal_networks=net,comparator=cmp,constant=k} end local RED,GRN={red=true,green=false},{red=false,green=true} "
           "local rp,rank,ring=at('roboport',2,2),at('constant-combinator',8.5,2.5),at('constant-combinator',9.5,2.5) if not (rp and rank and ring) then rcon.print('ABORT: cell not built') return end "
-          "clr(rp,CC) clr(rank,CC) clr(ring,CC) local rc=rp.get_or_create_control_behavior() rc.read_items_mode=defines.control_behavior.roboport.read_items_mode.missing_requests rc.read_robot_stats=false "
+          "clr(rp,CC) clr(rank,CC) clr(ring,CC) local rc=rp.get_or_create_control_behavior() rc.read_items_mode=defines.control_behavior.roboport.read_items_mode.missing_requests rc.read_robot_stats=false local DEM=DEMT local dem=rp if DEM then dem=s.find_entities_filtered{name='roboport',position=DEM,radius=0.6}[1] if not dem then rcon.print('ABORT: demand roboport missing') return end o[#o+1]='demand from the hub roboport at '..DEM[1]..','..DEM[2] end "
           "if SILOS then local rp2,neg,gate=at('roboport',6,2),at('arithmetic-combinator',10.5,1),at('decider-combinator',11.5,1) clr(rp2,CC) clr(neg,CB) clr(gate,CB) "
           "rp2.get_or_create_control_behavior().read_items_mode=defines.control_behavior.roboport.read_items_mode.logistics rp2.get_or_create_control_behavior().read_robot_stats=false "
           "wire(neg,W.combinator_input_red,rp2,W.circuit_red) neg.get_or_create_control_behavior().parameters={first_signal=EACH,second_constant=-1,operation='*',output_signal=EACH} "
@@ -87,8 +89,8 @@ CONFIG = ("local s=game.surfaces['SURF'] local f=game.forces.player local W=defi
           "local d1,a1,d2,a2=at('decider-combinator',ox+3.5,7),at('arithmetic-combinator',ox+4.5,7),at('decider-combinator',ox+5.5,7),at('arithmetic-combinator',ox+6.5,7) "
           "local pen,hold=at('decider-combinator',ox+3.5,9),at('decider-combinator',ox+4.5,9) local bo=k>0 and at('decider-combinator',ox+6.5,5) or nil "
           "for _,e in pairs{dec,sel,ar,d1,a1,d2,a2,pen,hold} do clr(e,CB) end if bo then clr(bo,CB) end clr(rq,CC) clr(am,CC) "
-          "wire(dec,W.combinator_input_red,rp,W.circuit_red) wire(dec,W.combinator_input_green,rank,W.circuit_green) dp(dec,{C(RED,'>',0),{first_signal=EACH,first_signal_networks=GRN,comparator='>',constant=0,compare_type='and'}},{{signal=EACH,copy_count_from_input=false,constant=1000000}}) "
-          "wire(ar,W.combinator_input_red,rp,W.circuit_red) ar.get_or_create_control_behavior().parameters={first_signal=EACH,second_constant=-1,operation='*',output_signal=EACH} wire(ar,W.combinator_output_red,dec,W.combinator_output_red) "
+          "wire(dec,W.combinator_input_red,dem,W.circuit_red) wire(dec,W.combinator_input_green,rank,W.circuit_green) dp(dec,{C(RED,'>',0),{first_signal=EACH,first_signal_networks=GRN,comparator='>',constant=0,compare_type='and'}},{{signal=EACH,copy_count_from_input=false,constant=1000000}}) "
+          "wire(ar,W.combinator_input_red,dem,W.circuit_red) ar.get_or_create_control_behavior().parameters={first_signal=EACH,second_constant=-1,operation='*',output_signal=EACH} wire(ar,W.combinator_output_red,dec,W.combinator_output_red) "
           "wire(sel,W.combinator_input_red,dec,W.combinator_output_red) sel.get_or_create_control_behavior().parameters={operation='select',select_max=true,index_constant=0} "
           "if bo then wire(bo,W.combinator_input_red,dec,W.combinator_output_red) wire(bo,W.combinator_input_green,prev,W.circuit_green) "
           "dp(bo,{C(RED,'>',0),{first_signal=EACH,first_signal_networks=GRN,comparator='>',constant=0,compare_type='and'}},{{signal=EACH,copy_count_from_input=false,constant=10000000}}) wire(bo,W.combinator_output_red,dec,W.combinator_output_red) end "
@@ -143,7 +145,8 @@ def standing(c):
 
 def config(c):
     code = (CONFIG.replace("SURF", c.get("surface", "nauvis")).replace("CX", str(c["x"])).replace("CY", str(c["y"])).replace("SIL", "true" if c.get("silos") else "false")
-            .replace("BATCH", str(BATCH)).replace("HOLD", str(HOLD)))
+            .replace("BATCH", str(BATCH)).replace("HOLD", str(HOLD))
+            .replace("DEMT", "{%s,%s}" % tuple(c["demand"]) if c.get("demand") else "nil"))
     return tools["run_lua"](code)
 
 
@@ -170,6 +173,7 @@ def main():
         name, x, y = a[1], int(a[2]), int(a[3])
         part = a[a.index("--part") + 1] if "--part" in a else "0/1"
         c = {"x": x, "y": y, "surface": a[a.index("--surface") + 1] if "--surface" in a else "nauvis", "silos": "--silos" in a,
+             "demand": [float(a[a.index("--demand") + 1]), float(a[a.index("--demand") + 2])] if "--demand" in a else None,
              "p": int(part.split("/")[0]), "n": int(part.split("/")[1])}
         if name in r and standing(r[name]):
             sys.exit("cell %s already stands; registry kept" % name)
