@@ -10,7 +10,7 @@ Scores (higher = worse), each finding is one line:
   labs       labs missing science packs (score = count)
   alert      a game alert from the in-game alert overview (score = 25 per instance; the Captain's rule: read alerts first)
 Two honesty rules (2026-11-14): a `short` finding is scaled down by its RUNWAY (network stock / deficit): a deficit that a big stockpile covers for
-hours is not urgent (iron plate: 577k in stock); and a machine whose feed inserters are disabled by a circuit is GATED (idle on purpose), not starved.
+hours is not urgent (iron plate: 577k in stock); and a machine whose feed inserters are disabled by a circuit is GATED (idle on purpose), not starved; a starved machine whose product has 20,000+ in stock is skipped (surplus, 2026-11-14: 103k foundations).
 
 Usage: scripts/worst_bottleneck.py [top_n]   (default 5)"""
 import sys
@@ -89,7 +89,7 @@ local u=ps.get_flow_count{name=n,category='output',precision_index=defines.flow_
 o[#o+1]=string.format('%%s|%%.2f|%%.2f|%%d',n,m,u,net and net.get_item_count(n) or 0) end rcon.print(table.concat(o,';'))""" % ",".join(
     f"'{i}'" for i in ("iron-plate copper-plate steel-plate stone-brick plastic-bar sulfur copper-cable electronic-circuit advanced-circuit "
                         "processing-unit battery low-density-structure electric-engine-unit flying-robot-frame logistic-science-pack "
-                        "military-science-pack chemical-science-pack production-science-pack utility-science-pack space-science-pack rocket-part").split())
+                        "military-science-pack chemical-science-pack production-science-pack utility-science-pack space-science-pack rocket-part space-platform-foundation").split())
 
 
 def alert_findings():
@@ -123,6 +123,15 @@ def alert_findings():
 
 def findings():
     out = alert_findings()
+    ledger = tools["run_lua"](LEDGER)
+    stocks = {}
+    for part in ledger.split(";"):
+        fl = part.split("|")
+        if len(fl) > 3:
+            try:
+                stocks[fl[0]] = int(fl[3])
+            except ValueError:
+                pass
     raw = tools["run_lua"](MACHINES)
     for part in raw.split(";"):
         if not part:
@@ -141,14 +150,18 @@ def findings():
                 out.append((500, "robots", f"{surf}: {ports} roboports, 0 logistic robots, nothing moves here"))
         elif len(f) == 5:
             surf, etype, recipe, st, miss = f
+            if surf.startswith("platform-") and etype == "furnace":
+                continue        # platform furnaces idle by design while the ship waits; hubs hold 30k+ ore (checked 2026-11-14)
             if etype == "lab":
                 out.append((cnt, "labs", f"{surf}: {cnt} labs missing packs"))
             elif st in ("item_ingredient_shortage", "fluid_ingredient_shortage", "no_ingredients"):
+                if surf == "nauvis" and stocks.get(recipe, 0) >= 20000:
+                    continue                                           # product is in surplus: idle on purpose (void-surplus doctrine)
                 what = f" missing {miss}" if miss else ""
                 out.append((cnt, "starved", f"{surf}: {cnt}x {recipe} ({etype}) {st}{what}"))
             elif st == "full_output":
                 out.append((cnt / 2, "backed", f"{surf}: {cnt}x {recipe} ({etype}) full output"))
-    for part in tools["run_lua"](LEDGER).split(";"):
+    for part in ledger.split(";"):
         if not part:
             continue
         fields = part.split("|")

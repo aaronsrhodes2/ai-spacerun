@@ -1,0 +1,161 @@
+{
+ "buffer": {
+  "box": [
+   -341,
+   -229,
+   -335,
+   -225
+  ],
+  "note": "15 buffer chests + a substation",
+  "post": [],
+  "verified": false
+ },
+ "cell1": {
+  "box": [
+   -352,
+   -213,
+   -331,
+   -202
+  ],
+  "note": "compact Replicator cell, 49 entities",
+  "post": [
+   "cellreg:cell1",
+   "replicator_viz.py CELLS list (Q): update cell1 position"
+  ],
+  "verified": true
+ },
+ "cell2": {
+  "box": [
+   -331,
+   -213,
+   -310,
+   -202
+  ],
+  "note": "compact Replicator cell",
+  "post": [
+   "cellreg:cell2",
+   "replicator_viz.py CELLS list (Q): update cell2 position"
+  ],
+  "verified": true
+ },
+ "cell3": {
+  "box": [
+   -310,
+   -213,
+   -289,
+   -202
+  ],
+  "note": "compact Replicator cell (moved and moved back live 2026-11-14: round trip verified)",
+  "post": [
+   "cellreg:cell3",
+   "replicator_viz.py CELLS list (Q): update cell3 position"
+  ],
+  "verified": true
+ },
+ "fasm_core": {
+  "box": [
+   -352,
+   -198,
+   -339,
+   -189
+  ],
+  "note": "fluid-assembler unit: machines, chests, combinators (its table is fasm_table)",
+  "post": [
+   "scripts/repack_fasm.py NEW and omni_fluid_asm --at move with the core by the same offset"
+  ],
+  "verified": true
+ },
+ "fasm_table": {
+  "box": [
+   -352,
+   -189,
+   -303,
+   -186
+  ],
+  "note": "fluid-assembler unit recipe table, 48 wide x 2 tall",
+  "post": [],
+  "verified": true
+ },
+ "fluid_unit": {
+  "box": [
+   -351,
+   -232,
+   -289,
+   -213
+  ],
+  "exclude": [
+   "substation",
+   "roboport"
+  ],
+  "note": "plant + 4 barrel machines + table block 1 + table block 2 (the row at y -214)",
+  "parts": [
+   [
+    -324,
+    -232,
+    -289,
+    -217
+   ],
+   [
+    -351,
+    -215.5,
+    -322,
+    -213
+   ]
+  ],
+  "post": [
+   "omni_fluid.py SITES[replicator].c=(-300,-224) and replicator_viz.py C,CY"
+  ],
+  "verified": false
+ },
+ "furnace_unit": {
+  "box": [
+   -331,
+   -226,
+   -322,
+   -215
+  ],
+  "note": "furnace + its 5-decider table",
+  "parts": [
+   [
+    -331,
+    -226,
+    -324,
+    -218
+   ],
+   [
+    -327,
+    -217,
+    -322,
+    -215
+   ]
+  ],
+  "post": [
+   "omni_maker furnace position derives from SITES[replicator]; replicator_viz.py reads X+25.5,Y+9.5"
+  ],
+  "verified": false
+ },
+ "lattice_gap": {
+  "box": [
+   -305,
+   -201,
+   -303,
+   -199
+  ],
+  "exclude": [
+   "assembling-machine-3",
+   "decider-combinator",
+   "arithmetic-combinator",
+   "constant-combinator",
+   "selector-combinator",
+   "fast-inserter",
+   "passive-provider-chest",
+   "requester-chest",
+   "roboport",
+   "display-panel",
+   "small-lamp"
+  ],
+  "note": "base-lattice substation at (-312,-213) that sits in the cell row",
+  "post": [],
+  "verified": true
+ }
+}

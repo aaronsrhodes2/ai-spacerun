@@ -24,8 +24,8 @@ from pathlib import Path
 from _game import tools
 
 STATE = Path(__file__).resolve().parent.parent / "snapshots" / "replicator_viz_state.json"
-X0, PITCH, NCELL = -366, 3, 26
-ROW_N, ROW_S = -233.5, -191.5          # tile centres of the north row (y -234) and the south row (y -192)
+X0, PITCH, NCELL = -354, 2, 26          # pitch 2 (lamp and panel side by side) since the 2026-11-14 repack: the console is 52 wide, was 78
+ROW_N, ROW_S = -233.5, -198.5          # tile centres of the north row (y -234) and the south row (y -199; was -192 until the 2026-11-14 repack)
 COL = {"green": (.1, 1, .2), "amber": (1, .65, 0), "red": (1, .05, .05), "white": (1, 1, 1), "grey": (.35, .35, .35)}
 CI = {c: i + 1 for i, c in enumerate(COL)}
 I = lambda n: ("item", n)
@@ -71,7 +71,7 @@ def build(apply):
         if c["kind"] == "c" or c["kind"] == "h":
             ents.append({"name": "small-lamp", "x": c["lx"], "y": c["y"], "direction": 0})
     have = set()
-    for ya in (-234.5, -192.5):
+    for ya in (-234.5, -199.0):
         r = lua("local s=game.surfaces.nauvis local o={} for _,e in pairs(s.find_entities_filtered{area={{-367,%s},{-288,%s}},name={'small-lamp','display-panel'}}) do o[#o+1]=e.name..'@'..e.position.x..','..e.position.y end rcon.print(table.concat(o,';'))" % (ya, ya + 1.5))
         have |= set(r.split(";")) if r else set()
     todo = [e for e in ents if "%s@%s,%s" % (e["name"], e["x"], e["y"]) not in have]
@@ -93,7 +93,7 @@ local rp=at('roboport',X+2,Y+2) local net=rp and rp.logistic_network
 local function stock(n) return net and net.get_item_count(n) or 0 end
 local function chest(c) local l={} local tot=0 if c then for _,it in pairs(c.get_inventory(defines.inventory.chest).get_contents()) do l[#l+1]={it.name,it.count} tot=tot+it.count end end return l,tot end
 local ms={} local function addset(e) for _,v in ipairs(sigs(e,W.circuit_green)) do ms[v[1]]=true end end
-local CELLS={{-358,-213},{-334,-213},{-310,-213}} for _,c in ipairs(CELLS) do addset(at('constant-combinator',c[1]+8.5,c[2]+2.5)) end addset(at('constant-combinator',X+23+5.5,Y+6.5)) addset(at('constant-combinator',C-5.5,CY-5.5))
+local CELLS={{-352,-213},{-331,-213},{-310,-213}} for _,c in ipairs(CELLS) do addset(at('constant-combinator',c[1]+8.5,c[2]+2.5)) end addset(at('constant-combinator',X+23+5.5,Y+6.5)) addset(at('constant-combinator',C-5.5,CY-5.5))
 local prods={} local made=0
 local function unit(tag,am,rqs,pvs,sel)
 local r=am and am.get_recipe() local rn=r and r.name
