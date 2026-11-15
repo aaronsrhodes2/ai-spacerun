@@ -137,7 +137,11 @@ def needs(show=True):
 # ------------------------------------------------------------------ kit
 # consumables Aquilo burns that no ghost asks for (the Captain, 2026-11-14: "set up a fuel cell supply to Aquilo"); the reactor's feed chest
 # holds 50 more on top (requester contents are not counted by the network)
-AQUILO_STOCK = {"uranium-fuel-cell": 100}
+# (2026-11-14, "I really want Aquilo science flowing"): the silo stopped at 8/50 rocket parts with 0 LDS on Aquilo while 3,738 cryo packs
+# waited; and 40 logistic robots (all busy) load a 1000-pack rocket in ~2 minutes. LDS 300 = 6 rockets of parts; robots go to the network's
+# intake through robot_network.py (demand-gated), no Nauvis shuttle reaches Aquilo's pad so the kit carries them.
+AQUILO_STOCK_FIRST = {"low-density-structure": 300, "logistic-robot": 60, "processing-unit": 300}   # science: before the ghost items
+AQUILO_STOCK = {"uranium-fuel-cell": 100}                                                           # after the ghost items
 
 
 def kit(loads=8.0, concrete=None, show=True):
@@ -159,6 +163,18 @@ def kit(loads=8.0, concrete=None, show=True):
         if got < want:
             unsourced.append((item, q, want - got, "no stock at that quality" if have < want else "weight budget"))
 
+    stock = where([(n, "normal") for n in list(AQUILO_STOCK_FIRST) + list(AQUILO_STOCK)])
+    w.update(weights(list(AQUILO_STOCK_FIRST) + list(AQUILO_STOCK)))
+    src.update(stock)
+
+    def top_up(targets):
+        for n, target in targets.items():
+            s = stock.get((n, "normal"), {})
+            want = target - s.get("aquilo", 0) - s.get("hub", 0)
+            if want > 0:
+                take(n, "normal", want, "Aquilo stock target %d" % target)
+
+    top_up(AQUILO_STOCK_FIRST)
     for e in sorted(ents, key=lambda e: (-(e["in"] > 0), -(e["in"] + e["out"]))):
         short = e["in"] + e["out"] - e["stock"]
         if short > 0:
@@ -172,14 +188,7 @@ def kit(loads=8.0, concrete=None, show=True):
             take("stone-brick", "normal", max(0, 5 * crafts - bricks_have), "concrete works: %d concrete" % n)
             take("iron-ore", "normal", max(0, crafts - tiles["stock_ore"]), "concrete works")
     # standing stock on Aquilo (consumables no ghost asks for): top up to the target, counting what is aboard the ship
-    stock = where([(n, "normal") for n in AQUILO_STOCK])
-    w.update(weights(list(AQUILO_STOCK)))
-    src.update(stock)
-    for n, target in AQUILO_STOCK.items():
-        s = stock.get((n, "normal"), {})
-        want = target - s.get("aquilo", 0) - s.get("hub", 0)
-        if want > 0:
-            take(n, "normal", want, "Aquilo stock target %d" % target)
+    top_up(AQUILO_STOCK)
     if show:
         print("KIT within %.1f rocket loads (%.0f kg used = %.2f loads):" % (loads, used / 1000, used / 1e6))
         for r in rows:

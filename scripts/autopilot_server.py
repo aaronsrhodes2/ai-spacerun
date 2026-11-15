@@ -12,7 +12,9 @@ import time
 
 import os
 CYCLE = int(os.environ.get("AUTOPILOT_CYCLE", "180"))
-PRIORITY = ["biter-egg-handling", "productivity-module-3", "epic-quality", "advanced-asteroid-processing", "rocket-turret", "planet-discovery-aquilo", "space-platform-thruster", "planet-discovery-vulcanus", "planet-discovery-fulgora", "planet-discovery-gleba",
+# railgun + legendary-quality first (the Captain, 2026-11-14: "I need railguns and legendary" for the big ship). A priority tech whose packs
+# are out (< 30 in stock) still steps aside (3x the shortage penalty) so the labs keep working; it comes back first once packs land.
+PRIORITY = ["railgun", "legendary-quality", "biter-egg-handling", "productivity-module-3", "epic-quality", "advanced-asteroid-processing", "rocket-turret", "planet-discovery-aquilo", "space-platform-thruster", "planet-discovery-vulcanus", "planet-discovery-fulgora", "planet-discovery-gleba",
             "logistic-system", "landing-pad-unloading-bay"]
 
 
@@ -56,7 +58,7 @@ TOPUP = (
     "local pri={%s} local rows={} for name,t in pairs(f.technologies) do if t.enabled and not t.researched and t.research_unit_count>0 and not t.prototype.research_trigger then "
     "local ready=true for _,p in pairs(t.prerequisites) do if not p.researched then ready=false end end local ok=true local pen=0 local ag=false "
     "for _,i in pairs(t.research_unit_ingredients) do if not seven[i.name] then ok=false end if i.name=='agricultural-science-pack' then ag=true end if (stock[i.name] or 0)<30 then pen=pen+1000000 end end "
-    "if ready and ok then local score=t.research_unit_count+pen if t.prototype.max_level>=1000000 then score=score+500000 end for k,n in pairs(pri) do if n==name then score=k-1000000 end end rows[#rows+1]={name=name,score=score,ag=ag} end end end local any=false for _,r in pairs(rows) do if r.ag then any=true end end if any then local k={} for _,r in pairs(rows) do if r.ag then k[#k+1]=r end end rows=k end "
+    "if ready and ok then local score=t.research_unit_count+pen if t.prototype.max_level>=1000000 then score=score+500000 end for k,n in pairs(pri) do if n==name then score=k-1000000+3*pen end end rows[#rows+1]={name=name,score=score,ag=ag} end end end local any=false for _,r in pairs(rows) do if r.ag then any=true end end if any then local k={} for _,r in pairs(rows) do if r.ag then k[#k+1]=r end end rows=k end "
     "table.sort(rows,function(a,b) return a.score<b.score end) local q={} for _,r in pairs(rows) do if #q<7 then q[#q+1]=r.name end end "
     "if #q>0 then pcall(function() f.research_queue=q end) end local o={} for i,r in pairs(f.research_queue) do o[#o+1]=r.name end rcon.print(table.concat(o,','))"
 ) % ",".join(f"'{p}'" for p in PRIORITY)
