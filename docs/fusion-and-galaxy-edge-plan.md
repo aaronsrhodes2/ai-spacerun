@@ -64,3 +64,9 @@ Aquilo only (the Captain: fusion elsewhere makes no sense: fluoroketone, ammonia
 - Status now: E "item ingredient shortage" (tungsten carbide and carbon fiber not on Aquilo yet), K waits for hot fluoroketone (fluoroketone plant is stalled for lithium, which needs holmium). Nothing produced yet.
 - Lessons: place_entities ignores plant facing (rotate afterwards with e.direction); can_place_entity on a bare pipe finds tiles the tile map calls free (the aquilo_qp grid asks the game); a pipe-to-ground exit only connects straight ahead; no U-turns in the router.
 - Scale: one unit = 4 per minute (350 in ~88 minutes). More units: rerun aquilo_qp.py after clearing the site list in choose() (it finds the next free site).
+
+## Railguns: a requirement for the edge ship (2026-11-16, the Captain)
+- Researched; none built. Huge asteroids (Aquilo to the edge) resist explosions 99% and have 3,000 flat physical resistance, so rockets and uranium rounds cannot kill them: the edge ship cannot run without railguns. Lower-tier ships do not need them.
+- Railgun turret (read live): 30 tungsten plate, 50 superconductor, 20 carbon fiber, 100 quantum processor, 100 cold fluoroketone. Railgun ammo: 5 steel plate, 2 explosives, 10 copper cable (no processors; makes on any planet).
+- Budget: fusion 350 processors + 2 railgun turrets 200 = 550, about 138 minutes of one unit. Plan a second processor unit (`aquilo_qp.py`) before the edge ship; tungsten and fiber to Aquilo gate everything.
+- Order: tungsten/fiber arrive -> fusion plant -> second processor unit -> railgun turrets (2 to start) and ammo stocked ahead -> edge ship.
