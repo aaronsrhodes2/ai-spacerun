@@ -33,6 +33,13 @@ SEED_FLOOR = 0                      # towers plant whenever the network holds a 
                                     # would never have replanted. The reserve is the locked vault, not a floor.)
 SEED_VAULT_AFTER = 50               # the vault fills only once the network holds this many
 VAULT_BAR = 21                      # 20 slots of 10 = 200 seeds per vault
+VAULT_FLOOR = 210                   # the Captain (2026-11-16): minimum stock = seeds to repopulate the fields (21 agricultural towers x 10)
+VAULT_CHESTS = [(61.5, 88.5), (69.5, 88.5), (95.5, 32.5), (103.5, 32.5)]   # steel chests holding the vault seeds (2026-11-16 survey)
+
+
+def vault_surplus(total_seeds, floor=VAULT_FLOOR):
+    """Seeds the vault may release: everything above the floor, never negative. The floor is never released."""
+    return max(0, int(total_seeds) - int(floor))
 BIOFLUX_CAP = 500                   # fruit processors stop at this much bioflux (bioflux is the store: 2 h shelf)
 NUTRIENT_CAP = 200                  # nutrients spoil in 5 min: make little
 NUTRIENT_LOW = 50                   # below this the mash-to-nutrients restart chamber runs
@@ -385,6 +392,21 @@ def status():
     return json.loads(L(STATUS))
 
 
+def vault_release_report():
+    """Read every vault chest and report the seeds above the floor. Read-only."""
+    chests = ",".join("{%s,%s}" % (x, y) for x, y in VAULT_CHESTS)
+    code = ("local s=game.surfaces.gleba local o={} for _,p in pairs({%s}) do local c=s.find_entities_filtered{position=p,radius=0.3}[1] "
+            "local n=0 local ys=0 if c then local inv=c.get_inventory(defines.inventory.chest) for _,it in pairs(inv.get_contents()) do "
+            "if it.name=='yumako-seed' then ys=ys+it.count end if it.name=='jellynut-seed' then n=n+it.count end end end "
+            "o[#o+1]=p[1]..','..p[2]..':y'..ys..':j'..n end rcon.print(table.concat(o,' '))") % chests
+    raw = L(code).strip()
+    total = 0
+    for item in raw.split():
+        parts = item.split(":")
+        total += int(parts[1][1:]) + int(parts[2][1:])
+    return "vault seeds %d, floor %d, releasable %d | %s" % (total, VAULT_FLOOR, vault_surplus(total), raw)
+
+
 def tune():
     """Slow balancing (once an autopilot cycle): the fruit caps follow the bioflux store. Low bioflux -> pick more; full -> pick less."""
     st = status()
@@ -537,4 +559,6 @@ if __name__ == "__main__":
     elif cmd == "watch":
         print(watch())
     elif cmd == "vault_release":
-        print("vault_release is the Captain's call only: not automatic. Edit and run by hand after a redesign.")
+        # 2026-11-16: the Captain changed the rule: release only above the floor (210 seeds). This is a dry run: it reports the surplus per
+        # chest and moves nothing. Moving the seeds needs a release outlet, which is not built yet.
+        print(vault_release_report())
