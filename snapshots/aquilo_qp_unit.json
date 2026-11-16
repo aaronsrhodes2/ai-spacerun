@@ -1,0 +1,326 @@
+{
+ "kx": -39.5,
+ "ky": -21.5,
+ "ents": [
+  {
+   "name": "cryogenic-plant",
+   "x": -39.5,
+   "y": -21.5,
+   "direction": 8,
+   "recipe": "fluoroketone-cooling",
+   "params": {
+    "quality": "legendary"
+   }
+  },
+  {
+   "name": "electromagnetic-plant",
+   "x": -37.0,
+   "y": -17.0,
+   "direction": 4,
+   "recipe": "quantum-processor",
+   "params": {
+    "quality": "legendary"
+   }
+  },
+  {
+   "name": "requester-chest",
+   "x": -33.5,
+   "y": -15.5,
+   "direction": 0,
+   "cfg": {
+    "request": {
+     "processing-unit": 20,
+     "tungsten-carbide": 20,
+     "superconductor": 20,
+     "carbon-fiber": 20,
+     "lithium-plate": 40
+    }
+   }
+  },
+  {
+   "name": "fast-inserter",
+   "x": -34.5,
+   "y": -15.5,
+   "direction": 4
+  },
+  {
+   "name": "fast-inserter",
+   "x": -34.5,
+   "y": -18.5,
+   "direction": 12
+  },
+  {
+   "name": "passive-provider-chest",
+   "x": -33.5,
+   "y": -18.5,
+   "direction": 0
+  },
+  {
+   "name": "medium-electric-pole",
+   "x": -34.5,
+   "y": -16.5,
+   "direction": 0,
+   "params": {
+    "quality": "legendary"
+   }
+  },
+  {
+   "name": "pipe",
+   "x": -37.5,
+   "y": -24.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -38.5,
+   "y": -24.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -39.5,
+   "y": -24.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -40.5,
+   "y": -24.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -41.5,
+   "y": -24.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -42.5,
+   "y": -24.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -43.5,
+   "y": -24.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -43.5,
+   "y": -23.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -43.5,
+   "y": -22.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -43.5,
+   "y": -21.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -43.5,
+   "y": -20.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -43.5,
+   "y": -19.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -43.5,
+   "y": -18.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -43.5,
+   "y": -17.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -42.5,
+   "y": -17.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -42.5,
+   "y": -16.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -41.5,
+   "y": -16.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -40.5,
+   "y": -16.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -39.5,
+   "y": -16.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -36.5,
+   "y": -24.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -35.5,
+   "y": -24.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -34.5,
+   "y": -24.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -33.5,
+   "y": -24.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -33.5,
+   "y": -25.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe-to-ground",
+   "x": -33.5,
+   "y": -26.5,
+   "direction": 8
+  },
+  {
+   "name": "pipe-to-ground",
+   "x": -33.5,
+   "y": -34.5,
+   "direction": 8
+  },
+  {
+   "name": "pipe",
+   "x": -33.5,
+   "y": -44.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -32.5,
+   "y": -44.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe-to-ground",
+   "x": -31.5,
+   "y": -44.5,
+   "direction": 12
+  },
+  {
+   "name": "pipe",
+   "x": -24.5,
+   "y": -44.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -24.5,
+   "y": -45.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe",
+   "x": -25.5,
+   "y": -45.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe-to-ground",
+   "x": -33.5,
+   "y": -33.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe-to-ground",
+   "x": -33.5,
+   "y": -43.5,
+   "direction": 0
+  },
+  {
+   "name": "pipe-to-ground",
+   "x": -25.5,
+   "y": -44.5,
+   "direction": 4
+  },
+  {
+   "name": "heat-pipe",
+   "x": -36.5,
+   "y": -23.5,
+   "direction": 0
+  },
+  {
+   "name": "heat-pipe",
+   "x": -35.5,
+   "y": -23.5,
+   "direction": 0
+  },
+  {
+   "name": "heat-pipe",
+   "x": -34.5,
+   "y": -23.5,
+   "direction": 0
+  },
+  {
+   "name": "heat-pipe",
+   "x": -33.5,
+   "y": -23.5,
+   "direction": 0
+  },
+  {
+   "name": "heat-pipe",
+   "x": -36.5,
+   "y": -19.5,
+   "direction": 0
+  },
+  {
+   "name": "heat-pipe",
+   "x": -36.5,
+   "y": -20.5,
+   "direction": 0
+  },
+  {
+   "name": "heat-pipe",
+   "x": -36.5,
+   "y": -21.5,
+   "direction": 0
+  },
+  {
+   "name": "heat-pipe",
+   "x": -36.5,
+   "y": -22.5,
+   "direction": 0
+  }
+ ]
+}
