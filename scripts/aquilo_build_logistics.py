@@ -7,8 +7,8 @@ Aquilo ghosts (entity ghosts, `concrete` and `ice-platform` tile ghosts) wait fo
   stage    moves the kit items from where they are (Fulgora chests, then the Nauvis network) onto the ship's hub; factory-made items only, never spawned
   apply    writes the ship's request section `aq-ghost-36` (import_from fulgora: the Fulgora silo lifts what Fulgora holds) and the drop section
            `aq-ghostdrop-36` (min = max = 0 at Aquilo: an UNREQUESTED item never leaves a hub), and adds the kit items to the Aquilo stop's leave rule
-  reload   ONE ammunition step for both Aquilo ships: a ship parked at its home planet is topped up to a target (default 3,200 explosive rockets and
-           1,500 uranium magazines) from the Nauvis ammo cells' steel output chests (x -330..-280, y -105..-80: not in the robot network) and then any Nauvis network chest, only when stock exists. `--plain` fits plain rockets (NOT proven: see SKILL.md)
+  reload   ONE ammunition step for both Aquilo ships: a ship parked at its home planet is topped up to a target (default 5,600 explosive rockets and
+           4,000 uranium magazines) from the Nauvis ammo cells' steel output chests (x -330..-280, y -105..-80: not in the robot network) and then any Nauvis network chest, only when stock exists. `--plain` fits plain rockets (NOT proven: see SKILL.md)
   works    the concrete works on Aquilo: ice melter -> concrete assembler fed bricks + ore by a requester chest, output to a provider chest
            (concrete 10 kg a piece; 5 bricks + 1 ore make 10 concrete = 12 kg, 8x lighter)
   verify   the checks for a flight; status = everything in one screen
@@ -27,13 +27,13 @@ from _game import tools
 
 L = tools["run_lua"]
 NL = "string.char(10)"
-SHIPS = {"Fulgora-Aquilo 4 Shuttle": "fulgora", "Gleba-Aquilo 1 Shuttle": "gleba"}
+SHIPS = {"Fulgora-Aquilo 4 Shuttle": "fulgora", "Fulgora-Aquilo 5 Shuttle": "fulgora", "Gleba-Aquilo 1 Shuttle": "gleba"}   # ship 5 added 2026-11-16: it sat at 1,172 rockets, unserved
 SHIP = "Fulgora-Aquilo 4"           # the ship that carries kits
 IDX = 36
 GHOST_SEC, GHOST_DROP = "aq-ghost-%d" % IDX, "aq-ghostdrop-%d" % IDX
 SHIP_OWN = {"iron-ore", "carbon", "explosive-rocket", "rocket", "uranium-rounds-magazine", "repair-pack"}   # the ship's own supplies: never dropped
 ROCKET_KG = 1000
-ROCKET_TARGET, MAG_TARGET = 3200, 1500
+ROCKET_TARGET, MAG_TARGET = 5600, 4000      # the Captain: depart only with a 5,000-rocket buffer (a first leg burns ~3,800); ship 5 carries 3,500+ mags
 CONCRETE_PER_CRAFT = 10        # 5 stone-brick + 1 iron-ore + 100 water -> 10 concrete
 FIND = "local p for _,q in pairs(game.forces.player.platforms) do if q.name:find('%s',1,true) then p=q end end " % SHIP
 
@@ -237,7 +237,8 @@ def apply_sections(apply=False, loads=8.0, concrete=None):
             "local sch=p.schedule local rec=sch.records[2] local mine={} for _,k in ipairs(K) do mine[k[1]]=k end local keep={} local nt=nil for _,x in pairs(rec.wait_conditions) do "
             "local nm=x.condition and x.condition.first_signal and x.condition.first_signal.name if not (nm and mine[nm] and x.type=='item_count' and x.condition.comparator=='<') then keep[#keep+1]=x end end "
             "local at=#keep+1 for i,x in ipairs(keep) do if x.compare_type=='or' then at=i break end end local added=0 "
-            "for _,k in ipairs(K) do table.insert(keep,at+added,{type='item_count',compare_type='and',condition={first_signal={type='item',name=k[1],quality=k[2]},comparator='<',constant=1}}) added=added+1 end "
+            # no "hub holds < 1 of X" leave rule any more (2026-11-15): one item the pad could not take held Fulgora-Aquilo 4 at Aquilo for hours;
+            # the drop section still unloads, and the ship leaves on time and fuel.
             "rec.wait_conditions=keep sch.records[2]=rec p.schedule=sch "            "rcon.print('sections '..'" + GHOST_SEC + "'..' '..#K..' items, leave rule +'..added..' conditions')")
     if not apply:
         print("dry run: would write %d items to %s / %s:" % (len(rows), GHOST_SEC, GHOST_DROP))
