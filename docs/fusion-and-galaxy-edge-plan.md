@@ -42,3 +42,10 @@ First plant = 1 reactor + 2 generators + 20 start cells = 350 quantum processors
 - SHORT, no producer anywhere: quantum processor (built in a cryogenic-plant-class assembler on Aquilo: 1 processing unit, 1 tungsten carbide, 1 superconductor, 1 carbon fiber, 2 lithium plate, 10 cold fluoroketone) and carbon fiber (10 yumako mash + 1 carbon, Gleba; 3,500 mash for 350).
 - Site: the empty prepared ice-platform area south of the Aquilo base (about x -50..30, y 28..50).
 - Route for far items: Vulcanus -> Nauvis -> Fulgora -> Aquilo kit ship (aq-ghost section); carbon fiber: Gleba-Aquilo shuttle.
+
+## Shipping routes (2026-11-15, scripts/fusion_routes.py apply)
+Each hop = ship hub request at the origin (import_from origin) + destination pad request. Sections are `fusion-<kind>-<place>` (group names are global: one shared name made every section carry the last one's items, found on the first apply).
+- Tungsten plate 600: Vulcanus -> Nauvis (Nauvis-Vulcanus 1-3) -> Fulgora (Nauvis-Fulgora 1-3) -> Aquilo (Fulgora-Aquilo 5).
+- Tungsten carbide 500: Nauvis -> Fulgora -> Aquilo. Holmium plate 60: Fulgora -> Aquilo (the Aquilo pad already asked for 400).
+- Carbon fiber 500: Gleba -> Aquilo (Gleba-Aquilo 1; leave rule unchanged).
+First deliveries not yet seen; check with `fusion_routes.py show` and `fusion_aquilo.py bom`.
