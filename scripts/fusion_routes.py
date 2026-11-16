@@ -19,6 +19,7 @@ ROUTES = [
     ("hub", "Nauvis-Fulgora", "G", [("tungsten-plate", W_PLATE, "nauvis"), ("tungsten-carbide", W_CARB, "nauvis")]),
     ("pad", "fulgora", "G", [("tungsten-plate", W_PLATE, "nauvis"), ("tungsten-carbide", W_CARB, "nauvis")]),
     ("hub", "Fulgora-Aquilo", "G", [("tungsten-plate", W_PLATE, "fulgora"), ("tungsten-carbide", W_CARB, "fulgora"), ("holmium-plate", HOLM, "fulgora")]),
+    ("pad", "gleba", "G", [("carbon-fiber", FIBER, None)]),      # bots bring the fiber from the works' provider chests to the pad, where the ship loads it
     ("hub", "Gleba-Aquilo", "G", [("carbon-fiber", FIBER, "gleba")]),
     ("pad", "aquilo", "G", [("tungsten-plate", W_PLATE, None), ("tungsten-carbide", W_CARB, None), ("carbon-fiber", FIBER, None)]),
 ]
@@ -57,7 +58,7 @@ def build_lua():
 
 def show():
     code = ("local f=game.forces.player local o={} local function d(tag,secs) for _,s in pairs(secs) do if (s.group or ''):find('fusion') then local q={} for _,fl in pairs(s.filters) do if fl.value then q[#q+1]=fl.value.name..' '..(fl.min or 0)..(fl.import_from and ('@'..tostring(fl.import_from.name or fl.import_from)) or '') end end o[#o+1]=tag..': '..table.concat(q,', ') end end end "
-            "for _,sn in ipairs({'nauvis','fulgora','aquilo'}) do for _,pt in pairs(game.surfaces[sn].find_entities_filtered{type='cargo-landing-pad'}[1].get_logistic_point()) do if pt.mode==defines.logistic_mode.requester then d('pad '..sn,pt.sections) end end end "
+            "for _,sn in ipairs({'nauvis','fulgora','gleba','aquilo'}) do for _,pt in pairs(game.surfaces[sn].find_entities_filtered{type='cargo-landing-pad'}[1].get_logistic_point()) do if pt.mode==defines.logistic_mode.requester then d('pad '..sn,pt.sections) end end end "
             "for _,p in pairs(f.platforms) do if p.valid and p.hub and p.name:find('Shuttle$') then d(p.name:sub(-26),p.hub.get_logistic_sections().sections) end end rcon.print(table.concat(o,string.char(10)))")
     print(L(code))
 
