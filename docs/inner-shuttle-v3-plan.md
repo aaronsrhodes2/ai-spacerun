@@ -50,3 +50,8 @@ The 7-bay hull with 4 thrusters is slower than the old ship (4.7 vs 5.5). With 8
 - Speed 5.25 at the start, falling to 4.8 before the stop: NOT the 6.3 the model gave for 8 thrusters at 446 t. Old hulls measured 5.4 to 5.5 with 4 thrusters at 267 t, and about 30,500 fuel outbound (2026-11-10 notes). So eight thrusters at this weight gave no speed gain and no fuel saving on this leg; the fitted thrust-per-thruster (225 kN) overstates, or thrusters do not add linearly. The model is not to be trusted until thrust is read from the game.
 - What the prototype did give: 325 slots (409+ with legendary bays) and a clean, undamaged leg. Speed is not the gain; cargo is.
 - Next: read real thrust (a one-thruster test flight is not possible; compare acceleration at the start of a leg), and measure the return leg. Do not retire old ships on a speed argument.
+
+## Is water the limit? (2026-11-16, prototype at Gleba, 60 s sample)
+- No. Fuel and oxidizer each rose about 6,100 a minute (about 100 a second), water rose 2,250 net, ice fell 128 a minute: one ice-melting plant makes more water than both propellant plants use (about 1,640 a minute). Old Gleba shuttles hold 110,000 to 125,000 water.
+- Per leg (35,000 fuel + 37,000 oxidizer burned) the ship needs about 930 carbon, 990 iron ore and only 480 ice: ice is the smallest need.
+- What is short: chunks. All four crushers sit in item_ingredient_shortage; the prototype's hub stock (carbon 1,000, ore 650, ice 450) is what ran the plants, and ore fell 400 a minute. The new hull has 2 collectors against 6 on the old hull. Next lever: more collectors, then oxide-by-circuit (REPRO already reshuffles metallic when ore is full).
