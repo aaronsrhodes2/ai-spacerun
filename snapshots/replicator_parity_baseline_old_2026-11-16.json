@@ -1,0 +1,359 @@
+{
+ "counts": {
+  "arithmetic-combinator": 48,
+  "assembling-machine": 16,
+  "box_tiles": 2442,
+  "buffer-chest": 15,
+  "built_tiles": 708,
+  "combinators": 141,
+  "constant-combinator": 12,
+  "decider-combinator": 81,
+  "display-panel": 44,
+  "electric-pole": 7,
+  "entities": 365,
+  "furnace": 1,
+  "inserter": 34,
+  "lamp": 44,
+  "machines": 17,
+  "passive-provider-chest": 17,
+  "pipe": 2,
+  "pipe-to-ground": 12,
+  "requester-chest": 17,
+  "roboport": 3,
+  "selector-combinator": 12
+ },
+ "orders": [
+  {
+   "flush": "nothing to flush",
+   "items": {
+    "arithmetic-combinator": {
+     "asks": [
+      "copper-cable 25, electronic-circuit 25"
+     ],
+     "done_ticks": 842,
+     "first_ticks": 842,
+     "machines": [
+      "cell1.m1",
+      "cell1.m2",
+      "cell1.m3"
+     ],
+     "made": 13,
+     "max_at_once": 3,
+     "pass": true,
+     "recipes": [
+      "arithmetic-combinator"
+     ],
+     "units": [
+      "cell1"
+     ]
+    }
+   },
+   "name": "cell1",
+   "ok": true
+  },
+  {
+   "flush": "nothing to flush",
+   "items": {
+    "assembling-machine-1": {
+     "asks": [
+      "electronic-circuit 15, iron-gear-wheel 25, iron-plate 45"
+     ],
+     "done_ticks": 1587,
+     "first_ticks": 387,
+     "machines": [
+      "cell2.m1",
+      "cell2.m2",
+      "cell2.m3"
+     ],
+     "made": 11,
+     "max_at_once": 3,
+     "pass": true,
+     "recipes": [
+      "assembling-machine-1"
+     ],
+     "units": [
+      "cell2"
+     ]
+    }
+   },
+   "name": "cell2",
+   "ok": true
+  },
+  {
+   "flush": "nothing to flush",
+   "items": {
+    "constant-combinator": {
+     "asks": [
+      "copper-cable 25, electronic-circuit 10"
+     ],
+     "done_ticks": 777,
+     "first_ticks": 777,
+     "machines": [
+      "cell3.m1",
+      "cell3.m2",
+      "cell3.m3"
+     ],
+     "made": 4,
+     "max_at_once": 3,
+     "pass": true,
+     "recipes": [
+      "constant-combinator"
+     ],
+     "units": [
+      "cell3"
+     ]
+    }
+   },
+   "name": "cell3",
+   "ok": true
+  },
+  {
+   "flush": "nothing to flush",
+   "items": {
+    "piercing-shotgun-shell": {
+     "asks": [
+      "copper-plate 10, shotgun-shell 10, steel-plate 5"
+     ],
+     "done_ticks": null,
+     "first_ticks": null,
+     "machines": [
+      "cell1.m1",
+      "cell1.m2",
+      "cell1.m3"
+     ],
+     "made": 0,
+     "max_at_once": 3,
+     "pass": false,
+     "recipes": [
+      "piercing-shotgun-shell"
+     ],
+     "units": [
+      "cell1"
+     ]
+    }
+   },
+   "name": "nested",
+   "ok": false,
+   "sub": {
+    "item": "shotgun-shell",
+    "nested": true,
+    "stock_before": 0
+   }
+  },
+  {
+   "flush": "nothing to flush",
+   "items": {
+    "stone-brick": {
+     "asks": [],
+     "done_ticks": null,
+     "first_ticks": null,
+     "machines": [],
+     "made": 0,
+     "max_at_once": 0,
+     "pass": false,
+     "recipes": [],
+     "units": []
+    }
+   },
+   "name": "furnace",
+   "ok": false
+  },
+  {
+   "flush": "nothing to flush",
+   "items": {
+    "electric-engine-unit": {
+     "asks": [
+      "electronic-circuit 20, engine-unit 10"
+     ],
+     "done_ticks": 897,
+     "first_ticks": 897,
+     "machines": [
+      "fasm.P"
+     ],
+     "made": 4,
+     "max_at_once": 1,
+     "pass": true,
+     "recipes": [
+      "electric-engine-unit"
+     ],
+     "units": [
+      "fasm"
+     ]
+    }
+   },
+   "name": "fasm-lubricant",
+   "ok": true
+  },
+  {
+   "flush": "nothing to flush",
+   "items": {
+    "processing-unit": {
+     "asks": [
+      "advanced-circuit 20, electronic-circuit 200"
+     ],
+     "done_ticks": 1222,
+     "first_ticks": 1222,
+     "machines": [
+      "fasm.P"
+     ],
+     "made": 3,
+     "max_at_once": 1,
+     "pass": true,
+     "recipes": [
+      "processing-unit"
+     ],
+     "units": [
+      "fasm"
+     ]
+    }
+   },
+   "name": "fasm-acid",
+   "ok": true
+  },
+  {
+   "flush": "nothing to flush",
+   "items": {
+    "sulfur": {
+     "asks": [],
+     "done_ticks": 292,
+     "first_ticks": 292,
+     "machines": [
+      "chem.plant"
+     ],
+     "made": 5,
+     "max_at_once": 1,
+     "pass": true,
+     "recipes": [
+      "sulfur"
+     ],
+     "units": [
+      "chem"
+     ]
+    }
+   },
+   "name": "chem-two-fluid",
+   "ok": true
+  },
+  {
+   "flush": "B pipe flushed (petroleum-gas)",
+   "items": {
+    "sulfuric-acid-barrel": {
+     "asks": [
+      "barrel 10"
+     ],
+     "done_ticks": 2837,
+     "first_ticks": 742,
+     "machines": [
+      "chem.C"
+     ],
+     "made": 9,
+     "max_at_once": 1,
+     "pass": true,
+     "recipes": [
+      "sulfuric-acid-barrel"
+     ],
+     "units": [
+      "chem"
+     ]
+    }
+   },
+   "name": "chem-fluid-product",
+   "ok": true
+  },
+  {
+   "flush": "D pipe flushed (sulfuric-acid)",
+   "items": {
+    "plastic-bar": {
+     "asks": [
+      "coal 10"
+     ],
+     "done_ticks": 1737,
+     "first_ticks": 1737,
+     "machines": [
+      "chem.plant"
+     ],
+     "made": 16,
+     "max_at_once": 1,
+     "pass": true,
+     "recipes": [
+      "plastic-bar"
+     ],
+     "units": [
+      "chem"
+     ]
+    }
+   },
+   "name": "chem-solid",
+   "ok": true
+  },
+  {
+   "flush": "nothing to flush",
+   "items": {
+    "arithmetic-combinator": {
+     "asks": [
+      "copper-cable 25, electronic-circuit 25"
+     ],
+     "done_ticks": 741,
+     "first_ticks": 711,
+     "machines": [
+      "cell1.m1",
+      "cell1.m2",
+      "cell1.m3"
+     ],
+     "made": 24,
+     "max_at_once": 3,
+     "pass": true,
+     "recipes": [
+      "arithmetic-combinator"
+     ],
+     "units": [
+      "cell1"
+     ]
+    },
+    "electric-engine-unit": {
+     "asks": [
+      "electronic-circuit 20, engine-unit 10"
+     ],
+     "done_ticks": 831,
+     "first_ticks": 741,
+     "machines": [
+      "fasm.P"
+     ],
+     "made": 14,
+     "max_at_once": 1,
+     "pass": true,
+     "recipes": [
+      "electric-engine-unit"
+     ],
+     "units": [
+      "fasm"
+     ]
+    },
+    "plastic-bar": {
+     "asks": [
+      "coal 10"
+     ],
+     "done_ticks": 1566,
+     "first_ticks": 1566,
+     "machines": [
+      "chem.plant"
+     ],
+     "made": 9,
+     "max_at_once": 1,
+     "pass": true,
+     "recipes": [
+      "plastic-bar"
+     ],
+     "units": [
+      "chem"
+     ]
+    }
+   },
+   "name": "batch",
+   "ok": true
+  }
+ ],
+ "target_crafts": 3,
+ "timeout_ticks": 18000,
+ "when": "2026-11-16T20:58:18"
+}

@@ -27,9 +27,9 @@ from _game import tools
 
 L = tools["run_lua"]
 NL = "string.char(10)"
-SHIPS = {"Fulgora-Aquilo 4 Shuttle": "fulgora", "Fulgora-Aquilo 5 Shuttle": "fulgora", "Gleba-Aquilo 1 Shuttle": "gleba"}   # ship 5 added 2026-11-16: it sat at 1,172 rockets, unserved
-SHIP = "Fulgora-Aquilo 4"           # the ship that carries kits
-IDX = 36
+SHIPS = {"Fulgora-Aquilo 5 Shuttle": "fulgora", "Gleba-Aquilo 1 Shuttle": "gleba"}   # ship 5 added 2026-11-16: it sat at 1,172 rockets, unserved
+SHIP = "Fulgora-Aquilo 5"           # the ship that carries kits (ship 4, platform 36, no longer exists: found 2026-11-16, the kit route was dead)
+IDX = 39
 GHOST_SEC, GHOST_DROP = "aq-ghost-%d" % IDX, "aq-ghostdrop-%d" % IDX
 SHIP_OWN = {"iron-ore", "carbon", "explosive-rocket", "rocket", "uranium-rounds-magazine", "repair-pack"}   # the ship's own supplies: never dropped
 ROCKET_KG = 1000

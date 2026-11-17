@@ -5,7 +5,7 @@ assembling machine 3, inserter, STEEL chest (outside the network, so nothing els
   explosive-rocket (1 rocket + 2 explosives, 8 s)                 rows -99 (four cells) and -90 (x0 -322)
   uranium-rounds-magazine (1 piercing magazine + 1 U-238, 10 s)   rows -94 (four cells) and -90 (x0 -308)
 Two substations on row -96. The rockets come from the two rocket assemblers of rocket_line.py (their output chests are passive providers again).
-Steps: build [--apply] | config | status | ship NAME (moves all finished ammunition into that platform's hub)
+Steps: build [--apply] | config | status | ship NAME [rockets mags] (moves finished ammunition into that platform's hub, at most the given counts)
 Usage: ammo_line.py build [--apply] | config | status | ship NAME"""
 import json
 import sys
@@ -39,8 +39,8 @@ CONFIG = ("local s=game.surfaces.nauvis local n=0 for _,c in pairs(CELLS) do loc
 STATUS = ("local s=game.surfaces.nauvis local st={} for k,v in pairs(defines.entity_status) do st[v]=k end local o={} local tot={} for _,c in pairs(CELLS) do local m=s.find_entities_filtered{name='assembling-machine-3',position={c[1]+3.5,c[2]+1.5},radius=0.5}[1] "
           "local ch=s.find_entities_filtered{name='steel-chest',position={c[1]+6.5,c[2]+1.5},radius=0.4}[1] local k=ch.get_item_count(c[3]) tot[c[3]]=(tot[c[3]] or 0)+k o[#o+1]=c[3]..'@'..c[1]..','..c[2]..' '..(st[m.status] or m.status)..' speed '..m.crafting_speed..' chest '..k end "
           "for k,v in pairs(tot) do o[#o+1]='READY '..k..' '..v end rcon.print(table.concat(o,' ; '))")
-SHIP = ("local s=game.surfaces.nauvis local p for _,q in pairs(game.forces.player.platforms) do if q.name:find('NAME',1,true) then p=q end end local hi=p.hub.get_inventory(defines.inventory.hub_main) local got={} "
-        "for _,c in pairs(CELLS) do local ch=s.find_entities_filtered{name='steel-chest',position={c[1]+6.5,c[2]+1.5},radius=0.4}[1] local inv=ch.get_inventory(defines.inventory.chest) local n=inv.get_item_count(c[3]) "
+SHIP = ("local s=game.surfaces.nauvis local p for _,q in pairs(game.forces.player.platforms) do if q.name:find('NAME',1,true) then p=q end end local hi=p.hub.get_inventory(defines.inventory.hub_main) local got={} local CAP={['explosive-rocket']=ROCKETCAP,['uranium-rounds-magazine']=MAGCAP} "
+        "for _,c in pairs(CELLS) do local ch=s.find_entities_filtered{name='steel-chest',position={c[1]+6.5,c[2]+1.5},radius=0.4}[1] local inv=ch.get_inventory(defines.inventory.chest) local n=math.min(inv.get_item_count(c[3]),(CAP[c[3]] or 1e9)-(got[c[3]] or 0)) "
         "if n>0 then local put=hi.insert{name=c[3],count=n} if put>0 then inv.remove{name=c[3],count=put} got[c[3]]=(got[c[3]] or 0)+put end end end local o={} for k,v in pairs(got) do o[#o+1]=k..' +'..v..' (hub '..hi.get_item_count(k)..')' end "
         "rcon.print('moved to '..p.name..': '..table.concat(o,', '))")
 
@@ -56,7 +56,7 @@ def main():
     elif step == "status":
         print(tools["run_lua"](STATUS.replace("CELLS", cells_lua())).replace(" ; ", "\n"))
     elif step == "ship":
-        print(tools["run_lua"](SHIP.replace("CELLS", cells_lua()).replace("NAME", sys.argv[2])))
+        print(tools["run_lua"](SHIP.replace("CELLS", cells_lua()).replace("NAME", sys.argv[2]).replace("ROCKETCAP", sys.argv[3] if len(sys.argv) > 3 else "1e9").replace("MAGCAP", sys.argv[4] if len(sys.argv) > 4 else "1e9")))
 
 
 if __name__ == "__main__":

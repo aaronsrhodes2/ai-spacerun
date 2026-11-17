@@ -8,7 +8,7 @@ import sys
 import omni_fluid_asm as fa
 from _game import tools
 
-OLD, NEW = (-352, -192), (-346, -192)        # the unit moved 6 east with compact.py (fasm_core + fasm_table), 2026-11-14
+OLD, NEW = (-352, -192), (-346, -219)        # moved 6 east (2026-11-14), then 27 north with a folded table (2026-11-16, omni_fluid_asm.TABLE_FOLD)
 
 
 def entities(site):

@@ -20,7 +20,7 @@ from bridge.factorio.planner import batches
 KINDS = {
     "steel": {"machine": "electric-furnace", "recipe": None, "req": [("iron-plate", 100)]},
     "cable": {"machine": "assembling-machine-3", "recipe": "copper-cable", "bar": 4, "quality": "epic", "req": [("copper-plate", 200)]},     # epic since 2026-11-14 (a normal AM3 makes 4.2 cables/s, an epic one 9.5)
-    "ec": {"machine": "assembling-machine-3", "recipe": "electronic-circuit", "bar": 4, "req": [("copper-cable", 300), ("iron-plate", 100)]},
+    "ec": {"machine": "assembling-machine-3", "recipe": "electronic-circuit", "bar": 4, "quality": "epic", "req": [("copper-cable", 300), ("iron-plate", 100)]},
     "ac": {"machine": "assembling-machine-3", "recipe": "advanced-circuit", "req": [("electronic-circuit", 40), ("plastic-bar", 40), ("copper-cable", 80)]},
     "foundation": {"machine": "assembling-machine-3", "recipe": "space-platform-foundation", "req": [("steel-plate", 100), ("copper-cable", 100)]},
     # logistic robots: the robot pool is fixed (7,053 on Nauvis, none made anywhere), so the other planets have none (2026-11-14)
@@ -41,7 +41,7 @@ KINDS = {
     "rail": {"machine": "assembling-machine-3", "recipe": "rail", "bar": 6,
              "req": [("stone", 400), ("steel-plate", 400), ("iron-stick", 400)]},
     "stick": {"machine": "assembling-machine-3", "recipe": "iron-stick", "bar": 6, "req": [("iron-plate", 400)]},
-    "brick": {"machine": "electric-furnace", "recipe": None, "bar": 6, "req": [("stone", 200)]},
+    "brick": {"machine": "electric-furnace", "recipe": None, "bar": 6, "quality": "epic", "req": [("stone", 1500)]},     # epic since 2026-11-14 (1.19 bricks/s each)
     "engine": {"machine": "assembling-machine-3", "recipe": "engine-unit", "bar": 3,
                "req": [("steel-plate", 40), ("iron-gear-wheel", 40), ("pipe", 80)]},
     "gear": {"machine": "assembling-machine-3", "recipe": "iron-gear-wheel", "bar": 6, "req": [("iron-plate", 400)]},

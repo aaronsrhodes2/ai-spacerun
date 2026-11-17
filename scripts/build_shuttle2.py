@@ -4,7 +4,7 @@ Compact shuttle, second design (2026-11-10), built around the platform hub so th
     collectors -> chunk belt -> one inserter into the hub (takes only the chunk types the hub is short of; the rest is thrown into space at the belt's end)
     hub -> crushers -> hub (iron ore) / ice melter (water) / fuel plant;  hub -> furnaces -> hub -> assembler -> hub (magazines)
     hub -> turrets, directly or over two short belts (nose, rear): the magazine stock sits upstream of every turret
-    nose and flanks: fourteen solar panels, three accumulators and a cargo bay (nuclear until 2026-11-10);  rear: tanks, four thrusters fed through two-tile gaps
+    nose and flanks: fourteen solar panels, one accumulator and two cargo bays (nuclear until 2026-11-10);  rear: tanks, four thrusters fed through two-tile gaps
 
 Rare quality throughout: epic and legendary are not unlocked by research. All coordinates are tiles (top-left corner); the hub covers -4..3.
 Usage: scripts/build_shuttle2.py --surface platform-3 [--apply]
@@ -66,8 +66,10 @@ def turret(tx, ty, ix, iy, pick):
 # One cargo bay against the hub's north edge (2026-11-13): the bare hub has 59 slots, and nine kinds of science pack, magazines, fuel cells and
 # chunks filled it, so rockets could not deliver; an epic bay makes it 97. It stands where a solar panel and three accumulators stood.
 big("cargo-bay", -2, -8, 4, 4)
-for tx, ty in ((1, -10), (-1, -12), (-1, -14)):
-    big("accumulator", tx, ty, 2, 2)
+# Second bay north of the first (2026-11-16, the Captain: "add cargo bays to full ships"; 109 -> 159 slots with legendary bays). It took the place of
+# two of the three accumulators; the chunk belt's underground exit moved one tile west so the belt passes under the bay.
+big("cargo-bay", -2, -12, 4, 4)
+big("accumulator", -1, -14, 2, 2)
 
 # turrets fed straight from the hub
 turret(-4, -7, -4, -5, S)
@@ -119,8 +121,8 @@ run(BELT, 14, -12, 8, -12, W)
 ug(7, -12, W, "input")
 ug(3, -12, W, "output")
 ug(2, -12, W, "input")
-ug(-2, -12, W, "output")
-run(BELT, -3, -12, -5, -12, W)
+ug(-3, -12, W, "output")                                # one tile west of the second cargo bay (x -2..1)
+run(BELT, -4, -12, -5, -12, W)
 
 # west side: metallic crusher, furnace, oxidizer plant
 big("crusher", -7, -3, 2, 3, N, recipe="metallic-asteroid-crushing")

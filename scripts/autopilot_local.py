@@ -19,6 +19,9 @@ import ghost_requests
 import replicator_demand_watch
 import replicator_cell
 import gleba_cell
+import gleba_restart
+import gleba_stability
+import omni_fluid
 
 LOG = str(Path(__file__).resolve().parent.parent / "docs" / "autopilot.log")
 
@@ -59,7 +62,11 @@ SHIP_GUARD = (
 # Every cycle, any shuttle whose oxidizer tank has no wire gets it back (fuel tank -> oxidizer tank, green). Same fix as configure_shuttle2.py 'tank wires'.
 OX_WIRE = ("local W=defines.wire_connector_id local n=0 for _,p in pairs(game.forces.player.platforms) do if p.valid and p.name:find('Shuttle$') and p.hub then local s=p.surface "
            "local fu=s.find_entities_filtered{name='storage-tank',position={6.5,14.5},radius=0.4}[1] local ox=s.find_entities_filtered{name='storage-tank',position={(-6.5),14.5},radius=0.4}[1] "
-           "if fu and ox then local c=ox.get_wire_connector(W.circuit_green,true) if c.connection_count==0 then fu.get_wire_connector(W.circuit_green,true).connect_to(c,false,defines.wire_origin.script) n=n+1 end end end end "
+           "if fu and ox then local c=ox.get_wire_connector(W.circuit_green,true) if c.connection_count==0 then fu.get_wire_connector(W.circuit_green,true).connect_to(c,false,defines.wire_origin.script) n=n+1 end end "
+           # the Aquilo hull (aquilo_shuttle.py) has its tanks elsewhere: oxidizer (-7.5,11.5) hangs off the wired water tank (-1.5,11.5). Found 2026-11-16: both Aquilo
+           # shuttles sat parked with every other departure condition met, twice "fixed" by nudging the schedule.
+           "local wa=s.find_entities_filtered{name='storage-tank',position={(-1.5),11.5},radius=0.4}[1] local ox2=s.find_entities_filtered{name='storage-tank',position={(-7.5),11.5},radius=0.4}[1] "
+           "if wa and ox2 then local c=ox2.get_wire_connector(W.circuit_green,true) if c.connection_count==0 then wa.get_wire_connector(W.circuit_green,true).connect_to(c,false,defines.wire_origin.script) n=n+1 end end end end "
            "rcon.print('oxidizer wires restored '..n)")
 
 # Factory status wall (2026-11-14): panels and lamps on Nauvis near the silos, refreshed every WALL_EVERY cycles (about 2 s of RCON). See scripts/factory_wall.py.
@@ -98,6 +105,13 @@ def main():
                     replicator_viz.update()
                 except Exception as exc:  # noqa: BLE001
                     ap.log("replicator console error: " + repr(exc), LOG)
+            if cyc % 2 == 0:                                                                 # Replicator chemical unit: a pipe tile never flushes itself (scripts/omni_fluid.py FLUSH)
+                try:
+                    fl = omni_fluid.cycle("replicator")
+                    if fl and fl != "nothing to flush":
+                        ap.log("replicator fluid unit: " + fl[:200], LOG)
+                except Exception as exc:  # noqa: BLE001
+                    ap.log("replicator flush error: " + repr(exc), LOG)
             if cyc % REFRESH_EVERY == 5:                                                     # newly researched or impossible items: rank list + ring of the Replicator
                 try:
                     for name, rr in replicator_cell.refresh_all().items():           # the live Replicator and every cell, with their partitions
@@ -133,6 +147,19 @@ def main():
                     ap.log(gleba_cell.watch(), LOG)
                 except Exception as exc:  # noqa: BLE001
                     ap.log("gleba cell error: " + repr(exc), LOG)
+                try:                                                                         # unjam egg outputs, refuel dead biochambers, move stranded eggs (scripts/gleba_restart.py)
+                    gr = gleba_restart.cycle()
+                    if gr:
+                        ap.log("gleba restart: " + gr, LOG)
+                except Exception as exc:  # noqa: BLE001
+                    ap.log("gleba restart error: " + repr(exc), LOG)
+            if cyc % 3 == 1:                                                                 # Gleba stability watch: sample, alarm, heal, hours since the last alarm (scripts/gleba_stability.py)
+                try:
+                    gs = gleba_stability.sample()
+                    if gs:
+                        ap.log("gleba watch: " + gs if not gs.startswith(("GLEBA", "gleba")) else gs, LOG)
+                except Exception as exc:  # noqa: BLE001
+                    ap.log("gleba watch error: " + repr(exc), LOG)
             if cyc % 2 == 1:                                                                 # spent fuel cells home to Nauvis (scripts/depleted_return.py)
                 ap.log("depleted return: " + depleted_return.cycle(), LOG)
             tools["run_lua"](module_mall.LABS)                                               # speed modules into the Gleba labs first

@@ -52,6 +52,45 @@
   ],
   "verified": true
  },
+ "fa_core": {
+  "box": [
+   -353,
+   -225.4,
+   -342,
+   -217
+  ],
+  "exclude": [
+   "substation"
+  ],
+  "verified": true
+ },
+ "fa_t1": {
+  "box": [
+   -342,
+   -225,
+   -330,
+   -223
+  ],
+  "verified": true
+ },
+ "fa_t2": {
+  "box": [
+   -342,
+   -223,
+   -330,
+   -221
+  ],
+  "verified": true
+ },
+ "fa_t3": {
+  "box": [
+   -328,
+   -220,
+   -304,
+   -218
+  ],
+  "verified": true
+ },
  "fasm_core": {
   "box": [
    -352,

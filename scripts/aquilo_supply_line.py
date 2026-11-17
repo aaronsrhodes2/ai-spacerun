@@ -19,14 +19,15 @@ Steps:  status | plan | apply [--route fulgora] [--go] | ammo N | stage | verify
   stage   moves factory-made items by Lua from Fulgora provider chests onto the ship hub for whatever the silo has not delivered (--lua); never spawns
   off     removes the two sections and puts the old Fulgora/Aquilo schedule shape back (no kit gates)
 Usage: aquilo_supply_line.py status | plan | apply [--route fulgora] [--go] | ammo N | stage [--lua] | verify | off"""
+import os
 import sys
 import time
 
 from _game import tools
 
 L = tools["run_lua"]
-SHIP = "Fulgora-Aquilo 4"
-IDX = 36
+SHIP = os.environ.get("AQ_SHIP", "Fulgora-Aquilo 4")
+IDX = int(os.environ.get("AQ_IDX", "36"))
 SUPPLY, DROP = "aq-supply-%d" % IDX, "aq-drop-%d" % IDX
 # item -> amount per trip (the proven load, from what exists at Fulgora; a standing kit would use the list in aquilo_delivery_list.txt)
 KIT = {"holmium-plate": 1700,  # 2026-11-14: Aquilo uses ~1,640/h after the lithium scale-up (was 800)

@@ -41,8 +41,8 @@ def vault_surplus(total_seeds, floor=VAULT_FLOOR):
     """Seeds the vault may release: everything above the floor, never negative. The floor is never released."""
     return max(0, int(total_seeds) - int(floor))
 BIOFLUX_CAP = 500                   # fruit processors stop at this much bioflux (bioflux is the store: 2 h shelf)
-NUTRIENT_CAP = 200                  # nutrients spoil in 5 min: make little
-NUTRIENT_LOW = 50                   # below this the mash-to-nutrients restart chamber runs
+NUTRIENT_CAP = 1000                 # nutrients rot to spoilage in 5 min, but spoilage returns as nutrients (10:1); the Captain 2026-11-16: we need a surplus (was 200)
+NUTRIENT_LOW = 400                  # below this the mash-to-nutrients chamber runs (was 50)
 EGG_CAP = 10                        # eggs hatch after 15 min: never more than this on hand
 PACK_CAP = 2000                     # packs on hand before the pack chambers pause
 FRUIT_CAP = {"yumako": 150, "jellynut": 80}

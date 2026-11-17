@@ -15,7 +15,8 @@ import aquilo_shuttle as A
 from _game import tools
 
 A.LASER = True
-A.NAME = "Fulgora-Aquilo 4 Shuttle"
+import os
+A.NAME = os.environ.get("AQ_SHIP", "Fulgora-Aquilo 4 Shuttle")      # AQ_SHIP="Fulgora-Aquilo 5 Shuttle" drives the newer ship with the same steps
 A.PLANET = "fulgora"
 ICON = "[virtual-signal=signal-rightwards-leftwards-arrow] "
 FIND = "local p for _,q in pairs(game.forces.player.platforms) do if q.name:sub(-#'NAME')=='NAME' then p=q end end "
@@ -82,7 +83,7 @@ def layout():
 A.layout = layout
 # Fluids are read from ONE tank of three (green wire). Item conditions read the hub on red: the real count (SKILL: the hub trash rule).
 ROUTE = (FIND + "local function c(t,n,k) return {type='circuit',compare_type='and',condition={first_signal={type=t,name=n},comparator='>=',constant=k}} end "
-         "p.schedule={current=CUR,records={{station='fulgora',wait_conditions={c('fluid','thruster-fuel',40000),c('fluid','thruster-oxidizer',40000),c('item','carbon',3000),c('item','iron-ore',3000),c('item','RKIND',ROCKETS),c('item','uranium-rounds-magazine',MAGS),c('item','repair-pack',400),{type='time',compare_type='and',ticks=1800}}},"
+         "p.schedule={current=CUR,records={{station='fulgora',wait_conditions={c('fluid','thruster-fuel',40000),c('fluid','thruster-oxidizer',40000),c('item','RKIND',ROCKETS),c('item','uranium-rounds-magazine',MAGS),c('item','repair-pack',100),{type='time',compare_type='and',ticks=1800}}},"
          "{station='aquilo',wait_conditions={{type='time',compare_type='and',ticks=5400},c('fluid','thruster-fuel',15000),c('fluid','thruster-oxidizer',15000)}}}} p.paused=PAUSED if p.space_location then p.space_location=p.space_location.name end "
          "rcon.print('schedule fulgora <-> aquilo set for '..p.name..', paused='..tostring(p.paused)..', state '..p.state)")
 # The hold control. Intake: the hub's chunk inserter (-3.5,-4.5) takes a chunk kind only while the hub holds fewer than 5 of it (decider at

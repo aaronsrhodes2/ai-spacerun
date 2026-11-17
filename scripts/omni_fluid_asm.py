@@ -20,6 +20,11 @@ A decider puts its outputs on both wires, so one decider serves one target: the 
 Planet Replicators (docs/planet-replicators-plan.md): --planet fulgora --menu superconductor --demand 124 -76 (the planet unit's roboport).
 Steps (read-only unless --apply):  list | sites | build --at X Y [--apply] | config --at X Y | status --at X Y
 (X, Y = the tile under P's centre.) Never apply `build` twice at one site. Run `config` after `build --apply` and after any new recipe is researched.
+PER-FLUID DESIGN (2026-11-16, proven on scripts/bench_per_fluid.py, live at the sites in PER_FLUID): no recipe table. P gets a RECIPE signal from an item -> recipe
+lookup (D1, A1, D2 + a ring constant; a recipe-type signal is needed because P obeys its own ingredient ITEM signals on the set-recipe wire), P reads its own
+ingredients (x BATCH by one arithmetic -> its blue chest), and each barrel FLUID has one decider (fluid > 0 -> E's empty-barrel recipe) and one arithmetic
+(barrels, rounded UP -> E's blue chest). 17 combinators for any number of recipes, against 4 a recipe. `config` places what is missing and re-wires;
+`retire-table --at X Y [--apply]` removes the old table deciders; `--old-design` keeps the old 4-a-recipe table path.
 Options: --planet NAME (default nauvis)  --maker ENTITY  --menu a,b (only those products)  --demand X Y (default: the Nauvis Replicator's roboport)."""
 import json
 import sys
@@ -143,8 +148,49 @@ def layout(cx, cy):
     return out
 
 
+# Folded tables (2026-11-16, Replicator compaction): at these sites the table is not one row but strips (x, y, slots), filled in slot order.
+# Nauvis Replicator: the unit moved from (-346,-192) to (-346,-219) with compact.py and its 48-slot row was cut into 12 + 12 + 24.
+TABLE_FOLD = {(-346, -219): [(-342, -225, 12), (-342, -223, 12), (-328, -220, 24)]}
+
+
+# Per-fluid design: site -> top-left tiles of its parts. "row" holds 14 combinators (1 x 2) side by side: D1, A1, D2, A, then decider + arithmetic for up to 5 fluids;
+# "help" is the round-up helper (1 x 2), "ring" the constant combinator with the recipe signals (1 x 1).
+PER_FLUID = {(-346, -219): {"row": (-354, -227), "help": (-354, -225), "ring": (-353, -225)}}
+OLD_DESIGN = "--old-design" in sys.argv
+MAX_FLUIDS = 5
+
+
+def per_fluid(cx, cy):
+    return (cx, cy) in PER_FLUID and not OLD_DESIGN
+
+
+def fluid_list():
+    """Barrel fluids of the unit's recipes, sorted: [(fluid, barrel), ...]."""
+    seen = {}
+    for row in recipes():
+        _, _, fl, bar = row.split("|")
+        if fl != "solid":
+            seen[fl.split(" x")[0]] = bar
+    return sorted(seen.items())
+
+
+def per_fluid_entities(cx, cy, nf):
+    g = PER_FLUID[(cx, cy)]
+    rx, ry = g["row"]
+    names = ["decider-combinator", "arithmetic-combinator", "decider-combinator", "arithmetic-combinator"] + ["decider-combinator", "arithmetic-combinator"] * nf
+    out = [{"name": nm, "x": rx + i + 0.5, "y": ry + 1.0, "direction": N, "params": dict(Q)} for i, nm in enumerate(names)]
+    out.append({"name": "arithmetic-combinator", "x": g["help"][0] + 0.5, "y": g["help"][1] + 1.0, "direction": N, "params": dict(Q)})
+    out.append({"name": "constant-combinator", "x": g["ring"][0] + 0.5, "y": g["ring"][1] + 0.5, "direction": N, "params": dict(Q)})
+    return out
+
+
 def table_slots(cx, cy, n):
-    """Top-left tile of the 4 deciders of each of n recipes (1 x 2 each), one long row south of the unit."""
+    """Top-left tile of the 4 deciders of each of n recipes (1 x 2 each), one long row south of the unit (or the site's TABLE_FOLD strips)."""
+    if (cx, cy) in TABLE_FOLD:
+        slots = [(x + k, y) for x, y, m in TABLE_FOLD[(cx, cy)] for k in range(m)]
+        if 4 * n > len(slots):
+            sys.exit("TABLE_FOLD for site %s holds %d slots, %d recipes need %d" % ((cx, cy), len(slots), n, 4 * n))
+        return slots[:4 * n]
     tx, ty = GEOM["table"]
     return [(cx + tx + 4 * i + j, cy + ty) for i in range(n) for j in range(4)]
 
@@ -224,6 +270,67 @@ local t={} for _,r in pairs(rs) do t[#t+1]=r.key end
 rcon.print('recipes wired '..n..' of '..#rs..': '..table.concat(t,', '))
 '''
 
+CONFIG_NEW = LIST + r'''
+local s=game.surfaces['SURF']
+local W=defines.wire_connector_id
+local CB={W.combinator_input_red,W.combinator_input_green,W.combinator_output_red,W.combinator_output_green}
+local CC={W.circuit_red,W.circuit_green}
+local function wire(a,ia,b,ib) a.get_wire_connector(ia,true).connect_to(b.get_wire_connector(ib,true),false) end
+local function clr(e,ids) for _,id in pairs(ids) do local c=e.get_wire_connector(id,true) c.disconnect_all() c.disconnect_all(defines.wire_origin.script) end end
+local function at(n,x,y) return s.find_entities_filtered{name=n,position={x,y},radius=0.4}[1] end
+local P=at('MAKERENT',PX,PY)
+local Em=at('assembling-machine-3',EX,EY)
+local reqP=at('requester-chest',RPX,RPY)
+local reqE=at('requester-chest',REX,REY)
+local cc=at('constant-combinator',CCX,CCY)
+local dec=at('decider-combinator',DCX,DCY)
+local sel=at('selector-combinator',SLX,SLY)
+local rp=s.find_entities_filtered{name='roboport',position={DX,DY},radius=0.6}[1]
+local RX,RY=ROWX,ROWY
+local D1,A1,D2,A=at('decider-combinator',RX+0.5,RY+1),at('arithmetic-combinator',RX+1.5,RY+1),at('decider-combinator',RX+2.5,RY+1),at('arithmetic-combinator',RX+3.5,RY+1)
+local H=at('arithmetic-combinator',HLPX+0.5,HLPY+1) local ring=at('constant-combinator',RNGX+0.5,RNGY+0.5)
+if not (P and Em and reqP and reqE and cc and dec and sel and rp and D1 and A1 and D2 and A and H and ring) then rcon.print('unit incomplete: build it first') return end
+local EACH={type='virtual',name='signal-each'} local RSIG={type='virtual',name='signal-R'}
+local cb=cc.get_or_create_control_behavior() while cb.sections_count>0 do cb.remove_section(1) end local sec=cb.add_section()
+for i,r in pairs(rs) do sec.set_slot(i,{value={type='item',name=r.key,quality='normal'},min=i}) end
+local rb=ring.get_or_create_control_behavior() while rb.sections_count>0 do rb.remove_section(1) end local rsec=rb.add_section()
+for i,r in pairs(rs) do rsec.set_slot(i,{value={type='recipe',name=r.name,quality='normal'},min=i}) end
+clr(cc,CC) clr(ring,CC) clr(dec,CB) clr(sel,CB) clr(D1,CB) clr(A1,CB) clr(D2,CB) clr(A,CB) clr(H,CB)
+wire(dec,W.combinator_input_red,rp,W.circuit_red)
+wire(dec,W.combinator_input_green,cc,W.circuit_green)
+dec.get_or_create_control_behavior().parameters={conditions={{first_signal=EACH,first_signal_networks={red=true,green=false},comparator='>',constant=0},{first_signal=EACH,first_signal_networks={red=false,green=true},comparator='>',constant=0,compare_type='and'}},outputs={{signal=EACH,copy_count_from_input=true,networks={red=true,green=false}}}}
+wire(sel,W.combinator_input_red,dec,W.combinator_output_red)
+sel.get_or_create_control_behavior().parameters={operation='select',select_max=true,index_constant=0}
+wire(D1,W.combinator_input_green,sel,W.combinator_output_green) wire(D1,W.combinator_input_red,cc,W.circuit_red)
+D1.get_or_create_control_behavior().parameters={conditions={{first_signal=EACH,first_signal_networks={red=false,green=true},comparator='>',constant=0},{first_signal=EACH,first_signal_networks={red=true,green=false},comparator='>',constant=0,compare_type='and'}},outputs={{signal=EACH,copy_count_from_input=true,networks={red=true,green=false}}}}
+wire(A1,W.combinator_input_red,D1,W.combinator_output_red) A1.get_or_create_control_behavior().parameters={first_signal=EACH,second_constant=0,operation='+',output_signal=RSIG}
+wire(D2,W.combinator_input_green,A1,W.combinator_output_green) wire(D2,W.combinator_input_red,ring,W.circuit_red)
+D2.get_or_create_control_behavior().parameters={conditions={{first_signal=EACH,first_signal_networks={red=true,green=false},comparator='=',second_signal=RSIG,second_signal_networks={red=false,green=true}}},outputs={{signal=EACH,copy_count_from_input=false,constant=1}}}
+clr(P,CC) clr(Em,CC)
+local b=P.get_or_create_control_behavior() b.circuit_set_recipe=true b.circuit_read_ingredients=true
+b=Em.get_or_create_control_behavior() b.circuit_set_recipe=true b.circuit_read_ingredients=false b.circuit_read_contents=true
+for _,q in pairs{reqP,reqE} do clr(q,CC) local qb=q.get_or_create_control_behavior() qb.set_requests=true qb.read_contents=false q.get_logistic_point(defines.logistic_member_index.logistic_container).trash_not_requested=true end
+-- E must never fill its fluid output: an emptier blocked with a full box (full_output) cannot change recipe, and the unit deadlocks on the next fluid
+-- (found live 2026-11-16: 1,000 lubricant in E, sulfuric acid wanted). E reads its contents on green; its feed inserter runs only while everything < ECAP.
+local inE=at('fast-inserter',INEX,INEY)
+if inE then clr(inE,CC) wire(inE,W.circuit_green,Em,W.circuit_green) local ib=inE.get_or_create_control_behavior() ib.circuit_enable_disable=true ib.circuit_condition={first_signal={type='virtual',name='signal-everything'},comparator='<',constant=ECAP} end
+wire(D2,W.combinator_output_red,P,W.circuit_red)
+wire(A,W.combinator_input_green,P,W.circuit_green) A.get_or_create_control_behavior().parameters={first_signal=EACH,second_constant=BATCH,operation='*',output_signal=EACH}
+wire(A,W.combinator_output_green,reqP,W.circuit_green)
+wire(H,W.combinator_input_green,P,W.circuit_green) H.get_or_create_control_behavior().parameters={first_signal=EACH,second_constant=RNDUP,operation='+',output_signal=EACH}
+local FL=FLUIDS local n=0
+for k,fb in ipairs(FL) do
+  local d=at('decider-combinator',RX+4.5+2*(k-1),RY+1) local ar=at('arithmetic-combinator',RX+5.5+2*(k-1),RY+1)
+  if d and ar then clr(d,CB) clr(ar,CB)
+    wire(d,W.combinator_input_green,P,W.circuit_green) wire(ar,W.combinator_input_green,H,W.combinator_output_green)
+    d.get_or_create_control_behavior().parameters={conditions={{first_signal={type='fluid',name=fb[1]},comparator='>',constant=0}},outputs={{signal={type='recipe',name='empty-'..fb[2]},copy_count_from_input=false,constant=1}}}
+    ar.get_or_create_control_behavior().parameters={first_signal={type='fluid',name=fb[1]},second_constant=PERBAR,operation='/',output_signal={type='item',name=fb[2]}}
+    wire(d,W.combinator_output_red,Em,W.circuit_red) wire(ar,W.combinator_output_green,reqE,W.circuit_green) n=n+1 end
+end
+local t={} for _,r in pairs(rs) do t[#t+1]=r.key end
+rcon.print('per-fluid design wired: '..#rs..' items ('..table.concat(t,', ')..'), fluids '..n..' of '..#FL)
+'''
+
 STATUS = LIST + r'''
 local s=game.surfaces['SURF']
 local W=defines.wire_connector_id
@@ -246,8 +353,10 @@ rcon.print(table.concat(o,'\n'))
 
 
 def sub(code, cx, cy):
-    n = len(recipes())
-    sl = "{" + ",".join("{%d,%d}" % t for t in table_slots(cx, cy, n)) + "}"
+    sl = "{}"
+    if "SLOTS" in code:
+        n = len(recipes())
+        sl = "{" + ",".join("{%d,%d}" % t for t in table_slots(cx, cy, n)) + "}"
     rep = {"PX": pos(cx, cy, "P"), "EX": pos(cx, cy, "E"), "RPX": pos(cx, cy, "reqP"), "REX": pos(cx, cy, "reqE"), "CCX": pos(cx, cy, "cc"), "DCX": pos(cx, cy, "dec"),
            "SLX": pos(cx, cy, "sel"), "CPX": pos(cx, cy, "chP"), "CEX": pos(cx, cy, "chE")}
     import re
@@ -293,6 +402,49 @@ rcon.print(table.concat(out,';'))
 '''
 
 
+def config_per_fluid(cx, cy):
+    """Place what is missing of the per-fluid control, then wire the whole unit to it (the old table is left standing, unwired: see retire-table)."""
+    if FUEL_ITEM:
+        sys.exit("the per-fluid design has no fuel request yet: use --old-design for a burner maker")
+    fl = fluid_list()
+    if len(fl) > MAX_FLUIDS:
+        sys.exit("%d barrel fluids, the row holds %d: widen the PER_FLUID row" % (len(fl), MAX_FLUIDS))
+    g = PER_FLUID[(cx, cy)]
+    r = json.loads(tools["place_entities"](json.dumps(per_fluid_entities(cx, cy, MAX_FLUIDS)), surface=PLANET, dry_run=False))
+    new = r.get("placed") or 0
+    code = sub(CONFIG_NEW, cx, cy)
+    # barrels = (fluid + 50/BATCH - 1) / (50/BATCH): rounded UP, so a recipe is never a barrel short (the bench rounded down)
+    for k, v in (("ROWX", g["row"][0]), ("ROWY", g["row"][1]), ("HLPX", g["help"][0]), ("HLPY", g["help"][1]), ("RNGX", g["ring"][0]), ("RNGY", g["ring"][1]),
+                 ("RNDUP", 50 // BATCH - 1), ("PERBAR", 50 // BATCH), ("INEX", pos(cx, cy, "inE")[0]), ("INEY", pos(cx, cy, "inE")[1]), ("ECAP", 400)):
+        code = code.replace(k, str(v))
+    code = code.replace("FLUIDS", "{" + ",".join("{'%s','%s'}" % fb for fb in fl) + "}")
+    return "new control entities placed %d | " % new + tools["run_lua"](code)
+
+
+HEALCHK = ("local s=game.surfaces['@SURF@'] local W=defines.wire_connector_id local bad=0 local function n(e,ids) local c=0 for _,id in pairs(ids) do c=c+e.get_wire_connector(id,true).connection_count end return c end "
+           "for _,t in ipairs(@SLOTS@) do local e=s.find_entities_filtered{type={'decider-combinator','arithmetic-combinator'},position={t[1]+0.5,t[2]+1},radius=0.3}[1] "
+           "if not e or n(e,{W.combinator_input_red,W.combinator_input_green})==0 or n(e,{W.combinator_output_red,W.combinator_output_green})==0 then bad=bad+1 end end "
+           "for _,t in ipairs(@CONSTS@) do local e=s.find_entities_filtered{name='constant-combinator',position={t[1]+0.5,t[2]+0.5},radius=0.4}[1] if not e or n(e,{W.circuit_red,W.circuit_green})==0 then bad=bad+1 end end rcon.print(bad)")
+
+
+def heal_all():
+    """Autopilot hook (called from omni_fluid.cycle): a quality upgrade drops the long wires of the per-fluid control; re-run the config of any PER_FLUID site
+    on this planet where a control combinator has lost all its inputs or all its outputs. Returns '' when healthy."""
+    out = []
+    if OLD_DESIGN:
+        return ""
+    for (cx, cy), g in PER_FLUID.items():
+        nf = len(fluid_list())
+        slots = [(g["row"][0] + i, g["row"][1]) for i in range(4 + 2 * nf)] + [g["help"]]
+        ccx, ccy = pos(cx, cy, "cc")
+        consts = [g["ring"], (int(ccx - 0.5), int(ccy - 0.5))]
+        lua = lambda sl: "{" + ",".join("{%d,%d}" % t for t in sl) + "}"
+        bad = int(tools["run_lua"](HEALCHK.replace("@SURF@", PLANET).replace("@SLOTS@", lua(slots)).replace("@CONSTS@", lua(consts))).strip())
+        if bad:
+            out.append("fluid-assembler unit at %d,%d: %d control parts had lost their wires, re-wired: %s" % (cx, cy, bad, config_per_fluid(cx, cy)[:100]))
+    return "; ".join(out)
+
+
 def at_arg():
     a = opt("--at", 2)
     if not a:
@@ -332,7 +484,21 @@ def main():
             print(tools["run_lua"](sub(CONFIG, cx, cy)))
     elif step == "config":
         cx, cy = at_arg()
-        print(tools["run_lua"](sub(CONFIG, cx, cy)))
+        if per_fluid(cx, cy):
+            print(config_per_fluid(cx, cy))
+        else:
+            print(tools["run_lua"](sub(CONFIG, cx, cy)))
+    elif step == "retire-table":
+        cx, cy = at_arg()
+        if (cx, cy) not in TABLE_FOLD:
+            sys.exit("no folded table registered for this site")
+        slots = [(x + k, y) for x, y, m in TABLE_FOLD[(cx, cy)] for k in range(m)]
+        arr = "{" + ",".join("{%d,%d}" % t for t in slots) + "}"
+        flag = "true" if apply else "false"
+        print(tools["run_lua"]("local s=game.surfaces['%s'] local f=game.forces.player local n,w=0,0 local W=defines.wire_connector_id for _,t in ipairs(%s) do local d=s.find_entities_filtered{name='decider-combinator',position={t[1]+0.5,t[2]+1},radius=0.3,force=f}[1] "
+                               "if d then local c=0 for _,id in pairs({W.combinator_output_red,W.combinator_output_green}) do c=c+d.get_wire_connector(id,true).connection_count end if c>0 then w=w+1 else if %s then d.order_deconstruction(f) end n=n+1 end end end "
+                               "rcon.print('old table deciders with no output wire: '..n..(%s and ' marked for deconstruction' or ' (dry run)')..'; still wired to a target (left alone): '..w)"
+                               % (PLANET, arr, flag, flag)))
     elif step == "status":
         cx, cy = at_arg()
         print(tools["run_lua"](sub(STATUS, cx, cy)))

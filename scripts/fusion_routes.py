@@ -10,7 +10,7 @@ import sys
 from _game import tools
 
 L = tools["run_lua"]
-W_PLATE, W_CARB, HOLM, FIBER = 600, 500, 60, 500
+W_PLATE, W_CARB, HOLM, FIBER = 600, 500, 60, 400       # fiber 400 (2026-11-16): the works caps at 400, so a request of 500 could never fill
 
 # (kind, match, group, [(item, qty, import_from)])   kind: pad = a planet's landing pad (match = planet), hub = platforms whose name contains match
 ROUTES = [
@@ -30,7 +30,7 @@ local function setsec(tag, container_pt, group, items, hub)
   local secs = hub and container_pt or container_pt
   for i=#secs.sections,1,-1 do if (secs.sections[i].group or ''):find('fusion-',1,true)==1 then secs.remove_section(i) end end
   local sec=secs.add_section(group)
-  for k,it in ipairs(items) do local sl={value={type='item',name=it[1],quality='normal'},min=it[2]} if it[3] then sl.import_from=it[3] end if tag=='pad' and it[3] then sl.max=it[2] end sec.set_slot(k,sl) end
+  for k,it in ipairs(items) do local sl={value={type='item',name=it[1],quality='normal'},min=it[2]} if it[3] then sl.import_from=it[3] end if tag=='pad' and it[3] then sl.max=it[2] end if tag=='hub' then sl.minimum_delivery_count=math.min(it[2],100) end sec.set_slot(k,sl) end
   return #items
 end
 ROUTES_HERE

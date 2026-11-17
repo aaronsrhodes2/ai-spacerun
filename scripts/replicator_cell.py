@@ -62,7 +62,19 @@ def layout(c):
                 e("arithmetic-combinator", ox + 6, 6, 1, 2), e("decider-combinator", ox + 3, 8, 1, 2), e("decider-combinator", ox + 4, 8, 1, 2)]
         if k > 0:
             out.append(e("decider-combinator", ox + 6, 4, 1, 2))
+            out.append(e("decider-combinator", ox + 5, 8, 1, 2))          # cross-penalty (2026-11-16): see SPREAD below
     return out
+
+
+# SPREAD (2026-11-16, found by the parity test): all three machines of a cell chose the same top order. When that order could not be made (efficiency module 3
+# waits for spoilage on Nauvis) the whole partition hung: cell2 never made the shotgun shells cell1 was waiting for. Machines 2 and 3 now subtract SPREAD from
+# the score of what the earlier machines have chosen: another demanded item always wins, but with nothing else to do they still join in on the big order.
+SPREAD = 500000
+
+
+def spread_entities(c):
+    X, Y = c["x"], c["y"]
+    return [{"name": "decider-combinator", "x": X + 7 * k + 5.5, "y": Y + 9.0, "direction": 0, "params": dict(Q)} for k in (1, 2)]
 
 
 def rank_ring(c):
@@ -76,19 +88,19 @@ CONFIG = ("local s=game.surfaces['SURF'] local f=game.forces.player local W=defi
           "local function clr(e,ids) for _,id in pairs(ids) do e.get_wire_connector(id,true).disconnect_all() end end "
           "local EACH={type='virtual',name='signal-each'} local function dp(e,conds,outs) e.get_or_create_control_behavior().parameters={conditions=conds,outputs=outs} end "
           "local function C(net,cmp,k) return {first_signal=EACH,first_signal_networks=net,comparator=cmp,constant=k} end local RED,GRN={red=true,green=false},{red=false,green=true} "
-          "local rp,rank,ring=at('roboport',2,2),at('constant-combinator',8.5,2.5),at('constant-combinator',9.5,2.5) if not (rp and rank and ring) then rcon.print('ABORT: cell not built') return end "
-          "clr(rp,CC) clr(rank,CC) clr(ring,CC) local rc=rp.get_or_create_control_behavior() rc.read_items_mode=defines.control_behavior.roboport.read_items_mode.missing_requests rc.read_robot_stats=false local DEM=DEMT local dem=rp if DEM then dem=s.find_entities_filtered{name='roboport',position=DEM,radius=0.6}[1] if not dem then rcon.print('ABORT: demand roboport missing') return end o[#o+1]='demand from the hub roboport at '..DEM[1]..','..DEM[2] end "
+          "local rp,rank,ring=at('roboport',2,2),at('constant-combinator',8.5,2.5),at('constant-combinator',9.5,2.5) local DEM=DEMT if not (rank and ring and (rp or DEM)) then rcon.print('ABORT: cell not built') return end "
+          "clr(rank,CC) clr(ring,CC) if rp then clr(rp,CC) local rc=rp.get_or_create_control_behavior() rc.read_items_mode=defines.control_behavior.roboport.read_items_mode.missing_requests rc.read_robot_stats=false end local dem=rp if DEM then dem=s.find_entities_filtered{name='roboport',position=DEM,radius=0.6}[1] if not dem then rcon.print('ABORT: demand roboport missing') return end o[#o+1]='demand from the hub roboport at '..DEM[1]..','..DEM[2] end "
           "if SILOS then local rp2,neg,gate=at('roboport',6,2),at('arithmetic-combinator',10.5,1),at('decider-combinator',11.5,1) clr(rp2,CC) clr(neg,CB) clr(gate,CB) "
           "rp2.get_or_create_control_behavior().read_items_mode=defines.control_behavior.roboport.read_items_mode.logistics rp2.get_or_create_control_behavior().read_robot_stats=false "
           "wire(neg,W.combinator_input_red,rp2,W.circuit_red) neg.get_or_create_control_behavior().parameters={first_signal=EACH,second_constant=-1,operation='*',output_signal=EACH} "
           "wire(gate,W.combinator_input_green,neg,W.combinator_output_green) dp(gate,{C(nil,'>',0)},{{signal=EACH,copy_count_from_input=true}}) wire(gate,W.combinator_output_red,rp,W.circuit_red) local ns=0 "
           "for _,si in pairs(s.find_entities_filtered{type='rocket-silo',force=f}) do si.get_or_create_control_behavior().read_mode=defines.control_behavior.rocket_silo.read_mode.orbital_requests "
           "si.get_wire_connector(W.circuit_green,true).connect_to(gate.get_wire_connector(W.combinator_input_green,true),false) ns=ns+1 end o[#o+1]='silos '..ns end "
-          "local prev=nil for k=0,2 do local ox=7*k local rq,am,pv=at('requester-chest',ox+1.5,4.5),at('assembling-machine-3',ox+1.5,7.5),at('passive-provider-chest',ox+1.5,10.5) "
+          "local prev,sel1,psel=nil,nil,nil for k=0,2 do local ox=7*k local rq,am,pv=at('requester-chest',ox+1.5,4.5),at('assembling-machine-3',ox+1.5,7.5),at('passive-provider-chest',ox+1.5,10.5) "
           "local dec,sel,ar=at('decider-combinator',ox+3.5,5),at('selector-combinator',ox+4.5,5),at('arithmetic-combinator',ox+5.5,5) "
           "local d1,a1,d2,a2=at('decider-combinator',ox+3.5,7),at('arithmetic-combinator',ox+4.5,7),at('decider-combinator',ox+5.5,7),at('arithmetic-combinator',ox+6.5,7) "
-          "local pen,hold=at('decider-combinator',ox+3.5,9),at('decider-combinator',ox+4.5,9) local bo=k>0 and at('decider-combinator',ox+6.5,5) or nil "
-          "for _,e in pairs{dec,sel,ar,d1,a1,d2,a2,pen,hold} do clr(e,CB) end if bo then clr(bo,CB) end clr(rq,CC) clr(am,CC) "
+          "local pen,hold=at('decider-combinator',ox+3.5,9),at('decider-combinator',ox+4.5,9) local bo=k>0 and at('decider-combinator',ox+6.5,5) or nil local xp=k>0 and at('decider-combinator',ox+5.5,9) or nil "
+          "for _,e in pairs{dec,sel,ar,d1,a1,d2,a2,pen,hold} do clr(e,CB) end if bo then clr(bo,CB) end if xp then clr(xp,CB) end clr(rq,CC) clr(am,CC) "
           "wire(dec,W.combinator_input_red,dem,W.circuit_red) wire(dec,W.combinator_input_green,rank,W.circuit_green) dp(dec,{C(RED,'>',0),{first_signal=EACH,first_signal_networks=GRN,comparator='>',constant=0,compare_type='and'}},{{signal=EACH,copy_count_from_input=false,constant=1000000}}) "
           "wire(ar,W.combinator_input_red,dem,W.circuit_red) ar.get_or_create_control_behavior().parameters={first_signal=EACH,second_constant=-1,operation='*',output_signal=EACH} wire(ar,W.combinator_output_red,dec,W.combinator_output_red) "
           "wire(sel,W.combinator_input_red,dec,W.combinator_output_red) sel.get_or_create_control_behavior().parameters={operation='select',select_max=true,index_constant=0} "
@@ -105,6 +117,9 @@ CONFIG = ("local s=game.surfaces['SURF'] local f=game.forces.player local W=defi
           "local qb=rq.get_or_create_control_behavior() qb.set_requests=true qb.read_contents=false rq.get_logistic_point(defines.logistic_member_index.logistic_container).trash_not_requested=true "
           "dp(pen,{C(nil,'>',0)},{{signal=EACH,copy_count_from_input=false,constant=-1000000}}) wire(pen,W.combinator_input_green,rq,W.circuit_green) wire(pen,W.combinator_output_green,sel,W.combinator_input_green) "
           "dp(hold,{C(nil,'>',0)},{{signal=EACH,copy_count_from_input=false,constant=HOLD}}) wire(hold,W.combinator_input_green,sel,W.combinator_output_green) wire(hold,W.combinator_output_green,sel,W.combinator_input_green) "
+          "if xp then dp(xp,{C(nil,'>',0)},{{signal=EACH,copy_count_from_input=false,constant=-SPREAD}}) wire(xp,W.combinator_input_red,sel1,W.combinator_output_red) "
+          "if k==2 then wire(xp,W.combinator_input_green,psel,W.combinator_output_green) end wire(xp,W.combinator_output_green,sel,W.combinator_input_green) o[#o+1]='spread m'..(k+1) end "
+          "if k==0 then sel1=sel end psel=sel "
           "prev=rq end o[#o+1]='3 machines wired' rcon.print(table.concat(o,', '))")
 
 # Doctrine (the Captain, 2026-11-14): the Replicator grid serves building items and special orders; goods with a continuous need run on
@@ -147,15 +162,17 @@ def refresh_all():
 
 
 def standing(c):
-    r = tools["run_lua"]("rcon.print(#game.surfaces['%s'].find_entities_filtered{name='roboport',position={%s,%s},radius=0.4})" % (c.get("surface", "nauvis"), c["x"] + 2, c["y"] + 2))
+    # the rank list marks a standing cell: a cell that reads a shared hub (--demand) may have had its own roboport removed (2026-11-16, overlap thinning)
+    r = tools["run_lua"]("rcon.print(#game.surfaces['%s'].find_entities_filtered{name='constant-combinator',position={%s,%s},radius=0.4})" % (c.get("surface", "nauvis"), c["x"] + 8.5, c["y"] + 2.5))
     return r.strip() != "0"
 
 
 def config(c):
     code = (CONFIG.replace("SURF", c.get("surface", "nauvis")).replace("CX", str(c["x"])).replace("CY", str(c["y"])).replace("SIL", "true" if c.get("silos") else "false")
-            .replace("BATCH", str(BATCH)).replace("HOLD", str(HOLD))
+            .replace("BATCH", str(BATCH)).replace("HOLD", str(HOLD)).replace("SPREAD", str(SPREAD))
             .replace("DEMT", "{%s,%s}" % tuple(c["demand"]) if c.get("demand") else "nil"))
-    return tools["run_lua"](code)
+    placed = json.loads(tools["place_entities"](json.dumps(spread_entities(c)), surface=c.get("surface", "nauvis"), dry_run=False)).get("placed") or 0      # a cell built before 2026-11-16 lacks them
+    return ("spread deciders placed %d, " % placed if placed else "") + tools["run_lua"](code)
 
 
 PROBE = ("local s=game.surfaces['SURF'] local W=defines.wire_connector_id local o={} for k=0,2 do local sel=s.find_entities_filtered{name='selector-combinator',position={CX+7*k+4.5,CY+5},radius=0.4}[1] "
