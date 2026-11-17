@@ -25,3 +25,26 @@ Regression: every fix adds one check to the lint (so the same bug cannot come ba
 
 ## Decision for the Captain
 Build scripts/bottleneck.py (A+B+C first, about an hour, read-only, no risk), then add D and E. Option: run it on a schedule and have it tell you in-game (`tell_player`) when a class 1-3 bug appears.
+
+## 2026-11-17: the "electronic circuit shortage" was a burst, and the ranker now says so
+Finding as ranked: electronic-circuit made 62.5/s, used 136.7/s (one-minute ledger), stock 362,062, "lasts 1.4 h".
+What the game shows:
+- Windows (made/used per second): 1 min 57.5/36.3 a few minutes later, 10 min 55.6/60.3, 1 h 51.1/49.6, 10 h 52.9/51.1. Use and production are level; the 137/s was one busy minute.
+- Makers: 46 circuit assemblers with about 800/s of capacity. 29 stand on full output, 4 work, 13 wait for an ingredient (10 copper cable, 2 iron plate; the y -60 row and two at (-244|-241,-235)). Capacity is about 15 times the use.
+- Users: 53 advanced circuit assemblers (9 working at the reading, 27/s), 21 productivity module and 10 speed module assemblers, 14 processing unit assemblers and the Replicator one-offs. The module makers run in bursts.
+- Stock: 362,062 at the first reading, 370,613 about 25 minutes later (rising). Robots 35,319 of 40,462 free.
+Conclusion: no capacity or collection fault, nothing built. The fault was in the measurement.
+Change: `scripts/worst_bottleneck.py` reports `short` only when use exceeds production in BOTH the one-minute and the one-hour window, scores the one-hour deficit, and drops the finding when the stock has not fallen since a reference reading at least 5 minutes old (`snapshots/bottleneck_stock.json`, reference replaced hourly). Tests: `tests/test_bottleneck_short.py`.
+Still open (not circuits): iron plate reads 57 made / 88 used over the hour. The ledger does not count plates that arrive from orbit; the stock fell from 1,195,293 to 1,189,548 in about 25 minutes (about 4/s), far less than the ledger deficit of 30/s, but it moves in lumps (it dropped 700 in one 20 second stretch), so that rate is a rough reading. The stock-trend rule keeps or drops this line from the second run on.
+Five-minute check after the change (18,406 ticks): circuits made 14,558 (47/s), used 20,978 (68/s), stock 371,244 -> 364,828. The stock does fall in a busy stretch, and that is by design: the stock IS the makers' output chests. 14 makers feed passive provider chests of 24,000 (13 of them full), 15 feed chests barred at 5 slots (600 to 800), 4 feed a full belt at (99..105,-85). A maker runs only when robots have taken from its own chest, so production follows use with a lag and the total floats just under full. Third rule added to the ranker for this: an item with 4 or more of its own makers idle on full output is never `short` (`SPARE_MAKERS`).
+
+## Factory check 2026-11-17: requests that filled hubs and the Aquilo pad (`scripts/request_tidy.py`)
+
+Found by reading the game alerts first, then the ranker. No power fault on any surface.
+
+- **Dead floor cargo.** Nine Nauvis shuttles carried 1,000 to 2,000 refined hazard concrete each (`floor-hub-ng|nv|nf`) for block floors that are finished: Gleba, Vulcanus and Fulgora have no tile ghost. Nauvis-Gleba 2 Shuttle had 0 of 109 slots free (alert "no platform storage"). The groups are now drops at the destination (min = max = 0). Not yet seen unloading.
+- **Aquilo pad flood.** Fulgora-Aquilo 5 Shuttle dropped 500 holmium plate, 600 tungsten plate and 500 tungsten carbide every trip whatever the pad held (26,594 / 7,800 / 15,204; pad 82% full). Those slots left `aq-drop-39`; the pad asks for keep levels instead (`aq-keep`: 2,000 / 1,000 / 1,000).
+- **Aquilo floor tiles.** 7,848 refined concrete and 1,534 hazard concrete ghosts, no stock. `tiles()` writes the pad request (`aq-floor`) and the lift requests (`floor-hub-fa` from Fulgora, `floor-hub-ga` from Gleba's unused 2,640) from the live ghost count, 10% over, and removes them at 0 ghosts. The autopilot calls it every fifth cycle after its next restart. Refined concrete comes from the new Fulgora line (`scripts/fulgora_refined.py`). First 360 tiles were laid within the hour.
+- **Aquilo east edge.** 2,404 concrete and 1,908 ice-platform ghosts at x 84..111 were outside construction range with 9,763 platforms in stock. One legendary roboport at (56,3): on the heat pipe at x 53.5, inside the substation at (41,6), joined the main network; robots started at once.
+- **Not faults.** White Science is paused with 94k packs aboard and 184k on Nauvis (surplus). Nauvis circuits and Fulgora storage: see the sections above and `docs/planet-replicators-plan.md`.
+- **Open.** Edgerunner hub 4 of 59 slots free with plates in its trash slots; iron plate on Nauvis may be a slow real drain (57 made, 88 used a second over an hour, orbit deliveries not counted); Gleba pack headroom is 1.24x, not 2x.

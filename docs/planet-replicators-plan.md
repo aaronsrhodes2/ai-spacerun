@@ -110,3 +110,25 @@ Same machine as the Nauvis Replicator (scripts/omni_maker.py, omni_fluid.py, omn
 2. Aquilo: build the small unit now (ice, ice platform) or wait for the lithium chain to be researched?
 3. How the goods leave: the planet's silos and shuttle (current Replicator design), or the Wheel's export? Recommended: silos and shuttle, the Wheel keeps its own mission.
 4. First planet to build: recommended Fulgora (the largest unique menu, EM plant, holmium and processing units).
+
+## Fulgora: storage check and the refined-concrete line (2026-11-17)
+
+**Storage "88% full" is a hoard, not a blockage.** Measured (one-hour production ledger): every by-product is used as fast as it is made
+(gears 4,058 made / 4,048 used a minute, cable 3,171 / 3,165, solid fuel 1,421 / 1,418, concrete 1,223 / 1,221, stone 815 / 812, and so on).
+The 346 storage chests split into about 304 plain chests with no inserter (full: 1.14M gears, 480k cable, 414k solid fuel, 384k concrete,
+234k stone, 216k batteries, 120k processing units, 96k plastic, 60k holmium ore, 54k LDS) and the 37 trash-yard chests of `fulgora_base.py`
+(each with an inserter into a recycler), which held 62 of 4,440 slots. Robots fill the hoard first and the overflow goes to the yard, where
+most recyclers idle for lack of input. So the existing void keeps up with headroom and nothing was added to it.
+`worst_bottleneck.py` now reads this: a surface whose trash yard is at least half empty scores 5 ("hoard, not a blockage") instead of 120 to 300.
+
+**Refined concrete (useful good from the concrete surplus).** `scripts/fulgora_refined.py` (plan | build | config | status), origin tile (214,6),
+all legendary, inside a wall ring (x 212..228, y 3..12) on striped concrete (120 tile ghosts, built by robots from stock):
+- ice requester (215,10) -> melter (chemical plant 215.5,7.5, outputs north) -> pipe row y 5 -> the north fluid port of both assemblers;
+- refined-concrete assemblers at (218.5,7.5) and (226.5,7.5), iron-stick assembler between them (222.5,7.5) handing sticks both ways;
+- requesters (217,10) and (225,10): 400 concrete + 40 steel; (222,10): 200 iron plate; providers (219,10) and (226,10).
+- Gate: the concrete and ice inserters run only while the network holds under 16,000 refined concrete (2x Aquilo's 7,848 tile ghosts).
+- Power from the substations at (220,0) / (220,20); lightning collector at (210,8); logistic cover from the roboport at (202,-13) ends at x 226.
+Measured: 240 refined concrete a minute (two assemblers at speed 3.125, before the module mall fits anything); uses about 500 concrete,
+200 iron sticks, 25 steel and 125 ice a minute. 16,000 takes a little over an hour.
+Not done here: no platform asks for it yet (the Fulgora-Aquilo shuttle request is the parent task's). Steel on Fulgora is thin (about 240 in the
+network, the rest is recycled); the line needs 25 a minute and had no shortage in the first minutes, not checked over an hour.

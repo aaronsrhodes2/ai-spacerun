@@ -16,6 +16,7 @@ import module_mall
 import aquilo_build_logistics
 import depleted_return
 import ghost_requests
+import request_tidy
 import replicator_demand_watch
 import replicator_cell
 import gleba_cell
@@ -139,7 +140,12 @@ def main():
                     ap.log("ghost requests: " + ghost_requests.cycle(), LOG)
                 except Exception as exc:  # noqa: BLE001
                     ap.log("ghost requests error: " + repr(exc), LOG)
-            line = replicator_demand_watch.sample()                                          # steady Replicator demand -> "needs a dedicated line" (scripts/replicator_demand_watch.py)
+            if cyc % 5 == 3:                                                                 # Aquilo floor tiles: pad and shuttle requests follow the live ghost count, retire at 0 (scripts/request_tidy.py)
+                try:
+                    ap.log("aquilo floor requests: " + request_tidy.tiles().splitlines()[-1], LOG)
+                except Exception as exc:  # noqa: BLE001
+                    ap.log("aquilo floor requests error: " + repr(exc), LOG)
+            line = replicator_demand_watch.sample()                                         # steady Replicator demand -> "needs a dedicated line" (scripts/replicator_demand_watch.py)
             if "dedicated line" in line or "error" in line:
                 ap.log(line, LOG)
             if cyc % 2 == 0:                                                                 # Gleba stable cell: balance fruit caps, log, alarm (scripts/gleba_cell.py)

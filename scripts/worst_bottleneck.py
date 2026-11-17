@@ -4,7 +4,8 @@
 Scores (higher = worse), each finding is one line:
   starved    machines idle for lack of an ingredient, grouped by surface, recipe and missing ingredient (score = machine count)
   backed     machines with full output, grouped the same way (score = machine count / 2; often a symptom of a starved consumer)
-  short      an item used faster than it is made, from the one-minute production ledger on Nauvis (score = deficit per second x 20)
+  short      an item used faster than it is made on Nauvis in BOTH the one-minute and the one-hour ledger, with a stock that is not rising
+             (score = one-hour deficit per second x 20; a one-minute burst or an imported item is not a shortage, 2026-11-17)
   nopower    machines with no power (score = count x 3)
   robots     a surface with roboports but no logistic robots (score = 500; nothing moves there)
   labs       labs missing science packs (score = count)
@@ -17,7 +18,10 @@ Two honesty rules (2026-11-14): a `short` finding is scaled down by its RUNWAY (
 hours is not urgent (iron plate: 577k in stock); and a machine whose feed inserters are disabled by a circuit is GATED (idle on purpose), not starved; a starved machine whose product has 20,000+ in stock is skipped (surplus, 2026-11-14: 103k foundations).
 
 Usage: scripts/worst_bottleneck.py [top_n] [--science]   (default 5; --science keeps science-pack and lab findings and prints a pack table)"""
+import json
 import sys
+import time
+from pathlib import Path
 
 from _game import tools
 
@@ -91,9 +95,9 @@ rcon.print(table.concat(o, ';'))
 
 STORAGE = ("local o={} local f=game.forces.player for _,s in pairs(game.surfaces) do "
            "for _,p in pairs(s.find_entities_filtered{type='cargo-landing-pad',force=f}) do local i=p.get_inventory(defines.inventory.cargo_landing_pad_main) o[#o+1]='PAD|'..s.name..'|'..#i..'|'..i.count_empty_stacks() end "
-           "local n,full,slots,free=0,0,0,0 local prv={} for _,c in pairs(s.find_entities_filtered{type='logistic-container',force=f}) do local i=c.get_inventory(defines.inventory.chest) local e=i.count_empty_stacks() "
-           "if c.name=='storage-chest' then n=n+1 slots=slots+#i free=free+e if e==0 then full=full+1 end elseif c.name=='passive-provider-chest' or c.name=='active-provider-chest' then local t=prv[c.name] or {0,0} t[2]=t[2]+1 if e==0 then t[1]=t[1]+1 end prv[c.name]=t end end "
-           "if n>0 then o[#o+1]='STO|'..s.name..'|'..n..'|'..full..'|'..slots..'|'..free end for k,t in pairs(prv) do if t[1]>0 then o[#o+1]='PRV|'..s.name..'|'..k..'|'..t[1]..'|'..t[2] end end "
+           "local n,full,slots,free,ys,yf=0,0,0,0,0,0 local prv={} for _,c in pairs(s.find_entities_filtered{type='logistic-container',force=f}) do local i=c.get_inventory(defines.inventory.chest) local e=i.count_empty_stacks() "
+           "if c.name=='storage-chest' then n=n+1 slots=slots+#i free=free+e if e==0 then full=full+1 end if s.count_entities_filtered{type='inserter',area={{c.position.x-1.2,c.position.y-1.2},{c.position.x+1.2,c.position.y+1.2}},limit=1}>0 then ys=ys+#i yf=yf+e end elseif c.name=='passive-provider-chest' or c.name=='active-provider-chest' then local t=prv[c.name] or {0,0} t[2]=t[2]+1 if e==0 then t[1]=t[1]+1 end prv[c.name]=t end end "
+           "if n>0 then o[#o+1]='STO|'..s.name..'|'..n..'|'..full..'|'..slots..'|'..free..'|'..ys..'|'..yf end for k,t in pairs(prv) do if t[1]>0 then o[#o+1]='PRV|'..s.name..'|'..k..'|'..t[1]..'|'..t[2] end end "
            "local tk={} for _,t in pairs(s.find_entities_filtered{type='storage-tank',force=f}) do local fl,amt=next(t.get_fluid_contents()) if fl then local cap=t.prototype.fluid_capacity*(1+0.3*t.quality.level) local x=tk[fl] or {0,0} x[2]=x[2]+1 if amt>=cap*0.99 then x[1]=x[1]+1 end tk[fl]=x end end "
            "for k,t in pairs(tk) do if t[1]>0 then o[#o+1]='TNK|'..s.name..'|'..k..'|'..t[1]..'|'..t[2] end end end "
            "for _,p in pairs(f.platforms) do if p.valid and p.hub then local i=p.hub.get_inventory(defines.inventory.hub_main) o[#o+1]='HUB|'..p.name:gsub('%[.-%]%s*','')..'|'..#i..'|'..i.count_empty_stacks() end end rcon.print(table.concat(o,';'))")
@@ -120,9 +124,14 @@ def storage_findings():
             elif f[0] == "STO":
                 n, full, slots, free = int(f[2]), int(f[3]), int(f[4]), int(f[5])
                 frac = free / slots if slots else 1.0
-                score = 300 if free == 0 else 120 if frac < 0.1 else full
+                ys, yf = (int(f[6]), int(f[7])) if len(f) > 7 else (0, 0)
+                # 2026-11-17 (Fulgora): a trash yard (storage chest with an inserter beside it, feeding a recycler) that is at least half empty is a
+                # working outlet: the full chests around it are a hoard, not a blockage. Scored 5 so it is still listed, never ranked as a failure.
+                yard_ok = ys > 0 and yf >= ys * 0.5
+                score = 5 if yard_ok else 300 if free == 0 else 120 if frac < 0.1 else full
                 if score:
-                    out.append((score, "full", f"{f[1]}: storage chests {full} of {n} full, {free} of {slots} slots free ({100 * frac:.0f}%)"))
+                    note = f"; trash yard has {yf} of {ys} slots free, so the surplus is being voided (hoard, not a blockage)" if yard_ok else ""
+                    out.append((score, "full", f"{f[1]}: storage chests {full} of {n} full, {free} of {slots} slots free ({100 * frac:.0f}%){note}"))
             elif f[0] == "PRV":
                 out.append((int(f[3]) / 2, "full", f"{f[1]}: {f[3]} of {f[4]} {f[2]}s full (output not collected)"))
             elif f[0] == "TNK" and not f[1].startswith("platform-"):      # a ship keeps its fuel tanks full on purpose
@@ -132,10 +141,59 @@ def storage_findings():
     return out
 
 
+STOCK_FILE = Path(__file__).resolve().parent.parent / "snapshots" / "bottleneck_stock.json"
+STOCK_MIN_AGE = 300                 # seconds between two stock readings before the trend counts
+SPARE_MAKERS = 4                    # this many of an item's own makers idle on full output = spare capacity, never "short" (circuits: 29 of 46)
+_stock = None
+
+
+def is_short(made, used, made_h, used_h, rising=False):
+    """A real shortage is SUSTAINED (2026-11-17: electronic circuits read made 62/s, used 137/s in one minute but 51/50 over the hour, with
+    29 of 46 makers idle on full output: a burst, not a shortage). Both the one-minute and the one-hour window must show use above
+    production, and the stock must not be rising (the ledger does not see imports: iron plate reads 58 made / 87 used for ten hours
+    while its stock doubled)."""
+    if rising:
+        return False
+    return used > made * 1.05 and used > 0.05 and used_h > made_h * 1.05 and used_h > 0.05
+
+
+def stock_rising(name, stock, now=None, store=None):
+    """True when the stock is not lower than at the reference reading taken at least STOCK_MIN_AGE seconds ago.
+    The reference is kept until it is an hour old, then replaced. `store` is the dict to use (tests); default is the snapshot file."""
+    global _stock
+    now = time.time() if now is None else now
+    if store is None:
+        if _stock is None:
+            try:
+                _stock = json.loads(STOCK_FILE.read_text())
+            except (OSError, ValueError):
+                _stock = {}
+        store = _stock
+    ref = store.get(name)
+    if not ref:
+        store[name] = [now, stock]
+        return False
+    age = now - ref[0]
+    rising = age >= STOCK_MIN_AGE and stock >= ref[1]
+    if age >= 3600:
+        store[name] = [now, stock]
+    return rising
+
+
+def save_stock():
+    if _stock is not None:
+        try:
+            STOCK_FILE.write_text(json.dumps(_stock))
+        except OSError:
+            pass
+
+
 LEDGER = """local s=game.surfaces.nauvis local rp=s.find_entities_filtered{name='roboport',position={-352,-229},radius=0.6}[1] local net=rp and rp.logistic_network local ps=game.forces.player.get_item_production_statistics(s) local o={} for _,n in pairs({%s}) do
 local m=ps.get_flow_count{name=n,category='input',precision_index=defines.flow_precision_index.one_minute}/60
 local u=ps.get_flow_count{name=n,category='output',precision_index=defines.flow_precision_index.one_minute}/60
-o[#o+1]=string.format('%%s|%%.2f|%%.2f|%%d',n,m,u,net and net.get_item_count(n) or 0) end rcon.print(table.concat(o,';'))""" % ",".join(
+local mh=ps.get_flow_count{name=n,category='input',precision_index=defines.flow_precision_index.one_hour}/60
+local uh=ps.get_flow_count{name=n,category='output',precision_index=defines.flow_precision_index.one_hour}/60
+o[#o+1]=string.format('%%s|%%.2f|%%.2f|%%d|%%.2f|%%.2f',n,m,u,net and net.get_item_count(n) or 0,mh,uh) end rcon.print(table.concat(o,';'))""" % ",".join(
     f"'{i}'" for i in ("iron-plate copper-plate steel-plate stone-brick plastic-bar sulfur copper-cable electronic-circuit advanced-circuit "
                         "electromagnetic-science-pack processing-unit battery low-density-structure electric-engine-unit flying-robot-frame logistic-science-pack "
                         "military-science-pack chemical-science-pack production-science-pack utility-science-pack space-science-pack rocket-part space-platform-foundation").split())
@@ -187,6 +245,7 @@ def findings():
     except Exception:
         stocks["fulgora-em"] = 0
     raw = tools["run_lua"](MACHINES)
+    idle_makers = {}           # Nauvis recipe -> machines idle on full output
     for part in raw.split(";"):
         if not part:
             continue
@@ -220,18 +279,26 @@ def findings():
                 out.append((cnt, "starved", f"{surf}: {cnt}x {recipe} ({etype}) {st}{what}"))
             elif st == "full_output":
                 out.append((cnt / 2, "backed", f"{surf}: {cnt}x {recipe} ({etype}) full output"))
+                if surf == "nauvis":
+                    idle_makers[recipe] = idle_makers.get(recipe, 0) + cnt
     for part in ledger.split(";"):
         if not part:
             continue
         fields = part.split("|")
         name, made, used = fields[0], float(fields[1]), float(fields[2])
         stock = int(fields[3]) if len(fields) > 3 else 0
-        if used > made * 1.05 and used > 0.05:
-            deficit = used - made
+        made_h, used_h = (float(fields[4]), float(fields[5])) if len(fields) > 5 else (made, used)
+        rising = stock_rising(name, stock)
+        if idle_makers.get(name, 0) >= SPARE_MAKERS:
+            continue        # its own makers stand on full output: spare capacity, the stock is only being drawn down from full
+        if is_short(made, used, made_h, used_h, rising):
+            deficit = used_h - made_h                                 # the one-hour deficit: the sustained rate, not the burst
             runway = stock / deficit if stock > 0 else 0.0           # seconds the stock would last at this deficit
             factor = 1.0 if runway < 600 else max(0.05, 600.0 / runway)
             note = f", stock {stock}, lasts {runway / 3600:.1f} h" if stock > 0 else ", stock 0"
-            out.append((deficit * 20 * factor, "short", f"nauvis: {name} made {made:.2f}/s, used {used:.2f}/s{note}"))
+            out.append((deficit * 20 * factor, "short", f"nauvis: {name} made {made_h:.2f}/s, used {used_h:.2f}/s over the last hour "
+                                                         f"(last minute {made:.2f}/{used:.2f}){note}"))
+    save_stock()
     return out
 
 
