@@ -27,6 +27,7 @@ from _wheels import create, place_all
 NAME, PLANET = "Fulgora-Aquilo 1 Shuttle", "fulgora"
 LASER = False            # scripts/aquilo_ship2.py sets this: rocket turrets (14) for the medium and big asteroids, lasers (about 26) for the small ones, no magazines, no guns
 INNER = False            # scripts/inner_shuttle.py sets this: the same hull for the inner routes, guns only, three furnaces
+THR8 = False             # scripts/inner_shuttle.py sets this: eight thrusters in one row instead of four
 Q = {"quality": "epic"}
 N, E, S, W = 0, 4, 8, 12
 DIR = {(0, -1): N, (1, 0): E, (0, 1): S, (-1, 0): W}
@@ -236,17 +237,36 @@ def layout():
     put("storage-tank", 4, 13, 3, 3)
     put("storage-tank", 9, 13, 3, 3)
     # ---- rear block, as on the inner shuttles ----
-    pipe("fuel", *row(-12, 12, 17), *col(-12, 18, 21), (0, 21), (0, 22), (-1, 22), (-1, 23), *col(12, 18, 23), (11, 23))
-    ptg("fuel", 0, 18, N)
-    ptg("fuel", 0, 20, S)
-    pipe("oxidizer", *row(-7, 5, 19), (-7, 20), (-7, 21), (-7, 22), (-6, 22), (-6, 23), (5, 20), (5, 21), (5, 22), (6, 22), (6, 23))
-    for tx in (-11, -5, 1, 7):
-        put("thruster", tx, 21, 4, 5)
+    if THR8:
+        # eight thrusters in one row (2026-11-16, docs/inner-shuttle-v3-plan.md): thrust for the 7-bay hull. Ports: fuel west-top and east-middle, oxidizer
+        # east-top and west-middle; a two-tile gap carries one fluid, alternating fuel, oxidizer along the row. A thruster needs EMPTY space behind it (a tile
+        # there blocks it), so a second row is impossible: the row is widened to x -23..22 instead. Fuel header row 17 and oxidizer header row 19 cross at
+        # the fuel columns x -12, 0, 12 by pipe to ground.
+        pipe("fuel", *row(-24, 24, 17), *col(-24, 18, 21), (0, 21), (0, 22), (-1, 22), (-1, 23), (-12, 21), (-12, 22), (-13, 22), (-13, 23),
+             (12, 21), (12, 22), (11, 22), (11, 23), *col(24, 18, 23), (23, 23))
+        for gx in (-12, 0, 12):
+            ptg("fuel", gx, 18, N)
+            ptg("fuel", gx, 20, S)
+        pipe("oxidizer", *row(-19, -11, 19), *row(-7, 17, 19), (-19, 20), (-19, 21), (-19, 22), (-18, 22), (-18, 23), (-7, 20), (-7, 21), (-7, 22), (-6, 22), (-6, 23),
+             (5, 20), (5, 21), (5, 22), (6, 22), (6, 23), (17, 20), (17, 21), (17, 22), (18, 22), (18, 23))
+        for tx in (-23, -17, -11, -5, 1, 7, 13, 19):
+            put("thruster", tx, 21, 4, 5)
+    else:
+        pipe("fuel", *row(-12, 12, 17), *col(-12, 18, 21), (0, 21), (0, 22), (-1, 22), (-1, 23), *col(12, 18, 23), (11, 23))
+        ptg("fuel", 0, 18, N)
+        ptg("fuel", 0, 20, S)
+        pipe("oxidizer", *row(-7, 5, 19), (-7, 20), (-7, 21), (-7, 22), (-6, 22), (-6, 23), (5, 20), (5, 21), (5, 22), (6, 22), (6, 23))
+        for tx in (-11, -5, 1, 7):
+            put("thruster", tx, 21, 4, 5)
     # ---- power ----
     for x0 in (-22, 13):
         for i in ((range(-1, 3) if x0 < 0 else range(4)) if LASER else range(3)):          # laser ship: a fourth column a side, 48 panels
-            for j in range(8 if LASER else 6):                                           # laser ship: eight rows, 64 panels in all (the deck ends at y 25)
+            for j in range(8 if LASER else (5 if THR8 else 6)):                          # laser ship: eight rows, 64 panels in all (the deck ends at y 25); eight thrusters: the header takes row 17
                 put("solar-panel", x0 + 3 * i, 3 * j, 3, 3)
+    if THR8:                                                                      # the panels the header row displaced, in a new outer column a side (x -25..-23 and 22..24)
+        for x0 in (-25, 22):
+            for j in range(5):
+                put("solar-panel", x0, 3 * j, 3, 3)
     for tx, ty in ((-5, 10), (-3, 13), (-1, 13), (1, 13)):
         put("accumulator", tx, ty, 2, 2)
     for (x, y), f in fluid.items():
