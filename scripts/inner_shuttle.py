@@ -18,6 +18,8 @@ from _game import tools
 
 A.INNER = True
 A.THR8 = True                            # eight thrusters (docs/inner-shuttle-v3-plan.md); the Courier was built with four
+A.COL4 = True                            # four collectors, as on Nauvis-Proto 1 Shuttle
+A.Q = {"quality": "legendary"}           # the prototype stands at legendary
 HOME = dict(fuel=14000, mags=800)        # one tank of three is on the wire: 14,000 is 42,000 on board
 AWAY = dict(fuel=22000, mags=500)
 ROUTE = ("local p=game.surfaces['SURF'].platform local function c(t,n,k) return {type='circuit',compare_type='and',condition={first_signal={type=t,name=n},comparator='>=',constant=k}} end "

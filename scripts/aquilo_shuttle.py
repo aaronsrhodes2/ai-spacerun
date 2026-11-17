@@ -28,6 +28,7 @@ NAME, PLANET = "Fulgora-Aquilo 1 Shuttle", "fulgora"
 LASER = False            # scripts/aquilo_ship2.py sets this: rocket turrets (14) for the medium and big asteroids, lasers (about 26) for the small ones, no magazines, no guns
 INNER = False            # scripts/inner_shuttle.py sets this: the same hull for the inner routes, guns only, three furnaces
 THR8 = False             # scripts/inner_shuttle.py sets this: eight thrusters in one row instead of four
+COL4 = False             # scripts/inner_shuttle.py sets this: two more collectors on the flanks (the prototype was short of chunks with two)
 Q = {"quality": "epic"}
 N, E, S, W = 0, 4, 8, 12
 DIR = {(0, -1): N, (1, 0): E, (0, 1): S, (-1, 0): W}
@@ -164,6 +165,16 @@ def layout():
         ins(ix, -23, pick)
     belts([(-7, -23), (-7, -22), (-7, -21, "in"), (-7, -19, "out")] + col(-7, -18, -9) + [(-7, -8), (-6, -8), (-5, -8), (-4, -8), (-4, -7), (-4, -6)], S)
     belts([(6, -23), (6, -22), (6, -21, "in"), (6, -19, "out"), (6, -18)] + row(5, -6, -18), W)
+    if COL4:                                                              # two more collectors on the flanks (read off the prototype, 2026-11-17): the west one joins
+        put("asteroid-collector", -20, -5, 3, 3)                          # the chunk column on row -8 under the ammunition belt, the east one runs up the outside
+        ins(-17, -4, W)                                                   # of the turrets and joins the east chunk belt at its underground on row -21
+        belts(col(-16, -4, -8) + [(-15, -8), (-14, -8, "in"), (-12, -8, "out")] + row(-11, -8, -8), E)
+        put("asteroid-collector", 17, -5, 3, 3)
+        ins(16, -4, E)
+        belts(col(15, -4, -7) + [(15, -8, "in"), (15, -13, "out"), (15, -14, "in"), (15, -20, "out"), (15, -21)] + row(14, 7, -21), W)
+        for x0 in (-21, 17):                                              # no deck in front of or outside these collectors, nor beyond the new belt: as the prototype stands
+            holes.update((x, y) for x in range(x0, x0 + 4) for y in (-6, -5))
+        holes.update([(-21, y) for y in range(-4, -1)] + [(20, y) for y in range(-4, -1)] + [(x, -22) for x in range(12, 17)] + [(16, -21)])
     # ---- defence ----
     if LASER:
         # rockets for the medium and big asteroids (explosion: 70% and 90% effective; lasers do 10% and 5% of their damage to those), lasers for the
@@ -338,6 +349,18 @@ STATUS = ("local s=game.surfaces['SURF'] local p=s.platform local st={} for _,c 
           "rcon.print(table.concat(o,' ; ')..' ; TANKS '..table.concat(f,', ')..' ; HUB slots '..#inv..' free '..inv.count_empty_stacks()..': '..table.concat(c,', ')..' ; accumulators '..string.format('%.0f%%',cap>0 and 100*a/cap or 0)..', damaged '..dmg..', ghosts '..s.count_entities_filtered{type='entity-ghost'}..', at '..(p.space_location and p.space_location.name or 'in transit'))")
 
 
+def configure(sf):
+    """Filters, recipes, gates, tank wires, crusher recipe switch and valve. Needs layout() to have run. Safe to repeat."""
+    filt = "{" + ",".join("{%s,%s,{%s}}" % (x, y, ",".join("'%s'" % f for f in fl)) for x, y, fl in cfg) + "}"
+    rec = "{" + ",".join("{%s,%s,'%s'}" % r for r in recipes) + "}"
+    gt = "{" + ",".join("{%s,%s,'%s',%d,'%s'}" % g for g in gates) + "}"
+    print(tools["run_lua"](CONFIG.replace("SURF", sf).replace("FILT", filt).replace("REC", rec).replace("GATES", gt)))
+    print(tools["run_lua"](TARGETS.replace("SURF", sf)))
+    print(tools["run_lua"](REPRO.replace("SURF", sf).replace("constant=3000", "constant=%d" % (1000 if INNER else 3000))))
+    caps = {k: (5 if INNER and "chunk" in k else v) for k, v in CAPS.items()}
+    print(tools["run_lua"](VALVE.replace("SURF", sf).replace("CAPS", "{" + ",".join("['%s']=%d" % kv for kv in caps.items()) + "}")))
+
+
 def main():
     step = sys.argv[1]
     apply = "--apply" in sys.argv
@@ -356,14 +379,7 @@ def main():
         ok, bad = place_all(ents, sf, apply)
         print("placed" if apply else "dry run", ok, "failed", bad)
     if step == "config" or (step == "build" and apply):
-        filt = "{" + ",".join("{%s,%s,{%s}}" % (x, y, ",".join("'%s'" % f for f in fl)) for x, y, fl in cfg) + "}"
-        rec = "{" + ",".join("{%s,%s,'%s'}" % r for r in recipes) + "}"
-        gt = "{" + ",".join("{%s,%s,'%s',%d,'%s'}" % g for g in gates) + "}"
-        print(tools["run_lua"](CONFIG.replace("SURF", sf).replace("FILT", filt).replace("REC", rec).replace("GATES", gt)))
-        print(tools["run_lua"](TARGETS.replace("SURF", sf)))
-        print(tools["run_lua"](REPRO.replace("SURF", sf).replace("constant=3000", "constant=%d" % (1000 if INNER else 3000))))
-        caps = {k: (5 if INNER and "chunk" in k else v) for k, v in CAPS.items()}
-        print(tools["run_lua"](VALVE.replace("SURF", sf).replace("CAPS", "{" + ",".join("['%s']=%d" % kv for kv in caps.items()) + "}")))
+        configure(sf)
     elif step == "route":
         print(tools["run_lua"](ROUTE.replace("SURF", sf)))
     elif step == "status":
