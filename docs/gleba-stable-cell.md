@@ -175,3 +175,10 @@ before the next trip. Deeper buffer for utility packs, set live (the Captain: "a
 - Each Nauvis-Gleba shuttle hub: utility from Nauvis 400 -> **800** per trip (six ships).
 - Room: the pad has 280 slots with 182 empty; 5,000 packs take 25 slots. Nauvis can always fill it (27,939 on hand, 1,698 made an hour), so no ship waits on an unmet request.
 - Other packs keep 1,200 on the pad and 400 per ship. Use the same two numbers for any pack that runs dry first.
+
+## Second collapse, 2026-11-16 (the Captain: "its still not stable, find the bottlenecks")
+- State found: 0 agricultural packs, 10 Gleba labs idle, 0 pentapod eggs anywhere (loop dead), pack chambers with empty fuel slots, 4 egg chambers halted with 24 to 60 spoilage in their output, spoilage converters short of spoilage, nutrients 2,000 in the network but sitting in provider chests (they rot in 5 minutes).
+- Chain: spoilage jams an egg chamber output -> chambers stop -> eggs (the catalyst) hatch within 15 minutes -> no egg anywhere -> nothing restarts without help. Rule 5 and lesson 7 above, happening again.
+- Fix applied: spoilage moved into the spoilage converters, no_fuel biochambers given 10 nutrients from provider chests, and **4 starter eggs** (the Captain's order, second use after 2026-11-15). Eggs went 4 -> 22 in two minutes, packs 0 -> about 110 a minute, labs missing packs 10 -> 2.
+- Kept running: `scripts/gleba_restart.py` (spoilage unjam, fuel, stranded eggs; moves items only, creates nothing) every other autopilot cycle. It cannot make an egg: if the loop dies again for 15 minutes a starter egg is needed again, so the real fix is to stop the jam that kills it.
+- Still short (ranker, after the restart): yumako processing missing yumako (4), spoilage converters missing spoilage (4), bioflux chambers missing mash/jelly, restart chamber (mash to nutrients) out of fuel.
