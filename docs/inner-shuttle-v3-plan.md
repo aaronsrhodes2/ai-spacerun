@@ -44,3 +44,9 @@ The 7-bay hull with 4 thrusters is slower than the old ship (4.7 vs 5.5). With 8
 - Plumbing checked: 6,000 of each propellant moved from Nauvis-Gleba 1 Shuttle (which held 125,000 of each) and all eight thrusters filled with both fluids.
 - Correction to "Where the time goes": nine shuttles parked at Nauvis hold 67,000 to 125,000 of each propellant, so the wait is not (only) propellant; check which departure condition holds them (magazines 800, science requests) before blaming fuel.
 - Still to do: magazines for the prototype (the 14 turrets have no ammo; it makes them from ore it collects), `route`, one measured round trip (speed, fuel per leg), then retire old ships a planet at a time.
+
+## First flight, Nauvis to Gleba (2026-11-16, sampled every 5 s)
+- Leg about 40 s, 0 damaged, arrived with 45,000 fuel and 43,400 oxidizer from about 80,000 each: about 35,000 of each burned.
+- Speed 5.25 at the start, falling to 4.8 before the stop: NOT the 6.3 the model gave for 8 thrusters at 446 t. Old hulls measured 5.4 to 5.5 with 4 thrusters at 267 t, and about 30,500 fuel outbound (2026-11-10 notes). So eight thrusters at this weight gave no speed gain and no fuel saving on this leg; the fitted thrust-per-thruster (225 kN) overstates, or thrusters do not add linearly. The model is not to be trusted until thrust is read from the game.
+- What the prototype did give: 325 slots (409+ with legendary bays) and a clean, undamaged leg. Speed is not the gain; cargo is.
+- Next: read real thrust (a one-thruster test flight is not possible; compare acceleration at the start of a leg), and measure the return leg. Do not retire old ships on a speed argument.
