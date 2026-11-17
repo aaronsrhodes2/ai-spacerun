@@ -293,7 +293,7 @@ class Model:
             p = self.poles[u]
             if not self.cover[u] or not thin:
                 continue
-            why = self.protected(u)
+            why = self.protected(u) or ("big-pole" if p["name"] == "big-electric-pole" else None)    # big poles are the long-distance links (the Captain, 2026-11-16): never thinned
             if why:
                 reasons[why] += 1
                 continue
