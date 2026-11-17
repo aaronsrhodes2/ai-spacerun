@@ -11,7 +11,7 @@ import sys
 
 from _game import tools
 
-NAME = "Nauvis Triangle 1"
+NAME = "Edgerunner"            # the Captain renamed Nauvis Triangle 1 on 2026-11-16 (platform-14): it is the edge ship
 APEX, H, T, W = -577, 866, 4, 4
 SW = 4                          # width of the two later spokes
 

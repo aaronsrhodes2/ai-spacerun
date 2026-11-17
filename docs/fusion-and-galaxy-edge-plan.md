@@ -131,3 +131,10 @@ Stages (each one built, then proven, before the next)
 5. Short hop Nauvis -> Fulgora and back, parked defended at each end: measure ammunition and fuel per km; fix what the numbers say.
 6. Aquilo: railguns live over Aquilo (goal 3's milestone). Then fusion aboard for the run past Aquilo, then promethium.
 Not decided: how many turrets a 100-row stretch needs (start from range: rocket and railgun every 30 rows, guns every 15, then measure), thruster count, whether the plate works keep running while it is rebuilt.
+
+## Edge ship stage 1 done: pads and ammunition belt on the apex stretch (2026-11-16, `scripts/edge_ship.py`)
+- The ship is now called **Edgerunner** (the Captain renamed Nauvis Triangle 1; platform-14). `triangle.py`, `triangle_miner.py`, `wheel_foundation.py`, `_wf_rate.py`, `_wf_watch.py` find it by the new name.
+- Built on rows -555..-456 of BOTH slanted sides: an ammunition belt (157 tiles a side) on the strip's third column, flowing up to a dead end at the apex; 7 gun turrets, 3 rocket turrets and 3 railguns (facing north) a side, each fed by one bulk inserter from that belt. 198 foundation tiles were laid as tile ghosts and built by the hub from its stock.
+- Proven with a test load of real ammunition from Nauvis (140 firearm magazines and 40 explosive rockets a side, moved by Lua): all 14 gun turrets and all 6 rocket turrets armed, the leftovers back up on the belt in order, nothing in the stretch without power (no substations were in the way; foundation carries the power).
+- Seen: turrets nearest the feed fill first (a gun took about 10 magazines before the next one got any), so the feed must outrun the first turrets' appetite. A railgun turret's collision box runs 0.1 past its fourth row: it needs deck under a fifth row.
+- NOT proven: the railguns. No railgun ammo exists anywhere yet; they stand empty. The belt is fed from nothing so far: stage 2 (ammunition works at the hub) and the feed line from the hub to the sides come next.

@@ -3,7 +3,7 @@ import sys, time
 from _game import tools
 L = ("local s=game.surfaces['platform-13'] local fe,st=0,0 for _,m in pairs(s.find_entities_filtered{name='foundry',area={{8,52},{18,81}}}) do local r=m.get_recipe().name local n=m.products_finished if r=='iron-ore-melting' then fe=fe+n elseif r=='casting-steel' then st=st+n end end "
      "local am=0 for _,m in pairs(s.find_entities_filtered{name='assembling-machine-3',area={{3,55},{8,78}}}) do am=am+m.products_finished end local inv=s.platform.hub.get_inventory(defines.inventory.hub_main) "
-     "local p for _,q in pairs(game.forces.player.platforms) do if q.name:find('Nauvis Triangle 1',1,true) then p=q end end local a=0 for _,e in pairs(s.find_entities_filtered{type='accumulator'}) do a=a+e.energy end "
+     "local p for _,q in pairs(game.forces.player.platforms) do if q.name:find('Edgerunner',1,true) then p=q end end local a=0 for _,e in pairs(s.find_entities_filtered{type='accumulator'}) do a=a+e.energy end "
      "rcon.print(game.tick..' '..fe..' '..st..' '..am..' '..inv.get_item_count('iron-ore')..' '..inv.get_item_count('copper-ore')..' '..inv.get_item_count('space-platform-foundation')..' '..#p.surface.find_tiles_filtered{name='space-platform-foundation'}..' '..math.floor(a/1e6))")
 a = [int(x) for x in tools["run_lua"](L).split()]
 time.sleep(float(sys.argv[1]) if len(sys.argv) > 1 else 90)

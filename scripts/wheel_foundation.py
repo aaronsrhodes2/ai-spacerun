@@ -62,7 +62,7 @@ from _game import tools
 from _wheels import lay_foundation
 
 SURF = "platform-13"
-TRIANGLE = "Nauvis Triangle 1"
+TRIANGLE = "Edgerunner"   # was Nauvis Triangle 1 until 2026-11-16
 Q = {"quality": "epic"}
 N, E, S, W = 0, 4, 8, 12
 FCAP, RES_FE, RES_CU, RES_CA, RED, CAL = 4000, 10000, 5000, 2000, 20000, 100

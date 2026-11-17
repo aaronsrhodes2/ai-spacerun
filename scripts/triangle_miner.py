@@ -39,7 +39,7 @@ import sys
 
 from _game import tools
 
-NAME = "Nauvis Triangle 1"
+NAME = "Edgerunner"            # the Captain renamed Nauvis Triangle 1 on 2026-11-16 (platform-14): it is the edge ship
 Q = {"quality": "epic"}
 DIRS = {(0, -1): 0, (1, 0): 4, (0, 1): 8, (-1, 0): 12}
 T_STOCK = 500                 # hub stock target per product (10 slots each; the hub has 59 slots, foundations take 6)
