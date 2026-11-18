@@ -271,6 +271,8 @@ Verified on the live server unless marked otherwise.
 
 - Edgerunner has propulsion (`scripts/edge_stern.py`, 2026-11-17): 24 thrusters on the stern, fuel and oxidizer plants beside the south spoke, pumps throttled on the hub speed signal V. Speed is untested and the flanks are unarmed: no flight without the Captain's word. Thruster ports: fuel west-top and east-middle, oxidizer east-top and west-middle. A hub lays about 500 tile ghosts a minute from stock.
 
+- Edgerunner's flanks are armed (`scripts/edge_flanks.py`, 2026-11-17): guns and rocket turrets down both sides, one ammunition kind per belt lane from the works. On a platform an underground belt does not pair across open space; cross a gap with long-handed inserters, one filtered inserter per kind. A belt that ends facing a tile side-loads anything later built there. The spoke slits at x = -126 / 126 carry the Captain's own inserters: leave them.
+
 ## Not built yet
 When one of these gets built, move it to the tools table and note what was tested.
 - **More train lines**: only coal line 1 exists. Next: iron, copper and stone outposts and the `10 patches each` target (the generated map has fewer; chunks must be generated outward first). Needs: a generic outpost generator, signals once two trains share track, a real hub (belts into the existing smelters, or new smelters), and a second coal source before patch 1 runs dry.
