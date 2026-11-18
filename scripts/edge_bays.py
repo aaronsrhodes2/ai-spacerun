@@ -44,10 +44,10 @@ def deck_tiles():
 
 
 def bays():
-    """In chain order (each touches one before it). The old solar wing stands at x -18..-6, rows 12..41, so the chain goes round it:
-    west along rows 8..11, south at x -22..-19 to row 43, back east along rows 44..47, then the long column at x -13..-10 to row 147."""
+    """In chain order (each touches one before it). The old solar wing stands at x -30..-3, rows 12..41, so the chain goes round it:
+    west along rows 8..11, south at x -34..-31 to row 43, back east along rows 44..47, then the long column at x -13..-10 to row 147."""
     # a cargo bay snaps to a 2-tile grid: its first tile must be EVEN (found 2026-11-18: one asked for at an odd tile landed a tile east)
-    c = [(-8, 0), (-12, 0), (-12, 4), (-14, 8), (-18, 8), (-22, 8)] + [(-22, 12 + 4 * k) for k in range(8)] + [(-18, 44), (-14, 44)]
+    c = [(-8, 0), (-12, 0), (-12, 4)] + [(x, 8) for x in range(-14, -35, -4)] + [(-34, 12 + 4 * k) for k in range(9)] + [(x, 44) for x in range(-30, -13, 4)]
     c += [(BX, 48 + 4 * k) for k in range(NB)]
     return [T("cargo-bay", x, y, 0, 4, 4) for x, y in c]
 

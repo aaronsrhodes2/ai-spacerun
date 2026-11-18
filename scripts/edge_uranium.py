@@ -49,9 +49,15 @@ def layout():
 
 CONFIG = (TM.AT + "local o={} local function filt(e) e.use_filters=true e.inserter_filter_mode='whitelist' e.set_filter(1,{name='ROUND',quality='normal',comparator='='}) end "
           "local function at(x,y) return s.find_entities_filtered{type='inserter',position={x+0.5,y+0.5},radius=0.3}[1] end "
-          "local out=at(-5,3) if not out then out=s.create_entity{name='bulk-inserter',position={-4.5,3.5},direction=4,quality='legendary',force='player'} if out then filt(out) end end "
+          "local out=at(4,1) if not out then out=s.create_entity{name='bulk-inserter',position={4.5,1.5},direction=12,quality='legendary',force='player'} if out then filt(out) end end "
           "if out then filt(out) o[#o+1]='outlet picks '..out.pickup_position.x..','..out.pickup_position.y..' drops '..out.drop_position.x..','..out.drop_position.y else o[#o+1]='NO outlet' end "
           "for _,q in pairs({{-8,-37},{11,-37}}) do local i=at(q[1],q[2]) if i then filt(i) o[#o+1]='feed inserter '..q[1]..' drops '..i.drop_position.x..','..i.drop_position.y else o[#o+1]='NO feed inserter '..q[1] end end "
+          # piercing only when there are no uranium rounds: the last belt tile before the east feed inserter reads its contents (hold), and
+          # the piercing assembler's two output inserters (5,-37), (6,-37) run only while that tile holds none
+          "local b=s.find_entities_filtered{type='transport-belt',position={11.5,-35.5},radius=0.3}[1] if b then local cb=b.get_or_create_control_behavior() cb.read_contents=true "
+          "cb.read_contents_mode=defines.control_behavior.transport_belt.content_read_mode.hold local bc=b.get_wire_connector(defines.wire_connector_id.circuit_red,true) "
+          "for _,x in pairs({5,6}) do local i=at(x,-37) if i then local ic=i.get_wire_connector(defines.wire_connector_id.circuit_red,true) if not ic.is_connected_to(bc) then ic.connect_to(bc,false) end "
+          "local ib=i.get_or_create_control_behavior() ib.circuit_enable_disable=true ib.circuit_condition={first_signal={type='item',name='ROUND'},comparator='=',constant=0} o[#o+1]='piercing outlet '..x..' gated' end end end "
           "rcon.print(table.concat(o,' | '))").replace("ROUND", ROUND)
 
 REQUEST = (TM.AT + "local pt=p.hub.get_logistic_point()[1] local sec for _,x in pairs(pt.sections) do if x.group=='GROUP' then sec=x end end if not sec then sec=pt.add_section('GROUP') end "
