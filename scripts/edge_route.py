@@ -4,7 +4,7 @@ the circular route continuously. No Aquila trip yet").
   circle    Nauvis -> Vulcanus -> Gleba -> Fulgora -> Nauvis (every leg 15,000 km, about 8.5 minutes at 30 km/s)
   Nauvis    the only place it is supplied. It leaves when the hub holds RESERVE uranium rounds AND 10 minutes have passed. The hub's
             outlet pushes rounds onto the side belts whenever they have room, so "the hub holds RESERVE" also means the belts are full.
-  elsewhere 3 minutes (the works make about 150 piercing magazines a minute; nothing is supplied there)
+  elsewhere 10 minutes: the works make about 150 piercing magazines a minute and refill the belts (time is what we have most of)
 `watch` logs one line a sample to snapshots/edge_route.log, MENDS (a destroyed legendary piece leaves a legendary ghost the hub cannot
 build from its normal spares: such ghosts are remade as normal quality), and prints only what needs a look: damage, empty guns, arrivals.
 Steps: set [RESERVE] | stop | status | watch [seconds] [samples]
@@ -22,7 +22,7 @@ LOG = "D:/Aaron/development/AI-factorio/snapshots/edge_route.log"
 
 SET = ("local p=game.forces.player.platforms[%d] local r={} for _,n in pairs({PLANETS}) do local w if n=='nauvis' then "
        "w={{type='item_count',compare_type='and',condition={first_signal={type='item',name='uranium-rounds-magazine'},comparator='>=',constant=RESERVE}},{type='time',compare_type='and',ticks=36000}} "
-       "else w={{type='time',compare_type='and',ticks=10800}} end r[#r+1]={station=n,wait_conditions=w} end "
+       "else w={{type='time',compare_type='and',ticks=36000}} end r[#r+1]={station=n,wait_conditions=w} end "
        "local cur=1 local here=p.space_location and p.space_location.name for i,x in pairs(r) do if x.station==here then cur=i end end "
        "p.schedule={current=cur,records=r} p.paused=false local o={} for i,x in pairs(p.schedule.records) do o[#o+1]=x.station..'('..#x.wait_conditions..' conditions)' end rcon.print('route set: '..table.concat(o,' -> ')..' ; now at '..tostring(here))") % IDX
 STOP = ("local p=game.forces.player.platforms[%d] local here=p.space_location and p.space_location.name or 'nauvis' "
