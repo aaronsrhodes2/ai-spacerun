@@ -3,12 +3,12 @@
 A platform cannot hold chests: its only store is the hub, and the hub grows by cargo bays (legendary: 50 slots each) that touch the hub or
 another bay. The hub (x -4..3, y -4..3) is boxed in by the station ring, so one face has to be opened:
 
-  WEST FACE   bay 1 at x -8..-5, y 0..3 (touches the hub), bay 2 at x -12..-9, y 0..3, bay 3 at x -13..-10, y 4..7, then a chain south
-              round the old solar wing (see bays()) and a long column at x -13..-10 down to row 147, above the thruster bar.
-  what moves  the metallic reprocessing crusher that stood on bay 1's ground goes under the ring's south row (x -8..-6, y 10..11, new
+  WEST FACE   bay 1 at x -8..-5, y 0..3 (touches the hub), bay 2 at x -12..-9, y 0..3, bay 3 at x -12..-9, y 4..7, then a chain south
+              round the old solar wing (see bays()) and a long column at x -14..-11 down to row 147, above the thruster bar.
+  what moves  the metallic reprocessing crusher that stood on bay 1's ground goes under the ring's south row (x -5..-3, y 10..11, new
               deck), with both inserters, filters, the intake's circuit condition and its red wires (it is a link in the station's wire
               chain: the new inserter takes over all three connections before the old one goes).
-              The ring's west column passes under bay 2 by underground belt (row 4 -> row -1).
+              The ring's west column passes under bays 2 and 3 by underground belt (row 8 -> row -1; its corner moved one row south).
   uranium     the only free hub face tile on the west, (-5,3), is under bay 1, so the uranium round outlet moves to the east face:
               the oxide reprocessing crusher goes under the ring's south row too (x 4..6, y 10..11); outlet inserter (4,1), belt
               (5,1)-(7,1), under the ring's inserters (0 -> -5), under the ring's top row (-7 -> -11), east on row -12 to x 10, north
@@ -26,16 +26,17 @@ L = tools["run_lua"]
 BELT, UG, SPLIT, BULK, FAST = "express-transport-belt", "express-underground-belt", "express-splitter", "bulk-inserter", "fast-inserter"
 N, E, S, W = 0, 4, 8, 12
 NB = 25                                   # bays in the long column: rows 48 .. 48 + 4*NB - 1 = 147
-BX = -13                                  # the column's west tile
+BX = -14                                  # the long column's west tile (even)
 # (name, old crusher centre, old intake, old return, new crusher top-left, new intake, new return)
-MOVES = [("metallic-asteroid-reprocessing", (-6, 1.5), (-7.5, 0.5), (-7.5, 1.5), (-8, 10), (-7, 9), (-8, 9)),
+MOVES = [("metallic-asteroid-reprocessing", (-6, 1.5), (-7.5, 0.5), (-7.5, 1.5), (-5, 10), (-4, 9), (-5, 9)),
          ("oxide-asteroid-reprocessing", (6, 1.5), (7.5, 0.5), (7.5, 1.5), (4, 10), (5, 9), (4, 9))]
 
 
 def deck_tiles():
     t = set()
-    for x0 in (-8, 4):
+    for x0 in (-5, 4):
         t |= {(x, y) for x in range(x0, x0 + 3) for y in (9, 10, 11)}
+    t |= {(-9, 9), (-8, 9)}
     for e in bays()[2:]:
         x0, y0 = int(e["x"] - 2), int(e["y"] - 2)
         t |= {(x, y) for x in range(x0, x0 + 4) for y in range(y0, y0 + 4)}
@@ -45,7 +46,8 @@ def deck_tiles():
 def bays():
     """In chain order (each touches one before it). The old solar wing stands at x -18..-6, rows 12..41, so the chain goes round it:
     west along rows 8..11, south at x -22..-19 to row 43, back east along rows 44..47, then the long column at x -13..-10 to row 147."""
-    c = [(-8, 0), (-12, 0), (BX, 4), (BX, 8), (-17, 8), (-21, 8)] + [(-22, 12 + 4 * k) for k in range(8)] + [(-18, 44), (-14, 44)]
+    # a cargo bay snaps to a 2-tile grid: its first tile must be EVEN (found 2026-11-18: one asked for at an odd tile landed a tile east)
+    c = [(-8, 0), (-12, 0), (-12, 4), (-14, 8), (-18, 8), (-22, 8)] + [(-22, 12 + 4 * k) for k in range(8)] + [(-18, 44), (-14, 44)]
     c += [(BX, 48 + 4 * k) for k in range(NB)]
     return [T("cargo-bay", x, y, 0, 4, 4) for x, y in c]
 
@@ -141,8 +143,10 @@ def main():
     elif step == "ring":
         if not apply:
             return print("would put the ring's west column underground from row 4 to row -1")
-        print(L(REMOVE.replace("LIST", CELLS([(-9, y) for y in range(-1, 5)]))))
-        place([T(UG, -9, 4, N, type="input"), T(UG, -9, -1, N, type="output")], True, "ring underground")
+        # the ring's south-west corner drops one row ((-8,8) south, (-8,9) west, (-9,9) north) so that the underground entrance stands on
+        # row 8, fed straight from the south: bay 3 covers rows 4..7 and the hop to row -1 is the full nine tiles
+        print(L(REMOVE.replace("LIST", CELLS([(-9, y) for y in range(-1, 9)] + [(-8, 8)]))))
+        place([T(BELT, -8, 8, S), T(BELT, -8, 9, W), T(BELT, -9, 9, N), T(UG, -9, 8, N, type="input"), T(UG, -9, -1, N, type="output")], True, "ring underground")
     elif step == "bays":
         # place_entities refuses a bay that touches the one before it on only part of an edge (its manual build check says no), but the
         # game accepts such a bay and counts its slots (tried at (-13,4): 159 -> 209 slots). So bays are created directly, in chain order,
