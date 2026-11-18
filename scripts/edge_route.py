@@ -9,6 +9,7 @@ the circular route continuously. No Aquila trip yet").
 build from its normal spares: such ghosts are remade as normal quality), and prints only what needs a look: damage, empty guns, arrivals.
 Steps: set [RESERVE] | stop | status | watch [seconds] [samples]
 Usage: edge_route.py set 2000 ; edge_route.py watch 60 200 ; edge_route.py stop"""
+import re
 import sys
 import time
 
@@ -47,7 +48,8 @@ def watch(every, most):
         at = place.startswith("at ")
         ghosts = int(line.split("ghosts ")[1].split(" ")[0]) if "ghosts " in line else 0
         empty = line.split("empty: ")[1].split(" | ")[0] if "empty: " in line else ""
-        guns_empty = int(empty.split("gun-turret ")[1].split(",")[0]) if "gun-turret " in empty else 0
+        m = re.search(r"(?<![a-z-])gun-turret (\d+)", empty)        # not the "gun-turret" inside "railgun-turret"
+        guns_empty = int(m.group(1)) if m else 0
         if at and place != last_place:
             print(stamp, "ARRIVED", line, flush=True)
         elif ghosts > dmg_seen or guns_empty >= 3 or mended != "0":

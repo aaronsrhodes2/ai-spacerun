@@ -77,6 +77,9 @@ def plan(side, cols):
     xs = {}
     for name, start, col, row in (("A", a_start, lambda y: ES.edge(y, side) + 2 * s, ROW_A), ("B", b_start, lambda y: ES.edge(y, side) + 9 * s, ROW_B)):
         path = [start] + down(start, col, 286)
+        if name == "A":                                 # a collector stands right under A's column at the corner: go four tiles toward the middle on row 286 first
+            for _ in range(4):
+                path.append((path[-1][0] + s, 286))
         for i in range(1, len(path)):
             c = path[i]
             nxt = path[i + 1] if i + 1 < len(path) else (c[0], c[1] + 1)
