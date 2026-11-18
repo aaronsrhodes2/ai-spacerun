@@ -263,7 +263,7 @@ def build(apply):
     print("placed" if apply else "dry run: would place", ok, "of", len(ents), "failed", bad)
 
 
-FILT = (TM.AT + "local n=0 for _,q in pairs({{127,-76,{'piercing-rounds-magazine','firearm-magazine'}},{127,-71,{'explosive-rocket','rocket'}}}) do for _,sg in pairs({-1,1}) do "
+FILT = (TM.AT + "local n=0 for _,q in pairs({{127,-76,{'piercing-rounds-magazine','firearm-magazine','uranium-rounds-magazine'}},{127,-71,{'explosive-rocket','rocket'}}}) do for _,sg in pairs({-1,1}) do "
         "local e=s.find_entities_filtered{name='long-handed-inserter',position={sg*q[1]+0.5,q[2]+0.5},radius=0.3}[1] if e then e.use_filters=true e.inserter_filter_mode='whitelist' "
         "for i,nm in pairs(q[3]) do e.set_filter(i,{name=nm,quality='normal',comparator='='}) end n=n+1 end end end rcon.print('crossing inserters filtered: '..n)")
 
