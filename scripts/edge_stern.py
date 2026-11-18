@@ -21,7 +21,7 @@ THROTTLE one pump per fluid on row 286 between the tanks and the header (3,000 /
          thruster). Each runs only while the hub's speed signal V is under TARGET km/s. One tank per fluid is on the hub's green wire
          (schedule conditions read one tank of sixteen: x16).
 DECK     tile ghosts, built by the hub from its foundation stock (request `foundation-works 37`, raised while this is built).
-Steps: plan | deck | clear | build [east|west|stern] | config | status | speed N
+Steps: plan | deck | clear | build [east|west|stern] | config | overflow | gaps | status | speed N
 Usage: edge_stern.py plan ; edge_stern.py deck ; edge_stern.py build east ; edge_stern.py config ; edge_stern.py status"""
 import sys
 
@@ -59,19 +59,20 @@ def half(side):
     chunk = "metallic-asteroid-chunk" if side > 0 else "carbonic-asteroid-chunk"
     solid = "iron-ore" if side > 0 else "carbon"
     any_chunk = ("metallic-asteroid-chunk", "carbonic-asteroid-chunk", "oxide-asteroid-chunk")
-    # crushers on the spoke: intake (x = 1) on the top row, return one row south, product east
+    # crushers on the spoke: return (x = 1) on the top row, intake one row south (upstream), product east. The belt moves (see OVERFLOW),
+    # and on a moving belt the gap an intake makes travels DOWNSTREAM: the return must stand north of its intake or it never finds room.
     put("crusher", 2, 270, 0, 2, 3, "metallic-asteroid-crushing" if side > 0 else "carbonic-asteroid-crushing")
-    ins(1, 270, W, chunk)
-    ins(1, 271, E, *any_chunk)
+    ins(1, 270, E, *any_chunk)
+    ins(1, 271, W, chunk)
     ins(4, 271, W, solid)
     put("crusher", 2, 276, 0, 2, 3, "advanced-oxide-asteroid-crushing")
-    ins(1, 276, W, "oxide-asteroid-chunk")
-    ins(1, 277, E, *any_chunk)
+    ins(1, 276, E, *any_chunk)
+    ins(1, 277, W, "oxide-asteroid-chunk")
     ins(3, 275, S, "calcite")
     ins(4, 277, W, "ice")
     put("crusher", 2, 280, 0, 2, 3, "oxide-asteroid-crushing")
-    ins(1, 280, W, "oxide-asteroid-chunk")
-    ins(1, 281, E, *any_chunk)
+    ins(1, 280, E, *any_chunk)
+    ins(1, 281, W, "oxide-asteroid-chunk")
     ins(4, 281, W, "ice")
     # belt S
     put(BELT, 3, 274, E)
@@ -230,6 +231,53 @@ def config(target=TARGET):
     print(L(CONFIG.replace("FILT", filt).replace("TARGETV", str(target))))
 
 
+# OVERFLOW (after the first flight, 2026-11-18): the spoke belt backs up when the hub ring is full, the belt stops, and a crusher can then neither
+# find its chunk nor put the handed-back one down: no ice, no water, no propellant. A splitter north of the plant (row OV) sends the belt on to
+# the hub first; what the hub cannot take goes down a two-tile stub and two bulk inserters throw it overboard. The belt always moves.
+OV = 258
+OVER = (TM.AT + "local sp=s.find_entities_filtered{name='express-splitter',position={1,OVR+0.5},radius=0.6}[1] local o={} if sp then sp.splitter_output_priority='left' o[#o+1]='splitter priority '..sp.splitter_output_priority else o[#o+1]='NO splitter' end "
+        "for _,y in pairs({OVR-1,OVR-2}) do local i=s.find_entities_filtered{type='inserter',position={2.5,y+0.5},radius=0.3}[1] o[#o+1]=i and ('inserter '..y..' drops at '..i.drop_position.x..' on '..s.get_tile(i.drop_position.x,i.drop_position.y).name) or ('NO inserter '..y) end "
+        "rcon.print(table.concat(o,' | '))")
+
+
+def overflow(apply):
+    tiles = [(2, OV - 1), (2, OV - 2)]
+    missing = int(L(TM.AT + "local n=0 for _,q in pairs(" + cells(tiles) + ") do if s.get_tile(q[1],q[2]).name~='space-platform-foundation' then n=n+1 "
+                    "if APPLY and s.count_entities_filtered{type='tile-ghost',position={q[1]+0.5,q[2]+0.5},radius=0.3}==0 then s.create_entity{name='tile-ghost',inner_name='space-platform-foundation',position={q[1],q[2]},force='player'} end end end rcon.print(n)".replace("APPLY", "true" if apply else "false")))
+    if missing:
+        return print("deck missing", missing, "(tile ghosts laid: run again when the hub has built them)" if apply else "(--apply lays the ghosts)")
+    ents = [T("express-splitter", 0, OV, N, 2, 1), T(BELT, 1, OV - 1, N), T(BELT, 1, OV - 2, N),
+            T("bulk-inserter", 2, OV - 1, W), T("bulk-inserter", 2, OV - 2, W)]
+    if apply:                                                             # the belt tile under the splitter goes first; what lies on it goes back on the belt behind
+        print(L(TM.AT + "local b=s.find_entities_filtered{name='express-transport-belt',position={0.5,OVR+0.5},radius=0.3}[1] if b then b.destroy() rcon.print('belt tile removed') else rcon.print('no belt tile') end".replace("OVR", str(OV))))
+    ok, bad = TM.place(ents, apply)
+    print("overflow", "placed" if apply else "dry run: would place", ok, "of", len(ents), "failed", bad)
+    if apply:
+        print(L(OVER.replace("OVR", str(OV))))
+
+
+# GAPS (same day): the belt through the plant is always packed (the collectors hold thousands of chunks), and a hand-back inserter needs a gap
+# on its far lane. Two filtered inserters one row south of the crushers (row GAP) throw a metallic or carbonic chunk into a one-tile hole in the
+# deck beside them (the tile is lifted by the hub, not deleted), so gaps on both lanes keep flowing north past every hand-back. Oxide is never
+# thrown away here; the unfiltered overflow at row OV is what keeps an all-oxide belt moving.
+GAP = 284
+GAPS = (TM.AT + "local o={} for _,q in pairs({{1.5,2},{-0.5,-2}}) do local i=s.find_entities_filtered{type='inserter',position={q[1],GAPR+0.5},radius=0.3}[1] if i then i.use_filters=true i.inserter_filter_mode='whitelist' "
+        "i.set_filter(1,{name='metallic-asteroid-chunk',quality='normal',comparator='='}) i.set_filter(2,{name='carbonic-asteroid-chunk',quality='normal',comparator='='}) "
+        "o[#o+1]='inserter '..q[1]..' drops on '..s.get_tile(i.drop_position.x,i.drop_position.y).name else o[#o+1]='NO inserter '..q[1] end end rcon.print(table.concat(o,' | '))")
+
+
+def gaps(apply):
+    holes = int(L(TM.AT + "local n=0 for _,x in pairs({2,-2}) do local t=s.get_tile(x,GAPR) if t.name=='space-platform-foundation' then n=n+1 if APPLY and not t.to_be_deconstructed() then t.order_deconstruction('player') end end end rcon.print(n)"
+                  .replace("GAPR", str(GAP)).replace("APPLY", "true" if apply else "false")))
+    if holes:
+        return print("deck tiles still to lift", holes, "(marked: run again when the hub has lifted them)" if apply else "(--apply marks them)")
+    ents = [T(INS, 1, GAP, W), T(INS, -1, GAP, E)]
+    ok, bad = TM.place(ents, apply)
+    print("gap makers", "placed" if apply else "dry run: would place", ok, "of", len(ents), "failed", bad)
+    if apply:
+        print(L(GAPS.replace("GAPR", str(GAP))))
+
+
 def main():
     a = sys.argv[1:]
     step = a[0] if a else "status"
@@ -245,6 +293,10 @@ def main():
         for k in which:
             ok, bad = TM.place(p[k][0], "--apply" in a)
             print(k, "placed" if "--apply" in a else "dry run: would place", ok, "of", len(p[k][0]), "failed", bad)
+    elif step == "overflow":
+        overflow("--apply" in a)
+    elif step == "gaps":
+        gaps("--apply" in a)
     elif step == "config":
         config()
     elif step == "speed":
