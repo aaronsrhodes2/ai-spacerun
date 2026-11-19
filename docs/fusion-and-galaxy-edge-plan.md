@@ -238,3 +238,23 @@ Measured for the Aquilo question (meter pole at 16,16; platforms need no poles, 
 - Big asteroids (first met on the Aquilo legs): 2,000 health, 2,000 flat physical resistance. Guns cannot hurt them; only rockets do.
 - On-board explosive rockets: 1.2 a minute (one explosives plant, 11 a minute, shared with railgun rounds). Stock 3,000.
 - Estimate, not measured: about 40 big asteroids a minute on the Aquilo leg, about 3 rockets each, so about 2,000 rockets one way.
+
+## Railguns moved outside, rocket works, second solar field (2026-11-18, night)
+
+The Captain, looking at a flank railgun's cone: "it damaged everything in a cone in front of them, and it's going to kill our ship ... make the railguns all the way on the outside of the triangle"; "you have my permission to change the shape of the ship".
+
+**Railgun ears (`scripts/edge_ears.py`).**
+- Measured: a railgun shot is a line 50 tiles long and 1 wide, 10,000 damage to everything on it, ours included. The 42 flank railguns and the 6 on the apex stretch stood inside the strip facing north; each had about 150 of our own belts, inserters, turrets and collectors in its arc (9,359 in all). The 29 on the base face south with nothing in front. No railgun had fired on the inner route (they are held to huge asteroids).
+- Built: all 48 moved to pads of new deck outside the strip, on their old feed rows, facing north-west (west flank) and north-east (east flank). The old feed inserter now drops on a short belt; an underground belt takes the rounds under the ammunition belt, the chunk belt and the edge; outside stand the exit, one bulk inserter and the turret. 912 deck tiles. `edge_ears.py check` afterwards: 77 railguns, 0 of our own entities in any arc. All 48 armed themselves through the new hops.
+- An ear guards the flank BELOW itself. The nose above the topmost ear on each side (rows -577..-530) has no railgun cover: open.
+- Mistake and repair: eleven pads lay in front of an asteroid collector. A collector needs empty space in the four columns in front of its centre; the hub rightly left those tile ghosts unbuilt, `edge_deckfix.py ears` forced them and the game removed the eleven collectors (94 -> 83). `edge_ears.py collectors` put each back about ten rows up the flank with its edge inserter: 94 again. The chunks inside the eleven are lost. Rule for the future: never force a tile ghost the hub refuses without looking at what stands within five tiles.
+- 140 railgun rounds from the removed turrets sit in the hub with no outlet (the new turrets filled from the belts before `config` could hand them over).
+
+**Explosives line at the hub (`edge_works.py relief`).** It was wedged at the evening check and again at 19:20: the crusher held 6 sulfur and stopped, the coal plant sat on 4 carbon (it needs 5: the chute had taken an odd number), nothing could move. Two faults: the chute looked at carbon only, and the sulfur guard read the plant's ingredient signals on top of its contents (one too many). Now two decider combinators set the chute's filter (carbon > 10 and sulfur < 2: drop carbon; sulfur > 5 and carbon < 5: drop sulfur). After the fix the line made about 67 explosives crafts a minute (134 explosives): the "11 a minute" of the evening check was the wedge, not the line's size. The railgun assemblers take about 107 of those; rockets got about 8 a minute.
+
+**Rocket works (`scripts/edge_rockets.py`).** East of the south spoke, rows 53..83, 228 pieces on 348 tiles of new deck: two carbonic chains (crusher, coal plant, explosives plant) with the same relief, an oxide crusher and melter, a metallic crusher with two furnaces, one belt with explosives on one lane and iron plate on the other, six assemblers (two rockets, four explosive rockets). The output belt runs up the spoke's free column, under the reprocessing crusher, the ring and the plate belt, to the last free hub face tile (4,2). The hub is the store (cap 20,000); the outlet at (4,0) puts rockets on the feed in flight. The request `edge-ammo 37` no longer has a maximum for explosive rockets (it would have sent the works' rockets down to Nauvis).
+- Cargo bays do not accept inserters (tested: drop target nil), so the hub face was the only way in.
+- At rest the spoke belt is nearly empty (14 chunks on rows 44..150 in Nauvis orbit): the works only run in flight. They stand UPSTREAM of the station ring, so in a shortage they take carbonic chunks before the hub works do.
+
+**Power (`scripts/edge_power.py`).** A second field west of the cargo-bay chain: 300 legendary panels (x -74..-15, rows 48..92) and 120 legendary accumulators (30 MJ each, rows 93..100), 3,180 deck tiles. With the old 144 panels: 444 panels, 66.6 MW at 100% sun, 40 MW at Aquilo's 60%.
+
