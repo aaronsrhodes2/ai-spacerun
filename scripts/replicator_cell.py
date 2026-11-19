@@ -138,14 +138,23 @@ LIST = ("local s=game.surfaces['SURF'] local f=game.forces.player local cats=pro
         "local solid=true for _,i in pairs(r.ingredients) do if i.type~='item' then solid=false end end local it=r.products[1].name "
         "if solid and not EX[it] and (not MENU or MENU[it]) then if seen[it] then seen[it]=2 else seen[it]=1 list[#list+1]=it end end end end local mk={} for _,it in pairs(list) do if seen[it]==1 then mk[#mk+1]=it end end table.sort(mk) ")
 REFRESH = (LIST + "local function at(x,y) return s.find_entities_filtered{name='constant-combinator',position={x,y},radius=0.4}[1] end local rank,ring=at(RKX,RKY),at(RGX,RGY) "
-           "if not (rank and ring) then rcon.print('missing constant combinators') return end local N,P=NN,PP local want,nw={},0 for i,it in ipairs(mk) do if (i-1)%N==P then want[it]=i nw=nw+1 end end "
+           "if not (rank and ring) then rcon.print('missing constant combinators') return end local N,P=NN,PP "
+           # MAKEABLE NOW (2026-11-18): an item stays on the rank list only while every solid ingredient is in the network's stock or is
+           # itself a makeable list item. Before this, a machine chose productivity-module-3 (biter eggs: none), stack-inserter and
+           # rocket-turret (carbon fiber: none) and held that choice for ever, so nothing else was made. The ring and the numbering keep
+           # every item, so ranks never shift; only membership of the rank list changes, and the autopilot's refresh puts an item back
+           # when its ingredient arrives.
+           "local net=s.find_logistic_network_by_position(rank.position,f) local inmk,ok={},{} for _,it in ipairs(mk) do inmk[it]=true ok[it]=true end local dropped={} "
+           "if net then local changed=true while changed do changed=false for _,it in ipairs(mk) do if ok[it] then for _,ing in pairs(f.recipes[it].ingredients) do "
+           "if ing.type=='item' and net.get_item_count(ing.name)<=0 and not (inmk[ing.name] and ok[ing.name]) then ok[it]=false changed=true dropped[#dropped+1]=it..'<'..ing.name break end end end end end end "
+           "local want,nw={},0 for i,it in ipairs(mk) do if (i-1)%N==P and ok[it] then want[it]=i nw=nw+1 end end "
            "local cur,nc={},0 for _,sec in pairs(rank.get_or_create_control_behavior().sections) do for _,fl in pairs(sec.filters) do if fl.value then cur[fl.value.name]=fl.min nc=nc+1 end end end "
            "local nr=0 for _,sec in pairs(ring.get_or_create_control_behavior().sections) do nr=nr+#sec.filters end "
            "local same=(nc==nw and nr==#mk) if same then for it,i in pairs(want) do if cur[it]~=i then same=false end end end if same then rcon.print('unchanged '..nw..' of '..#mk) return end "
            "local add,rem={},{} for it in pairs(want) do if not cur[it] then add[#add+1]=it end end for it in pairs(cur) do if not want[it] then rem[#rem+1]=it end end "
            "local cb=rank.get_or_create_control_behavior() while cb.sections_count>0 do cb.remove_section(1) end local sec=cb.add_section() local j=0 for i,it in ipairs(mk) do if want[it] then j=j+1 sec.set_slot(j,{value={type='item',name=it,quality='normal'},min=i}) end end "
            "cb=ring.get_or_create_control_behavior() while cb.sections_count>0 do cb.remove_section(1) end sec=cb.add_section() for i,it in ipairs(mk) do sec.set_slot(i,{value={type='recipe',name=it,quality='normal'},min=i}) end "
-           "table.sort(add) table.sort(rem) rcon.print('changed: '..nw..' of '..#mk..' items; added '..table.concat(add,',')..' ; removed '..table.concat(rem,','))")
+           "table.sort(add) table.sort(rem) rcon.print('changed: '..nw..' of '..#mk..' items; added '..table.concat(add,',')..' ; removed '..table.concat(rem,',')..' ; not makeable now: '..table.concat(dropped,','))")
 
 
 def refresh_one(c):
