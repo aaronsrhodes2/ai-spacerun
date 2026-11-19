@@ -24,7 +24,7 @@ LAYOUT (tiles; x east of the spoke, rows south positive). Every crusher is 2 x 3
                crusher (3 -> 7), under the ring's south row (7,9 -> 7,7) and the plate belt (7,6 -> 7,4), to the free hub face tile (4,2).
                The hub is the store (it takes rockets while it holds fewer than CAP); the existing outlet (4,0) puts them on the feed in flight.
 CONTROL (the same relief as the hub works, edge_works.RELIEF): per carbonic crusher two decider combinators on the spoke's west deck set the
-chute inserter's filter (carbon > 10 and sulfur < 2: drop carbon; sulfur > 5 and carbon < 5: drop sulfur), and the explosives plant takes
+chute inserter's filter (carbon > 9 and sulfur < 2: drop carbon; sulfur > 3 and carbon < 5: drop sulfur), and the explosives plant takes
 sulfur one at a time while it holds fewer than 2. No rule depends on which modules the autopilot fits.
 The request `edge-ammo 37` kept explosive rockets at exactly 1,000: its maximum is lifted, or the hub would send the works' rockets down.
 
@@ -73,6 +73,9 @@ def layout():
         e += [T(ASM, a, R - 4, N, 3, 3, "explosive-rocket"), T(FAST, a + 3, R - 3, E), T(ASM, a + 4, R - 4, N, 3, 3, "rocket"), T(FAST, a + 7, R - 3, W),
               T(ASM, a + 8, R - 4, N, 3, 3, "explosive-rocket"), T(FAST, a + 1, R - 1, S), T(FAST, a + 5, R - 1, S), T(FAST, a + 9, R - 1, S),
               T(FAST, a + 1, R - 5, S), T(FAST, a + 9, R - 5, S)]
+    # returned chunks overboard: with the spoke belt packed and standing (docked, ring full) a hand-back inserter finds no room, the
+    # crusher keeps its returned chunk and stops. One more inserter per crusher drops that chunk into open space (tile beyond it has no deck).
+    e += [T(FAST, 3, R - 9, N), T(FAST, 3, R - 7, S), T(FAST, 3, R + 4, S), T(FAST, 3, R + 12, N)]
     # output belt O
     e += [T(BELT, x, R - 6, W) for x in range(X_END, 10, -1)] + [T(BELT, 10, y, N) for y in range(R - 6, R - 17, -1)] + [T(BELT, x, R - 17, W) for x in range(10, 1, -1)]
     e += [T(BELT, 1, y, N) for y in range(R - 17, 11, -1)]
@@ -126,8 +129,8 @@ CONFIG = (TM.AT + "local W=defines.wire_connector_id local o={} local hub=p.hub 
           "local da=s.find_entities_filtered{name='decider-combinator',position={-1,c.k+0.5},radius=0.4}[1] local db=s.find_entities_filtered{name='decider-combinator',position={-1,c.k+1.5},radius=0.4}[1] "
           "if not (kc and ex and intake and back and guard and chute and da and db) then o[#o+1]='chain '..c.name..' INCOMPLETE' else "
           "filt(intake,{'carbonic-asteroid-chunk'}) filt(back,{'carbonic-asteroid-chunk'}) "
-          "da.get_or_create_control_behavior().parameters={conditions={{first_signal=I('carbon'),comparator='>',constant=10},{first_signal=I('sulfur'),comparator='<',constant=2,compare_type='and'}},outputs={{signal=I('carbon'),copy_count_from_input=false,constant=1}}} "
-          "db.get_or_create_control_behavior().parameters={conditions={{first_signal=I('sulfur'),comparator='>',constant=5},{first_signal=I('carbon'),comparator='<',constant=5,compare_type='and'}},outputs={{signal=I('sulfur'),copy_count_from_input=false,constant=1}}} "
+          "da.get_or_create_control_behavior().parameters={conditions={{first_signal=I('carbon'),comparator='>',constant=9},{first_signal=I('sulfur'),comparator='<',constant=2,compare_type='and'}},outputs={{signal=I('carbon'),copy_count_from_input=false,constant=1}}} "
+          "db.get_or_create_control_behavior().parameters={conditions={{first_signal=I('sulfur'),comparator='>',constant=3},{first_signal=I('carbon'),comparator='<',constant=5,compare_type='and'}},outputs={{signal=I('sulfur'),copy_count_from_input=false,constant=1}}} "
           "kc.get_or_create_control_behavior().circuit_read_contents=true local kg=kc.get_wire_connector(W.circuit_green,true) local cr=chute.get_wire_connector(W.circuit_red,true) "
           "for _,d in pairs({da,db}) do local di=d.get_wire_connector(W.combinator_input_green,true) if not di.is_connected_to(kg) then di.connect_to(kg) end local dout=d.get_wire_connector(W.combinator_output_red,true) if not dout.is_connected_to(cr) then dout.connect_to(cr) end end "
           "chute.use_filters=true chute.inserter_filter_mode='whitelist' for i=1,chute.filter_slot_count do chute.set_filter(i,nil) end chute.inserter_stack_size_override=1 "
@@ -135,6 +138,7 @@ CONFIG = (TM.AT + "local W=defines.wire_connector_id local o={} local hub=p.hub 
           "local eb=ex.get_or_create_control_behavior() eb.circuit_read_contents=true eb.circuit_read_ingredients=false local er,gr=ex.get_wire_connector(W.circuit_red,true),guard.get_wire_connector(W.circuit_red,true) if not er.is_connected_to(gr) then er.connect_to(gr) end "
           "filt(guard,{'sulfur'}) guard.inserter_stack_size_override=1 local gb=guard.get_or_create_control_behavior() gb.circuit_enable_disable=true gb.circuit_condition={first_signal=I('sulfur'),comparator='<',constant=2} "
           "o[#o+1]='chain '..c.name..' wired' end end "
+          "for _,q in pairs({{RROW-9,'metallic-asteroid-chunk'},{RROW-7,'carbonic-asteroid-chunk'},{RROW+4,'carbonic-asteroid-chunk'},{RROW+12,'oxide-asteroid-chunk'}}) do local i=at('inserter',3,q[1]) if i then filt(i,{q[2]}) else o[#o+1]='NO overboard inserter at row '..q[1] end end "
           "for _,q in pairs({{KOROW,'oxide-asteroid-chunk'},{KMROW,'metallic-asteroid-chunk'}}) do local a,b=at('inserter',1,q[1]+2),at('inserter',1,q[1]+1) if a and b then filt(a,{q[2]}) filt(b,{q[2]}) else o[#o+1]='NO chunk inserters at row '..q[1] end end "
           "pcall(function() hub.get_or_create_control_behavior().read_contents=true end) "
           "local hi=at('inserter',4,2) if not hi then hi=s.create_entity{name='bulk-inserter',position={4.5,2.5},direction=4,quality='legendary',force='player'} end "

@@ -258,3 +258,13 @@ The Captain, looking at a flank railgun's cone: "it damaged everything in a cone
 
 **Power (`scripts/edge_power.py`).** A second field west of the cargo-bay chain: 300 legendary panels (x -74..-15, rows 48..92) and 120 legendary accumulators (30 MJ each, rows 93..100), 3,180 deck tiles. With the old 144 panels: 444 panels, 66.6 MW at 100% sun, 40 MW at Aquilo's 60%.
 
+**Measured after the build (2026-11-18, 20:40 to 20:50).**
+- Explosive rockets, whole ship: 1.2 a minute at the evening check (wedged), 20 in the first minute of flight, 60 a minute in flight once the two new explosives plants had speed modules, 108 a minute at Vulcanus with the spoke belt packed (rocket works alone: 86). The autopilot had fitted productivity modules to the idle plants, which held each to about 20 crafts a minute; six speed module 2 were taken from the Nauvis network for them and six productivity modules handed back.
+- Relief thresholds corrected in both works: a crusher stops at 10 carbon, so "carbon > 10" never fired and both new chains stalled within minutes. Now carbon > 9 and sulfur < 2, sulfur > 3 and carbon < 5.
+- Returned chunks: docked, the spoke belt stands packed, the hand-back inserters find no room and the crushers stop on their returned chunk. Four inserters now drop returned chunks overboard (tiles 3,61 3,63 3,74 3,82). Four deck tiles for them were lifted from the unfinished corner of the solar field (left as ghosts) because the hub had no foundation at Vulcanus.
+- Power: 355 panels and 66 accumulators stand (53 MW at 100% sun, 1,980 MJ); 184 deck tiles, 89 panels and 54 accumulators of the field wait for the next Nauvis stop (`edge_power.py build --apply` once the hub has laid the deck). Draw with every works running: 29.5 MW docked, so about 33 MW in flight. At Aquilo's 60% the finished field gives 40 MW: enough, but only 1.2 times the draw. A third block of about 300 panels would make it 2 times.
+- A platform does not leave while cargo pods are on their way to it: with 1,680 tile ghosts asking for foundation the ship sat at Nauvis for ten minutes after it was released. It left when the request was cut.
+- Requests during the refit: `foundation-works 37` was 1500..2000 and is back to 500..1000; uranium rounds were cut to 1500..6000 (they took the rockets the foundation needed) and are back to 4000..6000.
+
+**Aquilo: still not ready.** Open: the solar field is unfinished and thin for Aquilo; the nose has no railgun cover; nothing has met a big or huge asteroid; no ear has fired; the rocket works have run for ten minutes, not for a circuit; the start surge.
+

@@ -141,8 +141,8 @@ CONFIG = (TM.AT + "local W=defines.wire_connector_id local hub=p.hub local o={} 
 # chute had taken an odd number) and nothing could move. Two faults in the first design: the chute looked at carbon only, and the sulfur guard read the
 # plant's INGREDIENT signals on top of its contents (1 too many, so the plant only ever took sulfur when it held none).
 # Now two decider combinators (tiles -6,-13 and -6,-11) read the crusher and set the chute inserter's FILTER:
-#   carbon > 10 and sulfur < 2   -> the chute drops carbon   (carbon is in the way, sulfur is wanted)
-#   sulfur > 5 and carbon < 5    -> the chute drops sulfur   (sulfur is in the way, carbon is wanted)
+#   carbon > 9 and sulfur < 2   -> the chute drops carbon   (carbon is in the way, sulfur is wanted)
+#   sulfur > 3 and carbon < 5    -> the chute drops sulfur   (sulfur is in the way, carbon is wanted)
 # With the line backed up both pile up, neither rule holds and the crusher simply stops. The chute moves one item at a time.
 RELIEF_ENTS = [{"name": "decider-combinator", "x": -5.5, "y": -12.0, "direction": 0, "params": {"quality": "normal"}},
                {"name": "decider-combinator", "x": -5.5, "y": -10.0, "direction": 0, "params": {"quality": "normal"}}]
@@ -150,8 +150,8 @@ RELIEF = (TM.AT + "local W=defines.wire_connector_id local o={} local kc=s.find_
           "local da=s.find_entities_filtered{name='decider-combinator',position={-5.5,-12},radius=0.6}[1] local db=s.find_entities_filtered{name='decider-combinator',position={-5.5,-10},radius=0.6}[1] "
           "if not (kc and ch and da and db) then rcon.print('MISSING: crusher '..tostring(kc~=nil)..' chute '..tostring(ch~=nil)..' deciders '..tostring(da~=nil)..' '..tostring(db~=nil)) return end "
           "local function I(n) return {type='item',name=n} end "
-          "da.get_or_create_control_behavior().parameters={conditions={{first_signal=I('carbon'),comparator='>',constant=10},{first_signal=I('sulfur'),comparator='<',constant=2,compare_type='and'}},outputs={{signal=I('carbon'),copy_count_from_input=false,constant=1}}} "
-          "db.get_or_create_control_behavior().parameters={conditions={{first_signal=I('sulfur'),comparator='>',constant=5},{first_signal=I('carbon'),comparator='<',constant=5,compare_type='and'}},outputs={{signal=I('sulfur'),copy_count_from_input=false,constant=1}}} "
+          "da.get_or_create_control_behavior().parameters={conditions={{first_signal=I('carbon'),comparator='>',constant=9},{first_signal=I('sulfur'),comparator='<',constant=2,compare_type='and'}},outputs={{signal=I('carbon'),copy_count_from_input=false,constant=1}}} "
+          "db.get_or_create_control_behavior().parameters={conditions={{first_signal=I('sulfur'),comparator='>',constant=3},{first_signal=I('carbon'),comparator='<',constant=5,compare_type='and'}},outputs={{signal=I('sulfur'),copy_count_from_input=false,constant=1}}} "
           "kc.get_or_create_control_behavior().circuit_read_contents=true local kg=kc.get_wire_connector(W.circuit_green,true) "
           "local cg=ch.get_wire_connector(W.circuit_green,true) if cg.is_connected_to(kg) then cg.disconnect_from(kg) end "
           "for _,d in pairs({da,db}) do local di=d.get_wire_connector(W.combinator_input_green,true) if not di.is_connected_to(kg) then di.connect_to(kg) end "
