@@ -21,7 +21,7 @@ LAYOUT (tiles)
                  Output belt OE (x = 8): piercing magazines.
   Both lanes of both buses carry ONE item kind each, so a dead end cannot clog. OW and OE end at y = -37 for now: they fill, the machines stop
   (back-pressure is the cap; the hub has 4 free slots and railgun ammo stacks to 10, so the hub is not the store). Stage 3 takes them on to the sides.
-Steps: plan | build (saves first) | config | relief | status | rates [SECONDS] | drain
+Steps: plan | build (saves first) | config | relief | priority | status | rates [SECONDS] | drain
   drain   TEST: moves the finished ammunition from OW / OE onto the stage-1 side belts (real product, nothing is created), so the works keep running
 Usage: edge_works.py plan ; edge_works.py build ; edge_works.py status ; edge_works.py rates 120"""
 import json
@@ -161,6 +161,22 @@ RELIEF = (TM.AT + "local W=defines.wire_connector_id local o={} local kc=s.find_
           "local ex=s.find_entities_filtered{name='chemical-plant',position={-1.5,-14.5},radius=0.5}[1] if ex then ex.get_or_create_control_behavior().circuit_read_ingredients=false end "
           "rcon.print('relief wired: carbon rule '..helpers.table_to_json(da.get_control_behavior().parameters.conditions):sub(1,160)..' | chute set_filters '..tostring(cb.circuit_set_filters))")
 
+# PRIORITY (2026-11-18, after the breach on the Gleba -> Nauvis leg). The two railgun-round assemblers stand first on the bus. A round takes 5 steel
+# (25 iron plate) and 10 cable (5 copper plate); with their belts open they ran flat out, the hub's copper fell under 300 (the copper port shuts
+# there), the furnaces took the iron, and piercing magazines fell from about 150 a minute to 77 against 327 used: both flanks ran dry and were holed.
+# Now the railgun assemblers' steel-and-explosives inserters (0,-19) and (0,-27) run only while the PIERCING assembler holds more than 8 finished
+# magazines, which it only does when the magazine belts are full or the uranium reserve is flowing: magazines first, railgun rounds from what is left.
+# Green wire from the piercing assembler along the furnace inserters on column 3 (relays only; they carry no condition).
+PRIORITY = (TM.AT + "local W=defines.wire_connector_id local o={} local function ins(x,y) return s.find_entities_filtered{type='inserter',position={x+0.5,y+0.5},radius=0.3}[1] end "
+            "local pm=s.find_entities_filtered{type='assembling-machine',position={5.5,-34.5},radius=0.5}[1] if not pm then rcon.print('NO piercing assembler') return end "
+            "local cb=pm.get_or_create_control_behavior() cb.circuit_read_contents=true cb.circuit_read_ingredients=false "
+            "local chain={pm} for _,q in pairs({{3,-31},{3,-29},{3,-26},{3,-23},{3,-20}}) do local i=ins(q[1],q[2]) if i then chain[#chain+1]=i else o[#o+1]='no relay at '..q[1]..','..q[2] end end "
+            "for k=2,#chain do local a,b=chain[k-1].get_wire_connector(W.circuit_green,true),chain[k].get_wire_connector(W.circuit_green,true) if not a.is_connected_to(b) then if a.can_wire_reach(b) then a.connect_to(b) else o[#o+1]='CANNOT REACH relay '..k end end end "
+            "for _,q in pairs({{0,-27,3},{0,-19,6}}) do local i=ins(q[1],q[2]) local r=chain[q[3]] if i and r then local a,b=r.get_wire_connector(W.circuit_green,true),i.get_wire_connector(W.circuit_green,true) "
+            "if not a.is_connected_to(b) then if a.can_wire_reach(b) then a.connect_to(b) else o[#o+1]='CANNOT REACH '..q[1]..','..q[2] end end "
+            "local ib=i.get_or_create_control_behavior() ib.circuit_enable_disable=true ib.circuit_condition={first_signal={type='item',name='piercing-rounds-magazine'},comparator='>',constant=8} o[#o+1]='gated '..q[1]..','..q[2] end end "
+            "rcon.print(table.concat(o,' | '))")
+
 STATUS = (TM.AT + "local m={} for k,v in pairs(defines.entity_status) do m[v]=k end local o={} "
           "for _,e in pairs(s.find_entities_filtered{type={'assembling-machine','furnace'},area={{-12,-38},{9,-10}}}) do local rc=e.get_recipe() if not rc and e.type=='furnace' and e.previous_recipe then rc=e.previous_recipe end "
           "local out={} local inv=e.get_output_inventory() if inv then for _,i in pairs(inv.get_contents()) do out[#out+1]=i.name..' '..i.count end end "
@@ -244,6 +260,8 @@ def main():
     elif step == "config":
         print(L(sub(CONFIG)))
         print(L(RELIEF))
+    elif step == "priority":
+        print(L(PRIORITY))
     elif step == "relief":
         print("deciders:", TM.place(RELIEF_ENTS, True) if not L(TM.AT + "rcon.print(s.count_entities_filtered{name='decider-combinator',area={{-6,-13},{-5,-9}}})").strip() == "2" else "standing")
         print(L(RELIEF))
