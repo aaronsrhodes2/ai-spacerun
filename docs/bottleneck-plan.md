@@ -55,3 +55,14 @@ Found by reading the game alerts first, then the ranker. No power fault on any s
 - Second cause, of the rocket shortage behind it: only Nauvis makes explosive rockets (292,000 in fifty hours), a rocket lifts 25, and this shuttle used 272,000 in fifty hours against 18,800 for Gleba-Aquilo 1. Fulgora, Gleba and Aquilo held none.
 - Done: Gleba-Aquilo 1 was sent to Aquilo and handed over about 2,300 rockets hub to hub (`scripts/shuttle_handover.py`); it got home to Gleba with 64 left and no damage. Fulgora-Aquilo 5 is paused at Aquilo, armed (about 1,700 rockets), its two drop sections OFF. Gleba-Aquilo 1 now waits at Gleba for 3,600 rockets that Gleba does not have.
 - Open: the full Aquilo pad; the fleet rework the Captain ordered the same day (ships stable when parked at either end, a timed fallback on every stop, ammunition and power made on board, fusion where it can be shipped).
+
+## Fleet rework, part 1: timed schedules and what was pinning ships (2026-11-18, the Captain's order)
+Order: every shuttle stable when parked at either end, timed runs, running requirements only, cargo as wants; one design for inner and outer runs.
+- `scripts/fleet_survey.py` (read-only) and `LuaSchedule.ticks_in_station` showed how long each ship had stood. Five were pinned:
+  - Nauvis-Gleba 1, 3 and 6 at Nauvis for 30 hours: every furnace held 3 iron PLATES in its input slot (waiting for 5 to make steel), so no magazines were made and the count never reached the 800 the schedule asks for. Cause of the plates not found.
+  - Courier 1 at Vulcanus for 99 hours: no oxidizer tank on the hub's wire, so the oxidizer condition was never true.
+  - Nauvis-Vulcanus 1 and Nauvis-Fulgora 2 at Nauvis: trash they could not drop, because the Nauvis landing pad was full (49,986 tungsten carbide in 1,000 of 1,280 slots).
+- Fixes, `scripts/fleet_unpin.py` (furnaces | oxidizer | trash | pad PLANET): plates moved to the hub (8 ships, 16 furnaces), oxidizer tank wired, trash put back in the hold with the drop sections switched off, and "trash unrequested" turned on for the Nauvis and Aquilo pads so robots carry unrequested goods to storage. Nauvis pad: 2 free slots -> 1,128 within two minutes. All five ships moved again.
+- `scripts/fleet_rework.py apply`: 14 inner shuttles and the courier now leave a stop on "fuel, oxidizer and own magazines ready, and (cargo wants met or cargo quiet for 60 s), and 30 s" OR "fuel, oxidizer and magazines ready, and 900 s at Nauvis / 300 s elsewhere". The two Aquilo shuttles are skipped: their conditions need planet-fed rockets, uranium rounds and repair packs.
+- Aquilo shuttles 38 and 39: rocket turrets set to big asteroids only, guns to medium then small.
+- Open: the drop sections switched off on ships 7, 10 and 39 (their cargo now stays aboard until a pad asks for it); what puts plates into furnace inputs; the universal self-supplying hull (prototype under way, `scripts/universal_shuttle.py`).
