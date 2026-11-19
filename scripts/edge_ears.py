@@ -17,9 +17,10 @@ it, at any range. It guards the stretch of flank BELOW itself (an asteroid falli
   deck     tile ghosts; the hub lays them from its foundation stock.
 The old turret is removed by script (a placed entity, no item comes back); its rounds are put in the hub and from there into the new turret
 (the ship's own rounds, moved, none created).
+A pad that would be an island (a collector between it and the strip) gets a one-tile bridge on the row above.
 NOT COVERED: the nose. An ear guards the flank below it, so the stretch above the topmost ear on each side has no railgun cover.
 
-Steps: check | plan | deck | build [--apply] [--only N] | config | status
+Steps: check | plan | deck | build [--apply] [--only N] | config | collectors [--apply] | status
 Usage: edge_ears.py check ; edge_ears.py plan ; edge_ears.py deck ; edge_ears.py build --apply ; edge_ears.py check"""
 import json
 import sys
@@ -93,6 +94,16 @@ def plan_one(rec):
     e += [TM.E(UG, X(a) + 0.5, iy + 0.5, out_dir, type="input", **Q), TM.E(UG, X(b) + 0.5, iy + 0.5, out_dir, type="output", **Q),
           TM.E(BULK, X(b + 1) + 0.5, iy + 0.5, in_dir, **Q), TM.E(RAIL, X(b + 4) + 0.5, iy + 0.5, 14 if side < 0 else 2, **Q)]
     tiles = {(X(b), iy), (X(b + 1), iy)} | {(X(b + 4) + dx, iy + dy) for dx, dy in box}
+    # the pad must touch the ship: where a collector (deck only under its back) or open space lies between the strip and the exit,
+    # a one-tile bridge on the row above joins them (the hub does not build a tile ghost on an island)
+    if row[b - 1] in " C":
+        up = g[ROWS - 1]
+        k = b
+        while k > 0 and up[k] in " g":
+            tiles.add((X(k), iy - 1))
+            k -= 1
+        if up[k] == "C":
+            return None, None, "no way to join the pad to the ship"
     return e, tiles, "belts %d, hop %d, turret centre %d,%d" % (a - 1, b - a, X(b + 4), iy)
 
 
@@ -128,6 +139,67 @@ STATUS = (TM.AT + "local h={} local n=0 for _,r in pairs(s.find_entities_filtere
           "rcon.print('railguns '..n..' | '..table.concat(t,' | ')..' | tile ghosts '..s.count_entities_filtered{type='tile-ghost'}..' | hub foundations '..p.hub.get_inventory(defines.inventory.hub_main).get_item_count('space-platform-foundation')..', railgun rounds '..p.hub.get_inventory(defines.inventory.hub_main).get_item_count('railgun-ammo'))")
 
 
+# COLLECTORS (2026-11-18). An asteroid collector needs EMPTY SPACE in the four columns in front of its centre (prototype rule, remove_on_collision).
+# Eleven pads lay in front of a collector; the hub rightly left those tile ghosts unbuilt, edge_deckfix.py forced them and the game removed the
+# eleven collectors. `collectors` puts each one back about ten rows up the flank from its old place (clear of the pad and of its arc), with its
+# edge inserter, on the pattern of triangle_miner.diag_ents: inserter on the edge tile, collector on the three columns outside, deck under two.
+ORPHANS = (TM.AT + "local out={} for _,i in pairs(s.find_entities_filtered{type='inserter'}) do if not i.pickup_target and i.drop_target and i.drop_target.type=='transport-belt' and math.abs(i.position.x)>20 and i.position.y<285 then "
+           "local pp=i.pickup_position if s.count_entities_filtered{name='asteroid-collector',position=pp,radius=3}==0 and (i.direction==12 or i.direction==4) then out[#out+1]={x=math.floor(i.position.x),y=math.floor(i.position.y),side=i.position.x<0 and -1 or 1} end end end rcon.print(helpers.table_to_json(out))")
+
+
+def collector_spot(o):
+    """A row near the orphan where a collector fits: (row, edge tile, collector's first column, deck columns) or None."""
+    side = o["side"]
+    for dy in (-10, -11, -12, -9, -13, -8, -14, -15, -16, 10, 11, 12, 13):
+        try:
+            y = TM.ins_row(o["y"] + dy, side)
+        except ValueError:
+            continue
+        lo, hi = TM.row_span(y)
+        if side < 0:
+            ix, bx, deck_cols, front = lo, lo - 3, (lo - 2, lo - 1), range(lo - 7, lo - 2)
+        else:
+            ix, bx, deck_cols, front = hi, hi + 1, (hi + 1, hi + 2), range(hi + 3, hi + 8)
+        body = [(bx + i, y - 1 + j) for i in range(3) for j in range(3)]
+        space = [(c, y - 2 + j) for c in front for j in range(5)]
+        r = json.loads(L(TM.AT + "local function free(q) return s.count_entities_filtered{area={{q[1]+0.05,q[2]+0.05},{q[1]+0.95,q[2]+0.95}}}==0 end local bad={} "
+                         "local e=%s if not free(e) or s.get_tile(e[1],e[2]).name~='space-platform-foundation' then bad[#bad+1]='edge tile' end "
+                         "for _,q in pairs(%s) do if not free(q) then bad[#bad+1]='body '..q[1]..','..q[2] end end "
+                         "for _,q in pairs(%s) do if not free(q) or s.get_tile(q[1],q[2]).name~='empty-space' then bad[#bad+1]='front '..q[1]..','..q[2] end end "
+                         "if s.count_entities_filtered{name='asteroid-collector',position={e[1],e[2]},radius=9}>0 then bad[#bad+1]='collector near' end "
+                         "rcon.print(helpers.table_to_json({bad=bad}))" % ("{%d,%d}" % (ix, y), lua_cells(body), lua_cells(space))))
+        if not r.get("bad"):
+            return y, ix, bx, {(c, y - 1 + j) for c in deck_cols for j in range(3)}
+    return None
+
+
+def collectors(apply):
+    orphans = json.loads(L(ORPHANS)) or []
+    print("edge inserters with no collector:", len(orphans))
+    for o in orphans:
+        spot = collector_spot(o)
+        where = "%d,%d" % (o["x"], o["y"])
+        if not spot:
+            print(where, "no free row found")
+            continue
+        y, ix, bx, deck = spot
+        d = 12 if o["side"] < 0 else 4
+        if not apply:
+            print(where, "-> row", y, "edge tile", ix)
+            continue
+        m = missing(deck)
+        if m["need"]:
+            n = L(TM.AT + "local n=0 for _,q in pairs(" + lua_cells(deck) + ") do if s.get_tile(q[1],q[2]).name~='space-platform-foundation' and s.count_entities_filtered{type='tile-ghost',position={q[1]+0.5,q[2]+0.5},radius=0.3}==0 then "
+                  "if s.create_entity{name='tile-ghost',inner_name='space-platform-foundation',position={q[1],q[2]},force='player'} then n=n+1 end end end rcon.print(n)").strip()
+            print(where, "-> row", y, "deck ghosts laid", n, "(run again when the hub has built them)")
+            continue
+        ents = [TM.E("fast-inserter", ix + 0.5, y + 0.5, d, **Q), TM.E("asteroid-collector", bx + 1.5, y + 0.5, d, **Q)]
+        ok, bad = TM.place(ents, True)
+        gone = L(TM.AT + "local i=s.find_entities_filtered{type='inserter',position={%d+0.5,%d+0.5},radius=0.3}[1] if i and not i.pickup_target then i.destroy() rcon.print('old inserter removed') else rcon.print('old inserter kept') end" % (o["x"], o["y"])).strip() if ok == 2 else "old inserter kept"
+        print(where, "-> row", y, "placed", ok, "of 2, failed", bad, "|", gone)
+    print(L(TM.AT + "rcon.print('collectors '..s.count_entities_filtered{name='asteroid-collector'})").strip())
+
+
 def main():
     a = sys.argv[1:]
     step = a[0] if a else "status"
@@ -137,6 +209,8 @@ def main():
         return print(L(STATUS))
     if step == "config":
         return print(L(CONFIG))
+    if step == "collectors":
+        return collectors("--apply" in a)
     ps = plans()
     good = [p for p in ps if p[1]]
     tiles = set().union(*[p[2] for p in good]) if good else set()

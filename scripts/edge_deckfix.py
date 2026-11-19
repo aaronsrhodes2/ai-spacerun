@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Edgerunner: lay the deck tiles the hub leaves as ghosts (it skips a few of every batch, cause unknown: seen 2026-11-17 and 2026-11-18).
 Each tile is laid by script and PAID with one foundation taken from the hub, so nothing is created. Only tiles of the named build's own set.
-Usage: edge_deckfix.py bar|bays|tanks|spoke|rails"""
+Usage: edge_deckfix.py bar|bays|tanks|spoke|rails|ears"""
 import sys
 
 import triangle_miner as TM
@@ -28,6 +28,12 @@ def tiles(which):
         t = set()
         for side in (-1, 1):
             t |= M.survey(M.side_plan(side))[0]
+        return t
+    if which == "ears":
+        import edge_ears as M
+        t = set()
+        for rec, e, tl, note in M.plans():
+            t |= tl or set()
         return t
     sys.exit(__doc__)
 

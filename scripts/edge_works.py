@@ -21,7 +21,7 @@ LAYOUT (tiles)
                  Output belt OE (x = 8): piercing magazines.
   Both lanes of both buses carry ONE item kind each, so a dead end cannot clog. OW and OE end at y = -37 for now: they fill, the machines stop
   (back-pressure is the cap; the hub has 4 free slots and railgun ammo stacks to 10, so the hub is not the store). Stage 3 takes them on to the sides.
-Steps: plan | build (saves first) | config | status | rates [SECONDS] | drain
+Steps: plan | build (saves first) | config | relief | status | rates [SECONDS] | drain
   drain   TEST: moves the finished ammunition from OW / OE onto the stage-1 side belts (real product, nothing is created), so the works keep running
 Usage: edge_works.py plan ; edge_works.py build ; edge_works.py status ; edge_works.py rates 120"""
 import json
@@ -129,15 +129,37 @@ CONFIG = (TM.AT + "local W=defines.wire_connector_id local hub=p.hub local o={} 
           "local im=s.find_entities_filtered{name='chemical-plant',position={-9.5,-14.5},radius=0.5}[1] if im then im.direction=8 o[#o+1]='melter faces '..im.direction end "
           # sulfur guard: the explosives plant takes sulfur one at a time and only while it holds fewer than 2 (it hoarded sulfur, the coal plant starved)
           "local kc=s.find_entities_filtered{name='crusher',position={-3.5,-11},radius=0.5}[1] local ex=s.find_entities_filtered{name='chemical-plant',position={-1.5,-14.5},radius=0.5}[1] "
-          "local si=at('fast-inserter',-3,-13) if si and ex then si.inserter_stack_size_override=1 filt(si,{'sulfur'}) local eb=ex.get_or_create_control_behavior() eb.circuit_read_contents=true pcall(function() eb.circuit_read_ingredients=true end) "
+          "local si=at('fast-inserter',-3,-13) if si and ex then si.inserter_stack_size_override=1 filt(si,{'sulfur'}) local eb=ex.get_or_create_control_behavior() eb.circuit_read_contents=true eb.circuit_read_ingredients=false "
           "local a,b=ex.get_wire_connector(W.circuit_red,true),si.get_wire_connector(W.circuit_red,true) if not a.is_connected_to(b) then a.connect_to(b) end local ib=si.get_or_create_control_behavior() ib.circuit_enable_disable=true "
           "ib.circuit_condition={first_signal={type='item',name='sulfur'},comparator='<',constant=2} o[#o+1]='sulfur guard ok' end "
           # carbon chute: the modules the autopilot fits give the coal plant productivity, so a crush leaves carbon over (about 0.9 a crush at +45%); the crusher
           # filled with carbon and everything stopped. A one-tile hole in the deck at (-4,-14) and an inserter that drops carbon into it while the crusher holds more than 10.
-          "if kc then s.set_tiles({{name='empty-space',position={-4,-14}}}) local ch=at('fast-inserter',-4,-13) or s.create_entity{name='fast-inserter',position={-3.5,-12.5},direction=8,quality='legendary',force='player'} "
-          "filt(ch,{'carbon'}) kc.get_or_create_control_behavior().circuit_read_contents=true local a,b=kc.get_wire_connector(W.circuit_green,true),ch.get_wire_connector(W.circuit_green,true) if not a.is_connected_to(b) then a.connect_to(b) end "
-          "local cb=ch.get_or_create_control_behavior() cb.circuit_enable_disable=true cb.circuit_condition={first_signal={type='item',name='carbon'},comparator='>',constant=10} o[#o+1]='carbon chute ok' end "
+          "if kc then s.set_tiles({{name='empty-space',position={-4,-14}}}) kc.get_or_create_control_behavior().circuit_read_contents=true o[#o+1]='chute: see RELIEF' end "
           "rcon.print(table.concat(o,' | '))")
+
+# RELIEF (2026-11-18). The row wedged twice in one day: the crusher stops when it holds 6 sulfur, the coal plant sat on 4 carbon (it needs 5: the
+# chute had taken an odd number) and nothing could move. Two faults in the first design: the chute looked at carbon only, and the sulfur guard read the
+# plant's INGREDIENT signals on top of its contents (1 too many, so the plant only ever took sulfur when it held none).
+# Now two decider combinators (tiles -6,-13 and -6,-11) read the crusher and set the chute inserter's FILTER:
+#   carbon > 10 and sulfur < 2   -> the chute drops carbon   (carbon is in the way, sulfur is wanted)
+#   sulfur > 5 and carbon < 5    -> the chute drops sulfur   (sulfur is in the way, carbon is wanted)
+# With the line backed up both pile up, neither rule holds and the crusher simply stops. The chute moves one item at a time.
+RELIEF_ENTS = [{"name": "decider-combinator", "x": -5.5, "y": -12.0, "direction": 0, "params": {"quality": "normal"}},
+               {"name": "decider-combinator", "x": -5.5, "y": -10.0, "direction": 0, "params": {"quality": "normal"}}]
+RELIEF = (TM.AT + "local W=defines.wire_connector_id local o={} local kc=s.find_entities_filtered{name='crusher',position={-3.5,-11},radius=0.5}[1] local ch=s.find_entities_filtered{type='inserter',position={-3.5,-12.5},radius=0.3}[1] "
+          "local da=s.find_entities_filtered{name='decider-combinator',position={-5.5,-12},radius=0.6}[1] local db=s.find_entities_filtered{name='decider-combinator',position={-5.5,-10},radius=0.6}[1] "
+          "if not (kc and ch and da and db) then rcon.print('MISSING: crusher '..tostring(kc~=nil)..' chute '..tostring(ch~=nil)..' deciders '..tostring(da~=nil)..' '..tostring(db~=nil)) return end "
+          "local function I(n) return {type='item',name=n} end "
+          "da.get_or_create_control_behavior().parameters={conditions={{first_signal=I('carbon'),comparator='>',constant=10},{first_signal=I('sulfur'),comparator='<',constant=2,compare_type='and'}},outputs={{signal=I('carbon'),copy_count_from_input=false,constant=1}}} "
+          "db.get_or_create_control_behavior().parameters={conditions={{first_signal=I('sulfur'),comparator='>',constant=5},{first_signal=I('carbon'),comparator='<',constant=5,compare_type='and'}},outputs={{signal=I('sulfur'),copy_count_from_input=false,constant=1}}} "
+          "kc.get_or_create_control_behavior().circuit_read_contents=true local kg=kc.get_wire_connector(W.circuit_green,true) "
+          "local cg=ch.get_wire_connector(W.circuit_green,true) if cg.is_connected_to(kg) then cg.disconnect_from(kg) end "
+          "for _,d in pairs({da,db}) do local di=d.get_wire_connector(W.combinator_input_green,true) if not di.is_connected_to(kg) then di.connect_to(kg) end "
+          "local dout=d.get_wire_connector(W.combinator_output_red,true) local cr=ch.get_wire_connector(W.circuit_red,true) if not dout.is_connected_to(cr) then dout.connect_to(cr) end end "
+          "ch.use_filters=true ch.inserter_filter_mode='whitelist' for i=1,ch.filter_slot_count do ch.set_filter(i,nil) end ch.inserter_stack_size_override=1 "
+          "local cb=ch.get_or_create_control_behavior() cb.circuit_set_filters=true cb.circuit_enable_disable=true cb.circuit_condition={first_signal={type='virtual',name='signal-anything'},comparator='>',constant=0} "
+          "local ex=s.find_entities_filtered{name='chemical-plant',position={-1.5,-14.5},radius=0.5}[1] if ex then ex.get_or_create_control_behavior().circuit_read_ingredients=false end "
+          "rcon.print('relief wired: carbon rule '..helpers.table_to_json(da.get_control_behavior().parameters.conditions):sub(1,160)..' | chute set_filters '..tostring(cb.circuit_set_filters))")
 
 STATUS = (TM.AT + "local m={} for k,v in pairs(defines.entity_status) do m[v]=k end local o={} "
           "for _,e in pairs(s.find_entities_filtered{type={'assembling-machine','furnace'},area={{-12,-38},{9,-10}}}) do local rc=e.get_recipe() if not rc and e.type=='furnace' and e.previous_recipe then rc=e.previous_recipe end "
@@ -221,6 +243,10 @@ def main():
         print("placed", ok, "failed", bad)
     elif step == "config":
         print(L(sub(CONFIG)))
+        print(L(RELIEF))
+    elif step == "relief":
+        print("deciders:", TM.place(RELIEF_ENTS, True) if not L(TM.AT + "rcon.print(s.count_entities_filtered{name='decider-combinator',area={{-6,-13},{-5,-9}}})").strip() == "2" else "standing")
+        print(L(RELIEF))
     elif step == "status":
         print(L(sub(STATUS)))
     elif step == "rates":
