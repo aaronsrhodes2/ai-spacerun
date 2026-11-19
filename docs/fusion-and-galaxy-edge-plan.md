@@ -221,3 +221,20 @@ Orders: railgun rounds made on the ship and uranium rounds, "it needs to pass un
 - STILL OPEN: the new railguns and the base turrets fill slowly (the works make about 40 railgun rounds a minute and the two new belts hold thousands); rockets reach all rocket turrets only once imported rockets flow; the start surge; nine pieces damaged on 2026-11-18 morning stay damaged (no repair on a platform); nothing has met a big or huge asteroid, so the Aquilo leg is prepared, not proven; fusion waits for Aquilo.
 - RING JAM found at the start of the second circuit (16:23): with iron ore, carbon and ice all at target in the hub, nothing drew metallic chunks off the station ring; it filled with 123 of them (the spoke gate shuts at 100), the works' carbon and ice crushers starved, explosives stopped and with them railgun rounds and rockets. An old weakness of the station, not of the refit. Fix: a ring overflow, one fast inserter at (2,9) on the gate's own wire that throws a chunk overboard only while the ring count T is 90 or more, so the ring always turns over. The carbon crusher was wedged as well (6 sulfur in its output, no carbon, nobody allowed to take the sulfur): 4 sulfur moved by script into the explosives plant; if it recurs the sulfur needs an overflow of its own.
 - Second circuit, first leg (Nauvis -> Vulcanus) at 7,017 t: 30 km/s, no damage, 14,000 magazines on the belts, imported rockets flowing (1,311 on the belts).
+
+## Evening check, 2026-11-18: two feed faults, Aquilo readiness
+
+Third circuit under way, no damage in two full circuits. A check of why turrets stayed empty found two faults, both fixed in flight:
+
+- **Railgun belt hop at both flank junctions** (`edge_rails.py junction`). The underground hop under the ammunition feed was fed from the
+  side and its exit pointed at a tile with no belt (the path turns right after the hop; an underground cannot turn). No round passed
+  row -141. Before: 24 of 77 railguns armed. Ten minutes after: 38, and rounds on the lower flanks for the first time.
+- **Rocket hand-over at both spoke slits** (`edge_flanks.py` FILT). Four stray uranium rounds were parked on the rocket inserter's
+  dead-end tile, and its whitelist could not move them. 1,180 rockets queued on the spokes; 0 of 49 flank and nose rocket turrets armed.
+  Both slit inserters now use blacklists, so a stray is carried on. Strays of iron plate and iron ore are also on the spokes: source not found.
+
+Measured for the Aquilo question (meter pole at 16,16; platforms need no poles, but network statistics are only readable through one):
+- Power: 144 panels, 21 MW at 100% sun, no accumulators. Draw 7.5 MW docked, 11.0 MW flying. Aquilo orbit is 60% sun: 12.6 MW.
+- Big asteroids (first met on the Aquilo legs): 2,000 health, 2,000 flat physical resistance. Guns cannot hurt them; only rockets do.
+- On-board explosive rockets: 1.2 a minute (one explosives plant, 11 a minute, shared with railgun rounds). Stock 3,000.
+- Estimate, not measured: about 40 big asteroids a minute on the Aquilo leg, about 3 rockets each, so about 2,000 rockets one way.

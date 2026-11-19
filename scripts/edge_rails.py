@@ -14,8 +14,8 @@ because the side belt has only two lanes. Railgun rounds now have a belt of thei
   TARGETS     edge_flight.py targets: railguns huge asteroids only, rocket turrets big and huge, guns everything else.
   KNOWN RISK  a railgun shot goes through our own hull. A flank railgun faces north and turns 36 degrees each way; the flank itself runs
               30 degrees east (west) of north, so a shot at a huge asteroid in the last few degrees of the arc on that side rakes the strip.
-Steps: plan | deck | build [--apply] | config | status
-Usage: edge_rails.py plan ; edge_rails.py deck ; edge_rails.py build --apply ; edge_rails.py status"""
+Steps: plan | deck | build [--apply] | junction [--apply] | config | status
+Usage: edge_rails.py plan ; edge_rails.py deck ; edge_rails.py build --apply ; edge_rails.py junction --apply ; edge_rails.py status"""
 import json
 import sys
 
@@ -116,6 +116,30 @@ def entities(plan, hits):
     return e, skipped, True
 
 
+# JUNCTION PATCH (2026-11-18). entities() got the hop under the ammunition feed wrong on both sides: the underground's entrance was fed
+# from the SIDE (on the west the rounds sat on the lane the entrance blocks) and its exit pointed at a tile with no belt, because the path
+# turns right after the hop and an underground cannot turn. No round ever passed row -141: the 21 lower railguns a side and all 29 on the
+# base stayed empty. The patch: west, the hop moves one column east so it is fed from behind (tiles -241,-142 -> -241,-140) and two belts
+# lead west from its exit into the staircase; east, one belt leads from the exit into the staircase.
+JUNCTION_REMOVE = [(-240.5, -141.5), (-241.5, -141.5), (-241.5, -139.5)]
+JUNCTION_ADD = [T(UG, -241, -142, S, type="input"), T(UG, -241, -140, S, type="output"), T(BELT, -241, -139, W), T(BELT, -242, -139, W), T(BELT, 242, -139, E)]
+
+
+def junction(apply):
+    if apply:
+        print(L(TM.AT + "local n=0 for _,q in pairs({" + ",".join("{%s,%s}" % c for c in JUNCTION_REMOVE) + "}) do local e=s.find_entities_filtered{type={'transport-belt','underground-belt'},position={q[1],q[2]},radius=0.3}[1] "
+                "if e and not (e.type=='underground-belt' and e.position.x==-240.5) then e.order_deconstruction('player') n=n+1 end end rcon.print('old junction pieces marked for removal '..n)").strip())
+        import time
+        for _ in range(20):
+            left = L(TM.AT + "rcon.print(s.count_entities_filtered{to_be_deconstructed=true,area={{-243,-143},{-239,-138}}})").strip()
+            if left == "0":
+                break
+            time.sleep(2)
+        print("pieces still waiting for removal:", left)
+    ok, bad = TM.place(JUNCTION_ADD, apply)
+    print("junction patch:", "placed" if apply else "dry run: would place", ok, "of", len(JUNCTION_ADD), "failed", bad)
+
+
 CONFIG = (TM.AT + "local n=0 for _,q in pairs(INS) do local i=s.find_entities_filtered{type='inserter',position={q[1]+0.5,q[2]+0.5},radius=0.3}[1] if i then i.use_filters=true i.inserter_filter_mode='whitelist' "
           "i.set_filter(1,{name='railgun-ammo',quality='normal',comparator='='}) if i.drop_target and i.drop_target.name=='railgun-turret' then n=n+1 end end end "
           "local t=0 for _,r in pairs(s.find_entities_filtered{name='railgun-turret'}) do r.set_priority_target(1,'huge-metallic-asteroid') r.set_priority_target(2,'huge-carbonic-asteroid') r.set_priority_target(3,'huge-oxide-asteroid') r.ignore_unprioritised_targets=true t=t+1 end "
@@ -131,6 +155,8 @@ def main():
     step = a[0] if a else "status"
     if step == "status":
         return print(L(STATUS))
+    if step == "junction":
+        return junction("--apply" in a)
     allins = []
     for side in (-1, 1):
         plan = side_plan(side)
