@@ -163,15 +163,15 @@ is one row in `skippy_allowances.lua` with its own switch in the map settings (a
 |---|---|---|
 | `free-placement` | pieces appear without their items in "builds on its own" mode | the mod |
 | `remote-exploring` | the map is revealed without walking | the mod |
-| `free-fuel` | a new machine's first fuel | the model's skill |
-| `free-upgrades` | quality upgrades of everything at once | an operator script |
+| `free-fuel` | a new machine's first fuel | the model's skill, and the bridge's `seed_starter_fuel` tool |
+| `free-upgrades` | quality upgrades of everything at once | `upgrade_quality.py` (checks the switch) |
 | `player-boosts` | free crafting, 50x hand speed, 200 reach, 200 slots | an operator script |
 | `infinite-scrap` | Fulgora's scrap tiles never run out | an operator script |
-| `unlimited-wire-reach` | wires of any length | an operator script |
+| `unlimited-wire-reach` | wires of any length | the wheel's wiring (`wheel_reprocess.py` checks the switch); other scripts do not yet |
 | `ring-foundations` | ring-shaped platform foundation | an operator script |
 
 "Kept by the mod" means the mod refuses the action when the switch is off. For the others the model is told and its skill
-says to obey; the scripts outside the mod do not read the switches yet. Add a relaxation by adding a row and its words in
+says to obey. Scripts outside the mod read a switch through `scripts/_allowance.py`; three do so far (see the table), and a game without the mod or the setting counts as on. Add a relaxation by adding a row and its words in
 `locale/en/skippy-copilot.cfg` (a test checks both).
 
 ## Tools in the mod (version 0.14.0)

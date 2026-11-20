@@ -398,8 +398,10 @@ honest: each relaxation is a named allowance in one list (what it relaxes, why, 
 the mod's settings, on by default; steps 4 to 7 above are the runs that switch them off one by one. Built in mod 0.18.0
 (`skippy_allowances.lua`, tools `allowances` and `set_allowance`): the list, the switches, and the mod's own enforcement of
 free placement and remote exploring. The other six are `skill` or `script` allowances: the model is told, but nothing in
-the mod stops them, and the operator scripts (`upgrade_quality.py`, the wheel's wiring, the platform tools) do not yet read
-the switches. Not built: that check in the scripts, and a data-stage switch for real wire reach.
+the mod stops them. Operator scripts read a switch through `scripts/_allowance.py` (a game without the mod counts as on, so
+the live game is unchanged): `upgrade_quality.py`, the wheel's wiring (`wheel_reprocess.py`) and the bridge's
+`seed_starter_fuel` do. Not done: the many other scripts that connect far wires, the ring-foundation and boost one-offs
+(run by hand through `run_lua`, so only the skill covers them), infinite scrap, and a data-stage switch for real wire reach.
 
 ## Increment 1 in detail: the avatar
 

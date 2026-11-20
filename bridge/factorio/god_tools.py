@@ -422,6 +422,11 @@ def register(mcp, q: Callable[[str], str]) -> None:
         get `drill_coal` (max 10), everything else 1. Don't use it to keep something
         running; if a machine runs out later, fix its fuel supply."""
         return run(f"""
+            local allow = settings.global['skippy-allow-free-fuel']
+            if allow and allow.value == false then
+              rcon.print(helpers.table_to_json({{error='the allowance free-fuel is switched off: carry the fuel to the machines'}}))
+              return
+            end
             local s = game.surfaces[{json.dumps(surface)}]
             local n = math.min({int(drill_coal)}, 10)
             local seeded, skipped = 0, 0

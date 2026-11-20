@@ -13,6 +13,7 @@ Usage: scripts/upgrade_quality.py [--surface NAME] [--items] [--apply]
 import json
 import sys
 
+from _allowance import require
 from _game import tools
 
 SKIP = "['logistic-robot']=1,['construction-robot']=1,['cargo-pod']=1,['character']=1,['rocket-silo-rocket']=1,['rocket-silo-rocket-shadow']=1,['entity-ghost']=1,['tile-ghost']=1,['spider-leg']=1,['item-request-proxy']=1"
@@ -45,6 +46,7 @@ def jl(code):
 
 def main():
     apply = "--apply" in sys.argv
+    require("free-upgrades", apply)                                     # a dry run only counts
     if "--surface" in sys.argv:
         surfaces = [sys.argv[sys.argv.index("--surface") + 1]]
     else:

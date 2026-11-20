@@ -17,6 +17,7 @@ import sys
 
 from wheel import CHUNKS, Q, turn
 from wheel_hub import RL
+from _allowance import require
 from _game import tools
 from _wheels import place_all, wheels
 
@@ -124,6 +125,7 @@ def lua(rows):
 def main():
     step = sys.argv[1]
     apply = "--apply" in sys.argv
+    require("unlimited-wire-reach", step == "config" or (step == "build" and apply))     # the hub wires are far beyond wire reach
     print(layout())
     if step == "check":
         return
