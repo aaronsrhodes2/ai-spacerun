@@ -185,3 +185,23 @@ lane of the base belt. That lane filled with magazines while the guns were full,
 removed (the corner belt is then a curve and both lanes carry through), and the magazines standing on the base belt's rocket lane moved
 into the hub by script (3,171 piercing and 802 uranium rounds; the ship's own goods). All 24 base rocket turrets loaded within four
 minutes; no turret of any kind is empty.
+
+## 2026-11-20 (evening): Edgerunner after the Captain's west-arm rework ("I broke it, please fix")
+
+The Captain pasted a mirrored copy of the east arm onto the west arm, one row lower. What that left, and what was done (save `pre-edge-west-arm-fix`):
+- 15 ghosts and 47 missing deck tiles with no foundation aboard: ghosts revived, 80 spare deck tiles lifted from the wedges (`edge_mend.py peel`) to pay for the deck.
+- West ammunition feed cut: the old feed (row -37.5) ended in an underground entrance with no exit; the pasted row (-36.5) started from
+  supply belts that carry nothing. Joined: the old row turns down into the new one at x -19.5 by a plain curve (one input, so both lanes
+  carry through); the pasted underground pair over that stretch replaced by belts.
+- The four crossing inserters at x 88 (both sides) had no filters. Blacklists set as in `edge_flanks.py`: the one that picks from the
+  splitter carries everything but rockets (north lane), the other everything but magazines.
+- Six dead stub belts behind the west staircase corners (x -149..-192) turned each corner into a side-load and put magazines on the rocket
+  lane. Stubs removed; 1,210 magazines taken off the west rocket lane into the hub.
+- West flank fuel: the pasted fuel line had joined the OXIDIZER manifold through one revived pipe, and both west pumps held the wrong
+  fluid. That pipe removed, line and pumps emptied, and the line joined to the fuel manifold by 105 pipes from (-7.5,-30.5).
+- My own doing: opening the base rocket lane earlier let about 5,600 magazines flow into the empty lane, and the flank belts ran dry in
+  the middle of each side (12 guns empty). At rest the works make nothing (hub iron 293, release floor 300) and the hub lets rockets
+  and uranium rounds out only in flight. 27 guns were topped up from the hub and 4,500 piercing rounds put back on the two feeds by script.
+End state: no ghosts, no empty turret, lanes sorted on both flanks, all 48 thrusters hold both fluids, all 8 feed pumps carry the right
+fluid, no railgun has anything of ours in its arc. Left as found: the Captain's unfinished feed start near the hub (x -16..-9, rows -37..-29),
+empty dead-end belts that carry nothing. Open: a long stay at rest drains magazines, because nothing is made while parked.
