@@ -53,7 +53,10 @@ Built so far:
   player can retire one when logistics solve it. Mod 0.20.0, `scripts/designs.lua`, `places.lua`, `cron.lua`. Unverified
   in a real game: `build_blueprint`, ghost `tags`, ghosts over pieces marked for deconstruction, `order_upgrade`.
 - **Low benchmark: Qwen3 14B on Ollama** (the Captain, 2026-11-20: "the average kid with a gaming video card"). Every
-  in-game loop must work on it.
+  in-game loop must work on it, on one 12 GB card that also runs the Factorio client ("whichever is the best Qwen for
+  the job"). Unmeasured: Ollama lists qwen3:14b at about 9.3 GB and qwen3:8b at about 5.2 GB before the context cache, and
+  the client's own share of video memory depends on its sprite settings, so 14B may not fit beside the game and 8B
+  likely does. To be measured on such a machine, not assumed. A smaller fixed context also means a smaller cache.
   The fixed context is now 12.7k tokens of 13k allowed (1.8k skill, 10.8k tool descriptions, 62 mod tools plus the
   bridge's). Two consequences: Ollama's default context window is far smaller than that and must be raised
   (`num_ctx`), and a model that size picks tools less reliably from a long list. Next step: tool groups, a short core
