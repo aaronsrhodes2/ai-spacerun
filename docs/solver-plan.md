@@ -37,6 +37,13 @@ Built so far:
   purple, which also answers whenever the quick model is down or silent. Set with `COPILOT_QUICK_*` (unset = one speed).
   The rule that picks is a keyword-and-length heuristic (`tiered.pick`), unproven on real play. Core can also think
   (`chat_template_kwargs enable_thinking`, ~6 s) and has a coder slot: a middle rung between the two, not built.
+- **Ghosts to requests** (the Captain, 2026-11-20; researched the same day). The game has no way to turn a ghost into a
+  logistic request: robots take only what the network already holds, and nothing asks orbit. Mods exist that read ghosts
+  onto the circuit network (Ghost Scanner, Ghost Reader) and one alpha mod that schedules platform cargo for ghosts, but
+  nothing in vanilla, so the mod does it (0.19.0, `scripts/ghosts.lua`): `ghost_needs` reads the shortfall per item and
+  quality, `ghost_requests` writes it into a cargo landing pad's section `ghost-auto-<surface>` or a requester chest,
+  behind the allowance `ghost-requests`. Quality policy (build normal, upgrade after) stays in `scripts/ghost_requests.py`,
+  which could call the tool instead of its own Lua; not done, and the live game does not have the mod yet.
 - **Voice** (the Captain, 2026-11-13: speech to text and text to speech in the game, in purple Skippy's voice, so the
   game can be played with Claude Desktop closed and no keyboard). A mod cannot hear, speak or reach the network, and
   the house's voice gate wants a pass signed from the home token, which must never come here. So the house's own

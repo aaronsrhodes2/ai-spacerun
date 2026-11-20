@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.19.0
+Date: 2026-11-20
+  Features:
+    - Ghosts to requests: the game never turns a ghost into a logistic request. New tools ghost_needs (read: what the ghosts of
+      a surface need, have and lack) and ghost_requests (write the shortfall into a cargo landing pad's request list, or into
+      a requester chest). Switchable with the allowance ghost-requests; a dry run always works.
+---------------------------------------------------------------------------------------------------
 Version: 0.18.0
 Date: 2026-11-20
   Features:

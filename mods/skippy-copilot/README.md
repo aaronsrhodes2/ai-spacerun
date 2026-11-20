@@ -163,6 +163,7 @@ is one row in `skippy_allowances.lua` with its own switch in the map settings (a
 |---|---|---|
 | `free-placement` | pieces appear without their items in "builds on its own" mode | the mod |
 | `remote-exploring` | the map is revealed without walking | the mod |
+| `ghost-requests` | ghosts become logistic requests (the game never does this) | the mod |
 | `free-fuel` | a new machine's first fuel | the model's skill, and the bridge's `seed_starter_fuel` tool |
 | `free-upgrades` | quality upgrades of everything at once | `upgrade_quality.py` (checks the switch) |
 | `player-boosts` | free crafting, 50x hand speed, 200 reach, 200 slots | an operator script |

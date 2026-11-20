@@ -21,6 +21,7 @@ require("scripts.thrift")
 local busy = require("scripts.busy")
 require("scripts.view")
 require("scripts.allowances")
+require("scripts.ghosts")
 local chat = require("scripts.chat")
 local events = require("scripts.events")
 
