@@ -9,7 +9,7 @@ PLAN_ONLY = {"build", "occupancy", "frames", "avatar_walk", "avatar_mine", "avat
              "research_available"}                                              # reached through the planning tools, never called raw
 
 
-# Tool groups (the Captain, 2026-11-20: the low benchmark is Qwen3 14B on a 12 GB card beside the game). A small model
+# Tool groups (the Captain, 2026-11-20: the low bar is Qwen3 8B on a 12 GB card beside the game). A small model
 # carries the core always and opens a group when a turn needs it, so the descriptions it carries stay short and the
 # list it picks from stays small. A tool in no group is core. A grouped tool called by name opens its group by itself.
 GROUPS = {

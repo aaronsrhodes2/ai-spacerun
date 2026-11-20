@@ -19,7 +19,7 @@ WINDOW = 130000                 # tokens
 TOKEN = 4                       # characters, roughly
 
 
-SMALL_WINDOW = 16384            # tokens: what the bridge asks of Ollama (COPILOT_NUM_CTX), for the low benchmark, Qwen3 14B
+SMALL_WINDOW = 16384            # tokens: what the bridge asks of Ollama (COPILOT_NUM_CTX), for the low bar, Qwen3 8B
 
 
 def fixed_context():

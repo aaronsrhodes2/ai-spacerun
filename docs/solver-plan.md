@@ -52,18 +52,18 @@ Built so far:
   requests first, then the operator conveniences as external jobs) with its purpose and retirement condition, so the
   player can retire one when logistics solve it. Mod 0.20.0, `scripts/designs.lua`, `places.lua`, `cron.lua`. Unverified
   in a real game: `build_blueprint`, ghost `tags`, ghosts over pieces marked for deconstruction, `order_upgrade`.
-- **Low benchmark: Qwen3 14B on Ollama** (the Captain, 2026-11-20: "the average kid with a gaming video card"). Every
-  in-game loop must work on it, on one 12 GB card that also runs the Factorio client ("whichever is the best Qwen for
-  the job"). Unmeasured: Ollama lists qwen3:14b at about 9.3 GB and qwen3:8b at about 5.2 GB before the context cache, and
-  the client's own share of video memory depends on its sprite settings, so 14B may not fit beside the game and 8B
-  likely does. To be measured on such a machine, not assumed. A smaller fixed context also means a smaller cache.
+- **Low bar: Qwen3 8B on Ollama** (the Captain, 2026-11-20: "the average kid with a gaming video card"; first 14B, then
+  "better go with 8b as the low bar" the same day). Every in-game loop must work on it, on one 12 GB card that also runs
+  the Factorio client. Ollama lists qwen3:8b at about 5.2 GB before the context cache (qwen3:14b about 9.3 GB, likely too
+  big beside the game); the client's share depends on its sprite settings. To be measured on such a machine, not
+  assumed. The bridge's Ollama default is already `qwen3:8b`. A smaller fixed context also means a smaller cache.
   With every tool listed, the fixed context was 12.7k tokens (1.9k skill, 10.8k tool descriptions), most of the 16k
   window the bridge asks of Ollama (`COPILOT_NUM_CTX`, default 16384), and a model that size picks tools less reliably
   from a long list. **Tool groups** (built 2026-11-20, `copilot/toolbox.py` GROUPS): the bridge's own loop offers the
   core (5.1k) and an `open_tools` menu; designs, places, cron, joints, the character's hands, goals, tidying, ghosts,
   rules and exploring open for one turn when needed, and a grouped tool called by name opens its group by itself. A
   turn now starts at 7.1k of 16k (a test holds it under half). `COPILOT_TOOL_GROUPS=off` offers everything. Purple
-  through the MCP door still sees every tool. Unproven: whether Qwen3 14B opens the right group unprompted.
+  through the MCP door still sees every tool. Unproven: whether Qwen3 8B opens the right group unprompted.
 - **Voice** (the Captain, 2026-11-13: speech to text and text to speech in the game, in purple Skippy's voice, so the
   game can be played with Claude Desktop closed and no keyboard). A mod cannot hear, speak or reach the network, and
   the house's voice gate wants a pass signed from the home token, which must never come here. So the house's own
