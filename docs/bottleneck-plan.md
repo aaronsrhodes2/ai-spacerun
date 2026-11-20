@@ -144,3 +144,25 @@ processing units and no rocket parts. Fix: a requester chest for 400 iron plate 
 - After: 1,000 a minute, 13 of 15 machines working, seven of eight silos holding a finished rocket, launch queue from 47 to 17.
 - Next limit: low density structure, 222 a minute made against 528 used when every silo builds, 47,800 in stock. Acid has no tank at the
   plants (they stop at 200 each while the train is away); the far two plants are short of sulfur on the shared belt.
+
+## 2026-11-20 (later): Edgerunner fuel feed, Aquilo oil line, a shuttle lost
+
+Edgerunner feed (`scripts/edge_feed.py`; order "Yes, hook them up"). Per fluid: plant ring -> tank block (fuel west, oxidizer east) -> one
+manifold -> a pump at each of the four thruster rows -> the row's own run. 1,097 pipes, 98 underground ends, 8 pumps, 313 deck tiles.
+- The eight pumps are wired green to the hub and run while signal-V < 30, the same limit as the two old pumps at y 286 (which now feed nothing).
+- Checked: all 48 thrusters hold fuel and oxidizer; no railgun has anything of ours in its arc; tanks filling (157,000 fuel, 171,000 oxidizer).
+- The route bridges open space in places with one-tile strips of deck, which rings open space. The hub refuses the closing tile of a ring;
+  `edge_mirror_thrusters.py poke` forces it and takes the foundation from the hub. The Captain: "forced doughnut is fine".
+- Found the hard way: an underground pipe does not join across open space. Two links stayed open until the one open tile under each was decked.
+- Only two fuel plants and two oxidizer plants feed 48 thrusters; not flown yet. Ship still paused at Nauvis.
+
+Aquilo (found while looking for "the Aquilo shuttle is failing"): no fuel cells, rocket fuel, solid fuel or carbon in stock; 8 of 12
+heating towers unfed (still 988 degrees or more, nothing frozen). Cause: the two solid-fuel plants at (32.5,-3.5) and (32.5,-7.5) drew crude oil
+from one pumpjack while the main oil network (21 pumpjacks, 128,700 stored) stood full and unjoined. Fix: a pipe from the main oil tank at
+(47.5,-1.5) north by underground to (46,-10), west along row -11 and down column 36 to the plants' row, with one heat pipe at (45.5,-9.5).
+Solid fuel 550 -> 930 a minute; towers unfed 8 -> 4 within minutes. The limit is now ammonia: only the separation plant at (28.5,-3.5) feeds the
+solid-fuel plants; the three at y -27.5 are on another ammonia line. The two nuclear reactors have no fuel cells and no shuttle brings any.
+
+Fulgora-Aquilo 5 Shuttle (platform 39) no longer exists. I left it paused at Aquilo on 2026-11-18 with about 1,700 explosive rockets and no
+way to make more. Gleba-Aquilo 1 (38) stands at Gleba, armed (5,600 explosive rockets, 3,964 uranium rounds), on its old schedule, five
+carbon short of its "carbon 2,500" condition; not sent.
