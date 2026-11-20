@@ -110,7 +110,7 @@ def test_every_tool_has_a_description_and_documented_parameters():
 
 def test_the_prompt_only_mentions_tools_that_exist():
     prompt = (MOD.parents[1] / "copilot" / "prompt.md").read_text(encoding="utf-8")
-    known = {n for n, _ in tool_names()} | {s["name"] for s in SPECS}
+    known = {n for n, _ in tool_names()} | {s["name"] for s in SPECS} | {"open_tools"}     # open_tools: the agent's group menu
     for name in re.findall(r"`([a-z_]+)`", prompt):
         if "_" in name or name in known:
             assert name in known, "the prompt mentions `%s`, which is not a tool" % name

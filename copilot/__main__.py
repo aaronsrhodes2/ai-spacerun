@@ -36,6 +36,7 @@ Settings: a file named copilot.env next to this package (copy copilot.env.exampl
     COPILOT_VAULT              a file of NAME=value lines kept elsewhere (a shared .env). Any setting here may then be written
                                as $NAME and is read from that file, so a key need not be copied into copilot.env.
     COPILOT_NUM_CTX            context size asked of Ollama, default 16384
+    COPILOT_TOOL_GROUPS        on (default): the model carries the core tools and opens groups as needed; off: every tool
     COPILOT_LOG_DIR            where run logs go, default ./runs
     COPILOT_STALL_HOURS        game hours without progress before a stall is logged, default 2
     COPILOT_GOAL_PAUSE         seconds between the turns the assistant takes on its own toward a goal, default 20
@@ -156,7 +157,7 @@ def agent_from(env, game, tools, log_path, max_steps=12):
         model = make("openai", env["COPILOT_MODEL"], url, secret(env, "COPILOT_KEY") or env.get("COPILOT_API_KEY", ""))
     else:
         model = make("ollama", env.get("COPILOT_MODEL", "qwen3:8b"), url, "", int(env.get("COPILOT_NUM_CTX", "16384")))
-    return Agent(game, model, log_path, max_steps=max_steps, local=tools)
+    return Agent(game, model, log_path, max_steps=max_steps, local=tools, groups=groups_on(env))
 
 
 def quick_from(env, game, tools, log_path):
@@ -170,7 +171,11 @@ def quick_from(env, game, tools, log_path):
     if not env.get("COPILOT_QUICK_MODEL"):
         raise SetupError("the quick tier needs COPILOT_QUICK_MODEL: the name of the model on %s" % url)
     model = make(kind, env["COPILOT_QUICK_MODEL"], url, secret(env, "COPILOT_QUICK_KEY"))
-    return Agent(game, model, log_path, max_steps=int(env.get("COPILOT_QUICK_STEPS", "6")), local=tools)
+    return Agent(game, model, log_path, max_steps=int(env.get("COPILOT_QUICK_STEPS", "6")), local=tools, groups=groups_on(env))
+
+
+def groups_on(env):
+    return (env.get("COPILOT_TOOL_GROUPS") or "on").strip().lower() not in ("off", "no", "false", "0")
 
 
 def voice_door(env, out=print):

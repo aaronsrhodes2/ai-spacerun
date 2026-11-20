@@ -19,6 +19,9 @@ WINDOW = 130000                 # tokens
 TOKEN = 4                       # characters, roughly
 
 
+SMALL_WINDOW = 16384            # tokens: what the bridge asks of Ollama (COPILOT_NUM_CTX), for the low benchmark, Qwen3 14B
+
+
 def fixed_context():
     game = LuaGame(LuaMod())
     box = Toolbox(game, LocalTools(game))
@@ -27,10 +30,23 @@ def fixed_context():
     return len(prompt) // TOKEN, len(tools) // TOKEN, box
 
 
+def core_context():
+    """What a small model carries at the start of every turn: the skill and the core tools (groups closed)."""
+    game = LuaGame(LuaMod())
+    agent = Agent(game, None, local=LocalTools(game))
+    prompt = (ROOT / "copilot" / "prompt.md").read_text(encoding="utf-8")
+    return len(prompt) // TOKEN, len(json.dumps(agent.core)) // TOKEN, agent
+
+
 def test_what_a_model_always_carries_stays_under_a_tenth_of_the_window():
     skill, tools, _ = fixed_context()
     assert skill + tools < WINDOW // 10, "the skill (%d tokens) and tool descriptions (%d) have outgrown a tenth of a 130k window" % (skill, tools)
     assert skill < 2500, "the skill text alone is %d tokens: condense it" % skill
+
+
+def test_a_small_model_starts_each_turn_with_under_half_of_its_window():
+    skill, tools, _ = core_context()
+    assert skill + tools < SMALL_WINDOW // 2, "the skill (%d) and the core tools (%d) leave too little of a 16k window for the turn" % (skill, tools)
 
 
 def test_no_single_tool_description_runs_away():

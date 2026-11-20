@@ -9,6 +9,35 @@ PLAN_ONLY = {"build", "occupancy", "frames", "avatar_walk", "avatar_mine", "avat
              "research_available"}                                              # reached through the planning tools, never called raw
 
 
+# Tool groups (the Captain, 2026-11-20: the low benchmark is Qwen3 14B on a 12 GB card beside the game). A small model
+# carries the core always and opens a group when a turn needs it, so the descriptions it carries stay short and the
+# list it picks from stays small. A tool in no group is core. A grouped tool called by name opens its group by itself.
+GROUPS = {
+    "designs": ("save, edit, deploy, tile and redeploy blueprint designs; what a tile was built from",
+                ["design_save", "design_edit", "design_export", "design_deploy", "design_tile", "deployments", "design_redeploy",
+                 "design_undeploy", "what_is"]),
+    "places": ("name a place on the map, or remove one of our names", ["mark_place", "forget_place"]),
+    "cron": ("put a job on the timer, or pause, run or retire one", ["cron_add", "cron_change"]),
+    "joints": ("where lines meet or cross, and how a building can be connected", ["joints", "connections", "plan_joint"]),
+    "character": ("the avatar's hands and feet: walk, mine, craft, carry, travel to a planet",
+                  ["avatar_craft", "avatar_carry", "walk_to", "mine", "travel_to"]),
+    "goals": ("standing goals ('solve Nauvis', 'blue science'), science per minute, the run's numbers", ["set_goal", "science", "run_stats"]),
+    "tidy": ("surplus, compacting a block, keeping every machine busy", ["surplus", "footprint", "utilisation"]),
+    "ghosts": ("unbuilt ghosts: what they lack, and turning it into requests", ["ghost_needs", "ghost_requests"]),
+    "rules": ("the rules this game relaxes and their switches", ["allowances", "set_allowance"]),
+    "exploring": ("reveal more of the map", ["reveal_map"]),
+}
+GROUP_OF = {name: g for g, (_, names) in GROUPS.items() for name in names}
+
+
+def open_tools_spec(present):
+    """The menu tool: one line per group that has tools here."""
+    menu = ["%s (%s)" % (g, what) for g, (what, names) in GROUPS.items() if any(n in present for n in names)]
+    return {"name": "open_tools",
+            "description": "Open a group of tools for this turn; their descriptions arrive with your next step. Groups: " + "; ".join(menu) + ".",
+            "parameters": {"group": {"type": "string", "required": True, "default": None, "description": "the group's name"}}}
+
+
 class Toolbox:
     def __init__(self, game, local=None, log_path=None):
         self.game, self.local, self.log_path = game, local, log_path

@@ -57,10 +57,13 @@ Built so far:
   the job"). Unmeasured: Ollama lists qwen3:14b at about 9.3 GB and qwen3:8b at about 5.2 GB before the context cache, and
   the client's own share of video memory depends on its sprite settings, so 14B may not fit beside the game and 8B
   likely does. To be measured on such a machine, not assumed. A smaller fixed context also means a smaller cache.
-  The fixed context is now 12.7k tokens of 13k allowed (1.8k skill, 10.8k tool descriptions, 62 mod tools plus the
-  bridge's). Two consequences: Ollama's default context window is far smaller than that and must be raised
-  (`num_ctx`), and a model that size picks tools less reliably from a long list. Next step: tool groups, a short core
-  list with the rest (designs, cron, avatar, platforms) loaded when a turn needs them.
+  With every tool listed, the fixed context was 12.7k tokens (1.9k skill, 10.8k tool descriptions), most of the 16k
+  window the bridge asks of Ollama (`COPILOT_NUM_CTX`, default 16384), and a model that size picks tools less reliably
+  from a long list. **Tool groups** (built 2026-11-20, `copilot/toolbox.py` GROUPS): the bridge's own loop offers the
+  core (5.1k) and an `open_tools` menu; designs, places, cron, joints, the character's hands, goals, tidying, ghosts,
+  rules and exploring open for one turn when needed, and a grouped tool called by name opens its group by itself. A
+  turn now starts at 7.1k of 16k (a test holds it under half). `COPILOT_TOOL_GROUPS=off` offers everything. Purple
+  through the MCP door still sees every tool. Unproven: whether Qwen3 14B opens the right group unprompted.
 - **Voice** (the Captain, 2026-11-13: speech to text and text to speech in the game, in purple Skippy's voice, so the
   game can be played with Claude Desktop closed and no keyboard). A mod cannot hear, speak or reach the network, and
   the house's voice gate wants a pass signed from the home token, which must never come here. So the house's own

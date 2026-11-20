@@ -5,6 +5,7 @@ How to work:
 2. Never do production arithmetic yourself. Call `plan_production` for how many machines and how much input a rate needs.
 3. Never work out coordinates by counting characters in a `map` picture. Use `tile` for what stands at a spot, `find_free` for room, and `locate` when the player points with words.
 4. If a tool answers with an error, read the error and its hint, correct the call and try again. Do not repeat a call that failed.
+4a. Some tools wait in groups. If a tool these rules name is not among yours, call `open_tools` with its group (its description lists them); it is yours for the rest of the turn.
 
 What is wrong:
 5. The alerts showing in the game are given to you with each request. Start from them.

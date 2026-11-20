@@ -7,22 +7,43 @@ import time
 from .models import schema
 
 PROMPT = (pathlib.Path(__file__).parent / "prompt.md").read_text(encoding="utf-8")
-from .toolbox import BRIDGE_ONLY, PLAN_ONLY          # noqa: F401  (kept here for callers that import them from this module)
+from .toolbox import BRIDGE_ONLY, GROUP_OF, GROUPS, PLAN_ONLY, open_tools_spec   # noqa: F401  (BRIDGE_ONLY, PLAN_ONLY kept for callers)
 MEMORY_TURNS = 6                                                    # how many earlier exchanges a model is reminded of
 MEMORY_CHARS = 500                                                  # of each side of an exchange
 MAX_RESULT = 6000                                                   # characters of one tool result shown to the model
 
 
 class Agent:
-    def __init__(self, game, model, log_path=None, max_steps=12, local=None):
+    """groups True: the model carries the core tools and opens a group when a turn needs it (for small models);
+    False: every tool, every step."""
+
+    def __init__(self, game, model, log_path=None, max_steps=12, local=None, groups=True):
         self.game, self.model, self.max_steps, self.local = game, model, max_steps, local
         mod_tools = game.tools()
         self.has_alerts = any(t["name"] == "alerts" for t in mod_tools)
-        offered = [t for t in mod_tools if t["name"] not in BRIDGE_ONLY and t["name"] not in PLAN_ONLY]
-        self.tools = schema(offered + (local.specs() if local else []))
-        self.names = {t["function"]["name"] for t in self.tools}
+        offered = [t for t in mod_tools if t["name"] not in BRIDGE_ONLY and t["name"] not in PLAN_ONLY] + (local.specs() if local else [])
+        self.by_name = {t["function"]["name"]: t for t in schema(offered)}
+        self.names = set(self.by_name)
+        self.groups = groups and any(n in GROUP_OF for n in self.names)
+        if self.groups:
+            self.menu = schema([open_tools_spec(self.names)])[0]
+            self.core = [t for n, t in self.by_name.items() if n not in GROUP_OF] + [self.menu]
+        else:
+            self.core = list(self.by_name.values())
+        self.tools = self.core                          # what a turn starts with
         self.log_path = log_path
         self.memory = []                                # the last few exchanges, words only: (who, what was asked, what was answered)
+
+    def offer(self, opened):
+        """The tools for the next step: the core and every group opened this turn."""
+        return self.core + [t for n, t in self.by_name.items() if GROUP_OF.get(n) in opened]
+
+    def open_group(self, group, opened):
+        if group not in GROUPS:
+            return {"ok": False, "error": "there is no group named '%s'" % group, "groups": sorted(GROUPS)}
+        names = [n for n in GROUPS[group][1] if n in self.names]
+        opened.add(group)
+        return {"ok": True, "result": {"opened": group, "tools": names, "note": "their descriptions come with your next step"}}
 
     def alerts(self):
         """The game's alerts right now, as a short text for the model, and the set of alert kinds (for noticing new ones)."""
@@ -61,11 +82,11 @@ class Agent:
             self.game.call("set_state", {"state": "thinking", "note": text[:40]})
         alert_text, _ = self.alerts()                   # every turn starts from what the game itself is warning about
         messages = [{"role": "system", "content": PROMPT + self.remembered()}, {"role": "user", "content": text + ((chr(10) * 2 + alert_text) if alert_text else "")}]
-        answer, seen = None, {}
+        answer, seen, opened = None, {}, set()          # groups open for this turn only: each turn starts small
         try:
             for step in range(self.max_steps):
                 stats["steps"] = step + 1
-                reply = self.model.chat(messages, self.tools)
+                reply = self.model.chat(messages, self.offer(opened))
                 stats["tokens_in"] += reply.get("tokens_in") or 0
                 stats["tokens_out"] += reply.get("tokens_out") or 0
                 if not reply["tool_calls"]:
@@ -78,7 +99,10 @@ class Agent:
                     stats["calls"] += 1
                     key = c["name"] + json.dumps(c["args"], sort_keys=True)
                     seen[key] = seen.get(key, 0) + 1
-                    if c["name"] not in self.names:
+                    group = GROUP_OF.get(c["name"]) if self.groups else None
+                    if self.groups and c["name"] == "open_tools":
+                        result = self.open_group((c["args"] or {}).get("group"), opened)
+                    elif c["name"] not in self.names:
                         result = {"ok": False, "error": "there is no tool named '%s'" % c["name"], "tools": sorted(self.names)}
                     elif seen[key] > 2:
                         result = {"ok": False, "error": "you have made this exact call %d times; it will not answer differently. Use what you have or try something else." % seen[key]}
@@ -86,6 +110,8 @@ class Agent:
                         result = self.local.call(c["name"], c["args"])
                     else:
                         result = self.game.call(c["name"], c["args"])
+                    if group and group not in opened:       # called by name from the rules: open its group for what follows
+                        opened.add(group)
                     if not result.get("ok"):
                         stats["misses"] += 1
                     self.log(event="tool", step=step + 1, name=c["name"], args=c["args"], ok=bool(result.get("ok")), error=result.get("error"))

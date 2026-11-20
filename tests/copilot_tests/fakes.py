@@ -38,6 +38,7 @@ class FakeModel:
 
     def chat(self, messages, tools):
         self.seen.append([dict(m) for m in messages])
+        self.offered = getattr(self, "offered", []) + [[t["function"]["name"] for t in tools]]   # the tool names of each step
         r = self.replies.pop(0)
         if isinstance(r, Exception):
             raise r
