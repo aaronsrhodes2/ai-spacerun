@@ -166,3 +166,15 @@ solid-fuel plants; the three at y -27.5 are on another ammonia line. The two nuc
 Fulgora-Aquilo 5 Shuttle (platform 39) no longer exists. I left it paused at Aquilo on 2026-11-18 with about 1,700 explosive rockets and no
 way to make more. Gleba-Aquilo 1 (38) stands at Gleba, armed (5,600 explosive rockets, 3,964 uranium rounds), on its old schedule, five
 carbon short of its "carbon 2,500" condition; not sent.
+
+## 2026-11-20: Edgerunner trial, Nauvis to Gleba, on the new engines
+
+Flown with `edge_flight.py go gleba` (save `pre-edgerunner-gleba-trial`). 15,000 km in about six minutes.
+- Speed: a surge to 52 km/s in the first twenty seconds (48 thrusters start full), then 30.0 to 30.6 km/s all the way. The limiter holds.
+- Fuel: tanks ROSE in flight (fuel 104,000 -> 168,000, oxidizer 274,000 -> 485,000): four plants out-make 48 throttled thrusters at 30 km/s.
+- Hull: no damage, 17,531 pieces at both ends; about 1,000 medium asteroids in view at the end.
+- Fault found: nine gun turrets on the east flank (x 192..277, y -235..-88) had no magazines on their belt and four ran empty. An
+  underground belt pair at (240.5,-140.5)-(246.5,-140.5) pointed west against the belt's flow. Turned round; all nine refilled in a minute.
+- Open: the 24 rocket turrets of the base (y 295.5) are empty. Their belt (row 290) carries magazines only; rockets ride the flank belts
+  but do not reach the base. Not needed among medium asteroids; needed before Aquilo.
+- The ship is at Gleba, not paused, on a one-stop schedule.
