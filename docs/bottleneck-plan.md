@@ -289,3 +289,18 @@ Gleba for 200 and the Nauvis pad asks for 400 (`ghost_carriers.py`); the spawner
 First minutes: spawner working, 13 bioflux in its burner, assembler working, 6 modules in the chest and robots already taking them.
 Open: legendary modules (Nauvis-Proto 1 asks for legendary ones) still have no maker; if Gleba's bioflux or the shuttles stop for
 more than about two hours the spawner starves and turns hostile. Save before: `pre-egg-cell`.
+
+## 2026-11-20 (night): foundation line ("Yes, foundation line")
+
+The maker already existed: the Nauvis Replicator's barrel-fed assembler unit lists foundation (`omni_fluid_asm.py list`). Missing were the
+four ingredients on Nauvis and cold fluoroketone in barrels (Aquilo barrels it hot only). Built and written:
+- COOLER on Nauvis, site (-383,-230), `scripts/foundation_line.py build | status`: emptier (hot barrels) -> cryogenic plant
+  (fluoroketone-cooling) -> filler (cold barrels), machine to machine on the plant's west port column, no pipes. `place_entities` left the
+  two assemblers facing north; they are turned south by Lua.
+- Supply (`ghost_carriers.py`): tungsten plate Vulcanus -> Nauvis (3 shuttles x 2,000); carbon fiber Gleba -> Nauvis (6 x 300); lithium
+  plate and hot fluoroketone barrels Aquilo -> Gleba pad (Gleba-Aquilo 1: 2,000 and 170) -> Nauvis (6 x 300 and 60); pad slots on Gleba and Nauvis.
+- Demand: the three Nauvis-Fulgora shuttles ask Nauvis for 200 foundation each (50 a rocket), which is what the Replicator sees.
+State when written: requests show in the launch queues (Vulcanus: tungsten for Nauvis-Vulcanus 3; Gleba: lithium and barrels for
+Nauvis-Gleba 5). NOT yet proven: the cooler has had no barrel, no foundation has been made; the first lithium and hot barrels need one
+Gleba-Aquilo round trip. For all 3,892: 15,568 each of tungsten, fiber and lithium and 1,557 barrels; Aquilo held 2,900 lithium and 172
+hot barrels, so its barrelling and lithium rates are the limit. Save before: `pre-foundation-line`.
