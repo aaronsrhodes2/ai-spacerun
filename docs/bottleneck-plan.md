@@ -205,3 +205,20 @@ The Captain pasted a mirrored copy of the east arm onto the west arm, one row lo
 End state: no ghosts, no empty turret, lanes sorted on both flanks, all 48 thrusters hold both fluids, all 8 feed pumps carry the right
 fluid, no railgun has anything of ours in its arc. Left as found: the Captain's unfinished feed start near the hub (x -16..-9, rows -37..-29),
 empty dead-end belts that carry nothing. Open: a long stay at rest drains magazines, because nothing is made while parked.
+
+## 2026-11-20 (night): Edgerunner guns fed at rest ("Yes, feed guns at rest")
+
+Measured parked at Gleba: the ship was not short of ammunition (about 12,000 magazines and 11,800 rockets on the belts, 1,493 uranium
+rounds and 6,259 rockets in the hub) and uses about 3 magazines and 3 rockets a minute at rest. The fault was distribution:
+- The hub outlets were shut at rest: rockets at (4.5,0.5) on `signal-V > 5`, uranium rounds at (4.5,1.5) on `fulgora > 0` (the hub puts
+  the planet it is at on the wire). Now `explosive-rocket > 0` and `uranium-rounds-magazine > 0`: they release whenever the belts have
+  room; the full lanes are the cap. The shared line keeps one kind a lane (rockets L1, magazines L2), and its end inserters are filtered.
+- The crossing splitters at (-85.5,-51) and (85.5,-52) had a piercing-rounds filter, so uranium rounds never reached the flank's magazine
+  lane: they stopped on the end belt behind the rocket inserter. The magazine lane was EMPTY on the west flank rows -160..-320 and the east
+  near row -160. Filter removed, output priority kept (the dead side fills one lane with rockets and stops; the inserter takes any magazine).
+- The hub's 500 piercing rounds had no way out: piercing added to the filter of the outlet (4.5,1.5) and the two end inserters at
+  (-7.5,-36.5) and (11.5,-36.5).
+End state: both gaps full, belts 11,534 piercing + 2,490 uranium rounds + 16,048 rockets, hub 0 uranium rounds and 2,213 rockets, no empty
+gun, railgun arcs clean. Guns that read "low" hold one kind of round with the other kind on the belt beside them: they switch when empty,
+not a fault. Save before: `pre-edge-rest-feed`. Open: nothing MAKES magazines at rest; at 3 a minute the belts last about 80 hours, and
+only Nauvis refills uranium rounds (request group `edge-ammo 37`).
