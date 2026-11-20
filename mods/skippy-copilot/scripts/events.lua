@@ -20,6 +20,8 @@ local function push(event)
   while #storage.events > KEEP do table.remove(storage.events, 1) end
 end
 
+E.push = push                                              -- for other modules' news (the cron)
+
 local function describe(tech)
   local recipes, other = {}, {}
   for _, eff in pairs(tech.prototype.effects or {}) do
@@ -62,7 +64,7 @@ end
 
 R.register {
   name = "events_read",
-  description = "News from the game since a given event: research that finished (with what it unlocked and a design note on what can now be improved), and research standing still because nothing is queued. Pass the last id you have seen as 'after'.",
+  description = "News from the game since a given event: research that finished (with what it unlocked and a design note on what can now be improved), research standing still because nothing is queued, and a timed job (cron) that starts failing or recovers. Pass the last id you have seen as 'after'.",
   params = {
     after = { type = "number", default = 0, description = "id of the last event already read; 0 for everything remembered" },
   },

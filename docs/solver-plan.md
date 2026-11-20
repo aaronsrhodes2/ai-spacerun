@@ -44,6 +44,20 @@ Built so far:
   quality, `ghost_requests` writes it into a cargo landing pad's section `ghost-auto-<surface>` or a requester chest,
   behind the allowance `ghost-requests`. Quality policy (build normal, upgrade after) stays in `scripts/ghost_requests.py`,
   which could call the tool instead of its own Lua; not done, and the live game does not have the mod yet.
+- **The save as memory** (the Captain, 2026-11-20). Blueprints are the model's memory between chats, not the chat's
+  context: the library is the source repository (versions with notes), deploying applies a version to the map, and a
+  changed layout is redeployed by clearing the whole footprint for the robots and rebuilding (an applied-over copy
+  leaves old pieces in new gaps). Nothing is preloaded; the model makes its own designs. Tiling covers grids and lines
+  (roboport and power grids, pole lines). Map tags are place names. The in-game cron lists every timed job (ghosts to
+  requests first, then the operator conveniences as external jobs) with its purpose and retirement condition, so the
+  player can retire one when logistics solve it. Mod 0.20.0, `scripts/designs.lua`, `places.lua`, `cron.lua`. Unverified
+  in a real game: `build_blueprint`, ghost `tags`, ghosts over pieces marked for deconstruction, `order_upgrade`.
+- **Low benchmark: Qwen3 14B on Ollama** (the Captain, 2026-11-20: "the average kid with a gaming video card"). Every
+  in-game loop must work on it.
+  The fixed context is now 12.7k tokens of 13k allowed (1.8k skill, 10.8k tool descriptions, 62 mod tools plus the
+  bridge's). Two consequences: Ollama's default context window is far smaller than that and must be raised
+  (`num_ctx`), and a model that size picks tools less reliably from a long list. Next step: tool groups, a short core
+  list with the rest (designs, cron, avatar, platforms) loaded when a turn needs them.
 - **Voice** (the Captain, 2026-11-13: speech to text and text to speech in the game, in purple Skippy's voice, so the
   game can be played with Claude Desktop closed and no keyboard). A mod cannot hear, speak or reach the network, and
   the house's voice gate wants a pass signed from the home token, which must never come here. So the house's own

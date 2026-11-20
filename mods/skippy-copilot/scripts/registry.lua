@@ -26,7 +26,8 @@ end
 
 -- Tools that change the world. In advise mode the player builds and the assistant only looks and says what it would
 -- do, so these refuse, except as a dry run.
-local HANDS = { build = true, remove = true, set_recipe = true, reveal_map = true }
+local HANDS = { build = true, remove = true, set_recipe = true, reveal_map = true,
+                design_deploy = true, design_tile = true, design_redeploy = true, design_undeploy = true }
 
 function R.call(name, args)
   local spec = R.tools[name]

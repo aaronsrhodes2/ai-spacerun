@@ -175,7 +175,7 @@ is one row in `skippy_allowances.lua` with its own switch in the map settings (a
 says to obey. Scripts outside the mod read a switch through `scripts/_allowance.py`; three do so far (see the table), and a game without the mod or the setting counts as on. Add a relaxation by adding a row and its words in
 `locale/en/skippy-copilot.cfg` (a test checks both).
 
-## Tools in the mod (version 0.14.0)
+## Tools in the mod (version 0.20.0)
 
 | Tool | What it does |
 |---|---|
@@ -200,6 +200,20 @@ says to obey. Scripts outside the mod read a switch through `scripts/_allowance.
 | `set_mode` | Switch between the three modes, when the player asks |
 | `avatar_walk`, `avatar_mine`, `avatar_travel`, `progress`, `research_available`, `lock_mode` | For the bridge and the operator: start a walk, a mining job or a trip to another planet; the facts milestones are tested against; fix the mode for a scored run |
 | `occupancy`, `build`, `frames` | For the bridge's planning tools: what is in the way, placing a checked plan (dry run first), the rectangles spoken places refer to |
+
+| `ghost_needs`, `ghost_requests` | What ghosts lack; write it as requests on a landing pad or requester chest (0.19.0) |
+| `designs`, `design_save`, `design_edit`, `design_export` | The blueprint library: list (with history), save a version (from pieces, the map or a string), swap buildings or recipes, export (0.20.0) |
+| `design_deploy`, `design_tile`, `deployments`, `design_redeploy`, `design_undeploy`, `what_is` | Deploy a version as ghosts, tile it over a grid, list deployments, move one to another version, take one away, read what a tile is for |
+| `places`, `mark_place`, `forget_place` | Map tags as place names |
+| `cron_list`, `cron_add`, `cron_change`, `cron_report` | The in-game cron: every timed job, its purpose and how it is doing |
+
+### Designs: the library is the repository, the map is the deployment
+
+A design is improved in the library, never on the map: `design_save` and `design_edit` make versions, and
+`design_redeploy` rolls a version out. When only buildings of the same size or recipes changed it gives upgrade orders;
+when the layout changed it marks everything of ours in the deployment's footprint for deconstruction and places the new
+ghosts over it, so the robots clear and rebuild it whole (placing a blueprint over an older copy leaves old belts, pipes
+and inserters standing in the new gaps). Nothing is preloaded: the model builds its own library as it plays.
 
 `build` keeps the rule that nothing is built before it is researched, and places nothing unless every piece of a plan can
 be placed. How a piece gets placed is decided in one spot (the executor); today that is free placement, later the walking

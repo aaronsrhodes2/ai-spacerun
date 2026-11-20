@@ -149,9 +149,15 @@ def test_the_mod_never_teleports_anything():
 def test_free_placement_is_the_only_place_a_piece_appears_without_an_item_and_it_is_gated_on_research():
     code = lua_code()
     makers = {name: len(re.findall(r"create_entity\s*\{", c)) for name, c in code.items() if "create_entity" in c}
-    assert makers == {"avatar.lua": 2, "build.lua": 1}                # the avatar's own body and its hand-placed piece; the free hand
+    assert makers == {"avatar.lua": 2, "build.lua": 1, "designs.lua": 1}  # the avatar's body and hand-placed piece; the free hand; a ghost
     build = code["build.lua"]
     assert build.index("researched(force, proto)") < build.index("place(surface, force, piece)")
+    designs = code["designs.lua"]
+    raw = (MOD / "scripts" / "designs.lua").read_text(encoding="utf-8")             # strip() empties strings: read the name here
+    assert re.search(r'create_entity\s*\{\s*name\s*=\s*"entity-ghost"', raw)        # designs only ever make ghosts, which cost nothing
+    # build_now revives ghosts into pieces: only after every piece passed the research check, and only with free placement on
+    assert designs.index("B.researched(f, proto)") < designs.index("local function deploy_at") < designs.index("g.revive")
+    assert raw.index('AL.on("free-placement")') < raw.index("deploy_at(s, f, a.name, version, stack, x, y, dir")
 
 
 def test_the_skill_prompt_says_to_play_fair_and_to_be_honest():

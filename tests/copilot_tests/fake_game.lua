@@ -11,8 +11,10 @@ defines = {
   inventory = { chest = 1, crafter_input = 2, crafter_output = 3 },
   alert_type = { entity_destroyed = 0, no_material_for_construction = 3, turret_out_of_ammo = 7, train_out_of_fuel = 9 },
   events = { on_player_created = 1, on_player_joined_game = 2, on_console_chat = 3, on_research_finished = 4, on_tick = 5,
-             on_script_path_request_finished = 6, on_runtime_mod_setting_changed = 7, on_gui_click = 8, on_research_started = 9 },
-  build_check_type = { manual = 1, script = 2 },
+             on_script_path_request_finished = 6, on_runtime_mod_setting_changed = 7, on_gui_click = 8, on_research_started = 9,
+             on_built_entity = 10, on_robot_built_entity = 11 },
+  build_check_type = { manual = 1, script = 2, blueprint_ghost = 3 },
+  build_mode = { normal = 0, forced = 1, superforced = 2 },
   flow_precision_index = { one_minute = 1, ten_minutes = 2, one_hour = 3 },
   rocket_silo_status = { building_rocket = 1, rocket_ready = 2, launch_started = 3 },
   cargo_destination = { invalid = 0, orbit = 1, station = 2, surface = 3 },
@@ -273,10 +275,21 @@ local function new_surface(name, index)
     local e = { name = a.name, type = p and p.type or "entity-ghost", position = { x = x, y = y }, direction = a.direction or 0,
                 force = (a.force ~= false) and force or nil, valid = true, recipe = a.recipe, items = a.items or {}, fluids = a.fluids or {},
                 belt_to_ground_type = a.type, amount = a.amount, surface = s }
+    fake.next_unit = (fake.next_unit or 0) + 1
+    e.unit_number = fake.next_unit
     if a.name == "entity-ghost" then
       e.ghost_name = a.inner_name
       p = ENTITIES[a.inner_name]
+      e.ghost_prototype = p
+      e.tags = nil
+      function e.revive()                               -- the building takes the ghost's place
+        local built = s.create_entity { name = e.ghost_name, position = { e.position.x, e.position.y }, direction = e.direction, recipe = e.recipe }
+        e.valid = false
+        return {}, built
+      end
     end
+    function e.order_deconstruction(f) e.to_be_deconstructed = true return true end
+    function e.order_upgrade(o) e.upgrade_target = o.target.name return true end
     e.bounding_box = { left_top = { x = x - p.tile_width / 2 + 0.1, y = y - p.tile_height / 2 + 0.1 },
                        right_bottom = { x = x + p.tile_width / 2 - 0.1, y = y + p.tile_height / 2 - 0.1 } }
     if a.status then e.status = defines.entity_status[a.status] end
@@ -421,7 +434,127 @@ game = {
     end
   end,
   print = function(text) fake.printed[#fake.printed + 1] = text end,
+  create_inventory = function(n)
+    local inv = { valid = true }
+    for i = 1, n do inv[i] = fake.item_stack() end
+    function inv.resize(m)
+      for i = #inv + 1, m do inv[i] = fake.item_stack() end
+    end
+    return inv
+  end,
 }
+
+-- ---------------------------------------------------------------- map tags
+fake.tags = {}
+force.add_chart_tag = function(surface, spec)
+  if fake.uncharted then return nil end
+  fake.next_tag = (fake.next_tag or 0) + 1
+  local p = spec.position
+  local t = { text = spec.text, icon = spec.icon, surface = surface, tag_number = fake.next_tag, valid = true,
+              position = { x = p.x or p[1], y = p.y or p[2] } }
+  function t.destroy() t.valid = false end
+  fake.tags[#fake.tags + 1] = t
+  return t
+end
+force.find_chart_tags = function(surface, area)
+  local out = {}
+  for _, t in ipairs(fake.tags) do
+    if t.valid and t.surface == surface and (not area or (t.position.x >= area[1][1] and t.position.x <= area[2][1]
+                                                         and t.position.y >= area[1][2] and t.position.y <= area[2][2])) then
+      out[#out + 1] = t
+    end
+  end
+  return out
+end
+
+-- ---------------------------------------------------------------- item stacks: blueprints and planners, in a script inventory
+local function copy(t)
+  if type(t) ~= "table" then return t end
+  local o = {}
+  for k, v in pairs(t) do o[k] = copy(v) end
+  return o
+end
+
+local ROT = { [0] = function(x, y) return x, y end, [4] = function(x, y) return -y, x end,
+              [8] = function(x, y) return -x, -y end, [12] = function(x, y) return y, -x end }
+
+function fake.item_stack()
+  local st = { valid_for_read = false, is_stack = true }
+  local function reset(name)
+    st.name, st.valid_for_read, st.ents, st.label, st.blueprint_description, st.mappers = name, name ~= nil, nil, nil, nil, {}
+    st.is_blueprint = (name == "blueprint")
+  end
+  function st.set_stack(spec)
+    if spec == nil then reset(nil) return true end
+    if spec.is_stack then
+      reset(spec.name)
+      st.ents, st.label, st.blueprint_description, st.mappers = copy(spec.ents), spec.label, spec.blueprint_description, copy(spec.mappers)
+    else
+      reset(spec.name)
+    end
+    return true
+  end
+  function st.clear() reset(nil) end
+  function st.is_blueprint_setup() return st.ents ~= nil and #st.ents > 0 end
+  function st.get_blueprint_entities() return copy(st.ents) end
+  function st.set_blueprint_entities(list)
+    st.ents = {}
+    for _, e in pairs(list) do st.ents[#st.ents + 1] = copy(e) end
+  end
+  function st.create_blueprint(a)                         -- what of the force stands in the area, round a whole-tile centre
+    local found = {}
+    for _, e in ipairs(a.surface.find_entities_filtered { area = a.area, force = a.force }) do
+      if e.type ~= "entity-ghost" and e.type ~= "resource" and e.type ~= "character" then found[#found + 1] = e end
+    end
+    if #found == 0 then st.ents = nil return {} end
+    local cx = math.floor((a.area[1][1] + a.area[2][1]) / 2)
+    local cy = math.floor((a.area[1][2] + a.area[2][2]) / 2)
+    st.ents = {}
+    for i, e in ipairs(found) do
+      st.ents[i] = { entity_number = i, name = e.name, position = { x = e.position.x - cx, y = e.position.y - cy }, direction = e.direction, recipe = e.recipe }
+    end
+    return {}
+  end
+  function st.import_stack(text)                          -- the stand-in string format: "0fake:" and JSON of the entities
+    local body = string.match(text, "^0fake:(.*)$")
+    if not body then return -1 end
+    reset("blueprint")
+    st.ents = helpers.json_to_table(body)
+    return 0
+  end
+  function st.export_stack()
+    return "0fake:" .. helpers.table_to_json(st.ents or st.mappers or {})
+  end
+  function st.set_mapper(i, kind, m)
+    st.mappers[i] = st.mappers[i] or {}
+    st.mappers[i][kind] = m
+  end
+  setmetatable(st, { __index = function(t, k)
+    if k == "cost_to_build" then
+      local by = {}
+      for _, e in ipairs(rawget(t, "ents") or {}) do by[e.name] = (by[e.name] or 0) + 1 end
+      local out = {}
+      for name, n in pairs(by) do out[#out + 1] = { name = name, count = n, quality = "normal" } end
+      return out
+    end
+  end })
+  function st.build_blueprint(a)                          -- every piece as a ghost, at the spot, turned; fake.blocked skips names
+    local out = {}
+    local x, y = a.position[1] or a.position.x, a.position[2] or a.position.y
+    local dir = a.direction or 0
+    for _, e in ipairs(st.ents or {}) do
+      if not (fake.blocked and fake.blocked[e.name]) then
+        local rx, ry = ROT[dir](e.position.x, e.position.y)
+        local g = a.surface.create_entity { name = "entity-ghost", inner_name = e.name, position = { x + rx, y + ry },
+                                            direction = ((e.direction or 0) + dir) % 16, recipe = e.recipe }
+        g.tags = copy(e.tags)
+        out[#out + 1] = g
+      end
+    end
+    return out
+  end
+  return st
+end
 
 -- ---------------------------------------------------------------- the character: walking, mining, crafting, carrying
 fake.path_requests = {}

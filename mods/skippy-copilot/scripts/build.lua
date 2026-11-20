@@ -179,3 +179,5 @@ R.register {
              note = (failures > 0) and "fix these before building" or (lacks_any and "the avatar must carry these items first" or "every piece can be placed") }
   end,
 }
+
+return { researched = researched }

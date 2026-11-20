@@ -103,13 +103,23 @@ R.register {
   description = "Where a piece can really be placed near a spot, by trying it: for pieces that are fussy about their ground or their neighbours, such as an offshore pump (which must touch water), a pumpjack (on oil) or a mining drill (on ore). Returns up to five places that the game accepts, nearest first, each with the direction that worked.",
   params = {
     name = { type = "string", required = true, description = "internal name of the piece" },
-    x = { type = "number", required = true, description = "look around this x" },
-    y = { type = "number", required = true, description = "look around this y" },
+    x = { type = "number", description = "look around this x" },
+    y = { type = "number", description = "look around this y" },
+    at = { type = "string", description = "or look around a named place (from 'places') instead of x and y" },
     radius = { type = "number", default = 8, description = "how far to try, at most 20 tiles" },
     surface = { type = "string", description = "surface name; leave out for where the player is" },
   },
   run = function(a)
-    local surface, err = G.surface_of(a.surface)
+    local surface, err
+    if a.at then
+      local p, perr = require("scripts.places").resolve(a.at, a.surface)
+      if not p then return perr end
+      surface, a.x, a.y = p.surface, p.x, p.y
+    elseif not (a.x and a.y) then
+      return { error = "say where: x and y, or a place name (at)" }
+    else
+      surface, err = G.surface_of(a.surface)
+    end
     if not surface then return err end
     local proto = prototypes.entity[a.name]
     if not proto then return { error = "there is no building named '" .. a.name .. "'", hint = "use 'search' with kind 'entity'" } end

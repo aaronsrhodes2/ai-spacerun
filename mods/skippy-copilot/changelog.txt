@@ -1,4 +1,19 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.20.0
+Date: 2026-11-20
+  Features:
+    - Designs: a blueprint library the model owns, as the source of what stands on the map. design_save writes a design
+      from pieces, captures an area or imports a string, each save a new version with a note; design_edit swaps
+      buildings or recipes; designs lists them with cost, deployments and history; design_export gives the string.
+    - Deployments: design_deploy places a version as tagged ghosts for the robots, design_tile repeats one over a grid
+      or line fixed to the map, design_redeploy moves a deployment to another version (upgrade orders when only names or
+      recipes changed; otherwise everything of ours in its footprint is marked for deconstruction and rebuilt, so no old
+      piece stays in a gap), design_undeploy takes one away, deployments lists them, what_is reads a tile's design.
+    - Places: places, mark_place and forget_place read and write the force's map tags as names; find_placement and
+      design_deploy take 'at' a place. Only the mod's own tags are moved or removed.
+    - Cron: cron_list, cron_add, cron_change and cron_report keep every timed job in one list with its purpose, what good
+      and bad runs look like and when it can retire; a job that starts failing or recovers is news for the model.
+---------------------------------------------------------------------------------------------------
 Version: 0.19.0
 Date: 2026-11-20
   Features:

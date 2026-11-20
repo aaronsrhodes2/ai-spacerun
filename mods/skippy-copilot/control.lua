@@ -22,6 +22,9 @@ local busy = require("scripts.busy")
 require("scripts.view")
 require("scripts.allowances")
 require("scripts.ghosts")
+require("scripts.places")
+local designs = require("scripts.designs")
+local cron = require("scripts.cron")
 local chat = require("scripts.chat")
 local events = require("scripts.events")
 
@@ -66,6 +69,8 @@ script.on_init(function()
   chat.init()
   events.init()
   avatar.init()
+  designs.init()
+  cron.init()
   chat.draw_all()
 end)
 
@@ -75,8 +80,13 @@ script.on_configuration_changed(function()
   chat.init()
   events.init()
   avatar.init()
+  designs.init()
+  cron.init()
   chat.draw_all()
 end)
+
+script.on_event(defines.events.on_built_entity, designs.on_built)          -- a piece built from our ghost keeps its deployment
+script.on_event(defines.events.on_robot_built_entity, designs.on_built)
 
 -- /purple <what to do> hands a task to purple Skippy, the development agent, outside the game. The game cannot call
 -- out itself, so the request is only written down here; the bridge reads it and brings the answer back.
@@ -126,6 +136,7 @@ script.on_event(defines.events.on_tick, function(event)
   stats.on_tick(event)
   chat.on_tick(event)
   busy.on_tick(event)
+  cron.on_tick(event)
   if event.tick % 600 == 0 then events.check_idle(research.idle()) end        -- research with nothing chosen, noticed within ten seconds
 end)
 script.on_event(defines.events.on_script_path_request_finished, avatar.on_path)
