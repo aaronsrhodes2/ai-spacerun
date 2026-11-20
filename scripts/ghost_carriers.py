@@ -16,7 +16,10 @@ BIO = [("bioflux", 200, "gleba")]      # feeds the captive biter spawner on Nauv
 SHIPS = {
     "Courier 1": [("big-mining-drill", 9, "vulcanus"), ("turbo-transport-belt", 150, "vulcanus"), ("turbo-underground-belt", 4, "vulcanus")],   # for Fulgora
     # for Aquilo: stack inserters. For the foundation line (foundation_line.py): Aquilo's lithium and hot fluoroketone, relayed by the Gleba pad
-    "Gleba-Aquilo 1": [("stack-inserter", 12, "gleba"), ("lithium-plate", 2000, "aquilo"), ("fluoroketone-hot-barrel", 170, "aquilo")],
+    # carbon and iron ore: its Gleba stop waits for 2,000 of each (it remakes its ammunition from them) and its crushers get no chunks at rest.
+    # Asked from Gleba's own stock, NOT relayed over the pad: a pad slot would also pull carbon and ore out of every other ship in orbit.
+    "Gleba-Aquilo 1": [("stack-inserter", 12, "gleba"), ("lithium-plate", 2000, "aquilo"), ("fluoroketone-hot-barrel", 170, "aquilo"),
+                       ("carbon", 2000, "gleba"), ("iron-ore", 2000, "gleba")],
     "Nauvis-Gleba 1": [("electronic-circuit", 200, "nauvis")] + BIO + FIBER,     # circuits: Gleba's biochamber recipe has none
     "Nauvis-Gleba 2": BIO + FIBER,
     "Nauvis-Gleba 3": BIO + FIBER,

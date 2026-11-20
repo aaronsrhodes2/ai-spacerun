@@ -304,3 +304,10 @@ State when written: requests show in the launch queues (Vulcanus: tungsten for N
 Nauvis-Gleba 5). NOT yet proven: the cooler has had no barrel, no foundation has been made; the first lithium and hot barrels need one
 Gleba-Aquilo round trip. For all 3,892: 15,568 each of tungsten, fiber and lithium and 1,557 barrels; Aquilo held 2,900 lithium and 172
 hot barrels, so its barrelling and lithium rates are the limit. Save before: `pre-foundation-line`.
+Check a few minutes later ("Yes, check it"): tungsten on Nauvis 552 -> 3,152 (delivered); two Nauvis-Gleba shuttles carry 300 carbon fiber
+each; no lithium or hot barrel yet. The pacing link is Gleba-Aquilo 1: back from Aquilo (1,573 refined hazard concrete delivered) and held
+at Gleba by its own leave rule (carbon and iron ore 2,000 each, used to remake ammunition) with 76 and 0 aboard and no chunks at rest.
+It now asks Gleba directly for both (512 and 142 arrived in 100 s; Gleba held only 552 and 654). NOT relayed over the Gleba pad: a pad
+slot for carbon or ore would also pull them out of every other ship in orbit. Its leave rule was not lowered.
+Egg cell: the spawner had piled 100 eggs (it makes 30 a minute, the assembler takes 12). A decider now runs it only while it holds under
+10 eggs AND the chest under 100 modules; 90 eggs were removed by script so they would not hatch. 72 modules made so far.
