@@ -244,3 +244,14 @@ Perimeter cover (the Captain: "protection, though not as much, around the entire
   revive the 17 legendary ghosts by script (free rebuild) and unpause. Save before: `pre-nv3-shuttle-mend`.
 Later the same night: the foundation arrived hub to hub (100), but a paused hub lays no tiles: 40 tiles laid by script and paid from its
 hub, 17 ghosts revived, 14 guns loaded, oxidizer plant back (about 5,000 a minute). Unpaused at 58,000 oxidizer; the carry section is removed.
+
+## 2026-11-20 (night): stern guns on the old-hull shuttles ("Shuttle sterns")
+
+`scripts/shuttle_stern_guns.py plan | build [--apply] [NAME] | status`: two legendary gun turrets at the stern corners of each old-hull
+shuttle (tiles x -24..-23 and 22..23, y 15..16), fed from the ship's own ammunition belt. West: the belt's dead end at (-13,-1) is turned
+and carried along row -1 and down the free edge column -26. East: an inserter at (13,-1), magazines only, takes a branch off the start of
+the belt, along row -1 and down column 25. 62 placed entities a ship, nothing spawned; the belts filled from each ship's own magazines.
+Built on all 13 (Nauvis-Gleba 6 on the second try: an asteroid stood on one tile). Each stern gun holds 10 to 13 magazines, no gun on any
+ship is empty, and the audit's uncovered share fell from 20% to 3% (17 entities at the stern centre, between the corner guns).
+Not done: Courier 1 (narrower wings, panels down to row 17: no free 2x2 deck at its stern corners; it needs its own design or four
+foundation tiles a side), the Wheels, White Science, Edgerunner's stern. Save before: `pre-shuttle-stern-guns`.
