@@ -4,6 +4,7 @@
 local R = require("scripts.registry")
 local A = require("scripts.alerts")
 local V = require("scripts.avatar")
+local AL = require("scripts.allowances")
 
 local function rect(left, top, right, bottom)
   return { math.floor(left), math.floor(top), math.floor(right), math.floor(bottom) }
@@ -75,6 +76,10 @@ R.register {
   run = function(a)
     if V.executor() ~= "god" then
       return { error = "exploring on foot is not built yet", hint = "walk the avatar toward the edge with walk_to, or ask the player to switch to free-hand mode" }
+    end
+    if not AL.on("remote-exploring") then
+      return { error = "revealing the map from afar is switched off (the allowance 'remote-exploring')",
+               hint = "walk the avatar toward the edge with walk_to, or ask the player to allow remote exploring again" }
     end
     local p = A.any_player()
     local s = a.surface and game.surfaces[a.surface] or (p and p.surface) or game.surfaces.nauvis

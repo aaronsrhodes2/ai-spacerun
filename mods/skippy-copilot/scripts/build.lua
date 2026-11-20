@@ -11,6 +11,7 @@ local R = require("scripts.registry")
 local G = require("scripts.grid")
 local V = require("scripts.avatar")
 local settle = require("scripts.settle")
+local AL = require("scripts.allowances")
 
 local MAX_SIDE = 100
 local MAX_PIECES = 600
@@ -107,6 +108,10 @@ R.register {
     if n == 0 then return { error = "the list of pieces is empty" } end
     if n > MAX_PIECES then return { error = "at most " .. MAX_PIECES .. " pieces in one call", hint = "build it in parts" } end
     local mode = V.executor()
+    if mode == "god" and not AL.on("free-placement") then
+      return { error = "free placement is switched off (the allowance 'free-placement')",
+               hint = "pieces must be carried: ask the player to switch to the 'moves your character' mode, or to allow free placement again" }
+    end
     local place = EXECUTORS[mode]
     local ok_count, placed, failed, checked = 0, 0, {}, {}
     local allowed = {}

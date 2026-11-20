@@ -153,6 +153,27 @@ steps through them, or in the map's mod settings.
 While the assistant is moving your character, touching your own controls (moving, mining, building) takes it back at
 once: the assistant stops, says so, and waits until you ask again. Switching modes stops whatever the avatar was doing. A scored run can lock the mode.
 
+## Allowances
+
+Some rules are relaxed on purpose: fully vanilla is a long-term goal, and the game being fun comes first. Every relaxation
+is one row in `skippy_allowances.lua` with its own switch in the map settings (all on by default), and the tools
+`allowances` (read them) and `set_allowance` (change one, when the player says so) show the model which are on.
+
+| Allowance | Relaxes | Kept by |
+|---|---|---|
+| `free-placement` | pieces appear without their items in "builds on its own" mode | the mod |
+| `remote-exploring` | the map is revealed without walking | the mod |
+| `free-fuel` | a new machine's first fuel | the model's skill |
+| `free-upgrades` | quality upgrades of everything at once | an operator script |
+| `player-boosts` | free crafting, 50x hand speed, 200 reach, 200 slots | an operator script |
+| `infinite-scrap` | Fulgora's scrap tiles never run out | an operator script |
+| `unlimited-wire-reach` | wires of any length | an operator script |
+| `ring-foundations` | ring-shaped platform foundation | an operator script |
+
+"Kept by the mod" means the mod refuses the action when the switch is off. For the others the model is told and its skill
+says to obey; the scripts outside the mod do not read the switches yet. Add a relaxation by adding a row and its words in
+`locale/en/skippy-copilot.cfg` (a test checks both).
+
 ## Tools in the mod (version 0.14.0)
 
 | Tool | What it does |

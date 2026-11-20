@@ -395,8 +395,11 @@ wire length limit, doughnut (ring) shapes on space foundations, free machines an
 in use. Fully vanilla is a long-term goal that needs real work on some hurdles; it is not required. The game being fun to
 play comes first, so where the interface or a rule truly gets in the way, relaxing it is on the table. How we keep that
 honest: each relaxation is a named allowance in one list (what it relaxes, why, what vanilla would take), switchable in
-the mod's settings, on by default; steps 4 to 7 above are the runs that switch them off one by one. Not built yet: the
-list and the switches (today the relaxations are scattered through the tools and rules).
+the mod's settings, on by default; steps 4 to 7 above are the runs that switch them off one by one. Built in mod 0.18.0
+(`skippy_allowances.lua`, tools `allowances` and `set_allowance`): the list, the switches, and the mod's own enforcement of
+free placement and remote exploring. The other six are `skill` or `script` allowances: the model is told, but nothing in
+the mod stops them, and the operator scripts (`upgrade_quality.py`, the wheel's wiring, the platform tools) do not yet read
+the switches. Not built: that check in the scripts, and a data-stage switch for real wire reach.
 
 ## Increment 1 in detail: the avatar
 

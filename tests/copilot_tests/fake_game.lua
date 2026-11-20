@@ -21,6 +21,9 @@ defines = {
 
 storage = {}
 settings = { global = { ["skippy-copilot-mode"] = { value = "free-hand" } } }
+for _, row in ipairs(require("skippy_allowances")) do                   -- every allowance's switch exists, on, as in a new game
+  settings.global["skippy-allow-" .. row.id] = { value = true }
+end
 fake = { handlers = {}, commands = {}, printed = {}, rcon = {}, charted = {} }
 
 script = {

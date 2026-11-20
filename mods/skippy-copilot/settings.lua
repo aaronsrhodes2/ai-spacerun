@@ -10,3 +10,16 @@ data:extend {
     order = "a",
   },
 }
+
+-- One switch for every allowance (skippy_allowances.lua), all on by default: the rules the mod deliberately relaxes.
+for i, row in ipairs(require("skippy_allowances")) do
+  data:extend {
+    {
+      type = "bool-setting",
+      name = "skippy-allow-" .. row.id,
+      setting_type = "runtime-global",
+      default_value = true,
+      order = string.format("b%02d", i),
+    },
+  }
+end

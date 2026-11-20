@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.18.0
+Date: 2026-11-20
+  Features:
+    - Allowances: one list (skippy_allowances.lua) of the rules this game deliberately relaxes, with a switch for each in the
+      map settings (all on by default) and two tools, allowances and set_allowance. The mod enforces free placement and
+      remote exploring itself; the others (free fuel, free upgrades, player boosts, infinite scrap, wires of any length,
+      ring-shaped foundations) are reported to the model and to operator scripts.
+---------------------------------------------------------------------------------------------------
 Version: 0.17.0
 Date: 2026-11-13
   Features:
