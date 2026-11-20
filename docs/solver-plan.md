@@ -390,6 +390,14 @@ Each has an exit test. None starts before the one above it passes, except where 
 On "no mods but ours": our mod and RCON are how the model reaches the game, so the end state is vanilla rules with one
 mod, not zero mods. Achievements stay off for that reason.
 
+**Allowances** (the Captain, 2026-11-20). The mod we ship may keep deliberate relaxations of the rules, such as no signal
+wire length limit, doughnut (ring) shapes on space foundations, free machines and free upgrades, besides the ones already
+in use. Fully vanilla is a long-term goal that needs real work on some hurdles; it is not required. The game being fun to
+play comes first, so where the interface or a rule truly gets in the way, relaxing it is on the table. How we keep that
+honest: each relaxation is a named allowance in one list (what it relaxes, why, what vanilla would take), switchable in
+the mod's settings, on by default; steps 4 to 7 above are the runs that switch them off one by one. Not built yet: the
+list and the switches (today the relaxations are scattered through the tools and rules).
+
 ## Increment 1 in detail: the avatar
 
 - **Walk.** Ask the game's pathfinder for a path (`surface.request_path`), then follow it by setting the character's
