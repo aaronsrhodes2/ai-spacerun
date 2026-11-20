@@ -222,3 +222,23 @@ End state: both gaps full, belts 11,534 piercing + 2,490 uranium rounds + 16,048
 gun, railgun arcs clean. Guns that read "low" hold one kind of round with the other kind on the belt beside them: they switch when empty,
 not a fault. Save before: `pre-edge-rest-feed`. Open: nothing MAKES magazines at rest; at 3 a minute the belts last about 80 hours, and
 only Nauvis refills uranium rounds (request group `edge-ammo 37`).
+
+## 2026-11-20 (night): ammunition per kill, and perimeter cover at rest
+
+Ammunition per kill (`scripts/edge_ammo_meter.py need | mark | since | watch`): the game counts kills by asteroid and ammunition used per
+platform, so use can be set against need. Need with today's research: medium asteroid 24 piercing rounds (2.4 magazines) or 8 uranium
+rounds; big asteroid 3 explosive rockets, guns do nothing to it; a huge one is beyond rockets (530). Measured at rest over Gleba, 140 s:
+196 small and 67 medium kills for 104 magazines, UNDER the 278 the numbers give for piercing alone, and no rocket fired. Guns do not waste.
+Rockets per big kill can only be measured on an Aquilo leg (big asteroids fly on no other route). Correction to the note above: at rest
+Edgerunner fires about 45 magazines a minute and its works MAKE about as many (286 firearm magazines went into piercing rounds in those
+140 s); the "3 a minute" was stock change, use less production.
+
+Perimeter cover (the Captain: "protection, though not as much, around the entire perimeter of all shuttles and ships and stations").
+`scripts/perimeter_audit.py` counts each platform's entities out of reach of an armed gun or laser turret, by side:
+- No turret at all: White Science, Nauvis Wheel. Lasers on part only: Vulcanus, Fulgora and Gleba Wheels (49 to 61% uncovered).
+- The 13 old-hull shuttles: 20% uncovered, all at the stern (98 of 111 entities). Courier 1: stern, 14%. Edgerunner: 33%, stern worst.
+- Fully covered: Gleba-Aquilo 1, Universal 1 Proto.
+- Nauvis-Vulcanus 3 is stranded at Vulcanus since 2026-11-18 (oxidizer plant shot off, 47 deck tiles gone, 8 of 11 guns empty, paused).
+  Guns refilled from its own hub (80 firearm magazines, moved by script). Its rescue request asks for foundation from platforms at
+  Vulcanus and none there holds any: Nauvis-Vulcanus 1 now carries 100 from Nauvis (section `rescue-carry-7`). When the deck is back,
+  revive the 17 legendary ghosts by script (free rebuild) and unpause. Save before: `pre-nv3-shuttle-mend`.
