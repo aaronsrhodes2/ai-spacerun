@@ -14,9 +14,15 @@ L = tools["run_lua"]
 SHIPS = {
     "Courier 1": [("big-mining-drill", 9, "vulcanus"), ("turbo-transport-belt", 150, "vulcanus"), ("turbo-underground-belt", 4, "vulcanus")],   # for Fulgora
     "Gleba-Aquilo 1": [("stack-inserter", 12, "gleba")],                                                                                     # for Aquilo
-    "Nauvis-Gleba 1": [("electronic-circuit", 200, "nauvis")],                                                                               # Gleba's biochamber recipe has none
+    # bioflux feeds the captive biter spawner on Nauvis (1 a minute; it spoils in 2 hours, so small lots on every ship)
+    "Nauvis-Gleba 1": [("electronic-circuit", 200, "nauvis"), ("bioflux", 200, "gleba")],     # circuits: Gleba's biochamber recipe has none
+    "Nauvis-Gleba 2": [("bioflux", 200, "gleba")],
+    "Nauvis-Gleba 3": [("bioflux", 200, "gleba")],
+    "Nauvis-Gleba 4": [("bioflux", 200, "gleba")],
+    "Nauvis-Gleba 5": [("bioflux", 200, "gleba")],
+    "Nauvis-Gleba 6": [("bioflux", 200, "gleba")],
 }
-PADS = {"gleba": [("electronic-circuit", 200)]}
+PADS = {"gleba": [("electronic-circuit", 200)], "nauvis": [("bioflux", 400)]}
 
 SHIP = ("local f=game.forces.player local o={} for i,p in pairs(f.platforms) do if p.name:find('%s',1,true) and p.hub and p.hub.valid then local pt for _,q in pairs(p.hub.get_logistic_point()) do if q.mode==defines.logistic_mode.requester then pt=q end end "
         "local g='ghost-carry-'..i for k=#pt.sections,1,-1 do if pt.sections[k].group==g then if %s then pt.remove_section(k) end end end if %s then local s=pt.add_section(g) local n=0 for _,r in pairs{%s} do n=n+1 s.set_slot(n,{value={type='item',name=r[1],quality='normal'},min=r[2],max=r[2],import_from=r[3]}) end end o[#o+1]=p.name:gsub('%%[.-%%]','')..' group '..g end end rcon.print(table.concat(o,'; '))")

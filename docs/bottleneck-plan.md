@@ -278,3 +278,14 @@ Every one is a broken link or a missing ingredient.
 | concrete x59, ice platform x47 | Aquilo | stock is there; the ghosts are one column (x 111.5, y -49..56) outside construction range | OPEN |
 | roboport x1 | Fulgora | 10 in the network: robots have not built it yet | none needed |
 `scripts/ghost_carriers.py [--apply]` writes the ship and pad sections from a hand-kept table. Save before: `pre-ghost-carriers`.
+
+## 2026-11-20 (night): biter-egg cell on Nauvis ("Yes, with bioflux")
+
+`scripts/egg_cell.py plan | build | spawner | status`, site (-365,-187), 18 x 13, just south of the Replicator area. A captive biter
+spawner (placed, free; not captured) burns bioflux (1 a minute) and makes 30 eggs a minute; one inserter hands eggs to a
+productivity-module-3 assembler, so eggs never enter the logistic network (they hatch after 30 minutes anywhere). The spawner is
+switched off by circuit while the output chest holds 100 modules; four laser turrets stand by. Bioflux: every Nauvis-Gleba shuttle asks
+Gleba for 200 and the Nauvis pad asks for 400 (`ghost_carriers.py`); the spawner was placed only once its feed chest held bioflux.
+First minutes: spawner working, 13 bioflux in its burner, assembler working, 6 modules in the chest and robots already taking them.
+Open: legendary modules (Nauvis-Proto 1 asks for legendary ones) still have no maker; if Gleba's bioflux or the shuttles stop for
+more than about two hours the spawner starves and turns hostile. Save before: `pre-egg-cell`.
