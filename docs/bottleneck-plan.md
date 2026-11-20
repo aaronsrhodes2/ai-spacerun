@@ -311,3 +311,14 @@ It now asks Gleba directly for both (512 and 142 arrived in 100 s; Gleba held on
 slot for carbon or ore would also pull them out of every other ship in orbit. Its leave rule was not lowered.
 Egg cell: the spawner had piled 100 eggs (it makes 30 a minute, the assembler takes 12). A decider now runs it only while it holds under
 10 eggs AND the chest under 100 modules; 90 eggs were removed by script so they would not hatch. 72 modules made so far.
+
+## 2026-11-20 (night): Aquilo cold-fluoroketone filler finished ("Finish the filler")
+
+`scripts/aquilo_cold_filler.py build | status`. The other session had removed stack 1's idle science plant and laid the heat and chests;
+the filler itself was missing. Placed: pipe (-15,-42) from the cooler's cold port pipe, an assembling machine 3 (fluoroketone-cold-barrel)
+on x -16..-14, y -41..-39, inserters (-17,-41) in and (-17,-39) out (in place of one heat pipe), five heat pipes round its east side.
+Result after 75 s: 151 cold barrels, nothing frozen, cooler working. The out inserter stops while its chest holds 600 barrels so the
+cryo loop is not drained. The pipes flow although the tiles under them still read `frozen-refined-concrete`: the earlier "pipes on frozen
+tiles do not flow" reading was unheated pipes, not the tile. Carriers: Gleba-Aquilo 1 asks Aquilo for 400 cold barrels, the Gleba and
+Nauvis pads for 600, each Nauvis-Gleba shuttle for 100. The Nauvis cooler stays as the spare path for hot barrels.
+Save before: `pre-aquilo-filler-finish`.
