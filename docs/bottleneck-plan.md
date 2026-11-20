@@ -178,3 +178,10 @@ Flown with `edge_flight.py go gleba` (save `pre-edgerunner-gleba-trial`). 15,000
 - Open: the 24 rocket turrets of the base (y 295.5) are empty. Their belt (row 290) carries magazines only; rockets ride the flank belts
   but do not reach the base. Not needed among medium asteroids; needed before Aquilo.
 - The ship is at Gleba, not paused, on a one-stop schedule.
+
+Edgerunner base rocket turrets (same day). Cause: at each bottom corner a one-tile stub belt ((-495.5,286.5) and (496.5,286.5), no input,
+empty) made the flank ammunition belt meet the corner belt from the SIDE, so both flank lanes (rockets, magazines) were squeezed onto one
+lane of the base belt. That lane filled with magazines while the guns were full, and rockets could not get past. Fix: the two stubs
+removed (the corner belt is then a curve and both lanes carry through), and the magazines standing on the base belt's rocket lane moved
+into the hub by script (3,171 piercing and 802 uranium rounds; the ship's own goods). All 24 base rocket turrets loaded within four
+minutes; no turret of any kind is empty.
