@@ -259,3 +259,22 @@ Courier 1 (same night, "Courier 1"): narrower wings, so its own layout: edge col
 and 19..20, y 18..19. Four deck tiles were missing under them; the hub-to-hub request (`request_from platforms`, Edgerunner in the same
 orbit held 1,008 foundation) was not served in two minutes, so four foundation were taken from Edgerunner's hub by script and laid.
 Both guns hold 12 magazines, no gun empty, audit 14% -> 0% uncovered. Save before: `pre-courier-stern-guns`.
+
+## 2026-11-20 (night): every "missing material" alert traced to its source
+
+`scripts/alert_trace.py [PLANET]` follows each waited-for item (entity ghosts, tile ghosts, module requests) through need, pad request,
+ships, source stock and production, recipe ingredients, and names the first broken link. Result: no case of Replicators being too slow.
+Every one is a broken link or a missing ingredient.
+| Item | Where | Broken link | Done |
+|---|---|---|---|
+| big mining drill x9 | Fulgora | Vulcanus holds 21, no ship asked for them | Courier 1 asks Vulcanus (`ghost-carry-18`) |
+| turbo belt x145, underground x2 | Fulgora | none exist; no ship asked, so Vulcanus never saw demand | Courier 1 asks Vulcanus; its foundry unit must now make them |
+| foundation x3,892 | Fulgora | nothing makes it: tungsten (Vulcanus), carbon fiber (Gleba), lithium and fluoroketone (Aquilo) are never in one place | OPEN: needs a line |
+| lightning collector x1 | Fulgora | no lightning rod on Fulgora, no pad slot | OPEN |
+| biochamber x1 | Gleba | Gleba has no electronic circuits | 200 asked: pad slot + Nauvis-Gleba 1 (`ghost-carry-6`) |
+| productivity module 3 x20+3, legendary modules on Nauvis-Proto 1 | Gleba, Aquilo, ships | Nauvis has no biter eggs: no captive spawner stands | OPEN: the Captain's call |
+| refined hazard concrete x48 | Aquilo | 1,776 aboard Gleba-Aquilo 1, held at Gleba by 984 cryogenic packs the pad would not take (its request was full at 2,992) | pad request 6,000; ship unloaded and left for Aquilo; carbon condition 2,500 -> 2,000 |
+| stack inserter x6 | Aquilo | Nauvis cannot make it (jelly, carbon fiber); no ship asked Gleba | Gleba-Aquilo 1 asks Gleba (`ghost-carry-38`), next visit |
+| concrete x59, ice platform x47 | Aquilo | stock is there; the ghosts are one column (x 111.5, y -49..56) outside construction range | OPEN |
+| roboport x1 | Fulgora | 10 in the network: robots have not built it yet | none needed |
+`scripts/ghost_carriers.py [--apply]` writes the ship and pad sections from a hand-kept table. Save before: `pre-ghost-carriers`.
