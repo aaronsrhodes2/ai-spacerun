@@ -30,5 +30,6 @@ server/
 
 # Local headless test server (own data folder, never the live game)
 .testserver/
+.testclient/
 runs/
 copilot/copilot.env
