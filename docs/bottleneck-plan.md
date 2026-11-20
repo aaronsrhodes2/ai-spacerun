@@ -255,3 +255,7 @@ Built on all 13 (Nauvis-Gleba 6 on the second try: an asteroid stood on one tile
 ship is empty, and the audit's uncovered share fell from 20% to 3% (17 entities at the stern centre, between the corner guns).
 Not done: Courier 1 (narrower wings, panels down to row 17: no free 2x2 deck at its stern corners; it needs its own design or four
 foundation tiles a side), the Wheels, White Science, Edgerunner's stern. Save before: `pre-shuttle-stern-guns`.
+Courier 1 (same night, "Courier 1"): narrower wings, so its own layout: edge columns -23 and 22 down to row 18, guns on tiles x -21..-20
+and 19..20, y 18..19. Four deck tiles were missing under them; the hub-to-hub request (`request_from platforms`, Edgerunner in the same
+orbit held 1,008 foundation) was not served in two minutes, so four foundation were taken from Edgerunner's hub by script and laid.
+Both guns hold 12 magazines, no gun empty, audit 14% -> 0% uncovered. Save before: `pre-courier-stern-guns`.
