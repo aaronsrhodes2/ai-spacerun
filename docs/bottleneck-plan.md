@@ -123,3 +123,24 @@ Found, not fixed:
 - Nauvis Wheel hub full (0 of 10,009); 411 of 943 provider chests on Nauvis full; Fulgora storage chests 12% free.
 - Edgerunner (the Captain is working on it): all 160 tanks and all 24 thrusters read empty of fuel and oxidizer; 24 rocket turrets empty; 46 damaged pieces.
 - Empty module slots: Aquilo 128, Nauvis 64. Three boilers on Nauvis without fuel. A space platform hub is always normal quality (not a fault).
+
+## 2026-11-20: Edgerunner west thrusters, Nauvis rocket parts
+
+Edgerunner (order: "duplicate the thrusters on the right half"). The Captain's two stepped rows of 12 on the east side are copied to the
+west, mirrored about x = 0 (`scripts/edge_mirror_thrusters.py`): 1,635 deck tiles as tile ghosts (built from foundation items, 500 aboard
+and the rest lifted from Nauvis), then 24 legendary thrusters and 343 pipes. 48 thrusters stand, 24 a side.
+- A thruster's inlets are not mirror images, so each west pipe run meets the other inlet: where the east run carries fuel, its west twin
+  carries oxidizer (west stern row: stepped run = oxidizer, single pipe at -53.5,162.5 = fuel; west flank row: outer run = oxidizer, inner = fuel).
+- The west belt staircase beside the flank row stands one row lower than the east one, so that row is copied one row lower.
+- Two pipes at the hull end of the west inner run (-126.5,-71.5 and -131.5,-71.5) could not be placed: an inserter and a belt stand there.
+- NOT done: no run on either side is joined to a fuel or oxidizer supply, and the ship's 150 tanks are empty (19,500 of each fluid aboard in
+  all). The hook-up and the fuel are the Captain's rebuild in progress. The ship stays paused at Nauvis.
+
+Nauvis rocket parts (order: "fix the rocket bottleneck"). Cause: the six sulfuric acid plants at (-235..-215,-238) had no iron plate. The
+plate was meant to come off train 899 (Hub Chem Yard <-> Refinery Yard) at Refinery Yard, and the train carries none; a second inserter at
+(-212.5,-232.5) picked from an empty tile. The same train takes the acid to the processing-unit row at Hub Chem Yard, so no acid meant no
+processing units and no rocket parts. Fix: a requester chest for 400 iron plate on that empty tile (Nauvis holds 1.19 million plates).
+- Before: processing units 209 a minute (hour average), 14 of 15 machines short of acid, network stock 0, five silos short of ingredients.
+- After: 1,000 a minute, 13 of 15 machines working, seven of eight silos holding a finished rocket, launch queue from 47 to 17.
+- Next limit: low density structure, 222 a minute made against 528 used when every silo builds, 47,800 in stock. Acid has no tank at the
+  plants (they stop at 200 each while the train is away); the far two plants are short of sulfur on the shared belt.
