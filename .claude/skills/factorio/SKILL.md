@@ -79,6 +79,12 @@ Your memory of Factorio can be wrong for this version. `reference/` is dumped fr
 - **Drills must sit on one ore only**, or they output a mix. `Plan.drill` refuses mixed tiles.
 - With no undergrounds, plan the order of lines around the hub first so nothing has to cross.
 
+## Working rules for designs (approved by the Captain, 2026-11-20)
+- Designs are blueprints: `scripts/design_library.py export NAME SURFACE X0 Y0 X1 Y1` puts a labelled blueprint in the "Design library" steel chest on Nauvis at (-367,-187) and the string in `designs/NAME-vN.txt` (index `designs/README.md`). Export after building or changing any standard unit.
+- Improve the blueprint, not the map: for a changed layout clear the whole footprint, then lay the new ghosts for the robots.
+- Lay grids and lines as tiled blueprints. Use map tags as place names (an export tags its place).
+- Every timed script has a row in `docs/timed-scripts.md` with its purpose and when it can be retired; add the row in the same change.
+
 ## How to run an order
 1. `game_overview`, then look at what the order touches. Read before you build.
 2. Say the plan in a sentence or two if it's big or the choice is genuinely the Captain's. Otherwise go ahead.
