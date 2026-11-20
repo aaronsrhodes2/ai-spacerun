@@ -242,3 +242,5 @@ Perimeter cover (the Captain: "protection, though not as much, around the entire
   Guns refilled from its own hub (80 firearm magazines, moved by script). Its rescue request asks for foundation from platforms at
   Vulcanus and none there holds any: Nauvis-Vulcanus 1 now carries 100 from Nauvis (section `rescue-carry-7`). When the deck is back,
   revive the 17 legendary ghosts by script (free rebuild) and unpause. Save before: `pre-nv3-shuttle-mend`.
+Later the same night: the foundation arrived hub to hub (100), but a paused hub lays no tiles: 40 tiles laid by script and paid from its
+hub, 17 ghosts revived, 14 guns loaded, oxidizer plant back (about 5,000 a minute). Unpaused at 58,000 oxidizer; the carry section is removed.
