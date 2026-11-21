@@ -1,0 +1,20 @@
+{
+ "tick": 84794166,
+ "at": "gleba",
+ "kills": {
+  "small-metallic-asteroid": 75183,
+  "medium-metallic-asteroid": 25287,
+  "small-carbonic-asteroid": 78078,
+  "medium-carbonic-asteroid": 26226,
+  "small-oxide-asteroid": 23228,
+  "medium-oxide-asteroid": 7812
+ },
+ "used": {
+  "explosive-rocket": 5630,
+  "rocket": 20534,
+  "piercing-rounds-magazine": 91365,
+  "uranium-rounds-magazine": 6307,
+  "firearm-magazine": 106954,
+  "railgun-ammo": 29
+ }
+}
