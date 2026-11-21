@@ -27,7 +27,7 @@ from _game import tools
 
 L = tools["run_lua"]
 NL = "string.char(10)"
-SHIPS = {"Fulgora-Aquilo 5 Shuttle": "fulgora", "Gleba-Aquilo 1 Shuttle": "gleba"}   # ship 5 added 2026-11-16: it sat at 1,172 rockets, unserved
+SHIPS = {"Gleba-Aquilo 1 Shuttle": "gleba"}   # Fulgora-Aquilo 5 was lost 2026-11-19 and removed here 2026-11-21 (its absence raised an error every 5th autopilot cycle)
 SHIP = "Fulgora-Aquilo 5"           # the ship that carries kits (ship 4, platform 36, no longer exists: found 2026-11-16, the kit route was dead)
 IDX = 39
 GHOST_SEC, GHOST_DROP = "aq-ghost-%d" % IDX, "aq-ghostdrop-%d" % IDX
@@ -35,7 +35,7 @@ SHIP_OWN = {"iron-ore", "carbon", "explosive-rocket", "rocket", "uranium-rounds-
 ROCKET_KG = 1000
 ROCKET_TARGET, MAG_TARGET = 5600, 4000      # the Captain: depart only with a 5,000-rocket buffer (a first leg burns ~3,800); ship 5 carries 3,500+ mags
 CONCRETE_PER_CRAFT = 10        # 5 stone-brick + 1 iron-ore + 100 water -> 10 concrete
-FIND = "local p for _,q in pairs(game.forces.player.platforms) do if q.name:find('%s',1,true) then p=q end end " % SHIP
+FIND = "local p for _,q in pairs(game.forces.player.platforms) do if q.name:find('%s',1,true) then p=q end end if not p then rcon.print('no kit ship named %s (lost or renamed): nothing to do') return end " % (SHIP, SHIP)
 
 
 def lua(code):

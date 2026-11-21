@@ -48,7 +48,7 @@ SURF = "platform-1"
 TARGETS = {"metallic-asteroid-chunk": 200, "carbonic-asteroid-chunk": 150, "oxide-asteroid-chunk": 400}
 # The wire sees only plain belts: what rides in the 38 underground belts is not counted, and the true number on the loop is about
 # 1.5 times the reading (measured: oxide read 972, counted 1,515). The loop jams near 2,000 true, so the readings must stay under about 1,000.
-CAPS = {"carbon": 1500, "ice": 10000, "iron-plate": 3000}    # ice is the reserve to hold (50 ice a slot is 5.5 oxide chunks a slot; a chunk takes a slot of its own); carbon and plates are plentiful
+CAPS = {"carbon": 1500, "ice": 25000, "iron-plate": 3000}    # ice is the reserve to hold (50 ice a slot is 5.5 oxide chunks a slot; a chunk takes a slot of its own); carbon and plates are plentiful
 RESERVE = 200               # reprocessing goes on until the loop holds the oxide target plus this many oxide chunks
 FLOOR = {"iron-plate": 2000, "carbon": 300}       # carbon has first call anyway: the four carbon crushers stand first on the carbonic stretch
 KEEP = (-44, -38, -32, -26)  # metallic crushers (centre x) that stay on crushing

@@ -351,3 +351,19 @@ dumped its works' surplus on the Vulcanus pad, and every `ghost_carriers.py` row
 Fixed: `pad_drain.py SURFACE --target 700 --apply` (stock moved into the planet's storage chests, nothing lost: Vulcanus 811 free, Gleba 891 free);
 the `rescue 33` section removed; `ghost_carriers.py` now writes min only (no max, nothing trashed), all 14 ship sections rewritten.
 Checked after two minutes: nothing arriving on the Vulcanus pad. Save before: `pre-pad-drain`. Next ranker top: 11 (Gleba Wheel coal synthesis short of carbon).
+
+## 2026-11-21 (midday): factory stability pass ("White science seems to be broken")
+White Science (platform-1, paused at Nauvis) made 0 space science: hub iron plate 0, carbon 0, ice 10,003 = its own cap, 12 oxide crushers at full output, the
+loop glutted with 2,458 oxide chunks, every returned chunk stuck. The same deadlock as 2026-11-14, started by the ice cap: oxide crushing stops at the
+cap, reprocessing keeps adding oxide chunks, no crusher can hand back a chunk, plates and carbon stop, science stops, so nothing ever uses the ice.
+Fix: `white_science.py` CAPS ice 10,000 -> 25,000 (`config` applied) and `unjam`; the hub trash accepts only 500 ice (10 slots), so it is no way to void. Result after
+a minute: 12 of 12 assemblers working, 477 packs in the last minute (design rate about 472), hub 805 packs. Save before: `pre-white-science-unjam`.
+Open: the cap is a constant that can bind again once the hub holds 25,000 ice if science stops for another reason; a real sink for surplus ice is still missing.
+Autopilot (read-only audit by a helper): running since 2026-11-20 15:06, healthy; the one step that failed every 5th cycle (384 times since Nov 11) was
+`aquilo_build_logistics` looking for the lost Fulgora-Aquilo 5: removed from its ship list, a missing kit ship is now a clean message, autopilot restarted 11:51.
+Audit findings (helpers, read-only): Nauvis: 3 boilers at (-216,-210..-204) with no fuel (their coal never reaches them; 18 coal chests full at (-611..-604,-319/-315));
+18 assemblers and 2 chemical plants with no recipe in 5 clusters (leftover slots); 19 backed-up productivity-module assemblers (stock, not a fault); 10 Nauvis labs
+missing packs by design (all labs are on Gleba). Other planets: Fulgora's 3,892 foundation and 145 turbo belt ghosts wait on carried goods (lithium, cold barrels,
+tungsten, carbon fiber) and the Vulcanus turbo unit; Aquilo has 106 tile ghosts outside roboport range at x 111, 4 chemical plants with no recipe at (34..47,16..17),
+and pad shortfalls (battery 200, logistic robot 140, superconductor 100) with no carrier; Gleba is short a biochamber, spoilage (29,847 asked from Nauvis, unwanted),
+agricultural packs. Heating towers and reactors reported "no fuel" sit at 840 to 1,000 degrees: false alarms. Gleba-Aquilo 1 waits at Gleba for 400 carbon fiber and 40,000 oxidizer (18,850 now).
