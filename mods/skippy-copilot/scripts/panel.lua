@@ -21,6 +21,18 @@ function P.init()
   storage.talk_next = storage.talk_next or 1
 end
 
+-- The game's name (the Captain, 2026-11-21): who started it and its map seed, such as "aaronsrhodes-3141592", made once
+-- and kept. The panel's title shows it, and the bridge and purple file this game's talk, logs and plans under it, so
+-- one game is never taken for another.
+function P.name()
+  if storage.game_name then return storage.game_name end
+  local first = game.players[1]
+  if not first then return nil end                -- before anyone has joined, the game has no creator yet
+  local s = game.surfaces.nauvis or game.surfaces[1]
+  storage.game_name = first.name .. "-" .. tostring(s and s.map_gen_settings.seed or 0)
+  return storage.game_name
+end
+
 -- One line of the conversation, as the panel shows it. kind: player, panel, voice, skippy, purple, game.
 function P.add(kind, who, text)
   P.init()
@@ -45,6 +57,8 @@ local function status(frame)
   local st = storage.state or { state = "idle", note = "" }
   local connected = storage.last_call_tick ~= nil and game.tick - storage.last_call_tick <= 60 * 30
   local label = frame.skippy_status
+  label.style.single_line = false                -- the whole line, wrapped, never cut mid-word (found live 2026-11-21)
+  label.style.maximal_width = WIDTH - 24
   if connected then
     label.caption = "Skippy is " .. (STATE_TEXT[st.state] or st.state) .. (((st.note or "") ~= "") and (": " .. st.note) or "")
     label.style.font_color = STATE_COLOUR[st.state] or STATE_COLOUR.idle
@@ -66,6 +80,8 @@ local function draw(player)
     box.tooltip = "Talk to Skippy: build, find, fix, explain. Enter sends. The Talk to Skippy key puts the cursor here."
     place(player, frame)
   end
+  local name = P.name()
+  frame.caption = name and ("Skippy  -  " .. name) or "Skippy"           -- the chat is named as its game is
   frame.skippy_log.style.vertically_stretchable = true
   frame.skippy_log.style.horizontally_stretchable = true
   frame.skippy_input.style.horizontally_stretchable = true
@@ -176,7 +192,7 @@ R.register {
   params = {},
   run = function()
     local s = game.surfaces.nauvis or game.surfaces[1]
-    return { seed = s and s.map_gen_settings.seed or nil, tick = game.tick, mod = script.active_mods["skippy-copilot"] }
+    return { name = P.name(), seed = s and s.map_gen_settings.seed or nil, tick = game.tick, mod = script.active_mods["skippy-copilot"] }
   end,
 }
 

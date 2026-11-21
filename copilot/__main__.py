@@ -145,7 +145,7 @@ def agent_from(env, game, tools, log_path, max_steps=12):
         if not env.get("COPILOT_WORKSPACE"):
             raise SetupError("purple Skippy needs a workspace: put COPILOT_WORKSPACE in copilot.env (the id of a project in purple's registry)")
         purple = Purple(url or PURPLE_URL, secret(env, "COPILOT_KEY"), env["COPILOT_WORKSPACE"])
-        return PurpleAgent(game, purple, Toolbox(game, tools, log_path), which=games.name_of(env))   # purple is told which game, and its door
+        return PurpleAgent(game, purple, Toolbox(game, tools, log_path), which=games.name_of(env), title=env.get("COPILOT_GAME_NAME"))   # purple is told which game, and its door
     if kind == "anthropic":
         if not url:
             raise SetupError("the anthropic source needs COPILOT_URL: the server's address, such as http://skippy-core:11434")
@@ -230,7 +230,8 @@ def main():
         ok, why = games.check(game, which)
         if not ok:
             raise SetupError(why)
-        print("game: %s (%s)" % (which, why), flush=True)
+        env["COPILOT_GAME_NAME"] = games.title(game) or ""             # the save's own name, as the panel shows it
+        print("game: %s %s(%s)" % (which, (env["COPILOT_GAME_NAME"] + " ") if env["COPILOT_GAME_NAME"] else "", why), flush=True)
         env, chosen = from_game(env, game)
         if chosen:
             print("the AI set in the game: %s, model %s" % (env["COPILOT_URL"], env["COPILOT_MODEL"]), flush=True)
@@ -239,7 +240,7 @@ def main():
             game = door.wrap(game)
         logs = pathlib.Path(env.get("COPILOT_LOG_DIR", "runs"))
         logs.mkdir(exist_ok=True)
-        tools = LocalTools(game, plan_store=games.plan_file(logs, which))         # plans per game, never shared
+        tools = LocalTools(game, plan_store=games.plan_file(logs, which, env["COPILOT_GAME_NAME"]))   # plans per game, never shared
         stamp = time.strftime("%Y%m%d-%H%M%S")
         agent = agent_from(env, game, tools, logs / (stamp + ".jsonl"))
         quick = quick_from(env, game, tools, logs / (stamp + "-quick.jsonl"))

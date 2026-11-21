@@ -13,6 +13,22 @@ MEMORY_CHARS = 500                                                  # of each si
 MAX_RESULT = 6000                                                   # characters of one tool result shown to the model
 
 
+NEWS = "News from the game: "
+
+
+def light_note(text, limit=60):
+    """The few words the working light shows beside 'thinking' (found live 2026-11-21: the Captain could not tell what
+    'News from the game: an obvious bottlenec' meant). News the bridge brings up on its own reads as what Skippy noticed;
+    a player's line reads as itself; either is cut at a word, never mid-word."""
+    if text.startswith(NEWS):
+        text = "noticed " + text[len(NEWS):].split(". ")[0].rstrip(".")
+    text = " ".join(text.split())
+    if len(text) <= limit:
+        return text
+    cut = text[:limit].rsplit(" ", 1)[0]
+    return cut + "..."
+
+
 class Agent:
     """groups True: the model carries the core tools and opens a group when a turn needs it (for small models);
     False: every tool, every step."""
@@ -79,7 +95,7 @@ class Agent:
         stats = {"steps": 0, "calls": 0, "misses": 0, "tokens_in": 0, "tokens_out": 0}
         self.log(event="request", who=who, text=text)
         if light:
-            self.game.call("set_state", {"state": "thinking", "note": text[:40]})
+            self.game.call("set_state", {"state": "thinking", "note": light_note(text)})
         alert_text, _ = self.alerts()                   # every turn starts from what the game itself is warning about
         messages = [{"role": "system", "content": PROMPT + self.remembered()}, {"role": "user", "content": text + ((chr(10) * 2 + alert_text) if alert_text else "")}]
         answer, seen, opened = None, {}, set()          # groups open for this turn only: each turn starts small

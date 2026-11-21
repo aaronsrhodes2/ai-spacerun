@@ -10,7 +10,7 @@ long jobs: a run takes seconds to minutes and it does one at a time, so as the s
 turns a plain model source suits better, with purple called for a task by /purple in the game (copilot/loop.py)."""
 import time
 
-from .agent import PROMPT
+from .agent import PROMPT, light_note
 from .purple_client import DEFAULT_URL, PurpleClient, PurpleError
 
 
@@ -60,12 +60,13 @@ GAME = ("This turn is about the {name} game: {about}. Its tools are the {server}
 class PurpleAgent:
     """Stands where the bridge's own Agent stands, with purple Skippy doing the thinking and the tool calls."""
 
-    def __init__(self, game, purple, toolbox, conv=None, which="live"):
+    def __init__(self, game, purple, toolbox, conv=None, which="live", title=None):
         from .games import ABOUT, SERVER
         self.game, self.purple, self.toolbox = game, purple, toolbox
-        self.which, self.server = which, SERVER[which]
-        self.game_line = GAME.format(name=which, about=ABOUT[which], server=self.server)
-        self.conv = conv or ("factorio-%s-" % which + time.strftime("%Y%m%d-%H%M%S"))     # one game's talk never continues in the other's
+        self.which, self.server, self.title = which, SERVER[which], title or None
+        named = ("%s (%s)" % (which, title)) if self.title else which          # the save's own name, as its panel shows it
+        self.game_line = GAME.format(name=named, about=ABOUT[which], server=self.server)
+        self.conv = conv or ("factorio-%s-" % (self.title or which) + time.strftime("%Y%m%d-%H%M%S"))   # one game's talk never continues in another's
         self.skill_sent = False                         # purple may not see .claude/skills here, so the first turn carries the skill itself
         self.model = type("M", (), {"model": "purple Skippy in workspace '%s'" % purple.workspace})()
         self.tools = toolbox.offered
@@ -91,7 +92,7 @@ class PurpleAgent:
         stats = {"steps": 1, "calls": 0, "misses": 0, "tokens_in": 0, "tokens_out": 0}
         self.log(event="request", who=who, text=text)
         if light:
-            self.game.call("set_state", {"state": "thinking", "note": text[:40]})
+            self.game.call("set_state", {"state": "thinking", "note": light_note(text)})
         alert_text, _ = self.alerts()
         answer, outcome = None, "answered"
         try:

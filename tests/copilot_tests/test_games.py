@@ -84,6 +84,36 @@ def test_purple_is_told_which_game_and_which_door_and_talks_apart():
     assert "the skippy-copilot MCP server" in sent[-1][0] and "skippy-copilot-test" not in sent[-1][0] and sent[-1][1].startswith("factorio-live-")
 
 
+def test_a_game_is_named_by_its_creator_and_seed_in_the_panel_and_the_bridge(tmp_path):
+    """The Captain, 2026-11-21: the save and its chat share one name, made from who started the game and its seed."""
+    mod = LuaMod()
+    mod.run("game.surfaces.nauvis.map_gen_settings.seed = 3141592")
+    g = LuaGame(mod)
+    assert games.title(g) is None                                                 # nobody has joined: no creator yet
+    mod.run("fake.add_player('aaronsrhodes', 0, 0) fake.add_player('guest', 1, 1)")
+    assert games.title(g) == "aaronsrhodes-3141592"
+    assert mod.lua.eval("game.players[2].gui.screen.skippy_panel.caption") == "Skippy  -  aaronsrhodes-3141592"
+    assert games.plan_file(tmp_path, "live", "aaronsrhodes-3141592").name == "plans-aaronsrhodes-3141592.json"
+    sent = []
+
+    class Purple:
+        workspace = "f-ai-factorio"
+
+        def ask(self, message, conv):
+            sent.append((message, conv))
+            return {"text": "done", "steps": 0, "ok": True, "error": None}
+
+    PurpleAgent(g, Purple(), Toolbox(g, LocalTools(g)), which="live", title="aaronsrhodes-3141592").handle("hi", light=False)
+    assert "the live (aaronsrhodes-3141592) game" in sent[-1][0] and sent[-1][1].startswith("factorio-aaronsrhodes-3141592-")
+
+
+def test_the_light_says_plainly_what_skippy_is_doing():
+    from copilot.agent import light_note
+    assert light_note("News from the game: an obvious bottleneck. 4 machines are starved") == "noticed an obvious bottleneck"
+    assert light_note("run the ranker and fix the worst bottleneck in the north smelting block please") == "run the ranker and fix the worst bottleneck in the north..."
+    assert light_note("where is iron?") == "where is iron?"
+
+
 def test_the_mcp_config_has_one_door_per_game():
     cfg = json.loads((games.pathlib.Path(__file__).resolve().parents[2] / ".mcp.json").read_text(encoding="utf-8"))["mcpServers"]
     assert cfg["skippy-copilot"]["env"]["COPILOT_GAME"] == "live" and cfg["skippy-copilot-test"]["env"]["COPILOT_GAME"] == "test"

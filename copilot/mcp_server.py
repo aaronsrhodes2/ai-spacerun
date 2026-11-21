@@ -12,7 +12,7 @@ import pathlib
 import sys
 import time
 
-from .games import SERVER, check, name_of, plan_file
+from .games import SERVER, check, name_of, plan_file, title
 from .models import schema
 from .toolbox import Toolbox
 
@@ -30,10 +30,10 @@ def reply(msg_id, result=None, error=None):
 
 
 class Server:
-    def __init__(self, toolbox, which="live", refusal=None):
+    def __init__(self, toolbox, which="live", refusal=None, title=None):
         """which: the game this server is the door to (copilot/games.py); refusal: why it must not be used (the map that
         answered is the other game), said on every call instead of calling."""
-        self.toolbox, self.which, self.refusal = toolbox, which, refusal
+        self.toolbox, self.which, self.refusal, self.title = toolbox, which, refusal, title
 
     def tools(self):
         out = []
@@ -62,6 +62,8 @@ class Server:
             else:
                 result = self.toolbox.call(name, args)
                 result["game"] = self.which                          # every answer says which game it came from
+                if self.title:
+                    result["game_name"] = self.title
             self.toolbox.log(event="tool", step=0, name=name, args=args, ok=bool(result.get("ok")), error=result.get("error"))
             text = json.dumps(result)
             if len(text) > MAX_RESULT:
@@ -94,13 +96,14 @@ def main():
     ok, why = check(game, which)
     logs = pathlib.Path(env.get("COPILOT_LOG_DIR", "runs"))
     logs.mkdir(exist_ok=True)
-    local = LocalTools(game, plan_store=plan_file(logs, which))          # plans per game, never shared
+    name = title(game)
+    local = LocalTools(game, plan_store=plan_file(logs, which, name))    # plans per game, never shared
     toolbox = Toolbox(game, local, logs / ("mcp-%s-" % which + time.strftime("%Y%m%d-%H%M%S") + ".jsonl"))
 
     def write(text):
         sys.stdout.write(text + "\n")
         sys.stdout.flush()
-    serve(Server(toolbox, which, None if ok else why), sys.stdin, write)
+    serve(Server(toolbox, which, None if ok else why, name), sys.stdin, write)
 
 
 if __name__ == "__main__":

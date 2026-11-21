@@ -49,6 +49,17 @@ def check(game, name):
     return True, "%s game, map seed %s" % (name, seed)
 
 
-def plan_file(logs, name):
-    """Plans are kept per game, so a plan made on one map is never built on the other."""
+def title(game):
+    """The game's own name, from the save (the player who started it and its map seed, such as 'aaronsrhodes-3141592';
+    the Captain, 2026-11-21), or None from a mod too old to say it. The panel's title shows the same name."""
+    r = game.call("game_info")
+    name = (r.get("result") or {}).get("name") if r.get("ok") else None
+    return name if isinstance(name, str) and name else None
+
+
+def plan_file(logs, name, title=None):
+    """Plans are kept per game, so a plan made on one map is never built on the other; by the game's own name when it
+    has one."""
+    if title:
+        return pathlib.Path(logs) / ("plans-%s.json" % "".join(c if c.isalnum() or c in "-_" else "_" for c in title))
     return pathlib.Path(logs) / ("plans.json" if name == "live" else "plans-%s.json" % name)
