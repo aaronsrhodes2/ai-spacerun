@@ -18,6 +18,25 @@ data:extend {
     default_value = false,
     order = "a2",
   },
+  -- The AI the bridge talks to (the Captain, 2026-11-21: "a configurable ollama url:port, and connect automatically").
+  -- The game cannot open connections itself; the bridge on the player's computer reads these and connects, and follows
+  -- a change within a minute. Empty: the bridge's own setting (copilot/copilot.env).
+  {
+    type = "string-setting",
+    name = "skippy-ai-url",
+    setting_type = "runtime-global",
+    default_value = "",
+    allow_blank = true,
+    order = "a3",
+  },
+  {
+    type = "string-setting",
+    name = "skippy-ai-model",
+    setting_type = "runtime-global",
+    default_value = "qwen3:8b",
+    allow_blank = true,
+    order = "a4",
+  },
 }
 
 -- One switch for every allowance (skippy_allowances.lua), all on by default: the rules the mod deliberately relaxes.

@@ -89,4 +89,22 @@ def test_panel_type_drives_the_same_path_and_the_bridge_answers_in_the_panel(mod
 
 def test_the_model_is_not_offered_the_panel_tools():
     from copilot.toolbox import BRIDGE_ONLY
-    assert {"panel_type", "panel_read"} <= BRIDGE_ONLY
+    assert {"panel_type", "panel_read", "bridge_settings"} <= BRIDGE_ONLY
+
+
+def test_not_connected_says_it_joins_by_itself(mod):
+    assert "joins by itself" in mod.lua.eval(panel(mod) + ".skippy_status.caption")
+
+
+def test_the_ai_set_in_the_game_is_what_the_bridge_uses(mod):
+    """The Captain, 2026-11-21: a configurable Ollama address in the game, and the bridge connects to it by itself."""
+    from copilot.__main__ import from_game
+    game = LuaGame(mod)
+    env = {"COPILOT_SOURCE": "purple", "COPILOT_QUICK_URL": "http://core"}
+    assert from_game(env, game) == (env, None)                                  # nothing set: the bridge's own source
+    mod.run("settings.global['skippy-ai-url'] = { value = 'localhost:11434' } settings.global['skippy-ai-model'] = { value = 'qwen3:14b' }")
+    got, chosen = from_game(env, game)
+    assert (got["COPILOT_SOURCE"], got["COPILOT_URL"], got["COPILOT_MODEL"], got["COPILOT_QUICK_URL"]) == ("ollama", "http://localhost:11434", "qwen3:14b", "")
+    assert chosen == ("localhost:11434", "qwen3:14b") and env["COPILOT_SOURCE"] == "purple"          # the env passed in is untouched
+    mod.run("settings.global['skippy-ai-model'] = { value = '' }")
+    assert from_game(env, game)[0]["COPILOT_MODEL"] == "qwen3:8b"

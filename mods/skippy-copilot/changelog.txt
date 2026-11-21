@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.21.1
+Date: 2026-11-21
+  Features:
+    - Mod settings > Map > AI address (Ollama) and AI model: the Skippy bridge on the player's computer reads them,
+      connects to that Ollama by itself, and follows a change within a minute. Empty: the bridge's own setting.
+      bridge_settings is the bridge's tool for it.
+    - The panel says the bridge joins by itself while it is not connected, instead of asking for a command.
+---------------------------------------------------------------------------------------------------
 Version: 0.21.0
 Date: 2026-11-21
   Features:

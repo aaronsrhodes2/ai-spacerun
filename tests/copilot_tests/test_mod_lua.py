@@ -21,7 +21,7 @@ def test_the_tool_list_describes_every_tool(mod):
     tools = mod.result("tools")
     names = [t["name"] for t in tools]
     assert {"lookup", "search", "map", "tile", "find_free", "diagnose", "bottlenecks", "alerts", "player", "design_note", "events_read",
-            "reveal_map", "chat_read", "say", "set_state", "panel_type", "panel_read", "occupancy", "build", "frames",
+            "reveal_map", "chat_read", "say", "set_state", "panel_type", "panel_read", "bridge_settings", "occupancy", "build", "frames",
             "spiders", "spider_go", "spider_tend", "spider_tend_step",
             "avatar", "avatar_walk", "avatar_mine", "avatar_stop", "avatar_craft", "avatar_carry", "set_mode", "lock_mode", "avatar_travel", "progress", "science", "run_stats",
             "research_available", "queue_research", "find_resources", "find_placement", "remove", "set_recipe", "goal_state", "surplus", "footprint", "utilisation", "hear", "allowances", "set_allowance", "ghost_needs", "ghost_requests",
@@ -34,7 +34,7 @@ def test_the_tool_list_describes_every_tool(mod):
 
 
 def test_a_bare_command_lists_the_tools_too(mod):
-    assert mod.call("")["ok"] and len(mod.call("")["result"]) == 68
+    assert mod.call("")["ok"] and len(mod.call("")["result"]) == 69
 
 
 def test_bad_calls_are_answered_with_what_would_have_been_right(mod):

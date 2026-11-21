@@ -79,7 +79,14 @@ export COPILOT_QUICK_URL= COPILOT_PURPLE_URL=off COPILOT_VOICE_PORT=off COPILOT_
 python scripts/modcheck.py > "$OUT/modcheck.txt" 2>&1; note "modcheck: exit $? ($(grep -c '^FAIL' "$OUT/modcheck.txt") failed)"
 python scripts/nightcheck.py > "$OUT/nightcheck.txt" 2>&1; note "nightcheck: exit $? ($(grep -c '^FAIL' "$OUT/nightcheck.txt") failed)"
 python -m copilot --check > "$OUT/setup-check.txt" 2>&1; note "setup check: exit $?"
+# purple's game tools read copilot/copilot.env, not this script's settings: when that points at the live game, a leg
+# would build in the Captain's real game, so it is skipped (found 2026-11-21, when the live bridge started)
+LIVE_PORT=$(grep -m1 '^COPILOT_RCON_PORT=' copilot/copilot.env | cut -d= -f2 | tr -d '\r ')
+if [ "${LIVE_PORT:-27116}" != "27116" ]; then
+  note "first leg skipped: copilot.env points purple's game tools at port $LIVE_PORT (the live game), not the test server"
+else
 timeout 10800 python -m copilot.leg copilot/legs/first.txt > "$OUT/leg.txt" 2>&1; note "first leg: exit $? ($(tail -n 30 "$OUT/leg.txt" | grep -m1 -i 'leg-' || echo 'no score line'))"
+fi
 [ -f "$OUT/report.html" ] && note "the run page, a picture per turn: $OUT/report.html ($(ls "$OUT"/turn-*.png 2>/dev/null | wc -l) pictures)"
 phase "after the leg"
 [ "${MODSERVER_HOST:-skippy-core}" != "local" ] && note "skippy-core memory available after the leg: $(core_mem) MiB"

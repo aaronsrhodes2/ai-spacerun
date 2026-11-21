@@ -49,7 +49,8 @@ local function status(frame)
     label.caption = "Skippy is " .. (STATE_TEXT[st.state] or st.state) .. (((st.note or "") ~= "") and (": " .. st.note) or "")
     label.style.font_color = STATE_COLOUR[st.state] or STATE_COLOUR.idle
   else
-    label.caption = "Skippy is not connected (outside the game: python -m copilot --check)"
+    label.caption = "Skippy is connecting: the bridge on your computer joins by itself"
+    label.tooltip = "The Skippy bridge starts with your computer and joins the game within a minute. If it does not, run  python -m copilot --check  outside the game: it says what is missing. Its AI is set in Mod settings > Map > AI address."
     label.style.font_color = STATE_COLOUR.idle
   end
 end
@@ -153,6 +154,19 @@ R.register {
     local last = storage.chat[#storage.chat]
     if not last or last.by ~= "panel" or last.text ~= string.match(a.text, "^%s*(.-)%s*$") then return { error = "there was nothing typed" } end
     return { id = last.id, player = p.name }
+  end,
+}
+
+R.register {
+  name = "bridge_settings",
+  description = "For the bridge: the AI address and model the player set in the game (Mod settings > Map). Empty address: the bridge's own.",
+  params = {},
+  run = function()
+    local function get(name)
+      local s = settings.global[name]
+      return s and s.value or ""
+    end
+    return { ai_url = get("skippy-ai-url"), ai_model = get("skippy-ai-model") }
   end,
 }
 

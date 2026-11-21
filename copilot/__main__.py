@@ -192,6 +192,26 @@ def voice_door(env, out=print):
         return None
 
 
+def from_game(env, game):
+    """The AI address and model the player set in the game (Mod settings > Map), over copilot.env's own source (the
+    Captain, 2026-11-21: "a configurable ollama url:port, and connect automatically"). Returns (env, what was read): with
+    no address set in the game, env is unchanged."""
+    r = game.call("bridge_settings")
+    got = (r.get("result") or {}) if r.get("ok") else {}
+    url, model = (got.get("ai_url") or "").strip(), (got.get("ai_model") or "").strip()
+    if not url:
+        return env, None
+    env = dict(env)
+    env["COPILOT_SOURCE"] = "ollama"
+    env["COPILOT_URL"] = url if "://" in url else "http://" + url
+    env["COPILOT_MODEL"] = model or "qwen3:8b"
+    env["COPILOT_QUICK_URL"] = ""                       # one source: the one the player chose
+    return env, (url, model)
+
+
+SETTINGS_EVERY = 30                                       # steps between looks at the game's AI setting (about a minute)
+
+
 def main():
     try:
         env = settings()
@@ -203,6 +223,9 @@ def main():
         sys.exit(0 if run_check(env) else 1)
     try:
         game = game_from(env)
+        env, chosen = from_game(env, game)
+        if chosen:
+            print("the AI set in the game: %s, model %s" % (env["COPILOT_URL"], env["COPILOT_MODEL"]), flush=True)
         door = voice_door(env)
         if door:
             game = door.wrap(game)
@@ -228,8 +251,13 @@ def main():
     bridge = Bridge(game, agent, tools, stall_hours=float(env.get("COPILOT_STALL_HOURS", "2")), goal_pause=float(env.get("COPILOT_GOAL_PAUSE", "20")),
                     out=lambda *a: print(*a, flush=True), voice=door, purple=helper, purple_project=env.get("COPILOT_PURPLE_PROJECT", "f-ai-factorio"))
     print("listening: %s, %d tools" % (agent.model.model, len(agent.tools)), flush=True)
+    steps = 0
     while True:
         bridge.step()
+        steps += 1
+        if steps % SETTINGS_EVERY == 0 and from_game(settings(), game)[1] != chosen:
+            print("the AI setting in the game changed: starting again with it", flush=True)
+            sys.exit(3)                                   # scripts/live_bridge.sh starts it again within seconds
         time.sleep(2)
 
 
