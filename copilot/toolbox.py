@@ -5,7 +5,7 @@ import json
 import time
 
 BRIDGE_ONLY = {"chat_read", "say", "set_state", "events_read", "goal_state", "hear", "cron_report",   # cron_report: for scripts
-               "panel_type", "panel_read", "bridge_settings", "game_info"}    # panel_*: tests type as the player; the AI set in the game; which map      # the bridge runs the channel; the model gets the rest
+               "panel_type", "panel_read", "bridge_settings", "game_info", "voice_state"}    # panel_*: tests type as the player; the AI set in the game; which map      # the bridge runs the channel; the model gets the rest
 PLAN_ONLY = {"build", "occupancy", "frames", "avatar_walk", "avatar_mine", "avatar_travel", "progress", "lock_mode",
              "research_available", "spider_tend_step"}                          # spider_tend_step: run by spider_tend's timer                                              # reached through the planning tools, never called raw
 

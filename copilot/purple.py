@@ -41,8 +41,9 @@ class Purple:
 
 TURN = ("This comes from a player inside a running Factorio game, where you are Skippy. You decide what kind of request it is "
         "(the Captain, 2026-11-13: purple Skippy is the router).\n"
-        "Your skill for this is factorio-copilot: load it first if your skills offer it, and ignore every other skill here (the "
-        "'factorio' skill is the operator's god-mode helper, not for turns from the game; the rest are for other work).\n"
+        "Your skill for this is factorio-copilot: load it first if your skills offer it. The 'factorio' skill is the operator's "
+        "manual (the server, the backend tools, what is known about the API): read it when you use those tools. Ignore every other "
+        "skill here; they are for other work.\n"
         "- About the game (what to build, what is wrong, research, a goal): follow the factorio-copilot skill and use only the tools of the "
         "{server} MCP server to see and change the game. Do not edit files or run commands for this, git included: "
         "other sessions work in this folder, and their changes are not yours to commit.\n"
@@ -51,6 +52,19 @@ TURN = ("This comes from a player inside a running Factorio game, where you are 
         "stop the game server, and do not start a test server or a model on this computer, unless asked for exactly that.\n"
         "- If you cannot tell which is meant, ask the player in one sentence before changing anything.\n"
         "Answer the player in at most three short sentences of plain text, and say which of the two you did.\n\n%s")
+
+
+# In purple's play workspace (copilot/play_workspace.py: the skill and the doors, nothing else) there is no code to change, so a
+# development request is sent to /purple, which works in the repository.
+PLAY_WORKSPACE = "f-factorio-play"
+DEV_HERE = TURN[TURN.index("- About the assistant itself"):TURN.index("- If you cannot tell")]
+DEV_ELSEWHERE = ("- About the assistant itself (change or fix the mod, the bridge or their tests): that is development, and it is not done "
+                 "in this workspace. Tell the player to ask for it with /purple <what to change>.\n")
+GAME_HERE = ("Do not edit files or run commands for this, git included: "
+             "other sessions work in this folder, and their changes are not yours to commit.\n")
+GAME_PLAY = ("Every tool Claude plays with is yours here as well: the factorio backend (run_lua and the rest), skippy-gateway "
+             "(speak and listen, the house, Mentat) and the operator scripts this folder's CLAUDE.md names. Edit no files and use no git.\n")
+TURN_PLAY = TURN.replace(DEV_HERE, DEV_ELSEWHERE).replace(GAME_HERE, GAME_PLAY)
 
 
 # Which game this turn is about (the Captain, 2026-11-21: the live game and the test game are separate games, never one).
@@ -98,7 +112,8 @@ class PurpleAgent:
         alert_text, _ = self.alerts()
         answer, outcome = None, "answered"
         try:
-            message = self.game_line + TURN.replace("{server}", self.server) % (text + ((chr(10) * 2 + alert_text) if alert_text else ""))
+            turn = TURN_PLAY if self.purple.workspace == PLAY_WORKSPACE else TURN
+            message = self.game_line + turn.replace("{server}", self.server) % (text + ((chr(10) * 2 + alert_text) if alert_text else ""))
             if not self.skill_sent:
                 message = "Your instructions for this game (the factorio-copilot skill):" + chr(10) * 2 + PROMPT + chr(10) * 2 + "---" + chr(10) * 2 + message
             got = self.purple.ask(message, self.conv)

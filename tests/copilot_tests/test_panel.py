@@ -120,6 +120,25 @@ def test_only_the_newest_missed_lines_are_answered_and_the_rest_are_owned_up_to(
     assert asked[-2:] == ["line 2", "line 3"]
 
 
+def test_voice_is_offered_in_the_panel_only_while_a_listener_is_attached(mod):
+    """The Captain, 2026-11-21: voice to text and text to voice are enabled in the game only when they are really there."""
+    from copilot.voice_door import VoiceDoor
+    door = VoiceDoor(port=0)
+    now = [100.0]
+    door.clock = lambda: now[0]
+    bridge = bridge_for(mod, [])
+    bridge.voice = door
+    status = panel(mod) + ".skippy_status.caption"
+    bridge.step()
+    assert "Voice on" not in mod.lua.eval(status)                                  # nobody listening yet
+    door.said_after(0, 0)                                                          # the house's ear asks what was said
+    bridge.step()
+    assert 'Voice on: say "Skippy"' in mod.lua.eval(status)
+    now[0] += 31                                                                   # the ear has gone quiet
+    bridge.step()
+    assert "Voice on" not in mod.lua.eval(status)
+
+
 def test_the_model_is_not_offered_the_panel_tools():
     from copilot.toolbox import BRIDGE_ONLY
     assert {"panel_type", "panel_read", "bridge_settings"} <= BRIDGE_ONLY

@@ -7,7 +7,9 @@ import pathlib
 
 GAMES = ("live", "test")
 TEST_SEED = 20261121                                        # scripts/modserver.sh: SEED
-TEST_RCON = {"COPILOT_RCON_HOST": "127.0.0.1", "COPILOT_RCON_PORT": "27116", "COPILOT_RCON_PASSWORD_FILE": ".testserver/rcon.pw"}
+ROOT = pathlib.Path(__file__).resolve().parents[1]           # the repository: the doors also run from purple's play workspace
+TEST_RCON = {"COPILOT_RCON_HOST": "127.0.0.1", "COPILOT_RCON_PORT": "27116",
+             "COPILOT_RCON_PASSWORD_FILE": str(ROOT / ".testserver" / "rcon.pw")}
 SERVER = {"live": "skippy-copilot", "test": "skippy-copilot-test"}          # the MCP servers in .mcp.json
 ABOUT = {"live": "the Captain's live game on skippy-games, his real factory",
          "test": "the test game on skippy-core, a small fresh map made for checks"}

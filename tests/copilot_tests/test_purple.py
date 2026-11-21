@@ -325,7 +325,7 @@ def test_on_plain_chat_purple_decides_whether_it_is_the_game_or_the_code():
     assert "You decide what kind of request it is" in TURN and "factorio-copilot skill" in TURN and "{server} MCP server" in TURN
     assert "mods/skippy-copilot, copilot/ and tests/copilot_tests" in TURN and "do not restart, reload or stop the game server" in TURN
     assert "ask the player in one sentence before changing anything" in TURN and TURN.count("%s") == 1
-    assert "load it first" in TURN and "ignore every other skill" in TURN and "'factorio' skill is the operator's" in TURN   # the Captain, 2026-11-21
+    assert "load it first" in TURN and "Ignore every other" in TURN and "'factorio' skill is the operator's" in TURN   # the Captain, 2026-11-21
 
 
 def test_the_first_turn_carries_the_skill_itself_and_later_turns_do_not_repeat_it():

@@ -38,7 +38,7 @@ def test_a_mod_too_old_to_say_its_seed_passes_only_as_live():
 
 def test_choosing_test_points_at_the_test_server_whatever_copilot_env_says():
     env = games.apply({"COPILOT_GAME": "test", "COPILOT_RCON_PORT": "27115", "COPILOT_RCON_PASSWORD": "live-secret"})
-    assert env["COPILOT_RCON_PORT"] == "27116" and env["COPILOT_RCON_PASSWORD_FILE"] == ".testserver/rcon.pw"
+    assert env["COPILOT_RCON_PORT"] == "27116" and env["COPILOT_RCON_PASSWORD_FILE"].replace("\\", "/").endswith("AI-factorio/.testserver/rcon.pw")
     assert "COPILOT_RCON_PASSWORD" not in env
     live = games.apply({"COPILOT_RCON_PORT": "27115"})
     assert live["COPILOT_RCON_PORT"] == "27115"                                  # live is the default and unchanged
@@ -112,6 +112,29 @@ def test_the_light_says_plainly_what_skippy_is_doing():
     assert light_note("News from the game: an obvious bottleneck. 4 machines are starved") == "noticed an obvious bottleneck"
     assert light_note("run the ranker and fix the worst bottleneck in the north smelting block please") == "run the ranker and fix the worst bottleneck in the north..."
     assert light_note("where is iron?") == "where is iron?"
+
+
+def test_the_play_workspace_holds_only_the_game_skill_and_the_doors(tmp_path):
+    """The Captain, 2026-11-21: purple should have the Factorio skill and ignore the rest; its game turns run in a folder that
+    holds nothing else, written from this repository."""
+    from copilot import play_workspace
+    assert play_workspace.make(tmp_path) == "f-factorio-play"
+    skills = sorted(p.parent.name for p in (tmp_path / ".claude" / "skills").glob("*/SKILL.md"))
+    assert skills == ["factorio", "factorio-copilot"]                     # the role and the operator's manual, nothing else
+    repo_skill = (play_workspace.ROOT / ".claude" / "skills" / "factorio-copilot" / "SKILL.md").read_text(encoding="utf-8")
+    assert (tmp_path / ".claude" / "skills" / "factorio-copilot" / "SKILL.md").read_text(encoding="utf-8") == repo_skill
+    doors = json.loads((tmp_path / ".mcp.json").read_text(encoding="utf-8"))["mcpServers"]
+    assert sorted(doors) == ["factorio", "skippy-copilot", "skippy-copilot-test", "skippy-gateway"]   # every tool Claude plays with
+    assert doors["skippy-copilot"]["env"]["COPILOT_GAME"] == "live" and doors["skippy-copilot-test"]["env"]["COPILOT_GAME"] == "test"
+    assert doors["factorio"]["args"] == ["-m", "bridge.factorio.mcp_server"] and doors["skippy-gateway"]["url"].endswith(":47863/mcp")
+    assert "Ignore every other skill" in (tmp_path / "CLAUDE.md").read_text(encoding="utf-8")
+
+
+def test_in_the_play_workspace_development_goes_to_slash_purple():
+    from copilot.purple import TURN, TURN_PLAY
+    assert "You may change only" in TURN and "You may change only" not in TURN_PLAY
+    assert "/purple <what to change>" in TURN_PLAY and TURN_PLAY.count("%s") == 1
+    assert "skippy-gateway" in TURN_PLAY and "Do not edit files or run commands" not in TURN_PLAY
 
 
 def test_the_mcp_config_has_one_door_per_game():

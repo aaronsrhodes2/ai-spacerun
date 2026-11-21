@@ -61,6 +61,7 @@ local function status(frame)
   label.style.maximal_width = WIDTH - 24
   if connected then
     label.caption = "Skippy is " .. (STATE_TEXT[st.state] or st.state) .. (((st.note or "") ~= "") and (": " .. st.note) or "")
+      .. (storage.voice and "   [Voice on: say \"Skippy\"]" or "")          -- only while a listener is attached (voice_state)
     label.style.font_color = STATE_COLOUR[st.state] or STATE_COLOUR.idle
   else
     label.caption = "Skippy is connecting: the bridge on your computer joins by itself"
@@ -183,6 +184,19 @@ R.register {
       return s and s.value or ""
     end
     return { ai_url = get("skippy-ai-url"), ai_model = get("skippy-ai-model") }
+  end,
+}
+
+R.register {
+  name = "voice_state",
+  description = "For the bridge: whether a listener (speech to text and Skippy's voice) is attached, so the panel offers voice only while it works.",
+  params = {
+    listening = { type = "boolean", required = true, description = "true while a listener is attached" },
+  },
+  run = function(a)
+    storage.voice = a.listening
+    P.draw_all()
+    return { voice = a.listening }
   end,
 }
 

@@ -47,6 +47,9 @@ case "${1:-start}" in
     ;;
   run)         # the keeper: the tunnel and the bridge, each brought back if it drops
     export COPILOT_GAME=live COPILOT_RCON_HOST=127.0.0.1 COPILOT_RCON_PORT=$PORT COPILOT_LOG_DIR="$OUT"   # copilot/games.py
+    # purple's game turns run in their own workspace: the game skill and the doors, nothing else (copilot/play_workspace.py)
+    COPILOT_WORKSPACE="$(python -m copilot.play_workspace 2>> "$OUT/bridge.log")" || COPILOT_WORKSPACE=f-ai-factorio
+    export COPILOT_WORKSPACE
     COPILOT_RCON_PASSWORD="$(val FACTORIO_RCON_PASSWORD)"
     export COPILOT_RCON_PASSWORD
     unset COPILOT_RCON_PASSWORD_FILE

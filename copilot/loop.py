@@ -128,6 +128,10 @@ class Bridge:
         """What the player said aloud goes into the game as a line of theirs; the chat step then answers it."""
         if self.voice is None:
             return
+        on = self.voice.listening()                             # voice is offered in the game only while a listener is attached
+        if on != getattr(self, "voice_on", None):
+            self.game.call("voice_state", {"listening": on})    # an older mod without the tool: asked once a change, no harm
+            self.voice_on = on
         for line in self.voice.take():
             r = self.game.call("hear", dict({"text": line["text"]}, **({"player": line["who"]} if line.get("who") else {})))
             if not r.get("ok"):                                 # a game that cannot take it (an older mod): answer it directly

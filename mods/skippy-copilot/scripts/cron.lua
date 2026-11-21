@@ -15,7 +15,7 @@ local MAX_JOBS = 30
 local CHECK_EVERY = 60                                     -- ticks between looks at the timetable
 local TICKS_A_MINUTE = 3600
 local NOT_ON_A_TIMER = { cron_list = true, cron_add = true, cron_change = true, cron_report = true,
-                         say = true, hear = true, panel_type = true, panel_read = true, bridge_settings = true, game_info = true, set_state = true, chat_read = true, events_read = true, goal_state = true,
+                         say = true, hear = true, panel_type = true, panel_read = true, bridge_settings = true, game_info = true, voice_state = true, set_state = true, chat_read = true, events_read = true, goal_state = true,
                          set_mode = true, lock_mode = true, set_allowance = true, avatar_walk = true, avatar_mine = true,
                          avatar_stop = true, avatar_craft = true, avatar_carry = true, avatar_travel = true }
 

@@ -22,6 +22,7 @@ Standard library only."""
 import collections
 import json
 import threading
+import time
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -56,6 +57,16 @@ class VoiceDoor:
         self.said = collections.deque(maxlen=KEEP)
         self.said_next = 1
         self.server = None
+        self.polled_at = None               # when a listener last asked what was said: voice is on while one keeps asking
+        self.clock = time.monotonic
+
+    LISTENER_GONE_S = 30.0                  # a listener asks every few seconds (SkippyTel ear.py: 5 s); this long silent, it is gone
+
+    def listening(self):
+        """Is a listener attached (the house's ear, which hears and speaks)? The Captain, 2026-11-21: voice is offered in the
+        game only while it really works."""
+        with self.lock:
+            return self.polled_at is not None and self.clock() - self.polled_at <= self.LISTENER_GONE_S
 
     # ---- the bridge's side -------------------------------------------------------------------------------------------
     def wrap(self, game):
@@ -87,6 +98,7 @@ class VoiceDoor:
     def said_after(self, after=0, wait=0.0):
         wait = max(0.0, min(float(wait or 0), MAX_WAIT))
         with self.lock:
+            self.polled_at = self.clock()
             if wait and not any(l["id"] > after for l in self.said):
                 self.lock.wait(wait)
             lines = [dict(l) for l in self.said if l["id"] > after]
