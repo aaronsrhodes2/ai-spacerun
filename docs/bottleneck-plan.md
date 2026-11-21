@@ -341,3 +341,13 @@ small and medium would need about 275 assemblers; for big and huge alone (0.5 a 
 Lessons: (1) railguns were limited to huge only, so the hundreds of big asteroids at the edge fell to rockets that do about 850 each;
 (2) too few railguns could bear on the nose, the direction every asteroid comes from at speed; (3) the run was flown at the first
 sign of trouble with no way to slow down faster than the thrusters allow; (4) the edge route has about 20 huge asteroids in sight at once.
+
+## 2026-11-21 (noon): ranker run "fix the worst bottleneck": two landing pads full
+Ranker top two: Gleba and Vulcanus landing pads 0 of 1,280 slots free ("nothing can be delivered"), score 400 each; every other finding scored 11 or less.
+This is also why requests like turbo belts and big drills looked unfulfilled: nothing could land. Contents: Vulcanus 24,044 iron ore and 33,945
+firearm magazines (plus plates, packs); Gleba 90,265 iron plates and 13,877 copper plates. Causes found: (1) a hub request with min == max TRASHES
+everything above max onto the planet: the stranded Nauvis-Vulcanus 3 shuttle's leftover `rescue 33` section (plate 2,000, ore 1,000, magazines 600 min = max)
+dumped its works' surplus on the Vulcanus pad, and every `ghost_carriers.py` row I wrote used min = max; (2) Edgerunner's plate valve dropped plates on Gleba over days.
+Fixed: `pad_drain.py SURFACE --target 700 --apply` (stock moved into the planet's storage chests, nothing lost: Vulcanus 811 free, Gleba 891 free);
+the `rescue 33` section removed; `ghost_carriers.py` now writes min only (no max, nothing trashed), all 14 ship sections rewritten.
+Checked after two minutes: nothing arriving on the Vulcanus pad. Save before: `pre-pad-drain`. Next ranker top: 11 (Gleba Wheel coal synthesis short of carbon).
