@@ -16,13 +16,15 @@ DEEP = re.compile(
     r"\b(build|place|plan|design|set ?up|make|create|fix|repair|solve|automate|expand|scale|connect|research|travel|launch|rocket|train|"
     r"platform|take over|take me|go to|clear|mine|craft|why|how (?:do|should|can|would)|should we|what should|think|carefully|thoroughly|"
     r"step by step|everything|goal|strategy|improve|optimi[sz]e|blueprint)\b", re.I)
+SYSTEM = ("game", "goal", "leg", "check")      # the bridge's own sources; anything else is a person typing
 LONG = 160                                     # characters; a long request is rarely a small one
 
 
 def pick(text, who="player"):
     """-> "quick" or "deep" for one request."""
-    if who != "player":                        # standing goals, news, research and alert prompts are the foreman's own big jobs
-        return "deep"
+    if who in SYSTEM:                          # standing goals, news, research and alert prompts are the foreman's own big jobs
+        return "deep"                          # (a typed line carries the PLAYER'S NAME as `who`: that is a player, not a system source;
+                                               #  2026-11-21 every typed line went deep and blocked the bridge on purple for minutes)
     text = (text or "").strip()
     if len(text) > LONG or DEEP.search(text):
         return "deep"
