@@ -27,14 +27,14 @@ def test_the_tool_list_describes_every_tool(mod):
             "research_available", "queue_research", "find_resources", "find_placement", "remove", "set_recipe", "goal_state", "surplus", "footprint", "utilisation", "hear", "allowances", "set_allowance", "ghost_needs", "ghost_requests",
             "places", "mark_place", "forget_place", "designs", "design_save", "design_edit", "design_export", "design_deploy",
             "design_tile", "deployments", "design_redeploy", "design_undeploy", "what_is",
-            "cron_list", "cron_add", "cron_change", "cron_report"} == set(names)
+            "cron_list", "cron_add", "cron_change", "cron_report", "dock"} == set(names)
     assert all(len(t["description"]) > 30 for t in tools)
     lookup = [t for t in tools if t["name"] == "lookup"][0]
     assert lookup["parameters"]["name"]["required"] is True and lookup["parameters"]["kind"]["required"] is False
 
 
 def test_a_bare_command_lists_the_tools_too(mod):
-    assert mod.call("")["ok"] and len(mod.call("")["result"]) == 70
+    assert mod.call("")["ok"] and len(mod.call("")["result"]) == 71
 
 
 def test_bad_calls_are_answered_with_what_would_have_been_right(mod):
