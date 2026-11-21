@@ -47,6 +47,28 @@ TRACE = ("local f=game.forces.player local item,q,planet='%s','%s','%s' local o=
          "rcon.print(helpers.table_to_json(o))")
 
 
+PADS = ("local f=game.forces.player local s=game.surfaces['%s'] local need={} for _,pad in pairs(s.find_entities_filtered{type='cargo-landing-pad'}) do local inv=pad.get_inventory(defines.inventory.cargo_landing_pad_main) "
+        "for _,pt in pairs(pad.get_logistic_point()) do if pt.mode==defines.logistic_mode.requester then for _,sec in pairs(pt.sections) do if sec.active then for k=1,sec.filters_count do local fl=sec.get_slot(k) "
+        "if fl and fl.value and (fl.min or 0)>0 then local id={name=fl.value.name,quality=fl.value.quality or 'normal'} local have=0 for _,nw in pairs(f.logistic_networks['%s'] or {}) do have=have+nw.get_item_count(id) end "
+        "local short=fl.min-have if short>0 then local k=id.name..'/'..id.quality need[k]=need[k] or {n=id.name,q=id.quality,c=0,out=0} need[k].c=math.max(need[k].c,short) end end end end end end end end "
+        "local o={} for _,v in pairs(need) do o[#o+1]=v end rcon.print(helpers.table_to_json(o))")
+
+
+def requests(planets):
+    """Every landing-pad request that is short, traced like a ghost. Prints one verdict line each."""
+    import io
+    import contextlib
+    for p in planets:
+        needs = lst(json.loads(L(PADS % (p, p))))
+        needs.sort(key=lambda n: -n["c"])
+        print(chr(10) + "== %s: %d pad requests short" % (p, len(needs)))
+        for n in needs:
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                v = trace(p, n)
+            print("  %-34s short %-7d %s" % (n["n"] + ("" if n["q"] == "normal" else "/" + n["q"]), n["c"], v))
+
+
 def lst(v):
     return v if isinstance(v, list) else []
 
@@ -93,6 +115,9 @@ def trace(planet, n):
 
 
 def main():
+    if sys.argv[1:2] == ["requests"]:
+        requests(sys.argv[2:] or ["nauvis", "vulcanus", "gleba", "fulgora", "aquilo"])
+        return
     planets = sys.argv[1:] or ["nauvis", "vulcanus", "gleba", "fulgora", "aquilo"]
     for p in planets:
         needs = json.loads(L(NEEDS % p))

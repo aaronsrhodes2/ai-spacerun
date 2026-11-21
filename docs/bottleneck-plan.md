@@ -322,3 +322,22 @@ cryo loop is not drained. The pipes flow although the tiles under them still rea
 tiles do not flow" reading was unheated pipes, not the tile. Carriers: Gleba-Aquilo 1 asks Aquilo for 400 cold barrels, the Gleba and
 Nauvis pads for 600, each Nauvis-Gleba shuttle for 100. The Nauvis cooler stays as the spare path for hot barrels.
 Save before: `pre-aquilo-filler-finish`.
+
+## 2026-11-21: Edgerunner destroyed on the first edge run (goal "solve Space Age", stage 3)
+
+Done before the run: fusion plant built on the ship (`scripts/edge_fusion.py`: reactor + 2 generators, 250 MW nameplate, cells and cold barrels
+carried from Aquilo by the hub's own requests and moved into the plant by script); trial leg Gleba -> Aquilo (30,000 km, 687 big asteroids
+killed, 0 damage, 2.9 rockets a big kill against 2.9 calculated); the pump limiter's two unwired pumps wired (they let the ship run at 103
+km/s instead of 30). Run: Aquilo -> solar system edge at 31 km/s under `scripts/edge_guard.py` (abort rule).
+What happened: within 10,000 km huge asteroids (10 to 20 in sight, among 450 to 500 big ones) hit the nose and collectors; ghosts grew from
+77 to 1,300 in five minutes. The Captain turned it back to Aquilo at 9,700 km; on the way back damage went on (4,500, 8,200, 13,900
+ghosts), gun and railgun turrets ran empty, the platform was lost near Aquilo (propellant read 0 on the last sample; the ship is gone from
+`force.platforms`). Not known: which hit started it, whether the hull split. Reload point if wanted: save `pre-edge-run` (10:13, ship intact).
+Numbers read from the game (not guesses): one railgun round does 10,000 physical x (1 + 2.8) = 38,000; a big asteroid (2,000 hp, physical
+-2,000 flat, 10%) takes 32,400, a huge one (5,000 hp, -3,000 flat, 10%) 31,500: ONE round kills either. A railgun fires every 170 ticks
+(2.8 s), range 40, 4,000 hp, 11 MJ buffer. A medium (400 hp) takes 1 round too, a small 100 hp. Rocket: about 850 a hit on big, 3 rockets a kill.
+Round recipe: 5 steel + 2 explosives + 10 copper cable, 25 s. Earlier leg: 14,500 kills in 22 minutes = 11 a second, so railgun-only for
+small and medium would need about 275 assemblers; for big and huge alone (0.5 a second on that leg, more at the edge) about 13 to 40.
+Lessons: (1) railguns were limited to huge only, so the hundreds of big asteroids at the edge fell to rockets that do about 850 each;
+(2) too few railguns could bear on the nose, the direction every asteroid comes from at speed; (3) the run was flown at the first
+sign of trouble with no way to slow down faster than the thrusters allow; (4) the edge route has about 20 huge asteroids in sight at once.
