@@ -41,6 +41,8 @@ class Purple:
 
 TURN = ("This comes from a player inside a running Factorio game, where you are Skippy. You decide what kind of request it is "
         "(the Captain, 2026-11-13: purple Skippy is the router).\n"
+        "Your skill for this is factorio-copilot: load it first if your skills offer it, and ignore every other skill here (the "
+        "'factorio' skill is the operator's god-mode helper, not for turns from the game; the rest are for other work).\n"
         "- About the game (what to build, what is wrong, research, a goal): follow the factorio-copilot skill and use only the tools of the "
         "{server} MCP server to see and change the game. Do not edit files or run commands for this, git included: "
         "other sessions work in this folder, and their changes are not yours to commit.\n"
