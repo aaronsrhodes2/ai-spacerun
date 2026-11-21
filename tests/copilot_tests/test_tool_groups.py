@@ -50,6 +50,19 @@ def test_an_unknown_group_is_answered_with_the_groups():
     assert "no group named 'magic'" in shown and "designs" in shown
 
 
+def test_list_parameters_are_arrays_for_strict_clients():
+    """Found live 2026-11-20: purple's client refused to send plan_pieces a list because the schema said object."""
+    from copilot.models import schema
+    game = LuaGame(LuaMod())
+    tools = {t["function"]["name"]: t["function"]["parameters"]["properties"] for t in schema(Toolbox(game, LocalTools(game)).offered)}
+    assert tools["plan_pieces"]["pieces"]["type"] == "array" and tools["plan_pieces"]["pieces"]["items"] == {"type": "object"}
+    assert tools["design_save"]["pieces"]["type"] == "array"
+    assert tools["design_edit"]["replace"]["type"] == "object"                      # a map stays an object
+    every = schema(game.tools())
+    progress = [t for t in every if t["function"]["name"] == "progress"][0]["function"]["parameters"]["properties"]
+    assert progress["items"]["items"] == {"type": "string"}
+
+
 def test_groups_off_offers_every_tool():
     a = agent(["hello"], groups=False)
     a.handle("hi", light=False)

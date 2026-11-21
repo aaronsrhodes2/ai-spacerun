@@ -95,7 +95,7 @@ R.register {
   name = "build",
   description = "For planning tools: place a list of pieces, each {name, x, y, direction, recipe?, type?, filter?, input_priority?, output_priority?} by its centre. With dry_run true nothing is placed and every piece is checked: known name, researched, and room on the map. Without dry_run, pieces that pass are placed and the rest are reported.",
   params = {
-    entities = { type = "table", required = true, description = "the pieces" },
+    entities = { type = "table", list = "object", required = true, description = "the pieces" },
     dry_run = { type = "boolean", default = true, description = "true to only check" },
     surface = { type = "string", description = "surface name; leave out for where the player is" },
   },

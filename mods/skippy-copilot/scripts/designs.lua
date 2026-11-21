@@ -224,7 +224,7 @@ R.register {
     name = { type = "string", required = true, description = "short and plain, such as 'smelter-row-48'" },
     description = { type = "string", description = "required for a new design" },
     note = { type = "string", description = "what this version changes" },
-    pieces = { type = "table", description = "the pieces {name, x, y, direction?, recipe?} by their centres" },
+    pieces = { type = "table", list = "object", description = "the pieces {name, x, y, direction?, recipe?} by their centres" },
     x = { type = "number", description = "or capture: the area's left column" },
     y = { type = "number", description = "its top row" },
     width = { type = "number", description = "columns, at most 200" },

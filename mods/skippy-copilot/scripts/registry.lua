@@ -13,7 +13,7 @@ end
 local function describe(spec)
   local params = {}
   for key, p in pairs(spec.params or {}) do
-    params[key] = { type = p.type, required = p.required or false, default = p.default, description = p.description }
+    params[key] = { type = p.type, required = p.required or false, default = p.default, description = p.description, list = p.list }
   end
   return { name = spec.name, description = spec.description, parameters = params }
 end

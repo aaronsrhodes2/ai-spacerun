@@ -8,8 +8,8 @@ R.register {
   name = "progress",
   description = "For the bridge: the facts milestones are tested against. Give the items and buildings to count.",
   params = {
-    items = { type = "table", description = "item names whose total production (all surfaces, all time) to report" },
-    entities = { type = "table", description = "building names to count (all surfaces)" },
+    items = { type = "table", list = "string", description = "item names whose total production (all surfaces, all time) to report" },
+    entities = { type = "table", list = "string", description = "building names to count (all surfaces)" },
   },
   run = function(a)
     local force = game.forces.player

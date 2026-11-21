@@ -14,8 +14,11 @@ FACING = {"north": 0, "east": 1, "south": 2, "west": 3}            # quarter tur
 MAX_ROUTE_WINDOW = 100
 
 
-def _param(type_, description, required=False, default=None):
-    return {"type": type_, "required": required, "default": default, "description": description}
+def _param(type_, description, required=False, default=None, list_of=None):
+    p = {"type": type_, "required": required, "default": default, "description": description}
+    if list_of:
+        p["list"] = list_of                         # a list of these: an array in the schema
+    return p
 
 
 SPECS = [
@@ -69,7 +72,7 @@ SPECS = [
                     "belt": _param("string", "belt to use", default="transport-belt")}},
     {"name": "plan_pieces",
      "description": "Plan single pieces exactly where you say: for anything no row, joint or route covers. Each piece is given by its centre (a 1 by 1 piece on tile 5,7 has its centre at 5.5, 7.5; find_placement returns centres). The pieces are checked against each other for overlap. Returns a plan_id; nothing is built until build_plan.",
-     "parameters": {"pieces": _param("table", "a list of pieces, each {name, x, y, direction?, recipe?, filter?}; direction is north, east, south or west", True)}},
+     "parameters": {"pieces": _param("table", "a list of pieces, each {name, x, y, direction?, recipe?, filter?}; direction is north, east, south or west", True, list_of="object")}},
     {"name": "research_options",
      "description": "What research could be started now, and what is running or queued. Technologies that a milestone not yet reached needs come first. Each has its packs, its cost, what it unlocks and a design note. Use it when research has stopped, to choose ONE technology to suggest to the player with the reason for it.",
      "parameters": {}},

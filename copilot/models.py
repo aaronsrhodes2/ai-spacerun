@@ -21,7 +21,10 @@ def schema(tools):
         params = t.get("parameters") or {}
         props, required = {}, []
         for key, p in (params.items() if isinstance(params, dict) else []):
-            props[key] = {"type": {"table": "object"}.get(p["type"], p["type"]), "description": p.get("description") or ""}
+            if p.get("list"):                           # a Lua table that is a list: an array, or strict clients refuse a list (found live)
+                props[key] = {"type": "array", "items": {"type": p["list"] if isinstance(p["list"], str) else "object"}, "description": p.get("description") or ""}
+            else:
+                props[key] = {"type": {"table": "object"}.get(p["type"], p["type"]), "description": p.get("description") or ""}
             if p.get("required"):
                 required.append(key)
         out.append({"type": "function", "function": {"name": t["name"], "description": t["description"],
