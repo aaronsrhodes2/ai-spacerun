@@ -296,7 +296,7 @@ def test_the_button_on_the_working_light_switches_the_mode():
     assert mod.result("avatar")["mode"] == "advise"                                              # the third step; then round again
     mod.run("fake.click(1, %s)" % button)
     assert mod.result("avatar")["mode"] == "free-hand"
-    mod.run("fake.click(1, game.players[1].gui.top.skippy_light.state)")                         # clicking elsewhere does nothing
+    mod.run("fake.click(1, game.players[1].gui.top.skippy_light.skippy_state)")                         # clicking elsewhere does nothing
     assert mod.result("avatar")["mode"] == "free-hand"
 
 

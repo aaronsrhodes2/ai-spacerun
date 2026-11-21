@@ -30,25 +30,19 @@ def run(agent, prompts, out=print):
 
 
 def main(argv):
-    from .__main__ import settings
-    from .agent import Agent
-    from .game import Game
-    from .models import make
+    from .__main__ import agent_from, game_from, settings
     from .tools import LocalTools
     if len(argv) < 2:
         print(__doc__)
         return 2
     env = settings()
     prompts = prompts_of(pathlib.Path(argv[1]).read_text(encoding="utf-8"))
-    pw = env.get("COPILOT_RCON_PASSWORD") or pathlib.Path(env["COPILOT_RCON_PASSWORD_FILE"]).read_text().strip()
-    game = Game(env.get("COPILOT_RCON_HOST", "127.0.0.1"), int(env.get("COPILOT_RCON_PORT", "27015")), pw)
-    model = make(env.get("COPILOT_PROVIDER", "ollama"), env.get("COPILOT_MODEL", "qwen3:8b"), env.get("COPILOT_BASE_URL"),
-                 env.get("COPILOT_API_KEY", ""), int(env.get("COPILOT_NUM_CTX", "16384")))
+    game = game_from(env)
     logs = pathlib.Path(env.get("COPILOT_LOG_DIR", "runs"))
     logs.mkdir(exist_ok=True)
     log = logs / ("leg-" + time.strftime("%Y%m%d-%H%M%S") + ".jsonl")
-    agent = Agent(game, model, log, local=LocalTools(game), max_steps=int(env.get("COPILOT_MAX_STEPS", "16")))
-    print("leg: %d prompts, model %s, %d tools" % (len(prompts), model.model, len(agent.tools)), flush=True)
+    agent = agent_from(env, game, LocalTools(game), log, max_steps=int(env.get("COPILOT_MAX_STEPS", "16")))   # the bridge's one source
+    print("leg: %d prompts, model %s, %d tools" % (len(prompts), agent.model.model, len(agent.tools)), flush=True)
     run(agent, prompts, out=lambda s: print(s, flush=True))
     s = score(read(log))
     print()

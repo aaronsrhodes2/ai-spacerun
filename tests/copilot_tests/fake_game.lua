@@ -377,7 +377,17 @@ local nauvis = new_surface("nauvis", 1)
 fake.new_surface = new_surface
 
 -- ---------------------------------------------------------------- players and gui
+-- The game refuses a child name that is also a property or method of LuaGuiElement (found live 2026-11-20: a label
+-- named "state" took the test server down when the first player joined). A sample of those names, the likely ones.
+local GUI_PROPERTIES = { state = true, name = true, type = true, caption = true, style = true, children = true, parent = true,
+                         visible = true, enabled = true, tooltip = true, text = true, value = true, index = true, gui = true,
+                         player_index = true, valid = true, tags = true, direction = true, add = true, clear = true, destroy = true,
+                         selected_index = true, items = true, location = true, elem_value = true, number = true, sprite = true }
+
 local function element(spec)
+  if spec.name and GUI_PROPERTIES[spec.name] then
+    error('Invalid name "' .. spec.name .. '": LuaGuiElement contains a property or method with the same name.')
+  end
   local el = { type = spec.type, name = spec.name, caption = spec.caption, style = {}, children = {} }
   function el.add(child_spec)
     local c = element(child_spec)

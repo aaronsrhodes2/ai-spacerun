@@ -23,7 +23,7 @@ local function draw(player)
   local frame = top.skippy_light
   if not frame then
     frame = top.add { type = "frame", name = "skippy_light", direction = "horizontal" }
-    frame.add { type = "label", name = "state", caption = "" }
+    frame.add { type = "label", name = "skippy_state", caption = "" }   -- not "state": every GUI element has a state property
   end
   if not frame.skippy_mode then
     frame.add { type = "button", name = "skippy_mode", caption = "" }
@@ -40,13 +40,13 @@ local function draw(player)
   local s = STATES[storage.state.state] or STATES.idle
   local note = storage.state.note or ""
   if C.connected() then
-    frame.state.caption = "Skippy: " .. s.text .. ((note ~= "") and (" - " .. note) or "")
-    frame.state.style.font_color = s.color
-    frame.state.tooltip = ""
+    frame.skippy_state.caption = "Skippy: " .. s.text .. ((note ~= "") and (" - " .. note) or "")
+    frame.skippy_state.style.font_color = s.color
+    frame.skippy_state.tooltip = ""
   else                                                    -- a newcomer's first question: is it even on?
-    frame.state.caption = "Skippy: not connected"
-    frame.state.style.font_color = { 0.6, 0.6, 0.6 }
-    frame.state.tooltip = "The assistant is not connected. Outside the game, run:  python -m copilot --check  and it will say what is missing."
+    frame.skippy_state.caption = "Skippy: not connected"
+    frame.skippy_state.style.font_color = { 0.6, 0.6, 0.6 }
+    frame.skippy_state.tooltip = "The assistant is not connected. Outside the game, run:  python -m copilot --check  and it will say what is missing."
   end
 end
 

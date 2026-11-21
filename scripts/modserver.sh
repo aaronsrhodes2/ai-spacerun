@@ -21,7 +21,7 @@ server_settings() {                         # a private test server: no account 
 client_folder() {                           # the test client's own folder: the server's mod list, a name, no login token
   mkdir -p "$C/data/mods"
   [ -f "$C/config.ini" ] || printf '%s\n' '[path]' 'read-data=__PATH__executable__/../../data' "write-data=$ROOT/.testclient/data" \
-    '[other]' 'check-updates=false' > "$C/config.ini"
+    '[other]' 'check-updates=false' '[graphics]' 'video-memory-usage=low' > "$C/config.ini"   # as a player on a smaller card would set it
   cp "$T/data/mods/mod-list.json" "$C/data/mods/mod-list.json"
   [ -f "$C/data/player-data.json" ] || printf '%s\n' '{ "service-username": "skippy-test" }' > "$C/data/player-data.json"
 }

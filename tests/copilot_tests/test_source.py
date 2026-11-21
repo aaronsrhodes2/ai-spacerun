@@ -354,9 +354,9 @@ def test_the_check_asks_purple_whether_it_is_ready(monkeypatch, tmp_path):
 def test_the_light_says_not_connected_until_an_assistant_calls_and_again_when_it_goes_quiet():
     mod = LuaMod()
     mod.run("fake.add_player('captain', 0, 0)")
-    caption = "game.players[1].gui.top.skippy_light.state.caption"
+    caption = "game.players[1].gui.top.skippy_light.skippy_state.caption"
     assert mod.lua.eval(caption) == "Skippy: not connected"
-    assert "python -m copilot --check" in mod.lua.eval("game.players[1].gui.top.skippy_light.state.tooltip")
+    assert "python -m copilot --check" in mod.lua.eval("game.players[1].gui.top.skippy_light.skippy_state.tooltip")
     mod.result("chat_read")                                                         # the bridge polls
     assert mod.lua.eval(caption) == "Skippy: idle"
     mod.tick(60 * 20)
@@ -373,7 +373,7 @@ def test_a_player_typing_a_tool_call_does_not_count_as_the_assistant_being_conne
     mod = LuaMod()
     mod.run("fake.add_player('captain', 0, 0)")
     mod.fake.command("tools", 1)
-    assert mod.lua.eval("game.players[1].gui.top.skippy_light.state.caption") == "Skippy: not connected"
+    assert mod.lua.eval("game.players[1].gui.top.skippy_light.skippy_state.caption") == "Skippy: not connected"
 
 
 # ---------------------------------------------------------------- the workspace's files

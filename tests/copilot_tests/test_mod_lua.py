@@ -426,15 +426,15 @@ def test_say_prints_in_the_game(mod):
 
 def test_the_working_light_shows_on_every_player_and_on_players_who_join_later(mod):
     mod.run("fake.add_player('captain', 0, 0)")
-    assert mod.lua.eval("game.players[1].gui.top.skippy_light.state.caption") == "Skippy: not connected"       # nothing has called a tool yet
+    assert mod.lua.eval("game.players[1].gui.top.skippy_light.skippy_state.caption") == "Skippy: not connected"       # nothing has called a tool yet
     mod.result("run_stats")                                                        # the assistant connects
-    assert mod.lua.eval("game.players[1].gui.top.skippy_light.state.caption") == "Skippy: idle"
+    assert mod.lua.eval("game.players[1].gui.top.skippy_light.skippy_state.caption") == "Skippy: idle"
     mod.result("set_state", {"state": "working", "note": "routing a belt"})
-    assert mod.lua.eval("game.players[1].gui.top.skippy_light.state.caption") == "Skippy: working - routing a belt"
+    assert mod.lua.eval("game.players[1].gui.top.skippy_light.skippy_state.caption") == "Skippy: working - routing a belt"
     mod.run("fake.add_player('guest', 0, 0)")
-    assert mod.lua.eval("game.players[2].gui.top.skippy_light.state.caption") == "Skippy: working - routing a belt"
+    assert mod.lua.eval("game.players[2].gui.top.skippy_light.skippy_state.caption") == "Skippy: working - routing a belt"
     mod.result("set_state", {"state": "blocked"})
-    assert mod.lua.eval("game.players[2].gui.top.skippy_light.state.caption") == "Skippy: needs you"
+    assert mod.lua.eval("game.players[2].gui.top.skippy_light.skippy_state.caption") == "Skippy: needs you"
     assert "state must be one of" in mod.call("set_state", {"state": "napping"})["error"]
     assert mod.lua.eval("#game.players[1].gui.top.children") == 1                  # one light, not one per update
 
