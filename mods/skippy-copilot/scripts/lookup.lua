@@ -97,6 +97,14 @@ local function item(name)
     end
   end
   table.sort(made_by)
+  local mined_from = {}                -- ore, stone, coal: the ground gives them, so a plan takes them as raw (found live: iron went through asteroid crushing on Nauvis)
+  for rname, r in pairs(prototypes.get_entity_filtered { { filter = "type", type = "resource" } }) do
+    local mp = at(r, "mineable_properties")
+    for _, prod in pairs(mp and mp.products or {}) do
+      if prod.name == name then mined_from[#mined_from + 1] = rname break end
+    end
+  end
+  table.sort(mined_from)
   local place = at(p, "place_result")
   local spoil = call(p, "get_spoil_ticks")
   local weight = at(p, "weight")
@@ -109,6 +117,7 @@ local function item(name)
     spoils_after_seconds = (spoil and spoil > 0) and spoil / 60 or nil,
     spoils_into = at(p, "spoil_result") and p.spoil_result.name or nil,
     made_by_recipes = some(made_by),
+    mined_from = some(mined_from),
     also_comes_out_of_recycling = (recycled > 0) and (recycled .. " other items give it back in a recycler") or nil,
   }
 end

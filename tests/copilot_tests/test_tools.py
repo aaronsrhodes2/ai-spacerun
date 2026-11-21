@@ -24,7 +24,9 @@ BOOK = {
     ("iron-plate", "recipe"): recipe("iron-plate", 3.2, [("iron-ore", 1)], [("iron-plate", 1)], ["stone-furnace"]),
     ("copper-plate", "item"): item("copper-plate", ["copper-plate"]),
     ("copper-plate", "recipe"): recipe("copper-plate", 3.2, [("copper-ore", 1)], [("copper-plate", 1)], ["stone-furnace"], available=False),
-    ("iron-ore", "item"): item("iron-ore", None),
+    ("iron-ore", "item"): dict(item("iron-ore", ["metallic-asteroid-crushing"]), mined_from=["iron-ore"]),   # as the game has it: a crusher gives ore too
+    ("metallic-asteroid-crushing", "recipe"): recipe("metallic-asteroid-crushing", 2, [("metallic-asteroid-chunk", 1)], [("iron-ore", 20)], ["crusher"]),
+    ("crusher", "entity"): {"kind": "entity", "name": "crusher", "tiles_wide": 2, "tiles_high": 3, "crafting_speed": 1},
     ("copper-ore", "item"): item("copper-ore", None),
     ("assembling-machine-1", "entity"): {"kind": "entity", "name": "assembling-machine-1", "tiles_wide": 3, "tiles_high": 3, "crafting_speed": 0.5},
     ("assembling-machine-2", "entity"): {"kind": "entity", "name": "assembling-machine-2", "tiles_wide": 3, "tiles_high": 3, "crafting_speed": 0.75},

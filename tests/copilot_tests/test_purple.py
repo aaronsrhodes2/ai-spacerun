@@ -60,6 +60,16 @@ def test_run_to_completion_gathers_the_text_and_reports_each_piece(door):
     assert slept[-1] == MIN_POLL                                                     # never faster than every two seconds
 
 
+def test_the_answer_is_the_last_message_when_the_door_names_it(door):
+    """Found live 2026-11-20: the joined text carried purple's self-check rounds, one answer reworded up to six times."""
+    fake, c = door(script=[{"text": "Nearest water is 13 tiles away.", "last": "Nearest water is 13 tiles away.", "done": False},
+                           {"text": "I did call find_resources.\nAbout the game: water is 13 tiles away at (12, -6).",
+                            "last": "About the game: water is 13 tiles away at (12, -6).", "done": True, "ok": True},
+                           ])
+    got = c.run_to_completion("where is water", sleep=lambda s: None)
+    assert got["text"] == "About the game: water is 13 tiles away at (12, -6)."
+
+
 def test_busy_is_waited_out_slowly_and_then_given_up(door):
     fake, c = door(busy=2)
     slept = []

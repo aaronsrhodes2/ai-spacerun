@@ -207,7 +207,8 @@ class LocalTools:
                 return recipes[name]
             found = None
             info = self.maybe(name, "item")
-            if info:                                                  # fluids have no item entry: they are treated as supplied
+            if info and not info.get("mined_from"):                  # fluids have no item entry, and ore is mined: both are supplied
+                # found live 2026-11-20: ore has no recipe of its own name, so the first recipe that gives it (asteroid crushing) was planned on Nauvis
                 made_by = info.get("made_by_recipes") or []
                 pick = name if name in made_by else (made_by[0] if made_by else None)
                 if pick:

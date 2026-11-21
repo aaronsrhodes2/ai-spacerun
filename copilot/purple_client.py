@@ -134,16 +134,19 @@ class PurpleClient:
                 raise PurpleError("purple Skippy is busy with another job; try again in a while")
             sleep(10)
             got = self.ask(message, conv, project, wait_s=30)
-        task, texts, steps = got.get("task"), [], 0
+        task, texts, steps, final = got.get("task"), [], 0, ""
         while True:
             piece = got.get("text") or ""
             if piece:
                 texts.append(piece)
                 if on_text:
                     on_text(piece)
+            final = (got.get("last") or "").strip() or final
             steps = merge_steps(steps, got.get("steps"))
             if got.get("done"):
-                return {"text": "\n".join(texts).strip(), "steps": steps, "ok": got.get("ok") is not False, "error": got.get("error"),
+                # found live 2026-11-20: text joins every message of the run, purple's own self-check rounds included, so the
+                # player read one answer reworded up to six times; the door's `last` is the closing message alone
+                return {"text": final or "\n".join(texts).strip(), "steps": steps, "ok": got.get("ok") is not False, "error": got.get("error"),
                         "task": task, "conv": got.get("conv") or conv}
             if not task:
                 raise PurpleError("purple Skippy's door gave no task id to follow")

@@ -95,6 +95,7 @@ def test_item_facts_leave_recycling_out_of_the_recipes(mod):
     assert (r["stack_size"], r["weight_kg"], r["fits_in_one_rocket"]) == (100, 1, 1000)
     coal = mod.result("lookup", {"name": "coal", "kind": "item"})[0]
     assert coal["fuel_megajoules"] == 4 and "made_by_recipes" not in coal
+    assert mod.result("lookup", {"name": "iron-ore", "kind": "item"})[0]["mined_from"] == ["iron-ore"] and "mined_from" not in r   # ore is raw for a plan
     food = mod.result("lookup", {"name": "nutrients", "kind": "item"})[0]
     assert food["spoils_after_seconds"] == 300 and food["spoils_into"] == "spoilage"
     assert mod.result("lookup", {"name": "transport-belt", "kind": "item"})[0]["places"] == "transport-belt"
