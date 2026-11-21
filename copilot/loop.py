@@ -100,8 +100,10 @@ class Bridge:
         self.bottleneck_every, self.bottleneck_machines = bottleneck_every, bottleneck_machines
         self.bottlenecks = AlertWatch()                         # the same once-until-it-clears memory, for bottlenecks
         self.bottleneck_at = None
-        # start from now, not from lines and news that were there before the bridge came up
+        # start from now, not from lines and news that were there before the bridge came up; but lines typed after Skippy's
+        # last reply were never answered (the bridge was down: found live 2026-11-21), so the newest of those are answered
         self.chat_at = (game.call("chat_read", {"after": 10 ** 9}).get("result") or {}).get("last_id", 0)
+        self.missed = self._missed()
         self.news_at = (game.call("events_read", {"after": 10 ** 9}).get("result") or {}).get("last_id", 0)
         self.alerts = AlertWatch()
         self.alerts.new(agent.alerts()[1])                      # alerts already showing are not news
@@ -136,6 +138,29 @@ class Bridge:
     def _lines(self, result, key):
         got = (result.get("result") or {}).get(key)
         return got if isinstance(got, list) else []
+
+    MISSED_ANSWERED = 2                                             # the newest unanswered lines answered after a start
+
+    def _missed(self):
+        """Where to start reading chat so that lines typed while the bridge was down get answered: the panel holds the
+        whole talk, so any player line after Skippy's last reply was never answered. Only the newest few are taken; the
+        player is told how many older ones were skipped. Without the panel (an older mod), nothing changes."""
+        talk = self.game.call("panel_read", {"after": 0})
+        if not talk.get("ok") or "last_id" not in (talk.get("result") or {}):
+            return 0
+        lines = (talk.get("result") or {}).get("lines") or []
+        replied = max([l.get("tick", 0) for l in lines if l.get("kind") in ("skippy", "purple")] or [-1])
+        chat = self._lines(self.game.call("chat_read", {"after": 0}), "lines")
+        waiting = [l for l in chat if l.get("tick", 0) > replied and l.get("to") != "purple"]
+        if not waiting:
+            return 0
+        take = waiting[-self.MISSED_ANSWERED:]
+        self.chat_at = take[0]["id"] - 1
+        skipped = len(waiting) - len(take)
+        if skipped:
+            say(self.game, "I was not connected for a while: %d earlier line%s went unanswered. Ask again if %s still matter%s." % (
+                skipped, "" if skipped == 1 else "s", "it" if skipped == 1 else "they", "s" if skipped == 1 else ""))
+        return len(take)
 
     def _chat(self):
         lines = self._lines(self.game.call("chat_read", {"after": self.chat_at}), "lines")

@@ -87,6 +87,39 @@ def test_panel_type_drives_the_same_path_and_the_bridge_answers_in_the_panel(mod
     assert mod.call("panel_type", {"text": "  "})["ok"] is False
 
 
+def bridge_for(mod, replies):
+    from copilot.agent import Agent
+    from copilot.tools import LocalTools
+    from fakes import FakeModel
+    game = LuaGame(mod)
+    tools = LocalTools(game)
+    return Bridge(game, Agent(game, FakeModel(replies), local=tools), tools, out=lambda *a: None)
+
+
+def test_a_line_typed_while_the_bridge_was_down_is_answered_when_it_starts(mod):
+    """Found live 2026-11-21: the Captain's 'run the ranker and fix the worst bottleneck' was typed before the bridge came
+    up and never answered. Lines after Skippy's last reply are answered; lines before it were answered already."""
+    mod.run("fake.chat(1, 'where is iron?')")
+    mod.result("say", {"text": "Eight tiles west."})                                # answered by a bridge that then went away
+    mod.run("game.tick = game.tick + 600 fake.chat(1, 'fix the worst bottleneck')")
+    bridge = bridge_for(mod, ["Power first: two machines are unpowered."])
+    bridge.step()
+    replies = [l["text"] for l in mod.result("panel_read")["lines"] if l["kind"] == "skippy"]
+    assert replies == ["Eight tiles west.", "Power first: two machines are unpowered."]
+
+
+def test_only_the_newest_missed_lines_are_answered_and_the_rest_are_owned_up_to(mod):
+    for i in range(4):
+        mod.run("game.tick = game.tick + 60 fake.chat(1, 'line %d')" % i)
+    bridge = bridge_for(mod, ["answer a", "answer b"])
+    bridge.step()
+    replies = [l["text"] for l in mod.result("panel_read")["lines"] if l["kind"] == "skippy"]
+    assert replies[0].startswith("I was not connected for a while: 2 earlier lines went unanswered")
+    assert replies[1:] == ["answer a", "answer b"]
+    asked = [l["text"] for l in mod.result("chat_read")["lines"]]
+    assert asked[-2:] == ["line 2", "line 3"]
+
+
 def test_the_model_is_not_offered_the_panel_tools():
     from copilot.toolbox import BRIDGE_ONLY
     assert {"panel_type", "panel_read", "bridge_settings"} <= BRIDGE_ONLY
