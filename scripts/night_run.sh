@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# The night run: the bridge's configured source (purple Skippy, from copilot/copilot.env) playing on the local test
-# server, with a Factorio client on the same card (video memory usage low) so the client's share of video memory is
-# measured. No model is loaded locally: the Captain's word (2026-11-20) is to use purple; the Qwen3 8B floor is a design
-# target the context tests hold, not a live run. Test server and test client only: never the live game, never the
-# player's own client. Refuses to start while the player's own Factorio is open.
+# The night run: the bridge's configured source (purple Skippy, from copilot/copilot.env) playing on the test server
+# (on skippy-core, see modserver.sh; a fresh map from the fixed seed each run), with a Factorio client on this card
+# (video memory usage low, windowed) so the client's share of video memory is measured. No model is loaded locally: the
+# Captain's word (2026-11-20) is to use purple; the Qwen3 8B floor is a design target the context tests hold, not a live
+# run. Test server and test client only: never the live game, never the player's own client. While the player's own
+# Factorio is open it runs without the test client (the server is on skippy-core), or not at all with MODSERVER_HOST=local.
 #   bash scripts/night_run.sh          results in runs/night-<stamp>/ (summary.txt first)
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -24,10 +25,16 @@ cleanup() {
 
 # ---- the player's own game must not be running
 OWN=$(powershell.exe -NoProfile -Command "@(Get-CimInstance Win32_Process -Filter \"Name='factorio.exe'\" | Where-Object { \$_.CommandLine -notmatch '\.test(server|client)' }).Count" | tr -d '\r')
+CLIENT=yes
 if [ "${OWN:-0}" != "0" ]; then
-  note "the player's own Factorio is open: not starting (no live runs while the Captain plays)"
-  exit 3
+  if [ "${MODSERVER_HOST:-skippy-core}" = "local" ]; then
+    note "the player's own Factorio is open: not starting (no local test server while the Captain plays)"
+    exit 3
+  fi
+  CLIENT=no                                # the server is on skippy-core (the Captain, 2026-11-21); only the client would load this card
+  note "the player's own Factorio is open: running on skippy-core without the test client"
 fi
+core_mem() { ssh -o BatchMode=yes skippy-core "free -m | awk 'NR==2{print \$7}'" 2>/dev/null; }
 if [ "$(curl -s -m 5 -o /dev/null -w "%{http_code}" http://127.0.0.1:47860/mcp)" = "000" ]; then
   note "purple's door (127.0.0.1:47860) is not answering: not starting"
   exit 4
@@ -35,10 +42,12 @@ fi
 nvidia-smi --query-gpu=timestamp,memory.used --format=csv,noheader -l 5 > "$OUT/vram.csv" 2>/dev/null &
 SAMPLER=$!
 trap cleanup EXIT
-note "night run $STAMP: source from copilot.env (purple), test client on low video memory"
+note "night run $STAMP: source from copilot.env (purple), server on ${MODSERVER_HOST:-skippy-core}, test client: $CLIENT"
 phase "baseline (nothing of ours running)"
+[ "${MODSERVER_HOST:-skippy-core}" != "local" ] && note "skippy-core memory available before: $(core_mem) MiB"
 
-# ---- test server, waited for over RCON
+# ---- test server, on a fresh map from the fixed seed, waited for over RCON
+bash scripts/modserver.sh new > "$OUT/new.log" 2>&1 || { note "making the test map failed (see new.log)"; exit 5; }
 bash scripts/modserver.sh start > "$OUT/server.log" 2>&1 &
 for i in $(seq 1 60); do
   python -c "import sys; sys.path.insert(0,'scripts'); from modtest import client; client().send_command('/skippy tools')" > /dev/null 2>&1 && break
@@ -48,18 +57,21 @@ python -c "import sys; sys.path.insert(0,'scripts'); from modtest import client;
   || { note "the test server did not answer over RCON in 3 minutes (see server.log)"; exit 5; }
 note "test server up"
 phase "test server only"
+[ "${MODSERVER_HOST:-skippy-core}" != "local" ] && note "skippy-core memory available with the server up: $(core_mem) MiB"
 
-# ---- test client, joined
-bash scripts/modserver.sh client > "$OUT/client.log" 2>&1 &
-JOINED=no
-for i in $(seq 1 120); do                  # up to six minutes: Steam restarts the client and its sprites load first
-  N=$(python scripts/modtest.py --lua "rcon.print(#game.connected_players)" 2>/dev/null | tr -d '\r' | tail -1)
-  [ "$N" = "1" ] && { JOINED=yes; break; }
-  sleep 3
-done
-note "test client joined: $JOINED"
-sleep 30
-phase "test server and client"
+# ---- test client, joined (not while the player's own game is open)
+if [ "$CLIENT" = "yes" ]; then
+  bash scripts/modserver.sh client > "$OUT/client.log" 2>&1 &
+  JOINED=no
+  for i in $(seq 1 120); do                # up to six minutes: Steam restarts the client and its sprites load first
+    N=$(python scripts/modtest.py --lua "rcon.print(#game.connected_players)" 2>/dev/null | tr -d '\r' | tail -1)
+    [ "$N" = "1" ] && { JOINED=yes; break; }
+    sleep 3
+  done
+  note "test client joined: $JOINED"
+  sleep 30
+  phase "test server and client"
+fi
 
 # ---- the checks and the leg, against the test server only
 export COPILOT_RCON_HOST=127.0.0.1 COPILOT_RCON_PORT=27116 COPILOT_RCON_PASSWORD_FILE=.testserver/rcon.pw
@@ -69,5 +81,6 @@ python scripts/nightcheck.py > "$OUT/nightcheck.txt" 2>&1; note "nightcheck: exi
 python -m copilot --check > "$OUT/setup-check.txt" 2>&1; note "setup check: exit $?"
 timeout 10800 python -m copilot.leg copilot/legs/first.txt > "$OUT/leg.txt" 2>&1; note "first leg: exit $? ($(tail -n 30 "$OUT/leg.txt" | grep -m1 -i 'leg-' || echo 'no score line'))"
 phase "after the leg"
+[ "${MODSERVER_HOST:-skippy-core}" != "local" ] && note "skippy-core memory available after the leg: $(core_mem) MiB"
 PEAK=$(cut -d, -f2 "$OUT/vram.csv" | tr -dc '0-9\n' | sort -n | tail -1)
 note "peak video memory used during the run: ${PEAK:-?} MiB (everything on the card, Windows and other programs included)"

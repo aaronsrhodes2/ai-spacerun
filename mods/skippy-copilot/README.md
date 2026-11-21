@@ -262,12 +262,15 @@ server that speaks the OpenAI chat API). `python -m copilot --ask "..."` asks on
 
 ## Testing
 
-- `python -m pytest tests/copilot_tests` runs with no game and no model: 509 tests. They cover the bridge, the planning
+- `python -m pytest tests/copilot_tests` runs with no game and no model: 565 tests. They cover the bridge, the planning
   code, the scorer, and the mod's own Lua run under Lua 5.2 against a stand-in game (`tests/copilot_tests/fake_game.lua`).
   Needs `pip install lupa`.
-- `scripts/modserver.sh start` runs a second, headless copy of the Steam install with its own data folder (`.testserver/`),
-  so the live game is never touched. `scripts/modcheck.py` builds a small known scene there and checks what every tool
-  says about it. `scripts/modtest.py <tool> '<json>'` calls one tool by hand.
+- `scripts/modserver.sh new` then `start` runs the test server: headless Factorio on skippy-core (`~/factorio-test`), on
+  a map from a fixed seed, with RCON brought to `127.0.0.1:27116` here by the ssh session that runs it. So the live
+  game is never touched and tests can run while the player plays. `MODSERVER_HOST=local` runs it on this PC instead,
+  from the Steam install (`.testserver/`). `scripts/modcheck.py` builds a small known scene there and checks what every
+  tool says about it; `scripts/nightcheck.py` checks designs, places, the timer and ghosts. `scripts/modtest.py <tool>
+  '<json>'` calls one tool by hand. `scripts/night_run.sh` runs all of it and a leg with purple.
 - `python -m copilot.score runs/` scores the bridge's logs: tool misses, repeats, stalls.
 - `python -m copilot.leg copilot/legs/first.txt` runs a fixed list of prompts through the assistant and scores it: a leg of
   skills testing, the same every time so scores can be compared.

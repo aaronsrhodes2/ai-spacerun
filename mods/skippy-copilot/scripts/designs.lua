@@ -466,8 +466,18 @@ local function deploy_at(s, f, name, version, stack, x, y, dir, opts)
   out.deployment = id
   out.ghosts = n_ghosts - built
   out.built_now = (built > 0) and built or nil
-  if opts.build_now and built < n_ghosts then           -- found live: a revive waits while trees or rocks under it are marked
-    out.waiting = (n_ghosts - built) .. " pieces stay ghosts: trees or rocks under them are marked for deconstruction; robots or the player clear them, then the ghosts can be built"
+  if opts.build_now and built < n_ghosts then           -- found live: a revive waits on what is under it, so say what that is
+    local tiles = 0
+    for _, g in pairs(ghosts) do
+      if g.valid and g.type == "tile-ghost" then tiles = tiles + 1 end
+    end
+    local b = storage.deployments[id].box
+    local marked = s.count_entities_filtered { area = b, type = { "tree", "simple-entity", "cliff" }, to_be_deconstructed = true }
+    local why = {}
+    if tiles > 0 then why[#why + 1] = tiles .. " tiles of ground (landfill over water, or the design's floor) must be laid first" end
+    if marked > 0 then why[#why + 1] = marked .. " trees or rocks under them are marked for deconstruction" end
+    out.waiting = (n_ghosts - built) .. " pieces stay ghosts: " .. ((#why > 0) and table.concat(why, "; ") or "the game would not build them yet")
+      .. ". Robots or the player clear and lay that, then the ghosts can be built"
   end
   return out
 end

@@ -282,7 +282,8 @@ local function new_surface(name, index)
       p = ENTITIES[a.inner_name]
       e.ghost_prototype = p
       e.tags = nil
-      function e.revive()                               -- the building takes the ghost's place
+      function e.revive()                               -- the building takes the ghost's place; over fake.water it waits for landfill
+        if fake.water then return nil end
         local built = s.create_entity { name = e.ghost_name, position = { e.position.x, e.position.y }, direction = e.direction, recipe = e.recipe }
         e.valid = false
         return {}, built
@@ -559,6 +560,7 @@ function fake.item_stack()
                                             direction = ((e.direction or 0) + dir) % 16, recipe = e.recipe }
         g.tags = copy(e.tags)
         out[#out + 1] = g
+        if fake.water then out[#out + 1] = { valid = true, type = "tile-ghost", ghost_name = "landfill" } end   -- the game's landfill under it
       end
     end
     return out
@@ -579,6 +581,13 @@ function fake.make_character(e)
   e.crafting = {}
   e.crafting_queue_size = 0
   e.mined = 0
+  e.selected = nil                                       -- as in 2.1: a character mines only what it has selected (found live)
+  function e.update_selected_entity(pos)
+    e.selected = nil
+    for _, o in ipairs(e.surface.entities) do
+      if o.valid and o ~= e and math.abs(o.position.x - (pos.x or pos[1])) < 0.6 and math.abs(o.position.y - (pos.y or pos[2])) < 0.6 then e.selected = o break end
+    end
+  end
   local inv = {
     get_item_count = function(name) return e.items[name] or 0 end,
     get_contents = function()
@@ -692,7 +701,10 @@ local function physics(s)
             break
           end
         end
-        if target and math.sqrt((target.position.x - e.position.x) ^ 2 + (target.position.y - e.position.y) ^ 2) <= e.resource_reach_distance + 0.01 then
+        -- found live: nothing selected turns mining off, and at 2.66 of a 2.7 reach nothing was mined
+        if target and e.selected ~= target then
+          e.mining_state = { mining = false }
+        elseif target and math.sqrt((target.position.x - e.position.x) ^ 2 + (target.position.y - e.position.y) ^ 2) <= e.resource_reach_distance - 0.2 then
           e.mined = e.mined + 1
           if e.mined >= fake.mine_ticks then
             e.mined = 0

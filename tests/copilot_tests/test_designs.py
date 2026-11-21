@@ -74,6 +74,14 @@ def test_facing_turns_the_whole_design(mod):
     assert belt == "-0.5,-1.5,12"                                                     # offset turned half round, east turned to west
 
 
+def test_build_now_over_water_says_landfill_comes_first(mod):
+    """Found live 2026-11-21: on a fresh map the site was a lake, and the note blamed trees that were not there."""
+    save_row(mod)
+    mod.run("fake.water = true")
+    r = mod.result("design_deploy", {"name": "gear-cell", "x": 20, "y": 20, "dry_run": False, "build_now": True})
+    assert r["ghosts"] == 3 and "landfill" in r["waiting"] and "trees" not in r["waiting"], r
+
+
 def test_an_edit_makes_a_version_and_redeploy_rolls_it_out_by_upgrade_orders(mod):
     save_row(mod)
     mod.result("design_deploy", {"name": "gear-cell", "x": 20, "y": 20, "dry_run": False, "build_now": True})

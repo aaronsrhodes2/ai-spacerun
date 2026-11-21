@@ -2,6 +2,7 @@
 """Checks the Skippy mod against the local test server: builds a small known scene and asserts what each tool says
 about it. The first piece of the scoring harness: a tool that answers wrongly fails here, before a model ever sees it.
 Start the server first (scripts/modserver.sh start). Usage: modcheck.py"""
+import json
 import sys
 
 from modtest import call, client
@@ -160,17 +161,31 @@ def main():
     # Place a chemical plant with a pipe on each stub the joint would use and ask the game whether each pipe joined it.
     ports = call("lookup", {"name": "chemical-plant", "kind": "entity"}, c)["result"][0].get("fluid_ports") or []
     check("fluid ports: a chemical plant reports four", len(ports) == 4 and {p["flow"] for p in ports} == {"input", "output"}, ports)
+    # Factorio 2.1 has no fluidbox access from Lua (LuaEntity.neighbours and .fluidbox are gone), so a pipe is proved
+    # joined by flow: fluid put in the pipe on an input stub turns up in the machine's input box. Output boxes cannot be
+    # read at all in 2.1, so the outputs are checked for shape only: they mirror the inputs on the far side.
     step = {"north": (0, -1), "east": (1, 0), "south": (0, 1), "west": (-1, 0)}
-    cx, cy = 10.5, -9.5
-    c.send_command("/sc game.surfaces.nauvis.create_entity{name='chemical-plant', position={%s,%s}, force='player'}" % (cx, cy))
-    joined = 0
-    for p in ports:
+    cx, cy = 30.5, -30.5                                               # clear ground away from the scene; cleared below
+    joined, inputs = 0, [p for p in ports if p["flow"] == "input"]
+    for p in inputs:
         tx = int((cx + p["x"]) // 1) + step[p["direction"]][0]
         ty = int((cy + p["y"]) // 1) + step[p["direction"]][1]
-        out = c.send_command("/sc local s=game.surfaces.nauvis local e=s.create_entity{name='pipe', position={%s,%s}, force='player'} "
-                             "local n=0 for _,list in pairs(e.neighbours) do for _,o in pairs(list) do if o.name=='chemical-plant' then n=n+1 end end end rcon.print(n)" % (tx + 0.5, ty + 0.5))
-        joined += 1 if (out or "").strip() == "1" else 0
-    check("fluid ports: a pipe on every stub joins the machine", joined == len(ports) and joined > 0, "%d of %d joined" % (joined, len(ports)))
+        got = ""
+        for fluid in ("water", "heavy-oil"):                       # heavy oil cracking takes both; which box takes which is the recipe's
+            c.send_command("/sc local s=game.surfaces.nauvis for _,e in pairs(s.find_entities_filtered{area={{%s,%s},{%s,%s}}}) do if e.type~='character' then e.destroy() end end "
+                           "local m=s.create_entity{name='chemical-plant', position={%s,%s}, force='player'} m.set_recipe('heavy-oil-cracking') "
+                           "local p=s.create_entity{name='pipe', position={%s,%s}, force='player'} p.insert_fluid{name='%s', amount=50}"
+                           % (cx - 4, cy - 4, cx + 4, cy + 4, cx, cy, tx + 0.5, ty + 0.5, fluid))
+            time.sleep(1)
+            got = c.send_command("/sc local m=game.surfaces.nauvis.find_entity('chemical-plant', {%s,%s}) local n='' for i=1,2 do local ok,f=pcall(function() return m.get_fluid(i) end) "
+                                 "if ok and f and f.name=='%s' then n='in' end end rcon.print(n)" % (cx, cy, fluid)) or ""
+            if got.strip() == "in":
+                break
+        joined += 1 if got.strip() == "in" else 0
+    check("fluid ports: a pipe on every input stub feeds the machine", joined == len(inputs) == 2, "%d of %d joined" % (joined, len(inputs)))
+    outs = [p for p in ports if p["flow"] == "output"]
+    check("fluid ports: the outputs mirror the inputs on the far side",
+          sorted((p["x"], -p["y"]) for p in outs) == sorted((p["x"], p["y"]) for p in inputs) and {p["direction"] for p in outs} == {"south"}, ports)
     r = call("find_resources", {"x": 0, "y": 0, "radius": 40}, c)
     check("find_resources: the scene's iron patch", r["ok"] and r["result"]["patches"] and r["result"]["patches"][0]["kind"] == "iron-ore" and r["result"]["patches"][0]["tiles"] == 25, r)
     r = call("find_resources", {"kind": "water", "x": 0, "y": 0, "radius": 40}, c)
@@ -178,14 +193,19 @@ def main():
     r = call("find_placement", {"name": "offshore-pump", "x": 11, "y": -6, "radius": 4}, c)
     check("find_placement: an offshore pump finds the shore", r["ok"] and r["result"].get("found") and len(r["result"]["places"]) >= 1, r)
     r = call("research_available", None, c)
-    check("research: everything is researched on the test map, so nothing can be started", r["ok"] and r["result"]["available"] in ([], {}), str(r)[:300])
+    # research_all_technologies leaves the infinite ones (follower-robot-count-5 and the like, found on a fresh 2.1 map)
+    left = [a["technology"] for a in (r["result"]["available"] or [])] if r["ok"] else []
+    finite = (c.send_command("/sc local n={} for _,name in pairs(helpers.json_to_table('%s')) do local p=prototypes.technology[name] "
+                             "if p.max_level ~= 4294967295 then n[#n+1]=name end end rcon.print(table.concat(n,','))" % json.dumps(left)) or "").strip() if left else ""
+    check("research: everything but the infinite technologies is researched, so only those can be started", r["ok"] and finite == "", finite or str(r)[:300])
     r = call("queue_research", {"technology": "automation"}, c)
     check("research: an already researched technology is refused", not r["ok"] and "already researched" in r["error"], r)
-    c.send_command("/sc game.surfaces.nauvis.create_entity{name='stone-furnace', position={16,8}, force='player'}")
-    r = call("remove", {"x": 15, "y": 7, "width": 2, "height": 2}, c)
-    check("remove: a dry run lists and leaves", r["ok"] and r["result"]["would_remove"] == 1 and not call("tile", {"x": 15, "y": 7}, c)["result"]["free"], r)
-    r = call("remove", {"x": 15, "y": 7, "width": 2, "height": 2, "dry_run": False}, c)
-    check("remove: it is gone", r["ok"] and r["result"]["removed"] == 1 and call("tile", {"x": 15, "y": 7}, c)["result"]["free"], r)
+    # clear of the belt the build checks put at 15,8 (create_entity does not check, so the old spot sat on top of it)
+    c.send_command("/sc game.surfaces.nauvis.create_entity{name='stone-furnace', position={16,12}, force='player'}")
+    r = call("remove", {"x": 15, "y": 11, "width": 2, "height": 2}, c)
+    check("remove: a dry run lists and leaves", r["ok"] and r["result"]["would_remove"] == 1 and not call("tile", {"x": 15, "y": 11}, c)["result"]["free"], r)
+    r = call("remove", {"x": 15, "y": 11, "width": 2, "height": 2, "dry_run": False}, c)
+    check("remove: it is gone", r["ok"] and r["result"]["removed"] == 1 and call("tile", {"x": 15, "y": 11}, c)["result"]["free"], r)
     r = call("set_recipe", {"x": 3, "y": 1, "recipe": "copper-cable"}, c)
     check("set_recipe: the machine's recipe changes", r["ok"] and call("tile", {"x": 3, "y": 1}, c)["result"]["things"][0]["recipe"] == "copper-cable", r)
     r = call("run_stats", None, c)

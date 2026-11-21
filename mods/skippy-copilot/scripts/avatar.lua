@@ -319,7 +319,9 @@ local function tick_mine(body, job)
   if game.tick - job.progress_tick > MINE_TIMEOUT then
     return finish(false, "nothing more could be mined at " .. job.target.x .. "," .. job.target.y, { item = job.item, mined = have - job.had })
   end
-  local reach = body.resource_reach_distance
+  -- found live 2026-11-21: at 2.66 tiles of a 2.7 reach the game mined nothing, and a walk counts as arrived up to its
+  -- radius + 1, so the avatar stood just out of reach for a minute. Half a tile of slack, and a walk that ends inside it.
+  local reach = body.resource_reach_distance - 0.5
   if dist(body.position, job.target) > reach then
     if not job.walk then job.walk = new_walk(job.target, math.max(0.5, reach - 1)) end
     if job.walk.no_path then return finish(false, "there is no way on foot to " .. job.target.x .. "," .. job.target.y, { item = job.item, mined = have - job.had }) end
@@ -333,6 +335,8 @@ local function tick_mine(body, job)
   if body.surface.count_entities_filtered { position = job.target, radius = 1.5, name = job.entity } == 0 then
     return finish(have - job.had > 0, "there is no more " .. job.entity .. " at " .. job.target.x .. "," .. job.target.y, { item = job.item, mined = have - job.had })
   end
+  -- found live 2026-11-21: with nothing selected the game turns mining_state off again and nothing is mined (2.1)
+  if not (body.selected and body.selected.valid and body.selected.name == job.entity) then body.update_selected_entity(job.target) end
   body.mining_state = { mining = true, position = job.target }
 end
 

@@ -38,6 +38,10 @@ def main():
     c = client()
     lua(c, "rcon.print(1)")                                   # the first /sc only warns
     lua(c, "local s=game.surfaces.nauvis for _,e in pairs(s.find_entities_filtered{area={{20,20},{90,60}},force='player'}) do e.destroy() end rcon.print('clear')")
+    # the test map's own trees and rocks too (a fresh map has them at the site): build_now is checked here, not tree clearing
+    # and its ground: the fixed seed puts a lake at 60,40, where build_blueprint asks for landfill first
+    lua(c, "local s=game.surfaces.nauvis for _,e in pairs(s.find_entities_filtered{area={{20,20},{90,60}},type={'tree','simple-entity','fish','tile-ghost'}}) do e.destroy() end "
+           "local t={} for x=20,89 do for y=20,59 do t[#t+1]={name='grass-1',position={x,y}} end end s.set_tiles(t) rcon.print('ground')")
     ok("set_mode", {"mode": "free-hand"}, c)
 
     # ---- places

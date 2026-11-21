@@ -1,4 +1,15 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.20.1
+Date: 2026-11-21
+  Bugfixes:
+    - The avatar mines again on a fresh map: Factorio 2.1 turns hand mining off unless the target is selected, so the
+      mining job selects it, and it walks half a tile inside its reach (at 2.66 of 2.7 tiles nothing was mined).
+    - lookup on an item says which resources it is mined from, and plan_production takes mined ore as raw: on Nauvis it
+      had routed iron through asteroid crushing.
+    - lookup on a machine says how to get the time of one craft (the recipe's seconds divided by the crafting speed).
+    - design_deploy with build_now says why pieces stay ghosts: ground to lay first (landfill over water), or marked
+      trees and rocks; it had always blamed trees.
+---------------------------------------------------------------------------------------------------
 Version: 0.20.0
 Date: 2026-11-20
   Features:
