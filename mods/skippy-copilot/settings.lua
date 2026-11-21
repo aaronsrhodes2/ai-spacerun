@@ -9,6 +9,15 @@ data:extend {
     allowed_values = { "advise", "free-hand", "my-character" },
     order = "a",
   },
+  -- The spider commander (the Captain, 2026-11-21): the player lives in remote view and places ghosts; the body rides a
+  -- spidertron that the assistant drives, whose robots build. Off by default; can be switched on in a running game.
+  {
+    type = "bool-setting",
+    name = "skippy-commander",
+    setting_type = "runtime-global",
+    default_value = false,
+    order = "a2",
+  },
 }
 
 -- One switch for every allowance (skippy_allowances.lua), all on by default: the rules the mod deliberately relaxes.

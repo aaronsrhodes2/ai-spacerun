@@ -1,4 +1,21 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.21.0
+Date: 2026-11-21
+  Features:
+    - The Skippy panel: the conversation, always up on the right of the screen where the remote view leaves room, with
+      the player's lines, Skippy's and purple's replies and voice lines as they happen, the working light, and a text box.
+      Keyboard only: the Talk to Skippy key (Enter by default) puts the cursor in it, Enter sends and keeps it there.
+      panel_type and panel_read let the bridge and tests type and read exactly as the player does.
+    - Spider commander (map setting, off by default, can be switched on in a running game): the player lives in remote
+      view and places ghosts; the character rides a spidertron that the assistant drives. A force with no spidertron gets
+      one once, with roboports, power, shields, construction robots and a building kit (allowance 'commander-kit').
+      Tools: spiders, spider_go (to a spot or place, or follow), spider_tend (a timed job that walks to ghosts the
+      roboport network cannot reach); ghost_requests with spider writes the ghosts' needs into the spider's own requests.
+    - Quality with skippy-quality 0.2.0: one quality module gives a machine's output the best quality researched, slowly
+      (tier 1 3x the time, tier 2 2x, tier 3 1.5x); extra quality modules are taken out and spilled for the robots; the
+      assistant's ghosts are placed at the best quality. Not yet: a machine holding its module out while nothing asks.
+    - The map shows spidertrons and cars as '&'.
+---------------------------------------------------------------------------------------------------
 Version: 0.20.1
 Date: 2026-11-21
   Bugfixes:

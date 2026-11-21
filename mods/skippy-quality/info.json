@@ -1,9 +1,9 @@
 {
   "name": "skippy-quality",
-  "version": "0.1.0",
-  "title": "Skippy Quality: modules make legendary",
+  "version": "0.2.0",
+  "title": "Skippy Quality: one module, the best quality",
   "author": "Skippy",
   "factorio_version": "2.1",
   "dependencies": ["base", "quality"],
-  "description": "Any machine with a quality module turns everything it produces into legendary quality. No grinding through the tiers. Put a quality module only in the machines whose product you want legendary."
+  "description": "One quality module in a machine makes everything it produces the highest quality you have researched, at a cost in time: a tier 1 module triples the time of each craft, tier 2 doubles it, tier 3 adds half, and a better module quality slows less. No churning through the tiers. More than one quality module adds only slowness; with Skippy Copilot the extras are taken out."
 }

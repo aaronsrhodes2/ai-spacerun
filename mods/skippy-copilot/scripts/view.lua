@@ -71,7 +71,7 @@ R.register {
   description = "Reveal more of the map round the edge of what is known, as if someone walked the perimeter. depth is how many tiles outward to reveal. Use it for 'explore' or 'show me more of the map'; then use 'map' or a resource search on the new ground.",
   params = {
     depth = { type = "number", default = 64, description = "tiles to reveal beyond the known edge, at most 320" },
-    surface = { type = "string", description = "surface name; leave out for where the player is" },
+    surface = { type = "string", description = "surface; default: the player's" },
   },
   run = function(a)
     if V.executor() ~= "god" then

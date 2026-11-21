@@ -47,14 +47,14 @@ end
 
 R.register {
   name = "bottlenecks",
-  description = "The worst bottlenecks, ranked: for each, the item that machines are starved of (or cannot get rid of), how many machines wait on it, what they make, and example positions. Use it for 'fix the worst bottleneck' or 'the top three'. With near_player true it only looks around the player, for 'the bottleneck next to me'.",
+  description = "The worst bottlenecks, ranked: the item machines are starved of (or cannot get rid of), how many wait on it, what they make, example positions. For 'fix the worst bottleneck' or 'the top three'; near_player true for 'the one next to me'.",
   params = {
     top = { type = "number", default = 3, description = "how many to return, worst first" },
     near_player = { type = "boolean", default = false, description = "true to look only around the player" },
     radius = { type = "number", default = 40, description = "how far around the player or the given point to look, in tiles" },
     x = { type = "number", description = "centre x of an area to look in, instead of the whole surface" },
     y = { type = "number", description = "centre y of that area" },
-    surface = { type = "string", description = "surface name; leave out for where the player is" },
+    surface = { type = "string", description = "surface; default: the player's" },
   },
   run = function(a)
     local surface, err = G.surface_of(a.surface)

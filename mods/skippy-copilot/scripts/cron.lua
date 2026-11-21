@@ -15,7 +15,7 @@ local MAX_JOBS = 30
 local CHECK_EVERY = 60                                     -- ticks between looks at the timetable
 local TICKS_A_MINUTE = 3600
 local NOT_ON_A_TIMER = { cron_list = true, cron_add = true, cron_change = true, cron_report = true,
-                         say = true, hear = true, set_state = true, chat_read = true, events_read = true, goal_state = true,
+                         say = true, hear = true, panel_type = true, panel_read = true, set_state = true, chat_read = true, events_read = true, goal_state = true,
                          set_mode = true, lock_mode = true, set_allowance = true, avatar_walk = true, avatar_mine = true,
                          avatar_stop = true, avatar_craft = true, avatar_carry = true, avatar_travel = true }
 
@@ -110,7 +110,7 @@ R.register {
 
 R.register {
   name = "cron_add",
-  description = "Put a mod tool on a timer with fixed arguments (such as ghost_requests with apply true), or with external true list a script outside the mod. Say what it is for, what good and bad runs look like and when it can retire. Ask the player before timing anything that changes the world.",
+  description = "Put a mod tool on a timer with fixed arguments (or with external true, list a script outside the mod). Say its purpose, good and bad runs and when it retires. Ask the player before timing anything that changes the world.",
   params = {
     name = { type = "string", required = true, description = "a short name" },
     every_minutes = { type = "number", required = true, description = "game minutes between runs, at least 1" },

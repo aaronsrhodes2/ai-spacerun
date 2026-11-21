@@ -6,4 +6,7 @@ local inputs = {}
 for _, control in ipairs(CONTROLS) do
   inputs[#inputs + 1] = { type = "custom-input", name = "skippy-hands-" .. control, key_sequence = "", linked_game_control = control }
 end
+-- The Talk to Skippy key: puts the cursor in the Skippy panel's text box, so the player talks without the mouse
+-- (the Captain, 2026-11-21: hands-free). Enter by default; it takes nothing away from the game's own use of the key.
+inputs[#inputs + 1] = { type = "custom-input", name = "skippy-talk", key_sequence = "RETURN" }   -- consumes nothing (the default)
 data:extend(inputs)

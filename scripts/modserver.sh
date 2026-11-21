@@ -29,9 +29,9 @@ server_settings() {                         # a private test server: no account 
 }
 remote_sync() {                             # the mod, its mod list and settings, the server settings and the RCON password, to skippy-core
   server_settings
-  ssh -o BatchMode=yes "$HOST" "mkdir -p $R/data/mods $R/data/saves && rm -rf $R/data/mods/skippy-copilot && \
+  ssh -o BatchMode=yes "$HOST" "mkdir -p $R/data/mods $R/data/saves && rm -rf $R/data/mods/skippy-copilot $R/data/mods/skippy-quality && \
     printf '%s\n' '[path]' 'read-data=__PATH__executable__/../../data' \"write-data=$R/data\" '[other]' 'check-updates=false' > $R/config.ini"
-  tar -C "$RU/mods" -cf - skippy-copilot | ssh -o BatchMode=yes "$HOST" "tar -C $R/data/mods -xf -"
+  tar -C "$RU/mods" -cf - skippy-copilot skippy-quality | ssh -o BatchMode=yes "$HOST" "tar -C $R/data/mods -xf -"   # the mod list says which run
   tar -C "$RU/.testserver" -cf - server-settings.json rcon.pw data/mods/mod-list.json data/mods/mod-settings.dat \
     | ssh -o BatchMode=yes "$HOST" "tar -C $R -xf - && chmod 600 $R/rcon.pw"
 }

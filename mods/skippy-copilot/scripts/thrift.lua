@@ -103,7 +103,7 @@ R.register {
     y = { type = "number", required = true, description = "y of the top row" },
     width = { type = "number", required = true, description = "columns, at most 100" },
     height = { type = "number", required = true, description = "rows, at most 100" },
-    surface = { type = "string", description = "surface name; leave out for where the player is" },
+    surface = { type = "string", description = "surface; default: the player's" },
   },
   run = function(a)
     local surface, err = G.surface_of(a.surface)

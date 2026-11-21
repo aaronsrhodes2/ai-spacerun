@@ -8,11 +8,13 @@
 defines = {
   entity_status = { working = 1, normal = 2, no_power = 3, low_power = 4, no_fuel = 5, item_ingredient_shortage = 6,
                     fluid_ingredient_shortage = 7, full_output = 8, no_recipe = 9, frozen = 10 },
-  inventory = { chest = 1, crafter_input = 2, crafter_output = 3 },
+  inventory = { chest = 1, crafter_input = 2, crafter_output = 3, spider_trunk = 4, crafter_modules = 5 },
+  controllers = { ghost = 0, character = 1, god = 2, editor = 3, cutscene = 4, spectator = 5, remote = 6 },
   alert_type = { entity_destroyed = 0, no_material_for_construction = 3, turret_out_of_ammo = 7, train_out_of_fuel = 9 },
   events = { on_player_created = 1, on_player_joined_game = 2, on_console_chat = 3, on_research_finished = 4, on_tick = 5,
              on_script_path_request_finished = 6, on_runtime_mod_setting_changed = 7, on_gui_click = 8, on_research_started = 9,
-             on_built_entity = 10, on_robot_built_entity = 11 },
+             on_built_entity = 10, on_robot_built_entity = 11, on_gui_confirmed = 12, on_player_display_resolution_changed = 13,
+             on_player_display_scale_changed = 14, on_spider_command_completed = 15, on_player_controller_changed = 16 },
   build_check_type = { manual = 1, script = 2, blueprint_ghost = 3 },
   build_mode = { normal = 0, forced = 1, superforced = 2 },
   flow_precision_index = { one_minute = 1, ten_minutes = 2, one_hour = 3 },
@@ -29,6 +31,7 @@ end
 fake = { handlers = {}, commands = {}, printed = {}, rcon = {}, charted = {} }
 
 script = {
+  active_mods = { base = "2.1.24", ["skippy-copilot"] = "0.21.0" },       -- tests add "skippy-quality" to try its rules
   on_init = function(f) fake.on_init = f end,
   on_configuration_changed = function(f) fake.on_configuration_changed = f end,
   on_event = function(id, f) fake.handlers[id] = f end,
@@ -135,6 +138,7 @@ local ENTITIES = {
   ["wooden-chest"] = ent("wooden-chest", "container", 1, 1),
   ["rocket-silo"] = ent("rocket-silo", "rocket-silo", 9, 9),
   ["space-platform-hub"] = ent("space-platform-hub", "space-platform-hub", 8, 8, { items_to_place_this = {} }),
+  ["spidertron"] = ent("spidertron", "spider-vehicle", 3, 3),
   ["character"] = ent("character", "character", 1, 1, { items_to_place_this = {},
     collision_box = { left_top = { x = -0.2, y = -0.2 }, right_bottom = { x = 0.2, y = 0.2 } }, collision_mask = { layers = { player = true } } }),
 }
@@ -153,6 +157,11 @@ for name, t in pairs(TECHS) do t.name = name end
 
 prototypes = {
   recipe = RECIPES, item = ITEMS, entity = ENTITIES, technology = TECHS,
+  quality = { normal = { name = "normal", level = 0 }, uncommon = { name = "uncommon", level = 1 }, rare = { name = "rare", level = 2 },
+              epic = { name = "epic", level = 3 }, legendary = { name = "legendary", level = 5 },
+              ["quality-unknown"] = { name = "quality-unknown", level = 0, hidden = true } },
+  equipment = { ["fission-reactor-equipment"] = { size = 16 }, ["personal-roboport-mk2-equipment"] = { size = 4 },
+                ["energy-shield-mk2-equipment"] = { size = 4 }, ["battery-mk2-equipment"] = { size = 2 } },
   fluid = { water = { name = "water", default_temperature = 15 } },
   tile = { ["out-of-map"] = {}, ["empty-space"] = {}, water = {}, ["grass-1"] = {} },
   get_entity_filtered = function(filters)
@@ -185,6 +194,8 @@ force.add_research = function(name)
   end
   return true
 end
+fake.unlocked = { normal = true }                         -- qualities the force has unlocked
+force.is_quality_unlocked = function(q) return fake.unlocked[type(q) == "table" and q.name or q] == true end
 force.chart = function(surface, area) fake.charted[#fake.charted + 1] = { surface = surface.name, area = area } end
 force.is_chunk_charted = function(surface, chunk) return surface.charted[chunk.x .. "," .. chunk.y] == true end
 
@@ -315,6 +326,30 @@ local function new_surface(name, index)
       return { get_item_count = function(n) return e.items[n] or 0 end }
     end
     function e.get_fluid_contents() return e.fluids end
+    if p and p.module_inventory_size then                -- modules by name and quality: e.modules = { {name, quality, count} }
+      e.modules = a.modules or {}
+      function e.get_module_inventory()
+        return {
+          get_contents = function()
+            local out = {}
+            for _, m in ipairs(e.modules) do
+              if m.count > 0 then out[#out + 1] = { name = m.name, quality = m.quality, count = m.count } end
+            end
+            return out
+          end,
+          remove = function(it)
+            for _, m in ipairs(e.modules) do
+              if m.name == it.name and m.quality == it.quality then
+                local n = math.min(m.count, it.count)
+                m.count = m.count - n
+                return n
+              end
+            end
+            return 0
+          end,
+        }
+      end
+    end
     function e.destroy() e.valid = false end
     e.prototype = p
     if e.type == "inserter" then
@@ -334,11 +369,15 @@ local function new_surface(name, index)
       return n
     end
     if a.name == "character" then fake.make_character(e) end
+    if p and p.type == "spider-vehicle" then fake.make_spider(e) end
     if a.name == "rocket-silo" then fake.make_silo(e, a.rocket_ready) end
     if a.name == "space-platform-hub" then fake.make_hub(e) end
     s.entities[#s.entities + 1] = e
     return e
   end
+
+  fake.spilled = {}
+  function s.spill_item_stack(a) fake.spilled[#fake.spilled + 1] = { position = a.position, stack = a.stack, marked = a.force ~= nil } return {} end
 
   function s.find_non_colliding_position(name, centre, radius, precision)
     local cx, cy = centre[1] or centre.x, centre[2] or centre.y
@@ -385,24 +424,49 @@ local GUI_PROPERTIES = { state = true, name = true, type = true, caption = true,
                          player_index = true, valid = true, tags = true, direction = true, add = true, clear = true, destroy = true,
                          selected_index = true, items = true, location = true, elem_value = true, number = true, sprite = true }
 
-local function element(spec)
+GUI_PROPERTIES.focus, GUI_PROPERTIES.scroll_to_bottom = true, true
+
+local function element(spec, parent)
   if spec.name and GUI_PROPERTIES[spec.name] then
     error('Invalid name "' .. spec.name .. '": LuaGuiElement contains a property or method with the same name.')
   end
-  local el = { type = spec.type, name = spec.name, caption = spec.caption, style = {}, children = {} }
+  if parent and spec.name and parent[spec.name] then                 -- as the game: two children of one parent cannot share a name
+    error('Invalid name "' .. spec.name .. '": the parent already has a child of that name.')
+  end
+  local el = { type = spec.type, name = spec.name, caption = spec.caption, text = spec.text, style = {}, children = {}, valid = true,
+               parent = parent, scrolled_to_bottom = false }
   function el.add(child_spec)
-    local c = element(child_spec)
+    local c = element(child_spec, el)
     el.children[#el.children + 1] = c
     if c.name then el[c.name] = c end
     return c
   end
+  function el.clear()
+    for _, c in ipairs(el.children) do
+      c.valid = false
+      if c.name then el[c.name] = nil end
+    end
+    el.children = {}
+  end
+  function el.destroy()
+    el.valid = false
+    if el.parent then
+      for i, c in ipairs(el.parent.children) do
+        if c == el then table.remove(el.parent.children, i) break end
+      end
+      if el.name then el.parent[el.name] = nil end
+    end
+  end
+  function el.focus() fake.focused = el end
+  function el.scroll_to_bottom() el.scrolled_to_bottom = true end
   return el
 end
+fake.element = element
 
 function fake.add_player(name, x, y, admin)
   local p = { name = name, index = #game.players + 1, position = { x = x, y = y }, surface = nauvis, admin = admin ~= false, valid = true,
-              zoom = 1, display_resolution = { width = 1920, height = 1080 }, selected = nil, printed = {}, alerts = {},
-              gui = { top = element { type = "flow" } } }
+              zoom = 1, display_resolution = { width = 1920, height = 1080 }, display_scale = 1, selected = nil, printed = {}, alerts = {},
+              connected = true, gui = { top = element { type = "flow" }, screen = element { type = "flow" } } }
   if fake.players_have_bodies then                      -- the player's character; the player's position is the character's
     p.character = nauvis.create_entity { name = "character", position = { x, y } }
     p.position = p.character.position
@@ -421,6 +485,17 @@ function fake.add_player(name, x, y, admin)
   end })
   function p.print(text) p.printed[#p.printed + 1] = text end
   function p.get_alerts() return p.alerts end
+  p.controller_type = p.character and defines.controllers.character or defines.controllers.god
+  function p.set_controller(a)                          -- remote view keeps the character as the physical controller
+    local was = p.controller_type
+    p.controller_type = a.type
+    if a.type == defines.controllers.remote and a.position then
+      p.remote_position = { x = a.position.x or a.position[1], y = a.position.y or a.position[2] }     -- a copy, as the game takes it
+    end
+    if fake.handlers[defines.events.on_player_controller_changed] then
+      fake.handlers[defines.events.on_player_controller_changed] { player_index = p.index, old_type = was }
+    end
+  end
   game.players[#game.players + 1] = p
   game.connected_players[#game.connected_players + 1] = p
   if fake.handlers[defines.events.on_player_created] then fake.handlers[defines.events.on_player_created] { player_index = p.index } end
@@ -448,6 +523,7 @@ game = {
   create_inventory = function(n)
     local inv = { valid = true }
     for i = 1, n do inv[i] = fake.item_stack() end
+    function inv.destroy() inv.valid = false end
     function inv.resize(m)
       for i = #inv + 1, m do inv[i] = fake.item_stack() end
     end
@@ -559,6 +635,7 @@ function fake.item_stack()
         local g = a.surface.create_entity { name = "entity-ghost", inner_name = e.name, position = { x + rx, y + ry },
                                             direction = ((e.direction or 0) + dir) % 16, recipe = e.recipe }
         g.tags = copy(e.tags)
+        g.quality = { name = e.quality or "normal" }
         out[#out + 1] = g
         if fake.water then out[#out + 1] = { valid = true, type = "tile-ghost", ghost_name = "landfill" } end   -- the game's landfill under it
       end
@@ -573,6 +650,77 @@ fake.path_requests = {}
 fake.walk_speed = 0.15                                   -- tiles a tick
 fake.mine_ticks = 30                                     -- ticks to mine one item by hand
 fake.craft_ticks = 30
+
+-- A spidertron: an equipment grid, a trunk, a seat, an autopilot that walks fake.spider_speed tiles a tick and says
+-- on_spider_command_completed on arrival, and a requester point for its trunk.
+fake.spider_speed = 0.5
+local function requester_point()
+  local pt = { mode = 1, sections = {}, sections_count = 0 }
+  function pt.add_section(group)
+    local sec = { group = group, slots = {}, filters = {} }
+    function sec.set_slot(i, filter) sec.slots[i] = filter end
+    pt.sections[#pt.sections + 1] = sec
+    pt.sections_count = #pt.sections
+    return sec
+  end
+  function pt.remove_section(i) table.remove(pt.sections, i) pt.sections_count = #pt.sections end
+  return pt
+end
+
+function fake.make_spider(e)
+  e.grid = { equipment = {}, size = 60, used = 0 }
+  function e.grid.put(a)
+    local p = prototypes.equipment[a.name]
+    if not p or e.grid.used + p.size > e.grid.size then return nil end
+    e.grid.used = e.grid.used + p.size
+    e.grid.equipment[#e.grid.equipment + 1] = { name = a.name }
+    return e.grid.equipment[#e.grid.equipment]
+  end
+  e.trunk = {}
+  local trunk = {
+    insert = function(a) e.trunk[a.name] = (e.trunk[a.name] or 0) + a.count return a.count end,
+    get_item_count = function(q) local n = type(q) == "table" and q.name or q return e.trunk[n] or 0 end,
+    count_empty_stacks = function()
+      local used = 0
+      for _ in pairs(e.trunk) do used = used + 1 end
+      return 80 - used
+    end,
+  }
+  local plain = e.get_inventory
+  function e.get_inventory(id)
+    if id == defines.inventory.spider_trunk then return trunk end
+    return plain(id)
+  end
+  function e.set_driver(who) e.driver = who if who then who.vehicle = e end end
+  function e.get_driver() return e.driver end
+  local point = requester_point()
+  e.requests = point
+  function e.get_requester_point() return point end
+end
+
+function fake.move_spiders(s)
+  for _, e in ipairs(s.entities) do
+    if e.valid and e.type == "spider-vehicle" then
+      local d = e.autopilot_destination
+      if not d and e.follow_target and e.follow_target.valid then d = e.follow_target.position end
+      if d then
+        local dx, dy = d.x - e.position.x, d.y - e.position.y
+        local len = math.sqrt(dx * dx + dy * dy)
+        if len <= fake.spider_speed then
+          e.position.x, e.position.y = d.x, d.y
+          if e.autopilot_destination then
+            e.autopilot_destination = nil
+            if fake.handlers[defines.events.on_spider_command_completed] then fake.handlers[defines.events.on_spider_command_completed] { vehicle = e } end
+          end
+        else
+          e.position.x, e.position.y = e.position.x + dx / len * fake.spider_speed, e.position.y + dy / len * fake.spider_speed
+        end
+        e.bounding_box = { left_top = { x = e.position.x - 1.4, y = e.position.y - 1.4 }, right_bottom = { x = e.position.x + 1.4, y = e.position.y + 1.4 } }
+        if e.driver and e.driver.position then e.driver.position.x, e.driver.position.y = e.position.x, e.position.y end
+      end
+    end
+  end
+end
 
 function fake.make_character(e)
   e.walking_state = { walking = false, direction = 0 }
@@ -747,6 +895,7 @@ function fake.tick(n)
     fake.path_requests = waiting
     if fake.handlers[defines.events.on_tick] then fake.handlers[defines.events.on_tick] { tick = game.tick } end
     physics(nauvis)
+    fake.move_spiders(nauvis)
     fake.fly()
   end
 end
@@ -912,6 +1061,17 @@ function fake.research(name)
   end
   force.current_research = force.research_queue[1]
   fake.handlers[defines.events.on_research_finished] { research = t }
+end
+
+-- The player types in a text box and presses Enter.
+function fake.type_in(player_index, el, text)
+  el.text = text
+  fake.handlers[defines.events.on_gui_confirmed] { player_index = player_index, element = el }
+end
+
+-- The player presses a mod's key (a custom input).
+function fake.key(player_index, name)
+  fake.handlers[name] { player_index = player_index, input_name = name, tick = game.tick }
 end
 
 function fake.chat(player_index, message)

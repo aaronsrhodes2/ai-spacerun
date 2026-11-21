@@ -125,7 +125,7 @@ R.register {
     name = { type = "string", required = true, description = "a few words" },
     x = { type = "number", required = true, description = "tile x" },
     y = { type = "number", required = true, description = "tile y" },
-    surface = { type = "string", description = "surface name; leave out for where the player is" },
+    surface = { type = "string", description = "surface; default: the player's" },
     icon = { type = "string", description = "an item or virtual signal name" },
   },
   run = function(a)

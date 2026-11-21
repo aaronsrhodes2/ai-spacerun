@@ -1,6 +1,7 @@
 -- The conversation between player and model, held in the game's own chat, and the working light that shows what
 -- the model is doing. The model reads what players typed with 'chat_read' and answers with 'say'.
 local R = require("scripts.registry")
+local P = require("scripts.panel")                       -- the conversation panel shows every line of the talk
 
 local KEEP = 200            -- chat lines remembered
 local STATES = {
@@ -93,11 +94,13 @@ R.register {
 
 function C.draw_all()
   for _, p in pairs(game.players) do draw(p) end
+  P.draw_all()
 end
 
 function C.on_player(event)
   local p = game.get_player(event.player_index)
   if p then draw(p) end
+  P.on_player(event)
 end
 
 function C.on_chat(event)
@@ -107,6 +110,7 @@ function C.on_chat(event)
   storage.chat_next = storage.chat_next + 1
   storage.chat[#storage.chat + 1] = line
   while #storage.chat > KEEP do table.remove(storage.chat, 1) end
+  P.add("player", line.player, line.text)
 end
 
 -- A task for purple Skippy, typed as /purple. It travels in the same list as chat, marked with whom it is for.
@@ -116,6 +120,7 @@ function C.for_purple(event, text)
   storage.chat_next = storage.chat_next + 1
   storage.chat[#storage.chat + 1] = line
   while #storage.chat > KEEP do table.remove(storage.chat, 1) end
+  P.add("player", line.player, "/purple " .. text)
 end
 
 R.register {
@@ -136,6 +141,7 @@ R.register {
     while #storage.chat > KEEP do table.remove(storage.chat, 1) end
     if storage.run then storage.run.prompts = (storage.run.prompts or 0) + 1 end      -- a spoken line is a prompt too
     game.print("[color=1,1,1][" .. name .. ", by voice][/color] " .. text)
+    P.add("voice", name, text)
     C.draw_all()
     return { id = line.id, player = name }
   end,
@@ -166,6 +172,7 @@ R.register {
   run = function(a)
     local tag = (a.as == "purple") and "[color=0.5,0.55,0.97][purple][/color] " or "[color=0,1,0.53][Skippy][/color] "
     game.print(tag .. a.text)
+    P.add((a.as == "purple") and "purple" or "skippy", (a.as == "purple") and "purple" or "Skippy", a.text)
     return { said = a.text }
   end,
 }

@@ -135,10 +135,16 @@ def test_the_mod_never_conjures_items_or_writes_research():
         assert not re.search(r"\.researched\s*=\s*(true|false)", code), "%s writes research state" % name
         assert "research_all_technologies" not in code and "cheat_mode" not in code, name
         assert not re.search(r"\.enabled\s*=[^=]", code), "%s unlocks a recipe" % name
-        if name != "avatar.lua":
+        if name not in ("avatar.lua", "commander.lua"):
             assert not re.search(r"\binsert\s*[({]", code), "%s inserts items" % name
     avatar = lua_code()["avatar.lua"]
     assert len(re.findall(r"\binsert\s*\{", avatar)) == 2 and avatar.count("remove_item") == 1
+    # the commander's starter kit (the Captain, 2026-11-21): one insert into the new spider's trunk, only after the
+    # 'commander-kit' allowance was checked, once per player
+    raw = (MOD / "scripts" / "commander.lua").read_text(encoding="utf-8")
+    assert len(re.findall(r"\binsert\s*\{", lua_code()["commander.lua"])) == 1
+    assert raw.index('AL.on("commander-kit")') < raw.index("give_kit(spider)", raw.index("function M.take"))
+    assert raw.index("if state.kits[player.index] then return nil") < raw.index('AL.on("commander-kit")')
 
 
 def test_the_mod_never_teleports_anything():
@@ -149,7 +155,10 @@ def test_the_mod_never_teleports_anything():
 def test_free_placement_is_the_only_place_a_piece_appears_without_an_item_and_it_is_gated_on_research():
     code = lua_code()
     makers = {name: len(re.findall(r"create_entity\s*\{", c)) for name, c in code.items() if "create_entity" in c}
-    assert makers == {"avatar.lua": 2, "build.lua": 1, "designs.lua": 1}  # the avatar's body and hand-placed piece; the free hand; a ghost
+    assert makers == {"avatar.lua": 2, "build.lua": 1, "designs.lua": 1,  # the avatar's body and hand-placed piece; the free hand; a ghost
+                      "commander.lua": 1}                                      # the starter spider, under 'commander-kit'
+    commander = (MOD / "scripts" / "commander.lua").read_text(encoding="utf-8")
+    assert commander.index('AL.on("commander-kit")') < commander.index('create_entity { name = "spidertron"')
     build = code["build.lua"]
     assert build.index("researched(force, proto)") < build.index("place(surface, force, piece)")
     designs = code["designs.lua"]

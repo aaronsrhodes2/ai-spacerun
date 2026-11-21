@@ -138,6 +138,21 @@ A building has only so many ways to meet its lines. `connections` lists them for
 side each fluid connection is on, how many tiles of each side are free for inserters, where heat connects, and, for a
 recipe, how many belts its ingredients need and which joint fits.
 
+## The Skippy panel, the spider commander and quality (0.21.0)
+
+- **The panel.** The conversation with Skippy stays up on the right of the screen, where the remote view leaves room:
+  your lines, Skippy's and purple's replies and voice lines as they happen, with the working light. Press Enter (the
+  Talk to Skippy key, in Controls) and type; Enter sends and the cursor stays for the next line. No mouse needed.
+- **Spider commander** (Settings > Mod settings > Map > Spider commander, off by default, also in a running game). You
+  play from the map in remote view and place ghosts; your character rides a spidertron that Skippy drives, and its
+  robots build what you place. A force with no spidertron gets one once, with roboports, power, shields, construction
+  robots and a building kit (the allowance commander-kit). Ask Skippy to send the spider somewhere, or to tend the
+  ghosts the roboport network cannot reach.
+- **Quality that builds** (needs the mod skippy-quality 0.2.0). One quality module makes a machine's output the best
+  quality you have researched: a tier 1 module triples the time, tier 2 doubles it, tier 3 adds half, and a better
+  module quality slows less. A second quality module only slows, so it is taken out and left beside the machine for the
+  robots. Skippy places its ghosts at the best quality, and the requests ask the quality machines for it.
+
 ## Modes
 
 The mod has three modes, steps of one ladder from playing by hand to being moved. You go up or down it at any time: by
@@ -175,7 +190,7 @@ is one row in `skippy_allowances.lua` with its own switch in the map settings (a
 says to obey. Scripts outside the mod read a switch through `scripts/_allowance.py`; three do so far (see the table), and a game without the mod or the setting counts as on. Add a relaxation by adding a row and its words in
 `locale/en/skippy-copilot.cfg` (a test checks both).
 
-## Tools in the mod (version 0.20.0)
+## Tools in the mod (version 0.21.0)
 
 | Tool | What it does |
 |---|---|
@@ -201,7 +216,9 @@ says to obey. Scripts outside the mod read a switch through `scripts/_allowance.
 | `avatar_walk`, `avatar_mine`, `avatar_travel`, `progress`, `research_available`, `lock_mode` | For the bridge and the operator: start a walk, a mining job or a trip to another planet; the facts milestones are tested against; fix the mode for a scored run |
 | `occupancy`, `build`, `frames` | For the bridge's planning tools: what is in the way, placing a checked plan (dry run first), the rectangles spoken places refer to |
 
-| `ghost_needs`, `ghost_requests` | What ghosts lack; write it as requests on a landing pad or requester chest (0.19.0) |
+| `ghost_needs`, `ghost_requests` | What ghosts lack; write it as requests on a landing pad, requester chest or spider (0.19.0, spider 0.21.0) |
+| `spiders`, `spider_go`, `spider_tend` | Spider commander: list the spidertrons; send one to a spot or place, or make it follow; a timed job that walks it to ghosts the roboport network cannot reach (0.21.0) |
+| `panel_type`, `panel_read` | For the bridge and tests: type into the Skippy panel as the player would, and read the conversation it shows (0.21.0) |
 | `designs`, `design_save`, `design_edit`, `design_export` | The blueprint library: list (with history), save a version (from pieces, the map or a string), swap buildings or recipes, export (0.20.0) |
 | `design_deploy`, `design_tile`, `deployments`, `design_redeploy`, `design_undeploy`, `what_is` | Deploy a version as ghosts, tile it over a grid, list deployments, move one to another version, take one away, read what a tile is for |
 | `places`, `mark_place`, `forget_place` | Map tags as place names |

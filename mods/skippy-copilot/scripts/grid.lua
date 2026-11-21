@@ -16,7 +16,7 @@ local CHAR = {
   ["wall"] = "W", ["gate"] = "g", ["beacon"] = "E", ["rocket-silo"] = "Z", ["cargo-landing-pad"] = "D",
   ["asteroid-collector"] = "Y", ["thruster"] = "H", ["space-platform-hub"] = "U", ["cargo-bay"] = "y",
   ["tree"] = "t", ["plant"] = "t", ["simple-entity"] = "r", ["cliff"] = "c", ["resource"] = ":",
-  ["entity-ghost"] = "?", ["character"] = "@", ["unit-spawner"] = "!", ["unit"] = "!", ["turret"] = "!",
+  ["entity-ghost"] = "?", ["character"] = "@", ["spider-vehicle"] = "&", ["car"] = "&", ["unit-spawner"] = "!", ["unit"] = "!", ["turret"] = "!",
 }
 local MEANING = {
   b = "belt", u = "underground belt", s = "splitter", l = "loader", i = "inserter", p = "pipe", q = "underground pipe",
@@ -25,7 +25,7 @@ local MEANING = {
   B = "boiler or heat exchanger", N = "reactor or heating tower", h = "heat pipe", R = "rail", X = "train stop", T = "turret",
   W = "wall", g = "gate", E = "beacon", Z = "rocket silo", D = "cargo landing pad", Y = "asteroid collector", H = "thruster",
   U = "platform hub", y = "cargo bay", t = "tree or plant", r = "rock", c = "cliff", [":"] = "ore or other resource",
-  ["?"] = "ghost (planned, not built)", ["@"] = "player character", ["!"] = "enemy", ["#"] = "other building",
+  ["?"] = "ghost (planned, not built)", ["@"] = "player character", ["&"] = "spidertron or car", ["!"] = "enemy", ["#"] = "other building",
   ["."] = "free ground", ["~"] = "water", [" "] = "no ground (space or out of map)",
 }
 -- Things that are on the map but take no room for building purposes.
@@ -162,7 +162,7 @@ R.register {
   params = {
     x = { type = "number", required = true, description = "tile x" },
     y = { type = "number", required = true, description = "tile y" },
-    surface = { type = "string", description = "surface name; leave out for where the player is" },
+    surface = { type = "string", description = "surface; default: the player's" },
   },
   run = function(a)
     local surface, err = surface_of(a.surface)
@@ -198,7 +198,7 @@ R.register {
     height = { type = "number", required = true, description = "tiles high" },
     radius = { type = "number", default = 32, description = "how far to search, at most 64 tiles" },
     allow_resources = { type = "boolean", default = false, description = "true if ore under the rectangle is acceptable" },
-    surface = { type = "string", description = "surface name; leave out for where the player is" },
+    surface = { type = "string", description = "surface; default: the player's" },
   },
   run = function(a)
     local surface, err = surface_of(a.surface)

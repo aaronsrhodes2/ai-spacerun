@@ -10,6 +10,8 @@
 -- stays outside (scripts/ghost_requests.py).
 local R = require("scripts.registry")
 local AL = require("scripts.allowances")
+local CM = require("scripts.commander")
+local function require_spider(key) return CM.spider_of(key) end
 
 local GROUP = "ghost-auto"
 local DEFAULT_STACKS = 40
@@ -63,6 +65,52 @@ local function needs(s, f, net)
     return a.quality < b.quality
   end)
   return rows, inside, outside
+end
+
+-- What the ghosts within `radius` of a spider need, less what its trunk already holds (the commander, 2026-11-21).
+local SPIDER_REACH = 50
+local function needs_near(spider, f, radius)
+  local s, by, count = spider.surface, {}, 0
+  local trunk = spider.get_inventory(defines.inventory.spider_trunk)
+  for _, g in pairs(s.find_entities_filtered { type = { "entity-ghost", "tile-ghost" }, force = f, position = spider.position, radius = radius }) do
+    count = count + 1
+    local quality = (g.quality and g.quality.name) or "normal"
+    for _, it in pairs((g.ghost_prototype and g.ghost_prototype.items_to_place_this) or {}) do
+      local key = it.name .. " " .. quality
+      local row = by[key]
+      if not row then
+        local item = prototypes.item[it.name]
+        row = { name = it.name, quality = quality, need = 0, stack = item and item.stack_size or 1 }
+        by[key] = row
+      end
+      row.need = row.need + it.count
+    end
+  end
+  local rows = {}
+  for _, row in pairs(by) do
+    row.have = trunk and trunk.get_item_count { name = row.name, quality = row.quality } or 0
+    row.short = math.max(0, row.need - row.have)
+    rows[#rows + 1] = row
+  end
+  table.sort(rows, function(a, b) return a.short / a.stack > b.short / b.stack end)
+  return rows, count
+end
+
+-- Rewrite the spider's own request section, group "ghost-spider-<unit>". -> slots written, or nil and a reason.
+local function write_spider(spider, chosen)
+  local point = spider.get_requester_point()
+  if not point then return nil, "the spider has no requester point" end
+  local group = GROUP .. "-spider-" .. spider.unit_number
+  for i = point.sections_count, 1, -1 do
+    if point.sections[i].group == group then point.remove_section(i) end
+  end
+  if #chosen > 0 then
+    local sec = point.add_section(group)
+    for i, row in ipairs(chosen) do
+      sec.set_slot(i, { value = { type = "item", name = row.name, quality = row.quality }, min = row.need })
+    end
+  end
+  return #chosen
 end
 
 -- The biggest shortfalls first, as many as fit in `max_stacks` stacks.
@@ -173,6 +221,7 @@ R.register {
     max_stacks = { type = "number", default = DEFAULT_STACKS, description = "most stacks one surface's requests may ask for in total" },
     chest_x = { type = "number", description = "x of a requester chest to write into instead of the landing pad" },
     chest_y = { type = "number", description = "y of that chest" },
+    spider = { type = "string", description = "or a spider ('first', a label or unit number): the ghosts near it, into its own requests" },
   },
   run = function(a)
     local f = game.forces.player
@@ -180,6 +229,24 @@ R.register {
     if apply and not AL.on("ghost-requests") then
       return { error = "writing requests from ghosts is switched off (the allowance 'ghost-requests')",
                hint = "the player can allow it again; a dry run (apply false) still works" }
+    end
+    if a.spider then
+      local spider, err = require_spider(a.spider ~= "first" and a.spider or nil)
+      if not spider then return err end
+      local rows, count = needs_near(spider, f, SPIDER_REACH)
+      local chosen, used = pick(rows, math.max(1, math.floor(a.max_stacks or DEFAULT_STACKS)))
+      local shown = {}
+      for i, row in ipairs(chosen) do
+        if i > 12 then break end
+        shown[#shown + 1] = view_row(row)
+      end
+      local entry = { spider = spider.entity_label or tostring(spider.unit_number), surface = spider.surface.name, ghosts_near = count,
+                      slots = #chosen, stacks = used, items = shown }
+      if apply then
+        local n, why = write_spider(spider, chosen)
+        if n then entry.wrote = n else entry.skipped = why end
+      end
+      return { spiders = { entry }, applied = apply, note = apply and "requests written into the spider" or "dry run: nothing was written" }
     end
     local to_chest = a.chest_x ~= nil or a.chest_y ~= nil
     if to_chest and (a.chest_x == nil or a.chest_y == nil or not a.surface) then

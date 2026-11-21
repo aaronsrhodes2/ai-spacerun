@@ -26,7 +26,7 @@ R.register {
   name = "diagnose",
   description = "Counts every machine by what it is doing (working, starved, backed up, unpowered and so on) with up to three example positions for each problem, and what that problem usually means. Call it with no parameters to check everything; give x, y, width and height (all four) only to limit it to one area.",
   params = {
-    surface = { type = "string", description = "surface name; leave out for where the player is" },
+    surface = { type = "string", description = "surface; default: the player's" },
     x = { type = "number", description = "left of an area to limit the check to" },
     y = { type = "number", description = "top of that area" },
     width = { type = "number", description = "width of that area in tiles" },

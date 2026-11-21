@@ -23,7 +23,7 @@ R.register {
     x = { type = "number", description = "centre x of the search; leave out for around the player" },
     y = { type = "number", description = "centre y of the search" },
     radius = { type = "number", default = 150, description = "how far to look, in tiles, at most 500" },
-    surface = { type = "string", description = "surface name; leave out for where the player is" },
+    surface = { type = "string", description = "surface; default: the player's" },
   },
   run = function(a)
     local surface, err = G.surface_of(a.surface)
@@ -108,7 +108,7 @@ R.register {
     y = { type = "number", description = "look around this y" },
     at = { type = "string", description = "or look around a named place (from 'places') instead of x and y" },
     radius = { type = "number", default = 8, description = "how far to try, at most 20 tiles" },
-    surface = { type = "string", description = "surface name; leave out for where the player is" },
+    surface = { type = "string", description = "surface; default: the player's" },
   },
   run = function(a)
     local surface, err
@@ -162,7 +162,7 @@ R.register {
     height = { type = "number", default = 1, description = "rows, at most 60" },
     name = { type = "string", description = "only pieces with this name; leave out for everything of ours" },
     dry_run = { type = "boolean", default = true, description = "true to only list" },
-    surface = { type = "string", description = "surface name; leave out for where the player is" },
+    surface = { type = "string", description = "surface; default: the player's" },
   },
   run = function(a)
     local surface, err = G.surface_of(a.surface)
@@ -202,7 +202,7 @@ R.register {
     x = { type = "number", required = true, description = "tile x of the machine" },
     y = { type = "number", required = true, description = "tile y of the machine" },
     recipe = { type = "string", required = true, description = "internal recipe name" },
-    surface = { type = "string", description = "surface name; leave out for where the player is" },
+    surface = { type = "string", description = "surface; default: the player's" },
   },
   run = function(a)
     local surface, err = G.surface_of(a.surface)

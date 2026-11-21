@@ -80,6 +80,7 @@ python scripts/modcheck.py > "$OUT/modcheck.txt" 2>&1; note "modcheck: exit $? (
 python scripts/nightcheck.py > "$OUT/nightcheck.txt" 2>&1; note "nightcheck: exit $? ($(grep -c '^FAIL' "$OUT/nightcheck.txt") failed)"
 python -m copilot --check > "$OUT/setup-check.txt" 2>&1; note "setup check: exit $?"
 timeout 10800 python -m copilot.leg copilot/legs/first.txt > "$OUT/leg.txt" 2>&1; note "first leg: exit $? ($(tail -n 30 "$OUT/leg.txt" | grep -m1 -i 'leg-' || echo 'no score line'))"
+[ -f "$OUT/report.html" ] && note "the run page, a picture per turn: $OUT/report.html ($(ls "$OUT"/turn-*.png 2>/dev/null | wc -l) pictures)"
 phase "after the leg"
 [ "${MODSERVER_HOST:-skippy-core}" != "local" ] && note "skippy-core memory available after the leg: $(core_mem) MiB"
 PEAK=$(cut -d, -f2 "$OUT/vram.csv" | tr -dc '0-9\n' | sort -n | tail -1)

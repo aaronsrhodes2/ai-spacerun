@@ -4,9 +4,10 @@ loop with a plain model, or an outside agent over MCP (copilot/mcp_server.py).""
 import json
 import time
 
-BRIDGE_ONLY = {"chat_read", "say", "set_state", "events_read", "goal_state", "hear", "cron_report"}  # cron_report: for scripts      # the bridge runs the channel; the model gets the rest
+BRIDGE_ONLY = {"chat_read", "say", "set_state", "events_read", "goal_state", "hear", "cron_report",   # cron_report: for scripts
+               "panel_type", "panel_read"}                                     # panel_*: tests type as the player      # the bridge runs the channel; the model gets the rest
 PLAN_ONLY = {"build", "occupancy", "frames", "avatar_walk", "avatar_mine", "avatar_travel", "progress", "lock_mode",
-             "research_available"}                                              # reached through the planning tools, never called raw
+             "research_available", "spider_tend_step"}                          # spider_tend_step: run by spider_tend's timer                                              # reached through the planning tools, never called raw
 
 
 # Tool groups (the Captain, 2026-11-20: the low bar is Qwen3 8B on a 12 GB card beside the game). A small model
@@ -26,6 +27,8 @@ GROUPS = {
     "ghosts": ("unbuilt ghosts: what they lack, and turning it into requests", ["ghost_needs", "ghost_requests"]),
     "rules": ("the rules this game relaxes and their switches", ["allowances", "set_allowance"]),
     "exploring": ("reveal more of the map", ["reveal_map"]),
+    "spiders": ("the spidertrons the commander's body rides: list, send or follow, tend stranded ghosts",
+                ["spiders", "spider_go", "spider_tend"]),
 }
 GROUP_OF = {name: g for g, (_, names) in GROUPS.items() for name in names}
 

@@ -497,3 +497,24 @@ Settled 2026-11-13 (the Captain):
   is credited by name in our README either way.
 - The solve is the solar system edge. The stock qwen coder run is the very last step; our own runs use purple Skippy with
   our skill and tuning, to get the most out of the machines at home without paying for tokens.
+
+## How the game is meant to be driven (research, 2026-11-21)
+
+The game's maker built it to be driven by script, and 2.1 (FFF #440: the last major update, quality of life and
+modding) widened that further. What we use, with sources:
+- **Quality is optional in Space Age since 2.1.7:** the dependency became a recommendation
+  (wiki.factorio.com/Version_history/2.1.0).
+- **2.1's quality roll (doc-html LuaQualityPrototype):** the first step up is the module's effect times
+  `next_probability`, and each further step is `chain_probability` (vanilla 0.1). The game never rolls above an
+  unlocked quality; checked live on skippy-core on 2026-11-21 (rare unlocked, the output was rare).
+  `speed_quality_multiplier` accepts a negative value, so a better module slows less (checked live).
+- **Spiders:** `autopilot_destination`, `add_autopilot_destination` (patrol since 2.1.7), `follow_target` and
+  `on_spider_command_completed` work with no player. A spidertron's roboports build ghosts from its trunk with nobody
+  in the seat, once the equipment has charged (checked live on 2026-11-21). Its requester point takes sections even
+  before personal logistics is researched.
+- **Controllers:** the remote controller can place ghosts but not touch items, which fits the commander:
+  `set_controller{type=remote, position, surface}` (lua-api LuaPlayer).
+- **Gone in 2.1:** `LuaEntity.fluidbox` and `neighbours`; module inventories are `crafter_modules`; hand mining
+  needs the target selected (`update_selected_entity`).
+- **Prior work:** the Factorio Learning Environment (arxiv 2503.09617) drives a headless server over RCON from Python,
+  as this bridge does.

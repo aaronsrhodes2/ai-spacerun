@@ -17,6 +17,7 @@ local V = require("scripts.avatar")
 local AL = require("scripts.allowances")
 local B = require("scripts.build")
 local P = require("scripts.places")
+local QM = require("scripts.quality")
 
 local D = {}
 local MAX_AREA = 200
@@ -229,7 +230,7 @@ R.register {
     y = { type = "number", description = "its top row" },
     width = { type = "number", description = "columns, at most 200" },
     height = { type = "number", description = "rows, at most 200" },
-    surface = { type = "string", description = "surface name; leave out for where the player is" },
+    surface = { type = "string", description = "surface; default: the player's" },
     string = { type = "string", description = "or a blueprint string to import" },
   },
   run = function(a)
@@ -373,8 +374,21 @@ end
 
 -- Place a version as ghosts; tag them; return the ghosts and the shift the game applied to our expected positions.
 local function place_ghosts(s, f, stack, x, y, dir, expected, tags)
-  local ghosts = stack.build_blueprint { surface = s, force = f, position = { x, y }, direction = dir,
-                                         build_mode = defines.build_mode and defines.build_mode.forced or nil, skip_fog_of_war = false, raise_built = true } or {}
+  -- with skippy-quality, ghosts are placed at the best quality researched, which the quality machines make (the Captain,
+  -- 2026-11-21); the design itself keeps its own qualities, so a copy is built
+  local from, scratch = stack, nil
+  local best = QM.active() and QM.best(f) or "normal"
+  if best ~= "normal" then
+    scratch = game.create_inventory(1)
+    scratch[1].set_stack(stack)
+    local ents = scratch[1].get_blueprint_entities() or {}
+    for _, e in pairs(ents) do e.quality = best end
+    scratch[1].set_blueprint_entities(ents)
+    from = scratch[1]
+  end
+  local ghosts = from.build_blueprint { surface = s, force = f, position = { x, y }, direction = dir,
+                                        build_mode = defines.build_mode and defines.build_mode.forced or nil, skip_fog_of_war = false, raise_built = true } or {}
+  if scratch then scratch.destroy() end
   local gx, gy, ex, ey, n = 0, 0, 0, 0, 0
   local by_name = {}
   for _, p in ipairs(expected) do
@@ -492,7 +506,7 @@ R.register {
     x = { type = "number", description = "or the centre's x" },
     y = { type = "number", description = "and y" },
     facing = { type = "string", default = "north", description = "north (as saved), east, south or west" },
-    surface = { type = "string", description = "surface name; leave out for where the player is" },
+    surface = { type = "string", description = "surface; default: the player's" },
     dry_run = { type = "boolean", default = true, description = "true to only check" },
     build_now = { type = "boolean", default = false, description = "place at once, not as ghosts ('builds on its own' mode only)" },
   },
@@ -525,7 +539,7 @@ R.register {
 
 R.register {
   name = "design_tile",
-  description = "Repeat one design over an area or along a line, as a player drags a blueprint: roboport and power grids, pole lines, walls, solar fields. Copies sit on a grid fixed to the map, so separate calls line up; copies that collide are skipped. Each copy is a deployment. Dry run unless dry_run is false.",
+  description = "Repeat one design over an area or a line, as a player drags a blueprint (roboport and power grids, walls, solar fields). Copies sit on a grid fixed to the map, so calls line up; colliding copies are skipped. Dry run unless dry_run is false.",
   params = {
     name = { type = "string", required = true, description = "the design: one cell or segment" },
     version = { type = "number", description = "leave out for the latest" },
@@ -804,7 +818,7 @@ R.register {
   params = {
     x = { type = "number", required = true, description = "tile x" },
     y = { type = "number", required = true, description = "tile y" },
-    surface = { type = "string", description = "surface name; leave out for where the player is" },
+    surface = { type = "string", description = "surface; default: the player's" },
   },
   run = function(a)
     local s, err = G.surface_of(a.surface)

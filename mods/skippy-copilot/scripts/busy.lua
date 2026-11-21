@@ -72,7 +72,7 @@ R.register {
   name = "utilisation",
   description = "How much of the factory is working: the share of machines working right now and averaged over the last two minutes, and the groups of machines that stand idle, with why and how many. For players who want every machine moving at once. The game has no dial for a machine's effort: balance comes from how many machines run each recipe, what the belts and inserters between them carry, and modules and beacons.",
   params = {
-    surface = { type = "string", description = "surface name; leave out for where the player is" },
+    surface = { type = "string", description = "surface; default: the player's" },
     top = { type = "number", default = 8, description = "how many idle groups to list, the largest first" },
   },
   run = function(a)
