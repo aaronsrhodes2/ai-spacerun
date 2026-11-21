@@ -94,7 +94,7 @@ def main():
     check("player: says so when nobody is in the game", not r["ok"] or "name" in r["result"], r)
     r = call("frames", None, c)
     check("frames: says so when nobody is in the game", (not r["ok"] and "no player" in r["error"]) or "view" in r.get("result", {}), r)
-    r = call("occupancy", {"x": -16, "y": -10, "width": 36, "height": 18}, c)["result"]
+    r = call("occupancy", {"x": -16, "y": -10, "width": 36, "height": 20}, c)["result"]       # rows y -10 to 9: the check reads y 8
     def occ(x, y):
         return r["rows"][y + 10][x + 16]
     check("occupancy: machine, belt and water block; ore and free ground do not", occ(3, 1) == "#" and occ(5, 4) == "#" and occ(13, -6) == "#" and occ(-6, -6) == "." and occ(15, 8) == ".", r["rows"])

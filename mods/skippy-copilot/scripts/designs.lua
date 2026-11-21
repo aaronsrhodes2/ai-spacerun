@@ -466,6 +466,9 @@ local function deploy_at(s, f, name, version, stack, x, y, dir, opts)
   out.deployment = id
   out.ghosts = n_ghosts - built
   out.built_now = (built > 0) and built or nil
+  if opts.build_now and built < n_ghosts then           -- found live: a revive waits while trees or rocks under it are marked
+    out.waiting = (n_ghosts - built) .. " pieces stay ghosts: trees or rocks under them are marked for deconstruction; robots or the player clear them, then the ghosts can be built"
+  end
   return out
 end
 

@@ -35,6 +35,9 @@ class LuaMod:
                          "function helpers.direction_to_string(d) return names[d] or tostring(d) end")
         self.lua.execute("dofile(%s)" % json.dumps(str(HERE / "fake_game.lua").replace("\\", "/")))
         self.lua.execute("dofile(%s)" % json.dumps(str(MOD / "control.lua").replace("\\", "/")))
+        # as in the game (found live 2026-11-20): require works only while control.lua is being loaded, never later
+        self.lua.execute("local loaded = require function require(name) error(\"Require can't be used outside of control.lua parsing.\") end "
+                         "fake.load_require = loaded")
         self.fake = g.fake
         self.fake.on_init()
 

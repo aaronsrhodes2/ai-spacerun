@@ -3,6 +3,7 @@
 -- move or rename them. Every tag is read, the player's too. Only tags the mod made (remembered by their tag number) are
 -- moved or removed by it: never what someone else wrote.
 local R = require("scripts.registry")
+local G = require("scripts.grid")          -- at load time only: the game forbids require once running
 
 local P = {}
 local MAX_SHOWN = 60
@@ -128,7 +129,6 @@ R.register {
     icon = { type = "string", description = "an item or virtual signal name" },
   },
   run = function(a)
-    local G = require("scripts.grid")
     local s, err = G.surface_of(a.surface)
     if not s then return err end
     local icon = icon_spec(a.icon)

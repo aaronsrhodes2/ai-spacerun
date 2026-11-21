@@ -4,6 +4,7 @@ local R = require("scripts.registry")
 local G = require("scripts.grid")
 local A = require("scripts.alerts")
 local V = require("scripts.avatar")
+local P = require("scripts.places")
 
 local CELL = 8                      -- patches are found on a grid of this many tiles: ore within a cell of ore is one patch
 
@@ -112,7 +113,7 @@ R.register {
   run = function(a)
     local surface, err
     if a.at then
-      local p, perr = require("scripts.places").resolve(a.at, a.surface)
+      local p, perr = P.resolve(a.at, a.surface)
       if not p then return perr end
       surface, a.x, a.y = p.surface, p.x, p.y
     elseif not (a.x and a.y) then
