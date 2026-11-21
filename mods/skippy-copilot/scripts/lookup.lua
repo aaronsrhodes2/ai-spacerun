@@ -151,6 +151,8 @@ local function entity(name)
     kind = "entity", name = name, type = p.type,
     tiles_wide = at(p, "tile_width"), tiles_high = at(p, "tile_height"),
     crafting_speed = speed, crafting_categories = some(names(at(p, "crafting_categories"))),
+    -- found live 2026-11-20: told only the speed, the model made up "one smelt every 0.5 s" for a stone furnace
+    how_fast = (speed and speed > 0) and ("one craft takes the recipe's seconds divided by " .. speed .. "; look up the recipe for its seconds") or nil,
     power_kilowatts = (usage and usage > 0) and usage * 60 / 1000 or nil,
     module_slots = ((at(p, "module_inventory_size") or 0) > 0) and p.module_inventory_size or nil,
     mining_speed = at(p, "mining_speed"),

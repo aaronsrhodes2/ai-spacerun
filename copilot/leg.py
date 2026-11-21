@@ -35,6 +35,10 @@ def main(argv):
     if len(argv) < 2:
         print(__doc__)
         return 2
+    try:                                            # found live 2026-11-20: a Windows console's cp1252 killed the leg on an arrow in an answer
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
     env = settings()
     prompts = prompts_of(pathlib.Path(argv[1]).read_text(encoding="utf-8"))
     game = game_from(env)

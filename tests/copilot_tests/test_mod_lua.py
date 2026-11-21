@@ -103,6 +103,7 @@ def test_item_facts_leave_recycling_out_of_the_recipes(mod):
 def test_entity_facts(mod):
     r = mod.result("lookup", {"name": "assembling-machine-2", "kind": "entity"})[0]
     assert (r["tiles_wide"], r["tiles_high"], r["crafting_speed"], r["module_slots"], r["power_kilowatts"]) == (3, 3, 0.75, 2, 150)
+    assert "divided by 0.75" in r["how_fast"] and "look up the recipe" in r["how_fast"]          # the speed alone led to made-up craft times
     assert "pole_wire_reach" not in r                                     # only poles report reach
     pole = mod.result("lookup", {"name": "medium-electric-pole", "kind": "entity"})[0]
     assert (pole["pole_supply_tiles"], pole["pole_wire_reach"]) == (7, 9)
