@@ -2,7 +2,13 @@
   "mcpServers": {
     "skippy-copilot": {
       "command": "python",
-      "args": ["-m", "copilot.mcp_server"]
+      "args": ["-m", "copilot.mcp_server"],
+      "env": { "COPILOT_GAME": "live" }
+    },
+    "skippy-copilot-test": {
+      "command": "python",
+      "args": ["-m", "copilot.mcp_server"],
+      "env": { "COPILOT_GAME": "test" }
     }
   }
 }

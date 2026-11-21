@@ -9,6 +9,7 @@ import pathlib
 import sys
 import time
 
+from . import games
 from .score import line, read, score
 
 
@@ -76,7 +77,8 @@ def main(argv):
     began = time.time()
 
     def turn_logs():                                    # the bridge's log, and the MCP server's that purple's calls go through
-        found = [log] + [p for d in {logs, pathlib.Path("runs")} for p in d.glob("mcp-*.jsonl") if p.stat().st_mtime >= began - 5]
+        mine = "mcp-%s-*.jsonl" % games.name_of(env)       # this game's door only: never the other game's calls
+        found = [log] + [p for d in {logs, pathlib.Path("runs")} for p in d.glob(mine) if p.stat().st_mtime >= began - 5]
         return [str(p) for p in found]
 
     class Logs(list):                                   # read afresh each turn: purple's MCP log may start mid-leg

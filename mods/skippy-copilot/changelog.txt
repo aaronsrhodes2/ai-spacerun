@@ -6,6 +6,8 @@ Date: 2026-11-21
       connects to that Ollama by itself, and follows a change within a minute. Empty: the bridge's own setting.
       bridge_settings is the bridge's tool for it.
     - The panel says the bridge joins by itself while it is not connected, instead of asking for a command.
+    - game_info: the map seed, so the bridge and purple's doors never take the live game for the test game (whose map
+      always has seed 20261121) or the other way round.
 ---------------------------------------------------------------------------------------------------
 Version: 0.21.0
 Date: 2026-11-21

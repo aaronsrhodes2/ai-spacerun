@@ -380,7 +380,9 @@ def test_a_player_typing_a_tool_call_does_not_count_as_the_assistant_being_conne
 
 def test_the_workspace_offers_the_mcp_server_and_the_skill_is_the_prompt():
     mcp = json.loads((ROOT / ".mcp.json").read_text(encoding="utf-8"))
-    assert mcp["mcpServers"]["skippy-copilot"] == {"command": "python", "args": ["-m", "copilot.mcp_server"]}
+    door = {"command": "python", "args": ["-m", "copilot.mcp_server"]}
+    assert mcp["mcpServers"]["skippy-copilot"] == dict(door, env={"COPILOT_GAME": "live"})          # one door per game
+    assert mcp["mcpServers"]["skippy-copilot-test"] == dict(door, env={"COPILOT_GAME": "test"})
     skill = (ROOT / ".claude" / "skills" / "factorio-copilot" / "SKILL.md").read_text(encoding="utf-8")
     prompt = (ROOT / "copilot" / "prompt.md").read_text(encoding="utf-8")
     assert skill.startswith("---\nname: factorio-copilot\n") and skill.endswith(prompt), "the skill has drifted from copilot/prompt.md"

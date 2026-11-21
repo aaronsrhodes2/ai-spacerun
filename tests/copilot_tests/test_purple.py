@@ -322,7 +322,7 @@ def test_the_whole_path_from_the_command_in_the_game_to_purples_words_in_chat():
 
 def test_on_plain_chat_purple_decides_whether_it_is_the_game_or_the_code():
     from copilot.purple import TURN
-    assert "You decide what kind of request it is" in TURN and "factorio-copilot skill" in TURN and "skippy-copilot MCP server" in TURN
+    assert "You decide what kind of request it is" in TURN and "factorio-copilot skill" in TURN and "{server} MCP server" in TURN
     assert "mods/skippy-copilot, copilot/ and tests/copilot_tests" in TURN and "do not restart, reload or stop the game server" in TURN
     assert "ask the player in one sentence before changing anything" in TURN and TURN.count("%s") == 1
 

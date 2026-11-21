@@ -74,16 +74,16 @@ if [ "$CLIENT" = "yes" ]; then
 fi
 
 # ---- the checks and the leg, against the test server only
+# COPILOT_GAME=test (copilot/games.py): the test server's address whatever copilot.env says, its map seed checked, its
+# own plans, and purple's turns name its own door (skippy-copilot-test in .mcp.json), never the live game's
+export COPILOT_GAME=test
 export COPILOT_RCON_HOST=127.0.0.1 COPILOT_RCON_PORT=27116 COPILOT_RCON_PASSWORD_FILE=.testserver/rcon.pw
 export COPILOT_QUICK_URL= COPILOT_PURPLE_URL=off COPILOT_VOICE_PORT=off COPILOT_LOG_DIR="$OUT"   # purple alone; no voice door
 python scripts/modcheck.py > "$OUT/modcheck.txt" 2>&1; note "modcheck: exit $? ($(grep -c '^FAIL' "$OUT/modcheck.txt") failed)"
 python scripts/nightcheck.py > "$OUT/nightcheck.txt" 2>&1; note "nightcheck: exit $? ($(grep -c '^FAIL' "$OUT/nightcheck.txt") failed)"
 python -m copilot --check > "$OUT/setup-check.txt" 2>&1; note "setup check: exit $?"
-# purple's game tools read copilot/copilot.env, not this script's settings: when that points at the live game, a leg
-# would build in the Captain's real game, so it is skipped (found 2026-11-21, when the live bridge started)
-LIVE_PORT=$(grep -m1 '^COPILOT_RCON_PORT=' copilot/copilot.env | cut -d= -f2 | tr -d '\r ')
-if [ "${LIVE_PORT:-27116}" != "27116" ]; then
-  note "first leg skipped: copilot.env points purple's game tools at port $LIVE_PORT (the live game), not the test server"
+if ! grep -q '"skippy-copilot-test"' .mcp.json; then          # without its own door purple could only reach the live game
+  note "first leg skipped: .mcp.json has no skippy-copilot-test server, so purple has no door to the test game"
 else
 timeout 10800 python -m copilot.leg copilot/legs/first.txt > "$OUT/leg.txt" 2>&1; note "first leg: exit $? ($(tail -n 30 "$OUT/leg.txt" | grep -m1 -i 'leg-' || echo 'no score line'))"
 fi

@@ -171,6 +171,16 @@ R.register {
 }
 
 R.register {
+  name = "game_info",
+  description = "For the bridge: which game this is, by its map seed (the test map always has the same one), with the tick and the mod's version, so the live game and the test game are never taken for each other.",
+  params = {},
+  run = function()
+    local s = game.surfaces.nauvis or game.surfaces[1]
+    return { seed = s and s.map_gen_settings.seed or nil, tick = game.tick, mod = script.active_mods["skippy-copilot"] }
+  end,
+}
+
+R.register {
   name = "panel_read",
   description = "For the bridge and tests: the conversation as the Skippy panel shows it, newer than a given line id.",
   params = {

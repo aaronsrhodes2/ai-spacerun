@@ -42,7 +42,7 @@ class Purple:
 TURN = ("This comes from a player inside a running Factorio game, where you are Skippy. You decide what kind of request it is "
         "(the Captain, 2026-11-13: purple Skippy is the router).\n"
         "- About the game (what to build, what is wrong, research, a goal): follow the factorio-copilot skill and use only the tools of the "
-        "skippy-copilot MCP server to see and change the game. Do not edit files or run commands for this, git included: "
+        "{server} MCP server to see and change the game. Do not edit files or run commands for this, git included: "
         "other sessions work in this folder, and their changes are not yours to commit.\n"
         "- About the assistant itself (change or fix the mod, the bridge or their tests): that is a development task. You may change only "
         "mods/skippy-copilot, copilot/ and tests/copilot_tests in this repository, and the player is mid-game: do not restart, reload or "
@@ -51,12 +51,21 @@ TURN = ("This comes from a player inside a running Factorio game, where you are 
         "Answer the player in at most three short sentences of plain text, and say which of the two you did.\n\n%s")
 
 
+# Which game this turn is about (the Captain, 2026-11-21: the live game and the test game are separate games, never one).
+GAME = ("This turn is about the {name} game: {about}. Its tools are the {server} MCP server's, and only those. The other game "
+        "is a different map: its places, designs, plans, ghosts and anything you saw there are not this one's, so never carry a "
+        "fact or a coordinate across." + chr(10) * 2)
+
+
 class PurpleAgent:
     """Stands where the bridge's own Agent stands, with purple Skippy doing the thinking and the tool calls."""
 
-    def __init__(self, game, purple, toolbox, conv=None):
+    def __init__(self, game, purple, toolbox, conv=None, which="live"):
+        from .games import ABOUT, SERVER
         self.game, self.purple, self.toolbox = game, purple, toolbox
-        self.conv = conv or ("factorio-" + time.strftime("%Y%m%d-%H%M%S"))
+        self.which, self.server = which, SERVER[which]
+        self.game_line = GAME.format(name=which, about=ABOUT[which], server=self.server)
+        self.conv = conv or ("factorio-%s-" % which + time.strftime("%Y%m%d-%H%M%S"))     # one game's talk never continues in the other's
         self.skill_sent = False                         # purple may not see .claude/skills here, so the first turn carries the skill itself
         self.model = type("M", (), {"model": "purple Skippy in workspace '%s'" % purple.workspace})()
         self.tools = toolbox.offered
@@ -86,7 +95,7 @@ class PurpleAgent:
         alert_text, _ = self.alerts()
         answer, outcome = None, "answered"
         try:
-            message = TURN % (text + ((chr(10) * 2 + alert_text) if alert_text else ""))
+            message = self.game_line + TURN.replace("{server}", self.server) % (text + ((chr(10) * 2 + alert_text) if alert_text else ""))
             if not self.skill_sent:
                 message = "Your instructions for this game (the factorio-copilot skill):" + chr(10) * 2 + PROMPT + chr(10) * 2 + "---" + chr(10) * 2 + message
             got = self.purple.ask(message, self.conv)

@@ -12,6 +12,7 @@ import pathlib
 import sys
 import time
 
+from .games import SERVER, check, name_of, plan_file
 from .models import schema
 from .toolbox import Toolbox
 
@@ -29,8 +30,10 @@ def reply(msg_id, result=None, error=None):
 
 
 class Server:
-    def __init__(self, toolbox):
-        self.toolbox = toolbox
+    def __init__(self, toolbox, which="live", refusal=None):
+        """which: the game this server is the door to (copilot/games.py); refusal: why it must not be used (the map that
+        answered is the other game), said on every call instead of calling."""
+        self.toolbox, self.which, self.refusal = toolbox, which, refusal
 
     def tools(self):
         out = []
@@ -46,7 +49,7 @@ class Server:
             return None                                              # notifications need no answer
         if method == "initialize":
             return reply(msg_id, {"protocolVersion": PROTOCOL, "capabilities": {"tools": {}},
-                                  "serverInfo": {"name": "skippy-copilot", "version": "0.14.0"}})
+                                  "serverInfo": {"name": SERVER[self.which], "version": "0.21.1"}})
         if method == "ping":
             return reply(msg_id, {})
         if method == "tools/list":
@@ -54,7 +57,11 @@ class Server:
         if method == "tools/call":
             params = msg.get("params") or {}
             name, args = params.get("name"), params.get("arguments") or {}
-            result = self.toolbox.call(name, args)
+            if self.refusal:
+                result = {"ok": False, "error": "this is the door to the %s game, and it is shut: %s" % (self.which, self.refusal)}
+            else:
+                result = self.toolbox.call(name, args)
+                result["game"] = self.which                          # every answer says which game it came from
             self.toolbox.log(event="tool", step=0, name=name, args=args, ok=bool(result.get("ok")), error=result.get("error"))
             text = json.dumps(result)
             if len(text) > MAX_RESULT:
@@ -82,16 +89,18 @@ def main():
     from .__main__ import game_from, settings
     from .tools import LocalTools
     env = settings()
+    which = name_of(env)
     game = game_from(env)
+    ok, why = check(game, which)
     logs = pathlib.Path(env.get("COPILOT_LOG_DIR", "runs"))
     logs.mkdir(exist_ok=True)
-    local = LocalTools(game, plan_store=logs / "plans.json")
-    toolbox = Toolbox(game, local, logs / ("mcp-" + time.strftime("%Y%m%d-%H%M%S") + ".jsonl"))
+    local = LocalTools(game, plan_store=plan_file(logs, which))          # plans per game, never shared
+    toolbox = Toolbox(game, local, logs / ("mcp-%s-" % which + time.strftime("%Y%m%d-%H%M%S") + ".jsonl"))
 
     def write(text):
         sys.stdout.write(text + "\n")
         sys.stdout.flush()
-    serve(Server(toolbox), sys.stdin, write)
+    serve(Server(toolbox, which, None if ok else why), sys.stdin, write)
 
 
 if __name__ == "__main__":

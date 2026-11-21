@@ -222,7 +222,8 @@ local function one_of(value, want)
 end
 
 local function new_surface(name, index)
-  local s = { name = name, index = index, entities = {}, tiles = {}, charted = {}, valid = true }
+  local s = { name = name, index = index, entities = {}, tiles = {}, charted = {}, valid = true,
+              map_gen_settings = { seed = 4242 } }                -- tests set 20261121 to be the test map
 
   function s.get_tile(x, y)
     return make_tile(s.tiles[math.floor(x) .. "," .. math.floor(y)] or "grass-1")

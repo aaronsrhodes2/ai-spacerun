@@ -46,7 +46,7 @@ case "${1:-start}" in
     echo "started; logs in $OUT (bridge.log, tunnel.log); stop with: bash scripts/live_bridge.sh stop"
     ;;
   run)         # the keeper: the tunnel and the bridge, each brought back if it drops
-    export COPILOT_RCON_HOST=127.0.0.1 COPILOT_RCON_PORT=$PORT COPILOT_LOG_DIR="$OUT"
+    export COPILOT_GAME=live COPILOT_RCON_HOST=127.0.0.1 COPILOT_RCON_PORT=$PORT COPILOT_LOG_DIR="$OUT"   # copilot/games.py
     COPILOT_RCON_PASSWORD="$(val FACTORIO_RCON_PASSWORD)"
     export COPILOT_RCON_PASSWORD
     unset COPILOT_RCON_PASSWORD_FILE

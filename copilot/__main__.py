@@ -10,6 +10,8 @@ Settings: a file named copilot.env next to this package (copy copilot.env.exampl
     COPILOT_RCON_HOST          default 127.0.0.1
     COPILOT_RCON_PORT          default 27015
     COPILOT_RCON_PASSWORD      or COPILOT_RCON_PASSWORD_FILE (a file holding it)
+    COPILOT_GAME               live (default: the address above) or test (the test server, whatever the address says);
+                               the map's seed is checked, so one game is never taken for the other (copilot/games.py)
 
   The AI: one source, one key
     COPILOT_SOURCE             anthropic  any server that speaks the Anthropic Messages API: Skippy Core's model, or Anthropic
@@ -46,6 +48,7 @@ import pathlib
 import sys
 import time
 
+from . import games
 from .agent import Agent
 from .game import Game
 from .loop import AlertWatch, Bridge, alert_prompt, news_prompt, say          # noqa: F401  (re-exported for callers and tests)
@@ -80,7 +83,7 @@ def settings():
     if f.exists():
         for k, v in _lines(f).items():
             env.setdefault(k, v)
-    return resolve(env)
+    return games.apply(resolve(env))                    # COPILOT_GAME=test: the test server, whatever copilot.env says
 
 
 def resolve(env):
@@ -142,7 +145,7 @@ def agent_from(env, game, tools, log_path, max_steps=12):
         if not env.get("COPILOT_WORKSPACE"):
             raise SetupError("purple Skippy needs a workspace: put COPILOT_WORKSPACE in copilot.env (the id of a project in purple's registry)")
         purple = Purple(url or PURPLE_URL, secret(env, "COPILOT_KEY"), env["COPILOT_WORKSPACE"])
-        return PurpleAgent(game, purple, Toolbox(game, tools, log_path))
+        return PurpleAgent(game, purple, Toolbox(game, tools, log_path), which=games.name_of(env))   # purple is told which game, and its door
     if kind == "anthropic":
         if not url:
             raise SetupError("the anthropic source needs COPILOT_URL: the server's address, such as http://skippy-core:11434")
@@ -223,6 +226,11 @@ def main():
         sys.exit(0 if run_check(env) else 1)
     try:
         game = game_from(env)
+        which = games.name_of(env)
+        ok, why = games.check(game, which)
+        if not ok:
+            raise SetupError(why)
+        print("game: %s (%s)" % (which, why), flush=True)
         env, chosen = from_game(env, game)
         if chosen:
             print("the AI set in the game: %s, model %s" % (env["COPILOT_URL"], env["COPILOT_MODEL"]), flush=True)
@@ -231,13 +239,13 @@ def main():
             game = door.wrap(game)
         logs = pathlib.Path(env.get("COPILOT_LOG_DIR", "runs"))
         logs.mkdir(exist_ok=True)
-        tools = LocalTools(game, plan_store=logs / "plans.json")
+        tools = LocalTools(game, plan_store=games.plan_file(logs, which))         # plans per game, never shared
         stamp = time.strftime("%Y%m%d-%H%M%S")
         agent = agent_from(env, game, tools, logs / (stamp + ".jsonl"))
         quick = quick_from(env, game, tools, logs / (stamp + "-quick.jsonl"))
         if quick:
             agent = TieredAgent(quick, agent)
-    except (SetupError, SourceError, RuntimeError) as e:
+    except (SetupError, SourceError, RuntimeError, games.WrongGame) as e:
         print("Skippy cannot start: %s" % e)
         print("Run  python -m copilot --check  to go through the setup step by step.")
         sys.exit(2)
