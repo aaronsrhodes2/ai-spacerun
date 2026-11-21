@@ -332,7 +332,7 @@ km/s instead of 30). Run: Aquilo -> solar system edge at 31 km/s under `scripts/
 What happened: within 10,000 km huge asteroids (10 to 20 in sight, among 450 to 500 big ones) hit the nose and collectors; ghosts grew from
 77 to 1,300 in five minutes. The Captain turned it back to Aquilo at 9,700 km; on the way back damage went on (4,500, 8,200, 13,900
 ghosts), gun and railgun turrets ran empty, the platform was lost near Aquilo (propellant read 0 on the last sample; the ship is gone from
-`force.platforms`). Not known: which hit started it, whether the hull split. Reload point if wanted: save `pre-edge-run` (10:13, ship intact).
+`force.platforms`). Not known: which hit started it, whether the hull split. No blueprint of the ship existed, and the Captain rules out save rollbacks: it is rebuilt from scratch.
 Numbers read from the game (not guesses): one railgun round does 10,000 physical x (1 + 2.8) = 38,000; a big asteroid (2,000 hp, physical
 -2,000 flat, 10%) takes 32,400, a huge one (5,000 hp, -3,000 flat, 10%) 31,500: ONE round kills either. A railgun fires every 170 ticks
 (2.8 s), range 40, 4,000 hp, 11 MJ buffer. A medium (400 hp) takes 1 round too, a small 100 hp. Rocket: about 850 a hit on big, 3 rockets a kill.

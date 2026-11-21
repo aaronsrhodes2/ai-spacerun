@@ -81,6 +81,7 @@ Your memory of Factorio can be wrong for this version. `reference/` is dumped fr
 
 ## Working rules for designs (approved by the Captain, 2026-11-20)
 - Designs are blueprints: `scripts/design_library.py export NAME SURFACE X0 Y0 X1 Y1` puts a labelled blueprint in the "Design library" steel chest on Nauvis at (-367,-187) and the string in `designs/NAME-vN.txt` (index `designs/README.md`). Export after building or changing any standard unit.
+- Before any flight or change that can lose a ship or unit, export it whole to the Design library and commit the string; recovery is re-laying the blueprint, never reloading a save (the Captain, 2026-11-21, after Edgerunner was lost with no blueprint).
 - Improve the blueprint, not the map: for a changed layout clear the whole footprint, then lay the new ghosts for the robots.
 - Lay grids and lines as tiled blueprints. Use map tags as place names (an export tags its place).
 - Every timed script has a row in `docs/timed-scripts.md` with its purpose and when it can be retired; add the row in the same change.
