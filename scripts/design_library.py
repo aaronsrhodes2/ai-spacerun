@@ -23,7 +23,7 @@ CHEST = ("local s=game.surfaces.nauvis local f=game.forces.player local c=s.find
          "if #tags==0 then f.add_chart_tag(s,{position={%s,%s},text='Design library',icon={type='item',name='blueprint'}}) end rcon.print((c and 'chest stands' or 'NO chest')..', tag '..(#tags==0 and 'added' or 'there'))"
          % (CX, CY, CX, CY, CX, CY, CX, CY))
 
-EXPORT = ("local s=game.surfaces['%s'] local f=game.forces.player local inv=game.create_inventory(1) inv.insert{name='blueprint'} local st=inv[1] st.create_blueprint{surface=s,force=f,area={{%s,%s},{%s,%s}},always_include_tiles=false} "
+EXPORT = ("local s=game.surfaces['%s'] local f=game.forces.player local inv=game.create_inventory(1) inv.insert{name='blueprint'} local st=inv[1] st.create_blueprint{surface=s,force=f,area={{%s,%s},{%s,%s}},always_include_tiles=(s.platform~=nil)} "
           "if not st.is_blueprint_setup() then inv.destroy() rcon.print('EMPTY') return end st.label='%s' local n=#st.get_blueprint_entities() local str=st.export_stack() "
           "local c=game.surfaces.nauvis.find_entities_filtered{name='steel-chest',position={%s,%s},radius=0.3}[1] local put='no chest' if c then local ci=c.get_inventory(defines.inventory.chest) "
           "for i=1,#ci do local x=ci[i] if x.valid_for_read and x.is_blueprint and x.label and x.label:sub(1,%d)=='%s' then x.clear() end end local e=ci.find_empty_stack() if e then e.set_stack(st) put='in the chest' else put='chest full' end end "
@@ -39,6 +39,16 @@ def main():
         r = tools["place_entities"](json.dumps([{"name": "steel-chest", "x": CX, "y": CY, "params": {"quality": "legendary"}}]), surface="nauvis")
         print(str(r)[:200])
         print(L(CHEST).strip())
+    elif step == "ship":
+        # whole platform by (part of) its name: bounding box from the entities, then the same export
+        part = a[1]
+        r = L("local o for _,p in pairs(game.forces.player.platforms) do if p.name:lower():find('%s',1,true) and p.hub and p.hub.valid then local s=p.surface local x0,y0,x1,y1=1e9,1e9,-1e9,-1e9 for _,e in pairs(s.find_entities_filtered{force='player'}) do local b=e.bounding_box x0=math.min(x0,b.left_top.x) y0=math.min(y0,b.left_top.y) x1=math.max(x1,b.right_bottom.x) y1=math.max(y1,b.right_bottom.y) end o=s.name..' '..(math.floor(x0)-2)..' '..(math.floor(y0)-2)..' '..(math.ceil(x1)+2)..' '..(math.ceil(y1)+2)..' '..p.name:gsub('%%[.-%%]',''):gsub('^%%s+','') break end end rcon.print(o or 'none')" % part.lower().replace("'", "")).strip()
+        if r == "none":
+            print("no platform named like " + part)
+            return
+        f = r.split(" ", 5)
+        sys.argv = [sys.argv[0], "export", f[5].lower().replace(" ", "-"), f[0], f[1], f[2], f[3], f[4], "--note", "whole platform with deck tiles, exported before a risky run"]
+        return main()
     elif step == "export":
         name, surf = a[1], a[2]
         x0, y0, x1, y1 = (float(v) for v in a[3:7])
