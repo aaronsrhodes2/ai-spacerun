@@ -50,6 +50,7 @@ for _, s in pairs(game.surfaces) do
         if type(nm) == 'string' then rn = nm elseif type(nm) == 'userdata' and nm.name then rn = nm.name end
       end
     end
+    if rn == 'furnace' then local o = e.get_output_inventory() if o and o[1] and o[1].valid_for_read then rn = o[1].name end end
     local miss = ''
     if st == 'item_ingredient_shortage' or st == 'fluid_ingredient_shortage' then
       local inv = e.get_inventory(defines.inventory.crafter_input) or e.get_inventory(defines.inventory.furnace_source)
@@ -95,8 +96,8 @@ rcon.print(table.concat(o, ';'))
 
 STORAGE = ("local o={} local f=game.forces.player for _,s in pairs(game.surfaces) do "
            "for _,p in pairs(s.find_entities_filtered{type='cargo-landing-pad',force=f}) do local i=p.get_inventory(defines.inventory.cargo_landing_pad_main) o[#o+1]='PAD|'..s.name..'|'..#i..'|'..i.count_empty_stacks() end "
-           "local n,full,slots,free,ys,yf=0,0,0,0,0,0 local prv={} for _,c in pairs(s.find_entities_filtered{type='logistic-container',force=f}) do local i=c.get_inventory(defines.inventory.chest) local e=i.count_empty_stacks() "
-           "if c.name=='storage-chest' then n=n+1 slots=slots+#i free=free+e if e==0 then full=full+1 end if s.count_entities_filtered{type='inserter',area={{c.position.x-1.2,c.position.y-1.2},{c.position.x+1.2,c.position.y+1.2}},limit=1}>0 then ys=ys+#i yf=yf+e end elseif c.name=='passive-provider-chest' or c.name=='active-provider-chest' then local t=prv[c.name] or {0,0} t[2]=t[2]+1 if e==0 then t[1]=t[1]+1 end prv[c.name]=t end end "
+           "local n,full,slots,free,ys,yf=0,0,0,0,0,0 local prv={} local req={} for _,c in pairs(s.find_entities_filtered{name='requester-chest',force=f}) do local lp=c.get_logistic_point(defines.logistic_member_index.logistic_container) if lp then for _,fl in pairs(lp.filters or {}) do if (fl.count or fl.min or 0)>0 then req[fl.name]=true end end end end for _,c in pairs(s.find_entities_filtered{type='logistic-container',force=f}) do local i=c.get_inventory(defines.inventory.chest) local e=i.count_empty_stacks() "
+           "if c.name=='storage-chest' then n=n+1 slots=slots+#i free=free+e if e==0 then full=full+1 end if s.count_entities_filtered{type='inserter',area={{c.position.x-1.2,c.position.y-1.2},{c.position.x+1.2,c.position.y+1.2}},limit=1}>0 then ys=ys+#i yf=yf+e end elseif c.name=='passive-provider-chest' or c.name=='active-provider-chest' then local t=prv[c.name] or {0,0} t[2]=t[2]+1 if e==0 then local st=i[1] local ln=c.logistic_network if not (st and st.valid_for_read and ((ln and ln.get_item_count(st.name)>=20000) or not req[st.name])) then t[1]=t[1]+1 end end prv[c.name]=t end end "
            "if n>0 then o[#o+1]='STO|'..s.name..'|'..n..'|'..full..'|'..slots..'|'..free..'|'..ys..'|'..yf end for k,t in pairs(prv) do if t[1]>0 then o[#o+1]='PRV|'..s.name..'|'..k..'|'..t[1]..'|'..t[2] end end "
            "local tk={} for _,t in pairs(s.find_entities_filtered{type='storage-tank',force=f}) do local fl,amt=next(t.get_fluid_contents()) if fl then local cap=t.prototype.fluid_capacity*(1+0.3*t.quality.level) local x=tk[fl] or {0,0} x[2]=x[2]+1 if amt>=cap*0.99 then x[1]=x[1]+1 end tk[fl]=x end end "
            "for k,t in pairs(tk) do if t[1]>0 then o[#o+1]='TNK|'..s.name..'|'..k..'|'..t[1]..'|'..t[2] end end end "
@@ -128,7 +129,7 @@ def storage_findings():
                 # 2026-11-17 (Fulgora): a trash yard (storage chest with an inserter beside it, feeding a recycler) that is at least half empty is a
                 # working outlet: the full chests around it are a hoard, not a blockage. Scored 5 so it is still listed, never ranked as a failure.
                 yard_ok = ys > 0 and yf >= ys * 0.5
-                score = 5 if yard_ok else 300 if free == 0 else 120 if frac < 0.1 else full
+                score = 5 if yard_ok else 300 if free == 0 else 120 if frac < 0.1 else (full if frac < 0.25 else 0)    # 25%+ free is room, not a blockage (2026-11-20)
                 if score:
                     note = f"; trash yard has {yf} of {ys} slots free, so the surplus is being voided (hoard, not a blockage)" if yard_ok else ""
                     out.append((score, "full", f"{f[1]}: storage chests {full} of {n} full, {free} of {slots} slots free ({100 * frac:.0f}%){note}"))
@@ -278,9 +279,11 @@ def findings():
                 what = f" missing {miss}" if miss else ""
                 out.append((cnt, "starved", f"{surf}: {cnt}x {recipe} ({etype}) {st}{what}"))
             elif st == "full_output":
-                out.append((cnt / 2, "backed", f"{surf}: {cnt}x {recipe} ({etype}) full output"))
                 if surf == "nauvis":
                     idle_makers[recipe] = idle_makers.get(recipe, 0) + cnt
+                    if stocks.get(recipe, 0) >= 100000:
+                        continue                                       # product in big surplus: backed up by design (2026-11-20, void-surplus doctrine)
+                out.append((cnt / 2, "backed", f"{surf}: {cnt}x {recipe} ({etype}) full output"))
     for part in ledger.split(";"):
         if not part:
             continue

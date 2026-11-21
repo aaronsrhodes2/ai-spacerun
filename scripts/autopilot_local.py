@@ -16,6 +16,7 @@ import module_mall
 import aquilo_build_logistics
 import depleted_return
 import ghost_requests
+import island_legendary
 import request_tidy
 import replicator_demand_watch
 import replicator_cell
@@ -135,6 +136,11 @@ def main():
                     ap.log("aquilo build logistics: " + aquilo_build_logistics.cycle(), LOG)
                 except Exception as exc:  # noqa: BLE001
                     ap.log("aquilo build logistics error: " + repr(exc), LOG)
+            if cyc % 2 == 1:                                                                 # island scrap chain: void junk in the node provider chests (scripts/island_legendary.py)
+                try:
+                    ap.log("island trim: " + island_legendary.cycle(), LOG)
+                except Exception as exc:  # noqa: BLE001
+                    ap.log("island trim error: " + repr(exc), LOG)
             if cyc % 5 == 2:                                                                 # ghost shortfalls -> landing-pad requests on every planet (scripts/ghost_requests.py)
                 try:
                     ap.log("ghost requests: " + ghost_requests.cycle(), LOG)

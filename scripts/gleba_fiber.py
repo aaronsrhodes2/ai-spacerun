@@ -11,7 +11,7 @@ from _game import tools
 import gleba_cell as G
 
 OX, OY = 72, 26
-FIBER_CAP = 400
+FIBER_CAP = 6000      # raised from 400 on 2026-11-20 (Captain: scale up carbon fiber for the Fulgora foundation ghosts)
 Q = "epic"
 PQ = "legendary"
 
